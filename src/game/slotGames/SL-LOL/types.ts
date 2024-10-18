@@ -1,9 +1,9 @@
 export interface SymbolType {
   Name: string;
   Id: number;
-  isSpecial: boolean;
-  reelInstance: { [key: number]: number };
-  payout: number[];
+  useWildSub: boolean;
+  reelInstance: { [key: string]: number };
+  multiplier: [number, number][];
 }
 
 export type GameResult = number[][];
@@ -36,5 +36,7 @@ export interface SLLOLSETTINGS {
   reels: number[][];
   defaultPayout: number;
   minMatchCount: number;
-  
+  isFreeSpin: boolean;
+  freeSpinCount: number;
+  freeSpinMultipliers: number[];
 }

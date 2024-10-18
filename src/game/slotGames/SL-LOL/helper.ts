@@ -26,6 +26,9 @@ export function initializeGameSettings(gameData: any, gameInstance: SLLOL) {
     reels: [],
     defaultPayout: gameSettings.defaultPayout || 0,
     minMatchCount: gameSettings.minMatchCount || 3,
+    isFreeSpin: false,
+    freeSpinCount:0,
+    freeSpinMultipliers: [],
   };
 
   // Add WinData separately to avoid circular reference in logging

@@ -48,8 +48,9 @@ export class SLLOL {
   }
 
   private isWild(symbolId: number): boolean {
-    const symbol = this.getSymbol(symbolId);
-    return symbol ? symbol.Name === "Wild" : false;
+    // const symbol = this.getSymbol(symbolId);
+    // return symbol ? symbol.Name === "Wild" : false;
+    return symbolId===11
   }
 
   sendMessage(action: string, message: any) {
@@ -173,11 +174,11 @@ export class SLLOL {
         if (path.length >= this.settings.minMatchCount) {
           const symbol = this.getSymbol(symbolId)!;
           // Fix the payout index based on path length (5 -> 0, 4 -> 1, 3 -> 2)
-          const payoutIndex = 5 - path.length;
-          const payout = symbol.payout[payoutIndex]  // Correct payout for the match length
+          const multiplierIndex = path.length - this.settings.minMatchCount;
+          const multiplier = symbol.multiplier[multiplierIndex][0];
+          winningCombinations.push({ symbolId, positions: path, payout: multiplier * this.settings.BetPerLines });
           // console.log("payouttttt", symbol.payout[payoutIndex] );
           // console.log("asdasd");
-          winningCombinations.push({ symbolId, positions: path, payout });
         }
         return;
       }
@@ -193,9 +194,9 @@ export class SLLOL {
       if (path.length >= this.settings.minMatchCount) {
         const symbol = this.getSymbol(symbolId)!;
         // Fix the payout index based on path length (5 -> 0, 4 -> 1, 3 -> 2)
-        const payoutIndex = 5 - path.length;
-        const payout = symbol.payout[payoutIndex];
-        winningCombinations.push({ symbolId, positions: path, payout });
+          const multiplierIndex = path.length - this.settings.minMatchCount;
+          const multiplier = symbol.multiplier[multiplierIndex][0];
+          winningCombinations.push({ symbolId, positions: path, payout: multiplier * this.settings.BetPerLines });
       }
     };
 
@@ -231,37 +232,4 @@ export class SLLOL {
     return { payout: totalPayout, winningCombinations };
   }
 
-  // private getLineSymbols(result: GameResult, line: number): number[] {
-  //   // Implement the logic to get symbols for a specific payline
-  //   // This will depend on how your paylines are defined
-  //   // For simplicity, let's assume it's just the middle row for now
-  //   return result.map(reel => reel[1]);
-  // }
-  //
-  // private checkLinePayout(lineSymbols: number[]): { payout: number; combination: WinningCombination } {
-  //   const firstSymbol = lineSymbols[0];
-  //   let count = 1;
-  //
-  //   for (let i = 1; i < lineSymbols.length; i++) {
-  //     if (lineSymbols[i] === firstSymbol || this.isWild(lineSymbols[i])) {
-  //       count++;
-  //     } else {
-  //       break;
-  //     }
-  //   }
-  //
-  //   const symbol = this.getSymbol(firstSymbol);
-  //   if (!symbol) return { payout: 0, combination: { symbolId: firstSymbol, positions: [], payout: 0 } };
-  //
-  //   const payout = count >= 3 ? calculatePayout(this, lineSymbols, firstSymbol, count) : 0;
-  //
-  //   return {
-  //     payout,
-  //     combination: {
-  //       symbolId: firstSymbol,
-  //       positions: lineSymbols.map((_, index) => [index, 1]), // Assuming middle row for simplicity
-  //       payout
-  //     }
-  //   };
-  // }
 }
