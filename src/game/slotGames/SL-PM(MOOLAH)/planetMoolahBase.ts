@@ -10,8 +10,7 @@ export class SLPM {
         totalbet: 0,
         rtpSpinCount: 0,
         totalSpin: 0,
-        currentPayout: 0,
-        payoutafterCascading: 0,
+        currentPayout: 0
     };
 
     constructor(public currentGameData: currentGamedata) {
@@ -72,16 +71,19 @@ export class SLPM {
     public async spinResult(): Promise<void> {
         try {
             const playerData = this.getPlayerData();
-            if (!this.settings.freeSpin.useFreeSpin) {
-                await this.deductPlayerBalance(this.settings.currentBet);
-                this.playerData.totalbet += this.settings.currentBet;
+            if (this.settings.hasCascading) {
+                // await new RandomResultGenerator(this);
+                this.checkMoolahResult()
+                return
             }
             if (this.settings.currentBet > playerData.credits) {
                 this.sendError("Low Balance");
                 return;
             }
+            await this.deductPlayerBalance(this.settings.currentBet);
+            this.playerData.totalbet += this.settings.currentBet;
             await new RandomResultGenerator(this);
-            checkForWin(this)
+            this.checkMoolahResult()
         } catch (error) {
             this.sendError("Spin error");
             console.error("Failed to generate spin results:", error);
@@ -111,8 +113,16 @@ export class SLPM {
             this.sendError("RTP calculation error");
         }
     }
-    
+    private async checkMoolahResult() {
+
+        checkForWin(this)
+        // console.log(this.settings.cascadingNo, 'CASCADING')
+
+        // console.log(this.settings.lastReel, 'settings.lastReel')
+        // console.log(this.settings.tempReel, ' this.settings.tempReel')
+    }
 }
+
 
 
 

@@ -25,7 +25,6 @@ export default class BaseSlotGame implements RequiredSocketMethods {
         id: "",
         matrix: { x: 0, y: 0 },
         linesApiData: [],
-        freeSpinData : [],
         Symbols: [
           {
             Name: "",
@@ -36,9 +35,7 @@ export default class BaseSlotGame implements RequiredSocketMethods {
             defaultAmount: [],
             symbolsCount: [],
             increaseValue: [],
-            reelInstance: [],
-
-            // Ensure reelInstance is initialized
+            reelInstance: [], // Ensure reelInstance is initialized
           },
         ],
         bonus: {
@@ -260,7 +257,7 @@ export default class BaseSlotGame implements RequiredSocketMethods {
 
     if (
       this.settings.currentGamedata.bonus.isEnabled &&
-      this.settings.currentGamedata.bonus.type == bonusGameType.tap || this.settings.currentGamedata.bonus.type == bonusGameType.spin || this.settings.currentGamedata.bonus.type == bonusGameType.layerTap || this.settings.currentGamedata.bonus.type == bonusGameType.miniSpin
+      this.settings.currentGamedata.bonus.type == bonusGameType.spin || this.settings.currentGamedata.bonus.type == bonusGameType.layerTap || this.settings.currentGamedata.bonus.type == bonusGameType.miniSpin
     ) {
       this.settings.bonus.game = new BonusGame(
         this.settings.currentGamedata.bonus.noOfItem,
