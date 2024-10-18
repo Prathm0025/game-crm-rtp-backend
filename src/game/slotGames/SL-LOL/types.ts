@@ -4,15 +4,10 @@ export interface SymbolType {
   useWildSub: boolean;
   reelInstance: { [key: string]: number };
   multiplier: [number, number][];
+  freeSpinMultiplier:boolean
 }
 
 export type GameResult = number[][];
-
-// export interface GameConfig {
-//   rows: number;
-//   reels: number;
-//   minMatchCount: number;
-// }
 
 export interface WinningCombination {
   symbolId: number;
@@ -39,4 +34,14 @@ export interface SLLOLSETTINGS {
   isFreeSpin: boolean;
   freeSpinCount: number;
   freeSpinMultipliers: number[];
+  maxMultiplier: number;
+}
+
+export interface FreeSpinResponse {
+  freeSpinCount: number[];
+  freeSpinMultipliers: number[][];
+  combinations: WinningCombination[][]
+  results: number [][][]
+  isRetriggered : boolean[]
+  payouts: number[]
 }

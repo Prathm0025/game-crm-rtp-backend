@@ -28,7 +28,8 @@ export function initializeGameSettings(gameData: any, gameInstance: SLLOL) {
     minMatchCount: gameSettings.minMatchCount || 3,
     isFreeSpin: false,
     freeSpinCount:0,
-    freeSpinMultipliers: [],
+    freeSpinMultipliers: [1,1,1,1,1],
+    maxMultiplier: 10
   };
 
   // Add WinData separately to avoid circular reference in logging
@@ -104,14 +105,6 @@ export function sendInitData(gameInstance: SLLOL) {
   gameInstance.sendMessage("InitData", dataToSend);
 }
 
-// export function calculatePayout(gameInstance: SLLOL,  symbolId: number, count: number): number {
-//   const symbol = gameInstance.settings.Symbols.find(sym => sym.Id === symbolId);
-//   if (!symbol) return 0;
-//
-//   const payoutIndex = Math.min(count - 3, symbol.payout.length - 1);
-//   return symbol.payout[payoutIndex] * gameInstance.settings.BetPerLines;
-// }
-
 export function makeResultJson(gameInstance: SLLOL) {
   try {
     const { settings, playerData } = gameInstance;
@@ -134,22 +127,6 @@ export function makeResultJson(gameInstance: SLLOL) {
     console.error("Error generating result JSON or sending message:", error);
   }
 }
-
-// export function getRandomSymbolForReel(symbols: SymbolType[], reelIndex: number): number {
-//   const availableSymbols = symbols.filter(symbol => symbol.reelInstance.hasOwnProperty(reelIndex));
-//   const totalInstances = availableSymbols.reduce((sum, symbol) => sum + symbol.reelInstance[reelIndex], 0);
-//   let randomValue = crypto.getRandomValues(new Uint32Array(1))[0] % totalInstances;
-//
-//   for (const symbol of availableSymbols) {
-//     if (randomValue < symbol.reelInstance[reelIndex]) {
-//       return symbol.Id;
-//     }
-//     randomValue -= symbol.reelInstance[reelIndex];
-//   }
-//
-//   // This should never happen, but TypeScript requires a return statement
-//   return availableSymbols[0].Id;
-// }
 
 export function printMatrix(matrix: GameResult, getSymbol: (id: number) => SymbolType | undefined, gameInstance: SLLOL): void {
   const symbolNames = matrix.map(col =>
@@ -178,27 +155,6 @@ export function printWinningCombinations(winningCombinations: WinningCombination
   const totalPayout = winningCombinations.reduce((sum, combo) => sum + combo.payout, 0);
   console.log(`Total Payout: ${totalPayout}`);
 }
-// export function printWinningGrid(result: GameResult, winningCombinations: WinningCombination[]): void {
-//   // Print the game result matrix
-//   console.log("Game Result:");
-//   result.forEach(row => console.log(row.join(' ')));
-//
-//   console.log("\nWinning Combinations:");
-//
-//   winningCombinations.forEach(combo => {
-//     console.log(`${combo.symbolId} ->`);
-//
-//     const grid = result.map(row => row.map(() => '-'));
-//
-//     combo.positions.forEach(([col, row]) => {
-//       grid[row][col] = '0';
-//     });
-//
-//     grid.forEach(row => console.log(row.join(' ')));
-//     console.log();  // Empty line for separation
-//   });
-// }
-
 
 export function logGame(result: GameResult, payout: number, winningCombinations: WinningCombination[], getSymbol: (id: number) => SymbolType | undefined, gameInstance: SLLOL): void {
   console.log("Game Result:");
