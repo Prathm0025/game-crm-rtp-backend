@@ -38,7 +38,7 @@ function initializeGameSettings(gameData, gameInstance) {
         tempReel: [],
         firstReel: [],
         tempReelSym: [],
-        freeSpinData: [],
+        freeSpinData: gameData.gameSettings.freeSpinData,
         jackpot: {
             symbolName: "",
             symbolsCount: 0,
