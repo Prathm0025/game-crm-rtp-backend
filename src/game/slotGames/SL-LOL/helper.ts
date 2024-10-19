@@ -3,6 +3,7 @@ import { SymbolType, GameResult, WinningCombination, FreeSpinResponse } from './
 import { WinData } from "../BaseSlotGame/WinData";
 import { convertSymbols, UiInitData } from '../../Utils/gameUtils';
 import { RandomResultGenerator } from '../RandomResultGenerator';
+import { gambleCardGame } from '../BaseSlotGame/newGambleGame';
 
 
 export function initializeGameSettings(gameData: any, gameInstance: SLLOL) {
@@ -30,7 +31,8 @@ export function initializeGameSettings(gameData: any, gameInstance: SLLOL) {
     isFreeSpin: false,
     freeSpinCount: 0,
     freeSpinMultipliers: [1, 1, 1, 1, 1],
-    maxMultiplier: 10
+    maxMultiplier: 10,
+    gamble: gameSettings.gamble
   };
 
   // Add WinData separately to avoid circular reference in logging
@@ -282,71 +284,71 @@ export function simulateFreespin(gameInstance: SLLOL): FreeSpinResponse {
 }
 
 
-  export function checkWin(gameInstance: SLLOL): { payout: number; winningCombinations: WinningCombination[] } {
-  const {settings} = gameInstance;
-    let totalPayout = 0;
-    let winningCombinations: WinningCombination[] = [];
+export function checkWin(gameInstance: SLLOL): { payout: number; winningCombinations: WinningCombination[] } {
+  const { settings } = gameInstance;
+  let totalPayout = 0;
+  let winningCombinations: WinningCombination[] = [];
 
-    const findCombinations = (symbolId: number, col: number, path: [number, number][]): void => {
-      // Stop if we've checked all columns or path is complete
-      if (col === settings.matrix.x) {
-        if (path.length >= settings.minMatchCount) {
-          const symbol = getSymbol(symbolId, settings.Symbols);
-          const multiplierIndex = path.length - settings.minMatchCount;
-          if (symbol && symbol.multiplier[multiplierIndex]) { // Check if multiplier exists
-            const multiplier = symbol.multiplier[multiplierIndex][0];
-            winningCombinations.push({ symbolId, positions: path, payout: multiplier * settings.BetPerLines });
-          }
-        }
-        return;
-      }
-
-      for (let row = 0; row < settings.resultSymbolMatrix.length; row++) {
-        const currentSymbolId = settings.resultSymbolMatrix[row][col];
-        if (currentSymbolId === symbolId || isWild(currentSymbolId)) {
-          findCombinations(symbolId, col + 1, [...path, [row, col]]);
-        }
-      }
-
-      // End the combination if it's long enough
+  const findCombinations = (symbolId: number, col: number, path: [number, number][]): void => {
+    // Stop if we've checked all columns or path is complete
+    if (col === settings.matrix.x) {
       if (path.length >= settings.minMatchCount) {
-        const symbol = getSymbol(symbolId, settings.Symbols)!;
+        const symbol = getSymbol(symbolId, settings.Symbols);
         const multiplierIndex = path.length - settings.minMatchCount;
         if (symbol && symbol.multiplier[multiplierIndex]) { // Check if multiplier exists
           const multiplier = symbol.multiplier[multiplierIndex][0];
           winningCombinations.push({ symbolId, positions: path, payout: multiplier * settings.BetPerLines });
         }
       }
-    };
+      return;
+    }
 
-    // Iterate over each symbol in the first column
-    settings.Symbols.forEach(symbol => {
-      if (symbol.Name !== "Wild") {
-        for (let row = 0; row < settings.matrix.y; row++) {
-          const startSymbolId = settings.resultSymbolMatrix[row][0]; // Start in the leftmost column (0)
-          if (startSymbolId === symbol.Id || isWild(startSymbolId)) {
-            findCombinations(symbol.Id, 1, [[row, 0]]);
-          }
+    for (let row = 0; row < settings.resultSymbolMatrix.length; row++) {
+      const currentSymbolId = settings.resultSymbolMatrix[row][col];
+      if (currentSymbolId === symbolId || isWild(currentSymbolId)) {
+        findCombinations(symbolId, col + 1, [...path, [row, col]]);
+      }
+    }
+
+    // End the combination if it's long enough
+    if (path.length >= settings.minMatchCount) {
+      const symbol = getSymbol(symbolId, settings.Symbols)!;
+      const multiplierIndex = path.length - settings.minMatchCount;
+      if (symbol && symbol.multiplier[multiplierIndex]) { // Check if multiplier exists
+        const multiplier = symbol.multiplier[multiplierIndex][0];
+        winningCombinations.push({ symbolId, positions: path, payout: multiplier * settings.BetPerLines });
+      }
+    }
+  };
+
+  // Iterate over each symbol in the first column
+  settings.Symbols.forEach(symbol => {
+    if (symbol.Name !== "Wild") {
+      for (let row = 0; row < settings.matrix.y; row++) {
+        const startSymbolId = settings.resultSymbolMatrix[row][0]; // Start in the leftmost column (0)
+        if (startSymbolId === symbol.Id || isWild(startSymbolId)) {
+          findCombinations(symbol.Id, 1, [[row, 0]]);
         }
       }
-    });
+    }
+  });
 
-    // Filter out shorter combinations that are subsets of longer ones
-    winningCombinations = winningCombinations.filter((combo, index, self) =>
-      !self.some((otherCombo, otherIndex) =>
-        index !== otherIndex &&
-        combo.symbolId === otherCombo.symbolId &&
-        combo.positions.length < otherCombo.positions.length &&
-        combo.positions.every((pos, i) => pos[0] === otherCombo.positions[i][0] && pos[1] === otherCombo.positions[i][1])
-      )
-    );
+  // Filter out shorter combinations that are subsets of longer ones
+  winningCombinations = winningCombinations.filter((combo, index, self) =>
+    !self.some((otherCombo, otherIndex) =>
+      index !== otherIndex &&
+      combo.symbolId === otherCombo.symbolId &&
+      combo.positions.length < otherCombo.positions.length &&
+      combo.positions.every((pos, i) => pos[0] === otherCombo.positions[i][0] && pos[1] === otherCombo.positions[i][1])
+    )
+  );
 
-    winningCombinations.forEach(combo => {
-      // alter payout . multiply betsperline with payout
-      combo.payout = combo.payout * settings.BetPerLines
-    })
-    // Calculate total payout
-    totalPayout = winningCombinations.reduce((sum, combo) => sum + combo.payout, 0);
+  winningCombinations.forEach(combo => {
+    // alter payout . multiply betsperline with payout
+    combo.payout = combo.payout * settings.BetPerLines
+  })
+  // Calculate total payout
+  totalPayout = winningCombinations.reduce((sum, combo) => sum + combo.payout, 0);
 
-    return { payout: totalPayout, winningCombinations };
-  }
+  return { payout: totalPayout, winningCombinations };
+}

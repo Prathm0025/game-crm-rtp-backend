@@ -1,3 +1,5 @@
+import { gambleCardGame } from "../BaseSlotGame/newGambleGame";
+
 export interface SymbolType {
   Name: string;
   Id: number;
@@ -35,6 +37,11 @@ export interface SLLOLSETTINGS {
   freeSpinCount: number;
   freeSpinMultipliers: number[];
   maxMultiplier: number;
+  gamble: {
+    type: string;
+    isEnabled: boolean;
+  }
+
 }
 
 export interface FreeSpinResponse {
