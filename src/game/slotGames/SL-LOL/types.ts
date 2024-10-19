@@ -4,7 +4,7 @@ export interface SymbolType {
   useWildSub: boolean;
   reelInstance: { [key: string]: number };
   multiplier: [number, number][];
-  freeSpinMultiplier:boolean
+  isFreeSpinMultiplier:boolean
 }
 
 export type GameResult = number[][];
