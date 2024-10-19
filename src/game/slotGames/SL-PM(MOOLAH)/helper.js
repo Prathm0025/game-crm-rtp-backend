@@ -209,6 +209,7 @@ function checkForWin(gameInstance) {
                     }
                 }
                 makeResultJson(gameInstance);
+                gameInstance.updatePlayerBalance(settings.payoutAfterCascading);
                 settings.cascadingNo = 0;
                 settings.hasCascading = false;
                 settings.resultSymbolMatrix = [];
