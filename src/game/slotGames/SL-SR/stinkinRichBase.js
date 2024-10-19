@@ -9,10 +9,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SLPM = void 0;
+exports.SLSR = void 0;
 const RandomResultGenerator_1 = require("../RandomResultGenerator");
 const helper_1 = require("./helper");
-class SLPM {
+class SLSR {
     constructor(currentGameData) {
         this.currentGameData = currentGameData;
         this.playerData = {
@@ -22,7 +22,6 @@ class SLPM {
             rtpSpinCount: 0,
             totalSpin: 0,
             currentPayout: 0,
-            payoutafterCascading: 0,
         };
         this.settings = (0, helper_1.initializeGameSettings)(currentGameData, this);
         (0, helper_1.generateInitialReel)(this.settings);
@@ -71,14 +70,13 @@ class SLPM {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const playerData = this.getPlayerData();
-                if (!this.settings.freeSpin.useFreeSpin) {
-                    yield this.deductPlayerBalance(this.settings.currentBet);
-                    this.playerData.totalbet += this.settings.currentBet;
-                }
+                yield this.deductPlayerBalance(this.settings.currentBet);
+                this.playerData.totalbet += this.settings.currentBet;
                 if (this.settings.currentBet > playerData.credits) {
                     this.sendError("Low Balance");
                     return;
                 }
+                console.log("total bet ", this.settings.currentBet);
                 yield new RandomResultGenerator_1.RandomResultGenerator(this);
                 (0, helper_1.checkForWin)(this);
             }
@@ -114,4 +112,4 @@ class SLPM {
         });
     }
 }
-exports.SLPM = SLPM;
+exports.SLSR = SLSR;
