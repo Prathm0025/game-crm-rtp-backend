@@ -38,7 +38,7 @@ function initializeGameSettings(gameData, gameInstance) {
         tempReel: [],
         firstReel: [],
         tempReelSym: [],
-        freeSpinData: gameData.gameSettings.freeSpinData,
+        freeSpinData: [],
         jackpot: {
             symbolName: "",
             symbolsCount: 0,
@@ -190,8 +190,8 @@ function checkForWin(gameInstance) {
                 console.log("NO PAYLINE MATCH");
                 if (settings.cascadingNo >= 4) {
                     console.log("Cascading Count:", settings.cascadingNo);
-                    console.log("FreeSpin Data:", settings.freeSpinData);
-                    const freeSpinData = settings.freeSpinData;
+                    console.log("FreeSpin Data:", settings.currentGamedata.freeSpinData);
+                    const freeSpinData = settings.currentGamedata.freeSpinData;
                     for (let i = 0; i < freeSpinData.length; i++) {
                         const [requiredCascadingCount, awardedFreeSpins] = freeSpinData[i];
                         if (settings.cascadingNo == requiredCascadingCount) {
@@ -403,6 +403,8 @@ function cascadeSymbols(gameInstance) {
  * @param gameInstance - The instance of the SLCM class containing the game settings and player data.
  */
 function sendInitData(gameInstance) {
+    gameInstance.settings.lineData =
+        gameInstance.settings.currentGamedata.linesApiData;
     gameUtils_1.UiInitData.paylines = (0, gameUtils_1.convertSymbols)(gameInstance.settings.Symbols);
     const reels = generateInitialReel(gameInstance.settings);
     gameInstance.settings.reels = reels;
@@ -411,7 +413,7 @@ function sendInitData(gameInstance) {
             Reel: reels,
             linesApiData: gameInstance.settings.currentGamedata.linesApiData,
             Bets: gameInstance.settings.currentGamedata.bets,
-            freeSpinData: gameInstance.settings.freeSpinData,
+            freeSpinData: gameInstance.settings.currentGamedata.freeSpinData,
         },
         UIData: gameUtils_1.UiInitData,
         PlayerData: {

@@ -10,5 +10,4 @@ const ToggleController_1 = require("./ToggleController");
 const toggleController = new ToggleController_1.ToggleController();
 exports.toggleRoutes = express_1.default.Router();
 exports.toggleRoutes.put("/", toggleController.putToggle);
-exports.toggleRoutes.get("/", toggleController.getToggle);
 exports.default = exports.toggleRoutes;

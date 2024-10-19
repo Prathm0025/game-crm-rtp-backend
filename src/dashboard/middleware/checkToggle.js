@@ -12,73 +12,26 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkGamesToggle = exports.checkLoginToggle = void 0;
+exports.checkToggle = void 0;
 const ToggleModel_1 = __importDefault(require("../Toggle/ToggleModel"));
-const utils_1 = require("../../utils/utils");
-const userModel_1 = require("../users/userModel");
-const http_errors_1 = __importDefault(require("http-errors"));
-const checkLoginToggle = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+const checkToggle = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const companyUsers = yield userModel_1.User.find({ role: 'company' });
-        //check if company users exist ,then pass through
-        if (companyUsers === null || companyUsers === void 0 ? void 0 : companyUsers.find(user => user.username === req.body.username)) {
-            next();
-        }
-        else {
-            const { underMaintenance, availableAt } = yield isAvaiable();
-            if (underMaintenance === true) {
-                res.status(200).json({ message: `underMaintenance till ${(0, utils_1.formatDate)(availableAt.toISOString())}`, isUnderMaintenance: underMaintenance });
-                return;
-            }
-            else {
-                next();
-            }
-        }
-    }
-    catch (error) {
-        next(error);
-    }
-});
-exports.checkLoginToggle = checkLoginToggle;
-const checkGamesToggle = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const companyUsers = yield userModel_1.User.find({ role: 'company' });
-        //check if company users exist ,then pass through
-        if (companyUsers === null || companyUsers === void 0 ? void 0 : companyUsers.find(user => user.username === req.body.username)) {
-            next();
-        }
-        else {
-            const { underMaintenance, availableAt } = yield isAvaiable();
-            if (underMaintenance === true) {
-                res.status(201).json({ message: `underMaintenance till ${(0, utils_1.formatDate)(availableAt.toISOString())}`, isUnderMaintenance: underMaintenance, availableAt: availableAt });
-                return;
-            }
-            else {
-                next();
-            }
-        }
-    }
-    catch (error) {
-        next(error);
-    }
-});
-exports.checkGamesToggle = checkGamesToggle;
-function isAvaiable() {
-    return __awaiter(this, void 0, void 0, function* () {
         const toggle = yield ToggleModel_1.default.findOne();
-        if (!toggle)
-            throw (0, http_errors_1.default)(404, "Toggle not found");
-        if (toggle.availableAt === null) {
-            return { underMaintenance: false, availableAt: null };
+        if (toggle === null || toggle === void 0 ? void 0 : toggle.availableAt) {
+            const now = new Date();
+            const availableAt = new Date(toggle.availableAt);
+            // Check if the current time is before the 'availableAt' time
+            if (now < availableAt) {
+                return res.status(503).json({ message: `Under Maintenance until ${availableAt}` });
+            }
+            // If the time has passed, reset 'availableAt' to null
+            toggle.availableAt = null;
+            yield toggle.save();
         }
-        const now = new Date();
-        const time = new Date(toggle.availableAt);
-        if (time > now) {
-            return { underMaintenance: true, availableAt: toggle.availableAt };
-        }
-        else {
-            yield ToggleModel_1.default.findOneAndUpdate({}, { availableAt: null }, { new: true, upsert: true });
-            return { underMaintenance: false, availableAt: null };
-        }
-    });
-}
+        next(); // Proceed if the service is available
+    }
+    catch (error) {
+        return res.status(500).json({ message: 'Error checking service status' });
+    }
+});
+exports.checkToggle = checkToggle;

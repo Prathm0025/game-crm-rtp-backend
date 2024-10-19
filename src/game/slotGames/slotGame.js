@@ -7,18 +7,13 @@ const BaseSlotGame_1 = __importDefault(require("./BaseSlotGame/BaseSlotGame"));
 const cashMachineBase_1 = require("./SL-CM/cashMachineBase");
 const crazy777Base_1 = require("./SL-CRZ/crazy777Base");
 const wheelOfFortuneBase_1 = require("./SL-WOF/wheelOfFortuneBase");
-const OneOfAKindBase_1 = require("./SL-ONE/OneOfAKindBase");
-const LifeOfLuxury_1 = require("./SL-LOL/LifeOfLuxury");
-const bloodEternalBase_1 = require("./SL-BE/bloodEternalBase");
 const planetMoolahBase_1 = require("./SL-PM(MOOLAH)/planetMoolahBase");
-const stinkinRichBase_1 = require("./SL-SR/stinkinRichBase");
 class SlotGameManager {
     constructor(currentGameData) {
         // console.log("Requesting Game : ",currentGameData.gameSettings.id);
         this.currentGameData = currentGameData;
         this.gameClassMapping = {
-            "SL-CM": cashMachineBase_1.SLCM, "SL-CRZ": crazy777Base_1.SLCRZ, "SL-WOF": wheelOfFortuneBase_1.SLWOF, "SL-PM": planetMoolahBase_1.SLPM, "SL-ONE": OneOfAKindBase_1.SLONE, "SL-LOL": LifeOfLuxury_1.SLLOL, "SL-BE": bloodEternalBase_1.SLBE,
-            "SL-SR": stinkinRichBase_1.SLSR
+            "SL-CM": cashMachineBase_1.SLCM, "SL-CRZ": crazy777Base_1.SLCRZ, "SL-WOF": wheelOfFortuneBase_1.SLWOF, "SL-PM": planetMoolahBase_1.SLPM
         };
         const slotGameClass = this.gameClassMapping[currentGameData.gameSettings.id];
         if (slotGameClass) {
