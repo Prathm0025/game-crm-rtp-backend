@@ -13,6 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getSubordinateModel = exports.uploadImage = exports.updateCredits = exports.updatePassword = exports.updateStatus = exports.MESSAGEID = exports.rolesHierarchy = exports.clients = void 0;
+exports.formatDate = formatDate;
 const http_errors_1 = __importDefault(require("http-errors"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const transactionController_1 = require("../dashboard/transactions/transactionController");
@@ -22,6 +23,21 @@ const bcrypt_1 = __importDefault(require("bcrypt"));
 const socket_1 = require("../socket");
 const transactionController = new transactionController_1.TransactionController();
 exports.clients = new Map();
+function formatDate(isoString) {
+    const date = new Date(isoString);
+    const formattedDate = date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+    });
+    const formattedTime = date.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric',
+        hour12: true
+    });
+    return `${formattedDate} at ${formattedTime}`;
+}
 exports.rolesHierarchy = {
     company: ["master", "distributor", "subdistributor", "store", "player"],
     master: ["distributor"],
