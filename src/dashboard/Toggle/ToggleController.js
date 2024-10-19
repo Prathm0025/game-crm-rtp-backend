@@ -20,14 +20,29 @@ class ToggleController {
         this.getToggle = this.getToggle.bind(this);
         this.putToggle = this.putToggle.bind(this);
     }
-    getToggle() {
+    //NOTE: GET toggle
+    getToggle(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const toggle = yield ToggleModel_1.default.findOne();
-                return toggle;
+                const toggle = yield ToggleModel_1.default.findOne({});
+                if (!toggle)
+                    throw (0, http_errors_1.default)(404, "Toggle not found");
+                if (toggle.availableAt === null) {
+                    res.status(200).json({ underMaintenance: false });
+                    return;
+                }
+                const now = new Date();
+                if (new Date(toggle.availableAt) < now) {
+                    yield ToggleModel_1.default.findOneAndUpdate({}, { availableAt: null }, { new: true, upsert: true });
+                    res.status(200).json({ underMaintenance: false });
+                    return;
+                }
+                else {
+                    res.status(200).json({ underMaintenance: true, availableAt: toggle.availableAt });
+                }
             }
             catch (error) {
-                throw error;
+                next(error);
             }
         });
     }
@@ -41,7 +56,7 @@ class ToggleController {
                     throw (0, http_errors_1.default)(404, "availableAt is required");
                 if (availableAt === "null") {
                     const toggle = yield ToggleModel_1.default.findOneAndUpdate({}, { availableAt: null }, { new: true, upsert: true });
-                    res.status(200).json(toggle);
+                    res.status(200).json({ message: "Toggle updated successfully", availableAt: toggle.availableAt });
                     return;
                 }
                 const now = new Date();
@@ -49,7 +64,7 @@ class ToggleController {
                 if (time < now)
                     throw (0, http_errors_1.default)(404, "availableAt is invalid");
                 const toggle = yield ToggleModel_1.default.findOneAndUpdate({}, { availableAt }, { new: true, upsert: true });
-                res.status(200).json(toggle);
+                res.status(200).json({ message: "Toggle updated successfully", availableAt: toggle.availableAt });
             }
             catch (error) {
                 next(error);
