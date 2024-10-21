@@ -9,14 +9,15 @@ export class RandomResultGenerator {
                 matrix[y][x] = current.settings.reels[x][(startPosition + y) % current.settings.reels[x].length];
             }
         }
-        matrix.forEach(row => console.log(row.join(' ')));
+
 
         // matrix.pop();
         // matrix.pop();
         // matrix.pop();
-        // matrix.push(['4', '12', '12', '12', '9'])
-        // matrix.push(['1', '6', '2', '12', '2'])
-        // matrix.push(['12', '3', '1', '11', '12'])
+        // matrix.push(['4', '1', '2', '3', '9', '3'])
+        // matrix.push(['2', '2', '2', '2', '2', '2'])
+        // matrix.push(['12', '3', '1', '11', '12', '3'])
+        matrix.forEach(row => console.log(row.join(' ')));
         current.settings.resultReelIndex = matrix;
         current.settings.resultSymbolMatrix = matrix;
 
