@@ -5,11 +5,13 @@ import { SLCRZ } from "./SL-CRZ/crazy777Base";
 import { SLWOF } from "./SL-WOF/wheelOfFortuneBase";
 import { SLPM } from "./SL-PM(MOOLAH)/planetMoolahBase";
 import {SLSR} from "./SL-SR/stinkinRichBase";
+import { SLONE } from "./SL-ONE/OneOfAKindBase";
+import { SLLOL } from "./SL-LOL/LifeOfLuxury";
 export default class SlotGameManager {
   public currentGame: any;
 
   gameClassMapping: { [key: string]: any } = {
-    "SL-CM": SLCM, "SL-CRZ": SLCRZ, "SL-WOF": SLWOF, "SL-PM": SLPM, "SL-SR": SLSR,
+    "SL-CM": SLCM, "SL-CRZ": SLCRZ, "SL-WOF": SLWOF, "SL-PM": SLPM, "SL-ONE": SLONE, "SL-LOL": SLLOL, "SL-SR": SLSR,
   };
 
   constructor(public currentGameData: currentGamedata) {
