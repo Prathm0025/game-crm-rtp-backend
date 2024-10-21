@@ -146,10 +146,7 @@ export function checkForWin(gameInstance: SLPM) {
           settings.Symbols[firstSymbol].Name as specialIcons
         )
       ) {
-        console.log(
-          "Special Icon Matched : ",
-          settings.Symbols[firstSymbol].Name
-        );
+        
         return;
       }
       const { isWinningLine, matchCount, matchedIndices } = checkLineSymbols(
