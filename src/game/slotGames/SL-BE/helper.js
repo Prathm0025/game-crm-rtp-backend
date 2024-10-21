@@ -9,7 +9,6 @@ exports.makeResultJson = makeResultJson;
 const WinData_1 = require("../BaseSlotGame/WinData");
 const gameUtils_1 = require("../../Utils/gameUtils");
 const types_1 = require("./types");
-const RandomResultGenerator_1 = require("../RandomResultGenerator");
 /**
  * Initializes the game settings using the provided game data and game instance.
  * @param gameData - The data used to configure the game settings.
@@ -30,23 +29,6 @@ function initializeGameSettings(gameData, gameInstance) {
         currentLines: 0,
         BetPerLines: 0,
         reels: [],
-        hasCascading: false,
-        cascadingNo: 0,
-        payoutAfterCascading: 0,
-        cascadingResult: [],
-        lastReel: [],
-        tempReel: [],
-        firstReel: [],
-        tempReelSym: [],
-        freeSpinData: [],
-        jackpot: {
-            symbolName: "",
-            symbolsCount: 0,
-            symbolId: 0,
-            defaultAmount: 0,
-            increaseValue: 0,
-            useJackpot: false,
-        },
         freeSpin: {
             symbolID: "-1",
             freeSpinMuiltiplier: [],
@@ -69,9 +51,9 @@ function initializeGameSettings(gameData, gameInstance) {
  * @returns A 2D array representing the reels, where each sub-array corresponds to a reel.
  */
 function generateInitialReel(gameSettings) {
-    const reels = [[], [], [], [], []];
+    const reels = [[], [], [], [], [], []];
     gameSettings.Symbols.forEach((symbol) => {
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < 6; i++) {
             const count = symbol.reelInstance[i] || 0;
             for (let j = 0; j < count; j++) {
                 reels[i].push(symbol.Id);
@@ -103,14 +85,6 @@ function makePayLines(gameInstance) {
 }
 function handleSpecialSymbols(symbol, gameInstance) {
     switch (symbol.Name) {
-        case types_1.specialIcons.jackpot:
-            gameInstance.settings.jackpot.symbolName;
-            gameInstance.settings.jackpot.symbolId = symbol.Id;
-            gameInstance.settings.jackpot.symbolsCount = symbol.symbolsCount;
-            gameInstance.settings.jackpot.defaultAmount = symbol.defaultAmount;
-            gameInstance.settings.jackpot.increaseValue = symbol.increaseValue;
-            gameInstance.settings.jackpot.useJackpot = true;
-            break;
         case types_1.specialIcons.wild:
             gameInstance.settings.wild.SymbolName = symbol.Name;
             gameInstance.settings.wild.SymbolID = symbol.Id;
@@ -125,9 +99,6 @@ function handleSpecialSymbols(symbol, gameInstance) {
 function checkForWin(gameInstance) {
     try {
         const { settings } = gameInstance;
-        if (settings.cascadingNo === 0) {
-            settings.firstReel = [...settings.resultSymbolMatrix.map(row => [...row])]; // Deep copy to preserve the original matrix
-        }
         const winningLines = [];
         let totalPayout = 0;
         settings.lineData.forEach((line, index) => {
@@ -139,14 +110,16 @@ function checkForWin(gameInstance) {
             }
             // Handle special icons
             if (Object.values(types_1.specialIcons).includes(settings.Symbols[firstSymbol].Name)) {
+                // console.log(
+                //     "Special Icon Matched : ",
+                //     settings.Symbols[firstSymbol].Name
+                // );
                 return;
             }
             const { isWinningLine, matchCount, matchedIndices } = checkLineSymbols(firstSymbol, line, gameInstance);
             switch (true) {
                 case isWinningLine && matchCount >= 3:
                     const symbolMultiplier = accessData(firstSymbol, matchCount, gameInstance);
-                    settings.lastReel = settings.resultSymbolMatrix;
-                    console.log(settings.lastReel, 'lastReel');
                     switch (true) {
                         case symbolMultiplier > 0:
                             totalPayout += symbolMultiplier;
@@ -159,7 +132,7 @@ function checkForWin(gameInstance) {
                             });
                             console.log(`Line ${index + 1}:`, line);
                             console.log(`Payout for Line ${index + 1}:`, "payout", symbolMultiplier);
-                            const formattedIndices = matchedIndices.map(({ col, row }) => `${col},${row}`);
+                            const formattedIndices = matchedIndices.map(({ col, row }) => `${row},${col}`);
                             const validIndices = formattedIndices.filter((index) => index.length > 2);
                             if (validIndices.length > 0) {
                                 // console.log(settings.lastReel, 'settings.lastReel')
@@ -177,48 +150,6 @@ function checkForWin(gameInstance) {
                     break;
             }
         });
-        switch (true) {
-            case winningLines.length >= 1:
-                settings.cascadingNo += 1;
-                settings.hasCascading = true;
-                new RandomResultGenerator_1.RandomResultGenerator(gameInstance);
-                settings.tempReel = settings.resultSymbolMatrix;
-                ExtractTempReelsWiningSym(gameInstance);
-                break;
-            default:
-                console.log("NO PAYLINE MATCH");
-                if (settings.cascadingNo >= 4 && !settings.freeSpin.useFreeSpin) {
-                    console.log("Cascading Count:", settings.cascadingNo);
-                    console.log("FreeSpin Data:", settings.currentGamedata.freeSpinData);
-                    const freeSpinData = settings.currentGamedata.freeSpinData;
-                    for (let i = 0; i < freeSpinData.length; i++) {
-                        const [requiredCascadingCount, awardedFreeSpins] = freeSpinData[i];
-                        if (settings.cascadingNo == requiredCascadingCount) {
-                            settings.freeSpin.useFreeSpin = true;
-                            settings.freeSpin.freeSpinCount += awardedFreeSpins;
-                            console.log(`Free spins awarded: ${awardedFreeSpins}`);
-                            break;
-                        }
-                        if (settings.cascadingNo > 8) {
-                            settings.freeSpin.useFreeSpin = true;
-                            settings.freeSpin.freeSpinCount = 25;
-                            console.log(`Free spins awarded: ${settings.freeSpin.freeSpinCount}`);
-                            break;
-                        }
-                    }
-                }
-                makeResultJson(gameInstance);
-                gameInstance.updatePlayerBalance(settings.payoutAfterCascading);
-                settings.cascadingNo = 0;
-                settings.hasCascading = false;
-                settings.resultSymbolMatrix = [];
-                settings.tempReelSym = [];
-                settings.tempReel = [];
-                settings.payoutAfterCascading = 0;
-                settings.cascadingResult = [];
-                settings.freeSpin.useFreeSpin = false;
-                break;
-        }
         return winningLines;
     }
     catch (error) {
@@ -301,104 +232,6 @@ function accessData(symbol, matchCount, gameInstance) {
         return 0;
     }
 }
-//
-function shuffleTempArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-}
-function ExtractTempReelsWiningSym(gameInstance) {
-    const { settings } = gameInstance;
-    settings.tempReel = shuffleTempArray(settings.tempReel.flat());
-    settings.tempReelSym = settings.tempReel;
-    setToMinusOne(gameInstance);
-}
-function setToMinusOne(gameInstance) {
-    const { settings } = gameInstance;
-    const valuesWithIndices = settings._winData.winningSymbols.flatMap((symbolIndices) => {
-        return symbolIndices.map((indexStr) => {
-            const [col, row] = indexStr.split(",").map(Number);
-            const symbolValues = (settings.lastReel[row][col] = -1);
-            return {
-                value: symbolValues,
-            };
-        });
-    });
-    console.log(settings.lastReel, "Winning symbols set to -1");
-    cascadeSymbols(gameInstance);
-    return valuesWithIndices;
-}
-/**
- * Handles cascading mechanic and checks for additional wins.
- * @param gameInstance - The game instance to apply cascading to.
- */
-function cascadeSymbols(gameInstance) {
-    const data = {
-        symbolsToFill: [],
-        winingSymbols: [],
-        lineToEmit: [],
-        currentWining: 0,
-    };
-    const { settings } = gameInstance;
-    const rows = settings.lastReel.length;
-    const cols = settings.lastReel[0].length;
-    for (let col = 0; col < cols; col++) {
-        let columnSymbols = [];
-        for (let row = rows - 1; row >= 0; row--) {
-            if (settings.lastReel[row][col] !== -1) {
-                columnSymbols.push(settings.lastReel[row][col]);
-            }
-        }
-        let index = rows - 1;
-        for (let symbol of columnSymbols) {
-            settings.lastReel[index--][col] = symbol;
-        }
-        while (index >= 0) {
-            settings.lastReel[index--][col] = -1;
-        }
-    }
-    const flattenedReel = settings.lastReel;
-    let tempSymbols = settings.tempReelSym.flat();
-    const assignedSymbolsByCol = [];
-    for (let col = 0; col < cols; col++) {
-        let assignedSymbols = [];
-        let totalEmptySlots = 0;
-        for (let row = 0; row < rows; row++) {
-            if (flattenedReel[row][col] === -1) {
-                totalEmptySlots++;
-            }
-        }
-        let symbolsToUse = tempSymbols.slice(0, totalEmptySlots);
-        tempSymbols = tempSymbols.slice(totalEmptySlots);
-        for (let row = 0; row < rows; row++) {
-            if (flattenedReel[row][col] === -1 && symbolsToUse.length > 0) {
-                flattenedReel[row][col] = symbolsToUse.shift();
-                assignedSymbols.push(flattenedReel[row][col]);
-            }
-        }
-        assignedSymbolsByCol.push(assignedSymbols);
-    }
-    data.symbolsToFill = assignedSymbolsByCol;
-    data.lineToEmit = settings._winData.winningLines;
-    data.winingSymbols = settings._winData.winningSymbols;
-    data.currentWining = settings._winData.totalWinningAmount;
-    settings.payoutAfterCascading += settings._winData.totalWinningAmount;
-    gameInstance.playerData.payoutAfterCascading += settings._winData.totalWinningAmount;
-    gameInstance.playerData.haveWon += settings._winData.totalWinningAmount;
-    settings.cascadingResult.push(Object.assign({}, data));
-    data.symbolsToFill = [];
-    data.lineToEmit = [];
-    data.winingSymbols = [];
-    data.currentWining = 0;
-    settings.resultSymbolMatrix = flattenedReel;
-    settings._winData.winningSymbols = [];
-    settings.tempReelSym = [];
-    settings.tempReel = [];
-    settings._winData.winningLines = [];
-    checkForWin(gameInstance);
-}
 /**
  * Sends the initial game and player data to the client.
  * @param gameInstance - The instance of the SLCM class containing the game settings and player data.
@@ -412,9 +245,7 @@ function sendInitData(gameInstance) {
     const dataToSend = {
         GameData: {
             Reel: reels,
-            linesApiData: gameInstance.settings.currentGamedata.linesApiData,
             Bets: gameInstance.settings.currentGamedata.bets,
-            freeSpinData: gameInstance.settings.currentGamedata.freeSpinData,
         },
         UIData: gameUtils_1.UiInitData,
         PlayerData: {
@@ -429,22 +260,17 @@ function sendInitData(gameInstance) {
 function makeResultJson(gameInstance) {
     try {
         const { settings, playerData } = gameInstance;
-        const credits = gameInstance.getPlayerData().credits + settings.payoutAfterCascading;
+        const credits = gameInstance.getPlayerData().credits;
         const Balance = credits.toFixed(2);
         const sendData = {
             GameData: {
-                resultSymbols: settings.firstReel,
                 linesToEmit: settings._winData.winningLines,
                 symbolsToEmit: settings._winData.winningSymbols,
                 jackpot: settings._winData.jackpotwin,
-                cascading: settings.cascadingResult,
-                isCascading: settings.hasCascading,
-                isFreeSpin: settings.freeSpin.useFreeSpin,
-                freeSpinCount: settings.freeSpin.freeSpinCount,
             },
             PlayerData: {
                 Balance: Balance,
-                currentWining: settings.payoutAfterCascading,
+                currentWining: settings._winData.totalWinningAmount,
                 totalbet: playerData.totalbet,
                 haveWon: playerData.haveWon,
             }

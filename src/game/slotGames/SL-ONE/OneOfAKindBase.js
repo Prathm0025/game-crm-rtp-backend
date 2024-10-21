@@ -9,10 +9,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SLPM = void 0;
-const RandomResultGenerator_1 = require("../RandomResultGenerator");
+exports.SLONE = void 0;
 const helper_1 = require("./helper");
-class SLPM {
+class SLONE {
     constructor(currentGameData) {
         this.currentGameData = currentGameData;
         this.playerData = {
@@ -21,13 +20,11 @@ class SLPM {
             totalbet: 0,
             rtpSpinCount: 0,
             totalSpin: 0,
-            currentPayout: 0,
-            payoutafterCascading: 0,
+            currentPayout: 0
         };
         this.settings = (0, helper_1.initializeGameSettings)(currentGameData, this);
         (0, helper_1.generateInitialReel)(this.settings);
         (0, helper_1.sendInitData)(this);
-        (0, helper_1.makePayLines)(this);
     }
     get initSymbols() {
         const Symbols = [];
@@ -70,17 +67,23 @@ class SLPM {
     spinResult() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const playerData = this.getPlayerData();
-                if (!this.settings.freeSpin.useFreeSpin) {
-                    yield this.deductPlayerBalance(this.settings.currentBet);
-                    this.playerData.totalbet += this.settings.currentBet;
-                }
+                //TODO:
+                const playerData = this.settings._winData.slotGame.getPlayerData();
+                // console.log('playerCredits', playerData.credits);
+                //NOTE: low balance
                 if (this.settings.currentBet > playerData.credits) {
+                    console.log('Low Balance', playerData.credits);
+                    console.log('Current Bet', this.settings.currentBet);
                     this.sendError("Low Balance");
                     return;
                 }
-                yield new RandomResultGenerator_1.RandomResultGenerator(this);
-                (0, helper_1.checkForWin)(this);
+                //TODO: bonus games 
+                //free spins n boosters
+                //NOTE: deduct balance
+                this.deductPlayerBalance(this.settings.currentBet);
+                this.playerData.totalbet += this.settings.currentBet;
+                this.randomResultGenerator();
+                this.checkResult();
             }
             catch (error) {
                 this.sendError("Spin error");
@@ -113,5 +116,37 @@ class SLPM {
             }
         });
     }
+    checkResult() {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                //TODO:
+                const resultmatrix = this.settings.resultSymbolMatrix;
+                console.log("Result Matrix:", resultmatrix);
+                console.log("base Pay", this.settings.Symbols[resultmatrix[0]].payout);
+                (0, helper_1.calculatePayout)(this);
+                const playerData = this.settings._winData.slotGame.getPlayerData();
+                console.log('playerCredits', playerData.credits);
+            }
+            catch (error) {
+                console.error("Error in checkResult:", error);
+            }
+        });
+    }
+    randomResultGenerator() {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                //TODO:
+                const getRandomIndex = (maxValue) => {
+                    return Math.floor(Math.random() * (maxValue + 1));
+                };
+                const reel = this.settings.reels;
+                const index = getRandomIndex(reel.length - 1);
+                this.settings.resultSymbolMatrix = [reel[index]];
+            }
+            catch (error) {
+                console.error("Error in randomResultGenerator:", error);
+            }
+        });
+    }
 }
-exports.SLPM = SLPM;
+exports.SLONE = SLONE;

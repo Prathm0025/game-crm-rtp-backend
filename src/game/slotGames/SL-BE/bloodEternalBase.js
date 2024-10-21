@@ -9,10 +9,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SLPM = void 0;
-const RandomResultGenerator_1 = require("../RandomResultGenerator");
+exports.SLBE = void 0;
 const helper_1 = require("./helper");
-class SLPM {
+const RandomResultGenerator_1 = require("../RandomResultGenerator");
+/**
+ * Represents the Blood Eternal Slot  Game Class for handling slot machine operations.
+ */
+class SLBE {
     constructor(currentGameData) {
         this.currentGameData = currentGameData;
         this.playerData = {
@@ -20,21 +23,14 @@ class SLPM {
             currentWining: 0,
             totalbet: 0,
             rtpSpinCount: 0,
-            totalSpin: 0,
-            currentPayout: 0,
-            payoutafterCascading: 0,
+            totalSpin: 0
         };
         this.settings = (0, helper_1.initializeGameSettings)(currentGameData, this);
-        (0, helper_1.generateInitialReel)(this.settings);
         (0, helper_1.sendInitData)(this);
         (0, helper_1.makePayLines)(this);
     }
     get initSymbols() {
-        const Symbols = [];
-        this.currentGameData.gameSettings.Symbols.forEach((Element) => {
-            Symbols.push(Element);
-        });
-        return Symbols;
+        return this.currentGameData.gameSettings.Symbols;
     }
     sendMessage(action, message) {
         this.currentGameData.sendMessage(action, message);
@@ -63,23 +59,18 @@ class SLPM {
         }
     }
     prepareSpin(data) {
-        this.settings.currentLines = data.currentLines;
-        this.settings.BetPerLines = this.settings.currentGamedata.bets[data.currentBet];
-        this.settings.currentBet = this.settings.BetPerLines * this.settings.currentLines;
+        this.settings.currentBet = this.settings.currentGamedata.bets[data.currentBet];
     }
     spinResult() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const playerData = this.getPlayerData();
-                if (!this.settings.freeSpin.useFreeSpin) {
-                    yield this.deductPlayerBalance(this.settings.currentBet);
-                    this.playerData.totalbet += this.settings.currentBet;
-                }
                 if (this.settings.currentBet > playerData.credits) {
                     this.sendError("Low Balance");
                     return;
                 }
-                yield new RandomResultGenerator_1.RandomResultGenerator(this);
+                new RandomResultGenerator_1.RandomResultGenerator(this);
+                this.playerData.totalbet += this.settings.currentBet;
                 (0, helper_1.checkForWin)(this);
             }
             catch (error) {
@@ -114,4 +105,4 @@ class SLPM {
         });
     }
 }
-exports.SLPM = SLPM;
+exports.SLBE = SLBE;

@@ -31,6 +31,7 @@ class BaseSlotGame {
                 id: "",
                 matrix: { x: 0, y: 0 },
                 linesApiData: [],
+                freeSpinData: [],
                 Symbols: [
                     {
                         Name: "",
@@ -41,7 +42,8 @@ class BaseSlotGame {
                         defaultAmount: [],
                         symbolsCount: [],
                         increaseValue: [],
-                        reelInstance: [], // Ensure reelInstance is initialized
+                        reelInstance: [],
+                        // Ensure reelInstance is initialized
                     },
                 ],
                 bonus: {
@@ -235,7 +237,7 @@ class BaseSlotGame {
         this.settings.lineData = this.settings.currentGamedata.linesApiData;
         this.settings.reels = this.generateInitialreel();
         if (this.settings.currentGamedata.bonus.isEnabled &&
-            this.settings.currentGamedata.bonus.type == gameUtils_1.bonusGameType.spin || this.settings.currentGamedata.bonus.type == gameUtils_1.bonusGameType.layerTap || this.settings.currentGamedata.bonus.type == gameUtils_1.bonusGameType.miniSpin) {
+            this.settings.currentGamedata.bonus.type == gameUtils_1.bonusGameType.tap || this.settings.currentGamedata.bonus.type == gameUtils_1.bonusGameType.spin || this.settings.currentGamedata.bonus.type == gameUtils_1.bonusGameType.layerTap || this.settings.currentGamedata.bonus.type == gameUtils_1.bonusGameType.miniSpin) {
             this.settings.bonus.game = new BonusGame_1.BonusGame(this.settings.currentGamedata.bonus.noOfItem, this);
         }
         // let specialSymbols = this.settings.currentGamedata.Symbols.filter(
