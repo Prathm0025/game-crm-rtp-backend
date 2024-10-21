@@ -107,7 +107,7 @@ export function checkForWin(gameInstance: SLBE) {
         let totalPayout = 0;
         settings.lineData.forEach((line, index) => {
             const firstSymbolPosition = line[0];
-            let firstSymbol = settings.resultSymbolMatrix[firstSymbolPosition][5];
+            let firstSymbol = settings.resultSymbolMatrix[firstSymbolPosition][0];
             // Handle wild symbols
             if (settings.wild.useWild && firstSymbol === settings.wild.SymbolID) {
                 firstSymbol = findFirstNonWildSymbol(line, gameInstance);
@@ -186,7 +186,7 @@ export function checkForWin(gameInstance: SLBE) {
 function checkLineSymbols(
     firstSymbol: string,
     line: number[],
-    gameInstance: SLBE,
+    gameInstance: SLBE
 ): {
     isWinningLine: boolean;
     matchCount: number;
@@ -194,40 +194,41 @@ function checkLineSymbols(
 } {
     try {
         const { settings } = gameInstance;
-        const wildSymbol = settings.wild?.SymbolID || "";
+        const wildSymbol = settings.wild.SymbolID || "";
         let matchCount = 1;
         let currentSymbol = firstSymbol;
+
         const matchedIndices: { col: number; row: number }[] = [
-            { col: line.length - 1, row: line[0] },
+            { col: 0, row: line[0] },
         ];
         for (let i = 1; i < line.length; i++) {
             const rowIndex = line[i];
-            const colIndex =  line.length - 1 - i;
-            const symbol = settings.resultSymbolMatrix[rowIndex][colIndex];
+            const symbol = settings.resultSymbolMatrix[rowIndex][i];
+
             if (symbol === undefined) {
-                console.error(`Symbol at position [${rowIndex}, ${colIndex}] is undefined.`);
+                console.error(`Symbol at position [${rowIndex}, ${i}] is undefined.`);
                 return { isWinningLine: false, matchCount: 0, matchedIndices: [] };
             }
-
-            if (symbol === currentSymbol || symbol === wildSymbol) {
-                matchCount++;
-                matchedIndices.push({ col: colIndex, row: rowIndex });
-            } else if (currentSymbol === wildSymbol) {
-                currentSymbol = symbol;
-                matchCount++;
-                matchedIndices.push({ col: colIndex, row: rowIndex });
-            } else {
-                return { isWinningLine: matchCount >= 3, matchCount, matchedIndices };
+            switch (true) {
+                case symbol == currentSymbol || symbol === wildSymbol:
+                    matchCount++;
+                    matchedIndices.push({ col: i, row: rowIndex });
+                    break;
+                case currentSymbol === wildSymbol:
+                    currentSymbol = symbol;
+                    matchCount++;
+                    matchedIndices.push({ col: i, row: rowIndex });
+                    break;
+                default:
+                    return { isWinningLine: matchCount >= 3, matchCount, matchedIndices };
             }
         }
-
         return { isWinningLine: matchCount >= 3, matchCount, matchedIndices };
     } catch (error) {
         console.error("Error in checkLineSymbols:", error);
         return { isWinningLine: false, matchCount: 0, matchedIndices: [] };
     }
 }
-
 
 //checking first non wild symbol in lines which start with wild symbol
 function findFirstNonWildSymbol(line, gameInstance: SLBE) {
