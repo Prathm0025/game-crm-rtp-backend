@@ -1,10 +1,9 @@
 import { currentGamedata } from "../../../Player";
 import { RandomResultGenerator } from "../RandomResultGenerator";
 import { initializeGameSettings, generateInitialReel, sendInitData, makePayLines, checkForWin } from "./helper";
-import { SLPMSETTINGS } from "./types";
-
-export class SLPM {
-    public settings: SLPMSETTINGS;
+import { SLSRSETTINGS } from "./types";
+export class SLSR {
+    public settings: SLSRSETTINGS;
     playerData = {
         haveWon: 0,
         currentWining: 0,
@@ -12,7 +11,6 @@ export class SLPM {
         rtpSpinCount: 0,
         totalSpin: 0,
         currentPayout: 0,
-        payoutafterCascading: 0,
     };
 
     constructor(public currentGameData: currentGamedata) {
@@ -73,14 +71,14 @@ export class SLPM {
     public async spinResult(): Promise<void> {
         try {
             const playerData = this.getPlayerData();
-            if (!this.settings.freeSpin.useFreeSpin) {
                 await this.deductPlayerBalance(this.settings.currentBet);
                 this.playerData.totalbet += this.settings.currentBet;
-            }
             if (this.settings.currentBet > playerData.credits) {
                 this.sendError("Low Balance");
                 return;
             }
+            console.log("total bet ",this.settings.currentBet);
+            
             await new RandomResultGenerator(this);
             checkForWin(this)
         } catch (error) {
@@ -99,13 +97,13 @@ export class SLPM {
                 await this.spinResult();
                 spend = this.playerData.totalbet;
                 won = this.playerData.haveWon;
-                console.log(`Spin ${i + 1} completed. ${this.playerData.totalbet} , ${won}`);
+                // console.log(`Spin ${i + 1} completed. ${this.playerData.totalbet} , ${won}`);
             }
             let rtp = 0;
             if (spend > 0) {
                 rtp = won / spend;
             }
-            console.log('RTP calculated:', rtp * 100);
+            // console.log('RTP calculated:', rtp * 100);
             return;
         } catch (error) {
             console.error("Failed to calculate RTP:", error);
@@ -114,7 +112,6 @@ export class SLPM {
     }
     
 }
-
 
 
 
