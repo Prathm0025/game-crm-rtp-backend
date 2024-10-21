@@ -1,6 +1,6 @@
 import { currentGamedata } from "../../../Player";
 import { SLBBSETTINGS } from "./types";
-import { initializeGameSettings , generateInitialReel, checkForWin, sendInitData, replaceCoinsWithValues} from "./helper";
+import { initializeGameSettings , generateInitialReel, checkForWin, sendInitData, generateInitialHeisenberg, handleCashCollectandLink} from "./helper";
 import { RandomResultGenerator } from "../RandomResultGenerator";
 
 export class SLBB {
@@ -15,6 +15,7 @@ export class SLBB {
     constructor(public currentGameData: currentGamedata) {
         this.settings = initializeGameSettings(currentGameData, this);
         generateInitialReel(this.settings)
+        generateInitialHeisenberg(this.settings)
         sendInitData(this)
     }
     
@@ -57,7 +58,9 @@ export class SLBB {
                 this.prepareSpin(response.data);
                 this.getRTP(response.data.spins || 1);
                 break;
+                 
         }
+
     }
     private prepareSpin(data: any) {
         this.settings.currentLines = data.currentLines;
@@ -84,7 +87,47 @@ export class SLBB {
             console.error("Failed to generate spin results:", error);
         }
     }
-
+    public handleHeisenbergSpin() {
+        
+        const coinSymbolId = this.settings.coins.SymbolID;
+        this.settings.prevresultSymbolMatrix = this.settings.resultSymbolMatrix;
+        let coinCount = 0;
+        this.settings.heisenbergSymbolMatrix.forEach(row => {
+          coinCount += row.filter(symbol => symbol === coinSymbolId).length;
+        });
+      
+        if (!this.settings.heisenberg.isTriggered) {
+        this.settings.heisenberg.isTriggered = true;
+        this.settings.heisenberg.freeSpin.freeSpinStarted = true;
+        this.settings.heisenberg.freeSpin.noOfFreeSpins = 3; 
+        }
+      
+        if (this.settings.heisenberg.freeSpin.noOfFreeSpins > 0) {
+            this.settings.freeSpin.noOfFreeSpins--; 
+      
+          if (coinCount > 0) {
+            this.settings.heisenberg.freeSpin.noOfFreeSpins = 3;
+            console.log("Coin found! Reset free spins to 3.");
+          }
+      
+          if (coinCount >= 15) {
+            this.settings.heisenberg.payout = 1000; 
+            console.log("Grand Prize Awarded!");
+            this.settings.freeSpin.freeSpinStarted = false;
+          }
+          } else {
+            this.settings.heisenberg.freeSpin.freeSpinStarted = false; 
+          console.log("Free spins have ended.");
+        }
+      
+        if(!this.settings.heisenberg.freeSpin.freeSpinStarted){
+          handleCashCollectandLink(this);
+        }
+      
+        console.log(this.settings.resultSymbolMatrix, "result matrix after Cash Collect and Link");
+      }
+      
+      
     private async getRTP(spins: number): Promise<void> {
         try {
             let spend: number = 0;
@@ -92,7 +135,11 @@ export class SLBB {
             this.playerData.rtpSpinCount = spins;
 
             for (let i = 0; i < this.playerData.rtpSpinCount; i++) {
+                if(this.settings.heisenberg.isTriggered){
+                    await this.handleHeisenbergSpin();
+                }else{
                 await this.spinResult();
+                }
                 spend = this.playerData.totalbet;
                 won = this.playerData.haveWon;
                 // console.log(`Spin ${i + 1} completed. ${this.playerData.totalbet} , ${won}`);
