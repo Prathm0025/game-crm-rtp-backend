@@ -246,9 +246,9 @@ export const gameData = [
         "useWildSub": false,
         "isFreeSpinMultiplier":false,
         "reelInstance": {
-          "0": 10,
-          "1": 10,
-          "2": 10,
+          "0": 5,
+          "1": 5,
+          "2": 5,
           "3": 2,
           "4": 2
         },

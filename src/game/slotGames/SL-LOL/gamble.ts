@@ -54,7 +54,7 @@ export function getGambleResult(response: {
   }
 }
 // function to get random card
-export function getRandomCard() {
+export function getRandomCard():"RED" | "BLACK" {
   //FIX: later
-  return Math.random() >= 0.5 ? "RED" : "RED"
+  return Math.random() >= 0.5 ? "RED" : "BLACK"
 }
