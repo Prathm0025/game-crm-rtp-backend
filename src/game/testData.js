@@ -3,16 +3,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.gameData = void 0;
 exports.gameData = [
     {
-        id: "SL-PM",
+        id: "SL-BE",
         matrix: {
-            x: 5,
+            x: 6,
             y: 3,
         },
         linesApiData: [
             [1, 1, 1, 1, 1],
-            [0, 0, 0, 0, 0],
-            [2, 2, 2, 2, 2],
-            [0, 1, 2, 1, 0],
+            [0, 0, 0, 0, 0, 0],
+            [2, 2, 2, 2, 2, 2],
+            [0, 1, 2, 1, 0, 1],
             [2, 1, 0, 1, 2],
             [1, 0, 1, 2, 1],
             [1, 2, 1, 0, 1],

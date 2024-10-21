@@ -139,7 +139,6 @@ function checkForWin(gameInstance) {
             }
             // Handle special icons
             if (Object.values(types_1.specialIcons).includes(settings.Symbols[firstSymbol].Name)) {
-                console.log("Special Icon Matched : ", settings.Symbols[firstSymbol].Name);
                 return;
             }
             const { isWinningLine, matchCount, matchedIndices } = checkLineSymbols(firstSymbol, line, gameInstance);
@@ -188,7 +187,7 @@ function checkForWin(gameInstance) {
                 break;
             default:
                 console.log("NO PAYLINE MATCH");
-                if (settings.cascadingNo >= 4) {
+                if (settings.cascadingNo >= 4 && !settings.freeSpin.useFreeSpin) {
                     console.log("Cascading Count:", settings.cascadingNo);
                     console.log("FreeSpin Data:", settings.currentGamedata.freeSpinData);
                     const freeSpinData = settings.currentGamedata.freeSpinData;
@@ -217,6 +216,7 @@ function checkForWin(gameInstance) {
                 settings.tempReel = [];
                 settings.payoutAfterCascading = 0;
                 settings.cascadingResult = [];
+                settings.freeSpin.useFreeSpin = false;
                 break;
         }
         return winningLines;
@@ -386,6 +386,7 @@ function cascadeSymbols(gameInstance) {
     data.currentWining = settings._winData.totalWinningAmount;
     settings.payoutAfterCascading += settings._winData.totalWinningAmount;
     gameInstance.playerData.payoutAfterCascading += settings._winData.totalWinningAmount;
+    gameInstance.playerData.haveWon += settings._winData.totalWinningAmount;
     settings.cascadingResult.push(Object.assign({}, data));
     data.symbolsToFill = [];
     data.lineToEmit = [];

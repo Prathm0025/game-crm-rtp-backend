@@ -98,13 +98,13 @@ class SLPM {
                     yield this.spinResult();
                     spend = this.playerData.totalbet;
                     won = this.playerData.haveWon;
-                    // console.log(`Spin ${i + 1} completed. ${this.playerData.totalbet} , ${won}`);
+                    console.log(`Spin ${i + 1} completed. ${this.playerData.totalbet} , ${won}`);
                 }
                 let rtp = 0;
                 if (spend > 0) {
                     rtp = won / spend;
                 }
-                // console.log('RTP calculated:', rtp * 100);
+                console.log('RTP calculated:', rtp * 100);
                 return;
             }
             catch (error) {
