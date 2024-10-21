@@ -21,6 +21,10 @@ export interface SLSRSETTINGS {
     reels: any[][];
     Symbols: Symbol[];
     freeSpinValue: number;
+    bonusValuesArray: number[];
+    bonusProbabilities: number[];
+    multiplierArray:number[];
+    multiplierProbabilities: number[];
 
     freeSpin: {
         symbolID: string,

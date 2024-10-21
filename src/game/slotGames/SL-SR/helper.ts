@@ -31,6 +31,10 @@ export function initializeGameSettings(gameData: any, gameInstance: SLSR) {
     BetPerLines: 0,
     reels: [],
     freeSpinValue: gameData.gameSettings.freeSpinValue,
+    bonusValuesArray: gameData.gameSettings.bonusValuesArray,
+    bonusProbabilities:  gameData.gameSettings.bonusValuesArray,
+    multiplierArray: gameData.gameSettings.bonusValuesArray,
+    multiplierProbabilities:  gameData.gameSettings.bonusValuesArray,
     freeSpin: {
       symbolID: "-1",
       freeSpinMuiltiplier: [],
@@ -80,11 +84,13 @@ export function generateInitialReel(gameSettings: any): string[][] {
  * Shuffles the elements of an array in place using the Fisher-Yates algorithm.
  * @param array - The array to be shuffled.
  */
-function shuffleArray(array: any[]) {
+// Utility function to shuffle an array and return the shuffled array
+function shuffleArray<T>(array: T[]): T[] {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [array[i], array[j]] = [array[j], array[i]];
   }
+  return array; // Make sure to return the shuffled array
 }
 
 export function makePayLines(gameInstance: SLSR) {
@@ -128,7 +134,7 @@ export function checkForWin(gameInstance: SLSR) {
     const { settings } = gameInstance;
     const winningLines = [];
     let totalPayout = 0;
-    let freeSpinLinesCount = 0; // Initialize Free Spin line count
+    let freeSpinLinesCount = 0; 
     
     settings.lineData.forEach((line, index) => {
       const firstSymbolPosition = line[0];
@@ -172,10 +178,9 @@ export function checkForWin(gameInstance: SLSR) {
         }
       }
     });
-
+    checkForBonus(gameInstance);
     // Calculate total Free Spins won (5 free spins per line with Free Spin win)
     gameInstance.settings.freeSpin.freeSpinCount = freeSpinLinesCount * settings.freeSpinValue;
-
     console.log("Total Winning", gameInstance.playerData.currentWining);
     console.log("Total Free Spins Won: ", gameInstance.settings.freeSpin.freeSpinCount);
 
@@ -187,6 +192,85 @@ export function checkForWin(gameInstance: SLSR) {
     console.error("Error in checkForWin", error);
     return [];
   }
+}
+export function checkForBonus(gameInstance: SLSR) {
+  try {
+    const { settings } = gameInstance;
+    let bonusSymbolCount = 0;
+    
+    // Count Bonus symbols in the result matrix
+    settings.resultSymbolMatrix.forEach((row) => {
+      row.forEach((symbol) => {
+        if (symbol === settings.bonus.id) {
+          bonusSymbolCount++;
+        }
+      });
+    });
+
+    // If 3 or more bonus symbols are found, trigger the bonus game
+    if (bonusSymbolCount >= 3) {
+      console.log(`Bonus Game Triggered with ${bonusSymbolCount} Bonus Symbols`);
+      runBonusGame(bonusSymbolCount, gameInstance);
+    }
+  } catch (error) {
+    console.error("Error in checkForBonus", error);
+  }
+}
+
+// Function to run the Bonus game
+function runBonusGame(bonusSymbolCount: number, gameInstance: SLSR) {
+  try {
+    const { settings } = gameInstance;
+
+    const selectedBonusValues = selectValuesFromArray(settings.bonusValuesArray, settings.bonusProbabilities, bonusSymbolCount);
+    console.log("Selected Bonus Values: ", selectedBonusValues);
+
+    const selectedMultiplier = selectMultiplierFromArray(settings.multiplierArray, settings.multiplierProbabilities);
+    console.log("Selected Multiplier: ", selectedMultiplier);
+
+    const shuffledBonusValues = shuffleArray(selectedBonusValues);
+    console.log("Shuffled Bonus Values: ", shuffledBonusValues);
+
+    const sumOfValues = shuffledBonusValues.slice(0, -1).reduce((sum, value) => sum + value, 0);
+    const bonusWin = sumOfValues * selectedMultiplier;
+    console.log("Bonus Win Amount: ", bonusWin);
+
+    gameInstance.playerData.currentWining += bonusWin;
+    console.log("Player's Total Winnings after Bonus: ", gameInstance.playerData.currentWining);
+
+  } catch (error) {
+    console.error("Error in runBonusGame", error);
+  }
+}
+
+// Function to select values from an array based on probabilities
+function selectValuesFromArray(array: number[], probabilities: number[], count: number): number[] {
+  const selectedValues = [];
+  for (let i = 0; i < count; i++) {
+    const randomValue = Math.random();
+    let cumulativeProbability = 0;
+    for (let j = 0; j < array.length; j++) {
+      cumulativeProbability += probabilities[j];
+      if (randomValue <= cumulativeProbability) {
+        selectedValues.push(array[j]);
+        break;
+      }
+    }
+  }
+  return selectedValues;
+}
+
+// Function to select a multiplier from the multiplier array based on probabilities
+function selectMultiplierFromArray(array: number[], probabilities: number[]): number {
+  const randomValue = Math.random();
+  let cumulativeProbability = 0;
+  for (let i = 0; i < array.length; i++) {
+    cumulativeProbability += probabilities[i];
+    if (randomValue <= cumulativeProbability) {
+      return array[i];
+    }
+  }
+  return array[0]; // Default return value if probabilities don't sum to 1
 }
 
 // Function to check if the first 3 symbols on a line are Free Spin symbols

@@ -210,7 +210,7 @@ export function checkForWin(gameInstance: SLPM) {
         break;
       default:
         console.log("NO PAYLINE MATCH");
-        if (settings.cascadingNo >= 4) {
+        if (settings.cascadingNo >= 4 && !settings.freeSpin.useFreeSpin) {
           console.log("Cascading Count:", settings.cascadingNo);
           console.log("FreeSpin Data:", settings.currentGamedata.freeSpinData);
           const freeSpinData = settings.currentGamedata.freeSpinData;
@@ -227,7 +227,6 @@ export function checkForWin(gameInstance: SLPM) {
             if (settings.cascadingNo > 8) {
               settings.freeSpin.useFreeSpin = true;
               settings.freeSpin.freeSpinCount = 25;
-
               console.log(`Free spins awarded: ${settings.freeSpin.freeSpinCount}`);
               break;
             }
@@ -241,8 +240,8 @@ export function checkForWin(gameInstance: SLPM) {
         settings.tempReelSym = [];
         settings.tempReel = [];
         settings.payoutAfterCascading = 0;
-        settings.cascadingResult=[]
-        
+        settings.cascadingResult=[];
+        settings.freeSpin.useFreeSpin = false;
         break;
     }
     return winningLines;
@@ -427,6 +426,7 @@ function cascadeSymbols(gameInstance) {
   data.currentWining = settings._winData.totalWinningAmount;
   settings.payoutAfterCascading += settings._winData.totalWinningAmount;
   gameInstance.playerData.payoutAfterCascading += settings._winData.totalWinningAmount;
+  gameInstance.playerData.haveWon += settings._winData.totalWinningAmount;
   settings.cascadingResult.push({ ...data });
   data.symbolsToFill = [];
   data.lineToEmit = [];
