@@ -3,7 +3,7 @@ import { gambleCardGame } from "./newGambleGame";
 import { WinData } from "./WinData";
 
 
-
+//types
 export interface IGame extends Document {
   name: string;
   thumbnail: string;
