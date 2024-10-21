@@ -110,7 +110,10 @@ function checkForWin(gameInstance) {
             }
             // Handle special icons
             if (Object.values(types_1.specialIcons).includes(settings.Symbols[firstSymbol].Name)) {
-                console.log("Special Icon Matched : ");
+                // console.log(
+                //     "Special Icon Matched : ",
+                //     settings.Symbols[firstSymbol].Name
+                // );
                 return;
             }
             const { isWinningLine, matchCount, matchedIndices } = checkLineSymbols(firstSymbol, line, gameInstance);
