@@ -32,7 +32,7 @@ export const gameData = [
         "Name": "Jet",
         "Id": 0,
         "useWildSub": true,
-        "freeSpinMultiplier":true,
+        "isFreeSpinMultiplier":true,
         "reelInstance": {
           "0": 2,
           "1": 2,
@@ -50,7 +50,7 @@ export const gameData = [
         "Name": "Yacht",
         "Id": 1,
         "useWildSub": true,
-        "freeSpinMultiplier":true,
+        "isFreeSpinMultiplier":true,
         "reelInstance": {
           "0": 3,
           "1": 3,
@@ -68,7 +68,7 @@ export const gameData = [
         "Name": "Car",
         "Id": 2,
         "useWildSub": true,
-        "freeSpinMultiplier":true,
+        "isFreeSpinMultiplier":true,
         "reelInstance": {
           "0": 4,
           "1": 4,
@@ -86,7 +86,7 @@ export const gameData = [
         "Name": "Watch",
         "Id": 3,
         "useWildSub": true,
-        "freeSpinMultiplier":true,
+        "isFreeSpinMultiplier":true,
         "reelInstance": {
           "0": 5,
           "1": 5,
@@ -104,7 +104,7 @@ export const gameData = [
         "Name": "Diamond",
         "Id": 4,
         "useWildSub": true,
-        "freeSpinMultiplier":true,
+        "isFreeSpinMultiplier":true,
         "reelInstance": {
           "0": 6,
           "1": 6,
@@ -122,7 +122,7 @@ export const gameData = [
         "Name": "A",
         "Id": 5,
         "useWildSub": true,
-        "freeSpinMultiplier":false,
+        "isFreeSpinMultiplier":false,
         "reelInstance": {
           "0": 4,
           "1": 2,
@@ -140,7 +140,7 @@ export const gameData = [
         "Name": "K",
         "Id": 6,
         "useWildSub": true,
-        "freeSpinMultiplier":false,
+        "isFreeSpinMultiplier":false,
         "reelInstance": {
           "0": 4,
           "1": 2,
@@ -158,7 +158,7 @@ export const gameData = [
         "Name": "Q",
         "Id": 7,
         "useWildSub": true,
-        "freeSpinMultiplier":false,
+        "isFreeSpinMultiplier":false,
         "reelInstance": {
           "0": 4,
           "1": 2,
@@ -176,7 +176,7 @@ export const gameData = [
         "Name": "J",
         "Id": 8,
         "useWildSub": true,
-        "freeSpinMultiplier":false,
+        "isFreeSpinMultiplier":false,
         "reelInstance": {
           "0": 4,
           "1": 2,
@@ -194,7 +194,7 @@ export const gameData = [
         "Name": "10",
         "Id": 9,
         "useWildSub": true,
-        "freeSpinMultiplier":false,
+        "isFreeSpinMultiplier":false,
         "reelInstance": {
           "0": 4,
           "1": 2,
@@ -212,7 +212,7 @@ export const gameData = [
         "Name": "9",
         "Id": 10,
         "useWildSub": true,
-        "freeSpinMultiplier":false,
+        "isFreeSpinMultiplier":false,
         "reelInstance": {
           "0": 4,
           "1": 2,
@@ -230,7 +230,7 @@ export const gameData = [
         "Name": "Wild",
         "Id": 11,
         "useWildSub": false,
-        "freeSpinMultiplier":false,
+        "isFreeSpinMultiplier":false,
         "reelInstance": {
           "0": 0,
           "1": 20,
@@ -244,7 +244,7 @@ export const gameData = [
         "Name": "FreeSpin",
         "Id": 12,
         "useWildSub": false,
-        "freeSpinMultiplier":false,
+        "isFreeSpinMultiplier":false,
         "reelInstance": {
           "0": 10,
           "1": 10,

@@ -1,5 +1,5 @@
 import { currentGamedata } from "../../../Player";
-import { generateInitialReel, initializeGameSettings, sendInitData, makeResultJson, printWinningCombinations, checkWin, checkForFreespin, simulateFreespin } from "./helper";
+import { generateInitialReel, initializeGameSettings, sendInitData, makeResultJson, printWinningCombinations, checkWin, checkForFreespin } from "./helper";
 import { SLLOLSETTINGS } from "./types";
 import { RandomResultGenerator } from "../RandomResultGenerator";
 import { GAMBLETYPE } from "../BaseSlotGame/newGambleGame";
@@ -29,7 +29,7 @@ export class SLLOL {
 
       sendInitData(this);
       console.log("credits : ", this.getPlayerData().credits);
-      
+
     } catch (error) {
       console.error("Error initializing SLLOL game:", error);
     }
@@ -131,8 +131,11 @@ export class SLLOL {
         return;
       }
 
-      await this.deductPlayerBalance(this.settings.currentBet);
-      this.playerData.totalbet += this.settings.currentBet;
+      //deduct only when freespin is not triggered
+      if (this.settings.freeSpinCount <= 0) {
+        this.deductPlayerBalance(this.settings.currentBet);
+        this.playerData.totalbet += this.settings.currentBet;
+      }
 
       new RandomResultGenerator(this);
       this.checkResult();
@@ -170,33 +173,42 @@ export class SLLOL {
 
   private async checkResult() {
     try {
-      // console.log("Result Matrix:", resultMatrix);
 
       const { payout, winningCombinations } = checkWin(this);
-      // console.log("winning comb:", winningCombinations);
       printWinningCombinations(winningCombinations)
-      //check for freespin
-      console.log("freespin:", checkForFreespin(this));
+      // //check for freespin
+      // console.log("freespin:", checkForFreespin(this));
 
-      if (checkForFreespin(this)) {
-        const response = simulateFreespin(this);
-        console.log("freespin response:", response);
-      }
-
-
-      console.log(this.getPlayerData().credits)
-        
+      console.log("balance:", this.getPlayerData().credits)
+      console.log("freespin:", {
+        count: this.settings.freeSpinCount,
+        isFreespin: this.settings.isFreeSpin,
+        multipliers: this.settings.freeSpinMultipliers
+      })
 
       if (payout > 0) {
         this.playerData.currentWining = payout;
         this.playerData.haveWon += payout;
         this.updatePlayerBalance(this.playerData.currentWining);
-      }else{
+      } else {
         this.playerData.currentWining = 0;
       }
       console.log("Payout checkwin: ", payout);
-      
-      this.gamebleTesting()
+      //
+      // this.gamebleTesting()
+
+      //NOTE: freespin
+      // if (checkForFreespin(this)) {
+      //   const response = simulateFreespin(this);
+      //   console.log("freespin response:", response);
+      //   //adding freespin payouts 
+      //   const freespinPayout = response.payouts.reduce((a, b) => a + b, 0);
+      //
+      //   this.playerData.currentWining += freespinPayout;
+      //   this.playerData.haveWon += freespinPayout;
+      //   this.updatePlayerBalance(this.playerData.currentWining);
+      // }
+
 
       makeResultJson(this);
       console.log("playerData :", this.playerData);
@@ -231,11 +243,9 @@ export class SLLOL {
 
       console.log("Gamble Result:", result);
 
-      this.playerData.currentWining = this.settings._winData.totalWinningAmount;
       this.playerData.haveWon += this.playerData.currentWining;
       this.updatePlayerBalance(this.playerData.currentWining);
       console.log("Balance:", this.getPlayerData().credits);
-      
 
     }
   }

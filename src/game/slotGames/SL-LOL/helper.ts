@@ -188,100 +188,71 @@ export function isWild(symbolId: number): boolean {
   return symbolId === 11
 }
 
-export function checkForFreespin(gameInstance: SLLOL): boolean {
-  try {
-    const { settings } = gameInstance;
-    const resultMatrix = settings.resultSymbolMatrix;
-    const rows = resultMatrix.length;
-
-    // Check if 1st, 2nd, and 3rd columns have symbol with ID 12 regardless of row
-    let col1Has12 = false;
-    let col2Has12 = false;
-    let col3Has12 = false;
-
-    for (let j = 0; j < rows; j++) { // Loop through rows
-      if (resultMatrix[j][0] === 12) col1Has12 = true; // Check 1st column
-      if (resultMatrix[j][1] === 12) col2Has12 = true; // Check 2nd column
-      if (resultMatrix[j][2] === 12) col3Has12 = true; // Check 3rd column
-
-      // If all three columns have the symbol, return true
-      if (col1Has12 && col2Has12 && col3Has12) {
-        return true;
-      }
-    }
-
-    // If one of the columns doesn't have the symbol, return false
-    return false;
-
-  } catch (e) {
-    console.error("Error in checkForFreespin:", e);
-    return false; // Handle error by returning false in case of failure
-  }
-}
-export function simulateFreespin(gameInstance: SLLOL): FreeSpinResponse {
-  const { settings } = gameInstance;
-  settings.isFreeSpin = true;
-  settings.freeSpinCount = 10;
-  let response: FreeSpinResponse = {
-    freeSpinCount: [],
-    freeSpinMultipliers: [],
-    combinations: [],
-    results: [],
-    isRetriggered: [],
-    payouts: []
-  };
-
-  // Initialize freeSpinMultipliers for major symbols
-  const majorSymbolIds = settings.Symbols
-    .filter(symbol => symbol.isFreeSpinMultiplier)
-    .map(symbol => symbol.Id);
-  let currentMultipliers = Object.fromEntries(majorSymbolIds.map(id => [id, 1]));
-
-  while (settings.freeSpinCount > 0) {
-    new RandomResultGenerator(gameInstance);
-    settings.freeSpinCount -= 1;
-    const resultMatrix = settings.resultSymbolMatrix;
-    const { winningCombinations } = checkWin(gameInstance);
-
-    let totalPayout = 0;
-    winningCombinations.forEach((combination) => {
-      const symbol = getSymbol(combination.symbolId, settings.Symbols);
-      if (symbol.isFreeSpinMultiplier) {
-        combination.payout = combination.payout * settings.BetPerLines * currentMultipliers[combination.symbolId];
-      } else {
-        combination.payout = combination.payout * settings.BetPerLines;
-      }
-      totalPayout += combination.payout;
-    });
-
-    response.results.push(resultMatrix);
-    response.payouts.push(totalPayout);
-    response.combinations.push(winningCombinations);
-
-    if (checkForFreespin(gameInstance)) {
-      response.isRetriggered.push(true);
-      settings.freeSpinCount += 10;
-    } else {
-      response.isRetriggered.push(false);
-      //TODO: uncomment
-    }
-    response.freeSpinCount.push(settings.freeSpinCount);
-
-    // Update multipliers based on symbol occurrences, capped at MAX_MULTIPLIER
-    resultMatrix.flat().forEach((symbolId) => {
-      if (currentMultipliers.hasOwnProperty(symbolId)) {
-        currentMultipliers[symbolId] = Math.min(currentMultipliers[symbolId] + 1, settings.maxMultiplier);
-      }
-    });
-
-    response.freeSpinMultipliers.push([...Object.values(currentMultipliers)]);
-  }
-
-  settings.isFreeSpin = false;
-  settings.freeSpinCount = 0;
-  settings.freeSpinMultipliers = [1, 1, 1, 1, 1];
-  return response;
-}
+// export function simulateFreespin(gameInstance: SLLOL): FreeSpinResponse {
+//   const { settings } = gameInstance;
+//   settings.isFreeSpin = true;
+//   settings.freeSpinCount = 10;
+//   let response: FreeSpinResponse = {
+//     freeSpinCount: [],
+//     freeSpinMultipliers: [],
+//     combinations: [],
+//     results: [],
+//     isRetriggered: [],
+//     payouts: []
+//   };
+//
+//   // Initialize freeSpinMultipliers for major symbols
+//   // const majorSymbolIds = settings.Symbols
+//   //   .filter(symbol => symbol.isFreeSpinMultiplier)
+//   //   .map(symbol => symbol.Id);
+//   let currentMultipliers = settings.freeSpinMultipliers
+//
+//   while (settings.freeSpinCount > 0) {
+//     new RandomResultGenerator(gameInstance);
+//     settings.freeSpinCount -= 1;
+//     const resultMatrix = settings.resultSymbolMatrix;
+//     const { winningCombinations } = checkWin(gameInstance);
+//
+//     let totalPayout = 0;
+//     winningCombinations.forEach((combination) => {
+//       const symbol = getSymbol(combination.symbolId, settings.Symbols);
+//       if (symbol.isFreeSpinMultiplier) {
+//         combination.payout = combination.payout * settings.BetPerLines * currentMultipliers[combination.symbolId];
+//       } else {
+//         combination.payout = combination.payout * settings.BetPerLines;
+//       }
+//       totalPayout += combination.payout;
+//     });
+//
+//     response.results.push(resultMatrix);
+//     response.payouts.push(totalPayout);
+//     response.combinations.push(winningCombinations);
+//
+//     //NOTE: retrigger 
+//     if (checkForFreespin(gameInstance)) {
+//       response.isRetriggered.push(true);
+//       settings.freeSpinCount += 3;
+//     } else {
+//       response.isRetriggered.push(false);
+//     }
+//     response.freeSpinCount.push(settings.freeSpinCount);
+//
+//     //NOTE: 
+//     // Update multipliers based on symbol occurrences, capped at MAX_MULTIPLIER
+//     resultMatrix.flat().forEach((symbolId) => {
+//       if (currentMultipliers.hasOwnProperty(symbolId)) {
+//         currentMultipliers[symbolId] = Math.min(currentMultipliers[symbolId] + 1, settings.maxMultiplier);
+//       }
+//     });
+//
+//     response.freeSpinMultipliers.push([...Object.values(currentMultipliers)]);
+//   }
+//
+//   settings.isFreeSpin = false;
+//   settings.freeSpinCount = 0;
+//   settings.freeSpinMultipliers = [1, 1, 1, 1, 1];
+//   return response;
+// }
 
 
 export function checkWin(gameInstance: SLLOL): { payout: number; winningCombinations: WinningCombination[] } {
@@ -343,12 +314,70 @@ export function checkWin(gameInstance: SLLOL): { payout: number; winningCombinat
     )
   );
 
+  //NOTE: FREESPIN related checks
+
+  //NOTE: check and increment freespinmultipliers 
+  // Update multipliers based on symbol occurrences, capped at MAX_MULTIPLIER
+  if (settings.freeSpinCount > 0) {
+
+    settings.resultSymbolMatrix.flat().forEach((symbolId) => {
+      if (settings.freeSpinMultipliers.hasOwnProperty(symbolId)) {
+        settings.freeSpinMultipliers[symbolId] = Math.min(settings.freeSpinMultipliers[symbolId] + 1, settings.maxMultiplier);
+      }
+    });
+  }
+  checkForFreespin(gameInstance)
+  //reset multiplers for freespin when its over 
+  if (settings.freeSpinCount <= 0 && settings.isFreeSpin === false) {
+    settings.freeSpinMultipliers = [1, 1, 1, 1, 1]
+  }else{
+    settings.freeSpinCount -= 1
+  }
   winningCombinations.forEach(combo => {
     // alter payout . multiply betsperline with payout
-    combo.payout = combo.payout * settings.BetPerLines
+    // NOTE: also check for freespin multipliers 
+    if (settings.freeSpinCount > 0 && getSymbol(combo.symbolId, settings.Symbols).isFreeSpinMultiplier) {
+      combo.payout = combo.payout * settings.freeSpinMultipliers[combo.symbolId] * settings.BetPerLines
+    } else {
+      combo.payout = combo.payout * settings.BetPerLines
+    }
+    totalPayout += combo.payout;
   })
-  // Calculate total payout
-  totalPayout = winningCombinations.reduce((sum, combo) => sum + combo.payout, 0);
 
   return { payout: totalPayout, winningCombinations };
+}
+
+export function checkForFreespin(gameInstance: SLLOL): boolean {
+  try {
+    const { settings } = gameInstance;
+    const resultMatrix = settings.resultSymbolMatrix;
+    const rows = resultMatrix.length;
+
+    // Check if 1st, 2nd, and 3rd columns have symbol with ID 12 regardless of row
+    let col1Has12 = false;
+    let col2Has12 = false;
+    let col3Has12 = false;
+
+    for (let j = 0; j < rows; j++) { // Loop through rows
+      if (resultMatrix[j][0] === 12) col1Has12 = true; // Check 1st column
+      if (resultMatrix[j][1] === 12) col2Has12 = true; // Check 2nd column
+      if (resultMatrix[j][2] === 12) col3Has12 = true; // Check 3rd column
+
+      // If all three columns have the symbol, return true
+      if (col1Has12 && col2Has12 && col3Has12) {
+        settings.isFreeSpin = true;
+        settings.freeSpinCount += 10;
+        return true;
+      }
+    }
+
+    settings.isFreeSpin = false;
+    // If one of the columns doesn't have the symbol, return false
+    return false;
+
+
+  } catch (e) {
+    console.error("Error in checkForFreespin:", e);
+    return false; // Handle error by returning false in case of failure
+  }
 }
