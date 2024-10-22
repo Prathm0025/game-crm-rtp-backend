@@ -8,7 +8,8 @@ import { TransactionController } from "../dashboard/transactions/transactionCont
 import { v2 as cloudinary } from "cloudinary";
 import { config } from "../config/config";
 import bcrypt from "bcrypt";
-import { users } from "../socket";
+import { currentActivePlayers } from "../socket";
+import { Player } from "../dashboard/users/userModel";
 
 
 const transactionController = new TransactionController()
@@ -71,9 +72,9 @@ export const updateStatus = (client: IUser | IPlayer, status: string) => {
     throw createHttpError(400, "Invalid status value");
   }
   client.status = status;
-  for (const [username, playerSocket] of users) {
+  for (const [username, playerSocket] of currentActivePlayers) {
     if (playerSocket) {
-      const socketUser = users.get(client.username);
+      const socketUser = currentActivePlayers.get(client.username);
       if (socketUser) {
         if (status === 'inactive') {
           socketUser.forceExit();
@@ -188,4 +189,29 @@ export const getSubordinateModel = (role: string) => {
     store: "Player",
   };
   return rolesHierarchy[role];
+};
+
+
+export const getManagerName = async (username: string): Promise<string | null> => {
+  try {
+    // Fetch the player and populate the 'createdBy' field
+    const player = await Player.findOne({ username }).populate("createdBy").exec();
+
+    if (!player) {
+      console.error(`Player ${username} not found in the database.`);
+      return null;
+    }
+
+    // Check if 'createdBy' is populated and return the manager's name
+    const manager = player.createdBy as IUser;
+    if (manager && manager.name) {
+      return manager.name;
+    } else {
+      console.log(`No manager found for player ${username}`);
+      return null;
+    }
+  } catch (error) {
+    console.error(`Error fetching manager for player ${username}:`, error);
+    return null;
+  }
 };

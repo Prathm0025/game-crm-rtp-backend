@@ -6,11 +6,13 @@ import { Platform } from "./dashboard/games/gameModel";
 import payoutController from "./dashboard/payouts/payoutController";
 import { getPlayerCredits, messageType } from "./game/Utils/gameUtils";
 import { gameData } from "./game/testData";
-import { users } from "./socket";
+import { currentActivePlayers } from "./socket";
 import GameManager from "./game/GameManager";
 import createHttpError from "http-errors";
 import { GameSession } from "./dashboard/activity/gameSession";
 import { SpecialFeatures } from "./dashboard/activity/activityTypes";
+import { getManagerName } from "./utils/utils";
+import { eventEmitter } from "./utils/eventEmitter";
 
 export interface currentGamedata {
   gameId: string | null;
@@ -48,6 +50,8 @@ export default class PlayerSocket {
   gameData: socketConnectionData;
   currentGameData: currentGamedata;
   playerData: playerData;
+  managerName: string | null;
+
 
   constructor(
     username: string,
@@ -57,8 +61,8 @@ export default class PlayerSocket {
     socket: Socket
   ) {
 
-    if (users.has(username)) {
-      const existingPlayerSocket = users.get(username);
+    if (currentActivePlayers.has(username)) {
+      const existingPlayerSocket = currentActivePlayers.get(username);
 
       if (existingPlayerSocket.platformData.socket.id !== socket.id) {
         console.log(`User ${username} reconnected with a new socket ID.`);
@@ -110,12 +114,15 @@ export default class PlayerSocket {
     this.initializePlatformSocket(socket);
 
     // Add to the users map if it's a new user
-    if (!users.has(username)) {
-      users.set(username, this);
+    if (!currentActivePlayers.has(username)) {
+      currentActivePlayers.set(username, this);
     }
+
+
   }
 
-  public initializePlatformSocket(socket: Socket) {
+
+  public async initializePlatformSocket(socket: Socket) {
     console.log("Player Initialzed : ", this.playerData.username);
 
     this.platformData.socket = socket;
@@ -126,6 +133,16 @@ export default class PlayerSocket {
       this.handlePlatformDisconnection();
     });
 
+    this.managerName = await this.getManager(this.playerData.username)
+
+    const connectionMessage = {
+      username: this.playerData.username,
+      credits: this.playerData.credits,
+      managerName: this.managerName,
+      action: "connect",
+    };
+
+    eventEmitter.emit("platformConnect", connectionMessage);
   }
 
   // Initialze or update the game socket when a game is required
@@ -227,9 +244,9 @@ export default class PlayerSocket {
 
     // Only remove the user from the map if the socket is still the same
     // This ensures that if the user has already reconnected with a new socket, they are not removed.
-    const currentPlayerSocket = users.get(this.playerData.username);
+    const currentPlayerSocket = currentActivePlayers.get(this.playerData.username);
     if (currentPlayerSocket && currentPlayerSocket.platformData.socket === null) {
-      users.delete(this.playerData.username);
+      currentActivePlayers.delete(this.playerData.username);
     }
   }
 
@@ -271,10 +288,13 @@ export default class PlayerSocket {
   private startPlatformHeartbeat() {
     if (this.platformData.socket) {
       this.platformData.heartbeatInterval = setInterval(() => {
-        if (this.platformData.socket && this.currentGameData.gameId) {
-          this.sendAlert(`${this.playerData.username} : ${this.currentGameData.gameId}`)
+        if (this.gameData.socket) {
+          this.sendAlert(`Currenlty Playing : ${this.currentGameData.gameId}`)
         }
-      }, 20000)
+        this.sendData({ type: "CREDIT", payload: this.playerData.credits }, "platform");
+        this.sendData({ type: "MANAGER_NAME", payload: this.managerName }, "platform");
+
+      }, 10000)
     }
   }
 
@@ -348,6 +368,16 @@ export default class PlayerSocket {
     }
   }
 
+  public sendData(data: any, type: "platform" | "game"): void {
+    try {
+      const socket = type === "platform" ? this.platformData.socket : this.gameData.socket;
+      socket.emit(messageType.DATA, data)
+    } catch (error) {
+      console.error(`Error sending data to ${this.playerData.username}'s platform`)
+      console.error(error)
+    }
+  }
+
   // Send an error message to the client (either platform or game)
   public sendError(message: string, isGameSocket: boolean = false) {
     const socket = isGameSocket ? this.gameData.socket : this.platformData.socket;
@@ -401,7 +431,7 @@ export default class PlayerSocket {
         } else {
           console.log(`${this.playerData.username} exits from the platform.`);
           this.cleanupPlatformSocket(); // Clean up platform socket
-          users.delete(this.playerData.username)
+          currentActivePlayers.delete(this.playerData.username)
         }
       })
     }
@@ -418,7 +448,7 @@ export default class PlayerSocket {
       // If the user is exiting the platform, clean up both platform and game sockets and remove from the users map
       this.cleanupPlatformSocket();  // Clean up the platform socket
       this.cleanupGameSocket();  // Optionally, also clean up the game socket if needed
-      users.delete(this.playerData.username);  // Remove from active users map (platform exit)
+      currentActivePlayers.delete(this.playerData.username);  // Remove from active users map (platform exit)
     }
   }
 
@@ -461,5 +491,10 @@ export default class PlayerSocket {
   public async deductPlayerBalance(currentBet: number) {
     this.checkPlayerBalance(currentBet);
     this.playerData.credits -= currentBet;
+  }
+
+  public async getManager(username: string): Promise<string> {
+    const managerName = await getManagerName(username)
+    return managerName;
   }
 }
