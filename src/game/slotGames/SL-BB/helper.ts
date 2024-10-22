@@ -275,7 +275,7 @@ function checkLineSymbols(
 //   return losValues[0];
 // }
 
-function getRandomValue(gameInstance: SLBB, type: 'coin' | 'freespin'): number {
+function getRandomValue(gameInstance: SLBB, type: 'coin' | 'freespin' | 'prizes'): number {
   const { currentGameData } = gameInstance;
 
   let values: number[];
@@ -287,6 +287,9 @@ function getRandomValue(gameInstance: SLBB, type: 'coin' | 'freespin'): number {
   } else if (type === 'freespin') {
     values = currentGameData.gameSettings.freeSpin.losPollosValues;
     probabilities = currentGameData.gameSettings.freeSpin.losPollosProbs;
+  } else if (type === 'prizes') {
+    values = currentGameData.gameSettings.prizes;
+    probabilities = currentGameData.gameSettings.prizesProbs;
   } else {
     throw new Error("Invalid type, expected 'coin' or 'freespin'");
   }
@@ -660,6 +663,11 @@ export function checkForWin(gameInstance: SLBB) {
     //
     // }
 
+    if(hasPrizeCoinSymbols){
+      const prize = getRandomValue(gameInstance, "prizes")
+      console.log("PRIZE WON:", prize);
+      
+    }
 
     if (hasCoinSymbols) {
       replaceCoinsWithValues(gameInstance, 'result');
