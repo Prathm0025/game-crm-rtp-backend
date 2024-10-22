@@ -2,6 +2,7 @@
 import { WinData } from "../BaseSlotGame/WinData";
 import { SLBB } from "./breakingBadBase";
 import { convertSymbols, UiInitData } from "../../Utils/gameUtils";
+import { freezeIndex } from "../SL-CM/helper";
 
 export function initializeGameSettings(gameData: any, gameInstance: SLBB) {
   const getSymbolIdByName = (name: string) => {
@@ -16,7 +17,8 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBB) {
     Symbols: gameInstance.initSymbols,
     resultSymbolMatrix: [],
     prevresultSymbolMatrix: [],
-    heisenbergSymbolMatrix: [],
+    heisenbergSymbolMatrix:[],
+    frozenIndices: new Set<string>(), 
     currentGamedata: gameData.gameSettings,
     lineData: [],
     _winData: new WinData(gameInstance),
@@ -307,38 +309,36 @@ function getRandomValue(gameInstance: SLBB, type: 'coin' | 'freespin' | 'prizes'
   return values[0];
 }
 // Function to replace "Coins" symbols with their respective values
-
 export function replaceCoinsWithValues(gameInstance: SLBB, matrixType: 'result' | 'heisenberg') {
   const { settings } = gameInstance;
   const matrix = matrixType === 'result' ? settings.resultSymbolMatrix : settings.heisenbergSymbolMatrix;
-
-  console.log(matrix, `${matrixType} matrix before replacement`);
-
   for (let row = 0; row < matrix.length; row++) {
     for (let col = 0; col < matrix[row].length; col++) {
       const symbol = matrix[row][col];
-
-      if (symbol === settings.coins.SymbolID) {
-        matrix[row][col] = getRandomValue(gameInstance, "coin");
+      if (symbol === settings.coins.SymbolID.toString()) {
+        const coinValue = getRandomValue(gameInstance, "coin");
+        settings.coins.values.push({ index: [row, col], value: coinValue });
       }
     }
   }
-
-  console.log(matrix, `${matrixType} matrix after replacement`);
 }
+
+ 
+
 
 //TO GET VALUE OF COIN AT INDEX
 
-function getCoinValue(coinSymbol: string, gameInstance: SLBB): number {
-  const coinIndex = gameInstance.currentGameData.gameSettings.coinsvalue.indexOf(coinSymbol);
-  return gameInstance.currentGameData.gameSettings.coinsvalueprob[coinIndex] || 0;
+function getCoinValue(coinArray): number {
+  return coinArray.reduce((total, coin) => total + coin.value, 0);
 }
+
 function generateHeisenbergSpin(gameInstance: SLBB): string[][] {
   const { settings } = gameInstance;
   const heisenbergReels: string[][] = [[], [], [], [], []];
 
   const heisenbergSymbols = settings.Symbols.filter((symbol: any) => symbol.useHeisenberg);
 
+  // Build the heisenberg reels based on the symbols
   heisenbergSymbols.forEach((symbol: any) => {
     for (let i = 0; i < 5; i++) {
       const count = symbol.reelInstance[i] || 0;
@@ -348,17 +348,30 @@ function generateHeisenbergSpin(gameInstance: SLBB): string[][] {
     }
   });
 
+  // Shuffle the reels
   heisenbergReels.forEach(reel => shuffleArray(reel));
 
   const resultMatrix: string[][] = [];
+
+  // Generate the new result matrix
   for (let x = 0; x < settings.matrix.x; x++) {
     const startPosition = getRandomIndex(heisenbergReels[x].length - 1);
     for (let y = 0; y < settings.matrix.y; y++) {
       if (!resultMatrix[y]) resultMatrix[y] = [];
-      resultMatrix[y][x] = heisenbergReels[x][(startPosition + y) % heisenbergReels[x].length];
+
+      if (settings.frozenIndices.has(`${x},${y}`)) {
+        resultMatrix[y][x] = settings.heisenbergSymbolMatrix[y][x];
+      } else {
+        const newSymbol = heisenbergReels[x][(startPosition + y) % heisenbergReels[x].length];
+        resultMatrix[y][x] = newSymbol;
+        if (['18', '19', '21'].includes(newSymbol)) {
+         settings.frozenIndices.add(`${x},${y}`);
+        }
+      }
     }
   }
 
+  // Update the settings with the new matrix
   settings.heisenbergSymbolMatrix = resultMatrix;
 
   console.log("Heisenberg Spin Result:", settings.heisenbergSymbolMatrix);
@@ -390,7 +403,7 @@ function handleCoinsAndCashCollect(
   settings.resultSymbolMatrix.forEach((row) => {
     row.forEach((symbol, colIndex) => {
       if (currentGameData.gameSettings?.coinsvalue?.includes(symbol) && (symbol == coinSymbolId)) {
-        const coinValue = getCoinValue(symbol, gameInstance);
+        const coinValue = getCoinValue(settings.coins.values);
         totalCoinValue += coinValue;
         console.log(currentGameData.gameSettings.Symbols.find(symbol => symbol.Name === "CashCollect").Id);
         console.log(symbol);
@@ -414,33 +427,36 @@ function handleCoinsAndCashCollect(
 
 //CASH COLLECT + LINK->TRIGGERS HEISENBERG
 export function handleCashCollectandLink(gameInstance: SLBB) {
-  const { settings } = gameInstance;
-  const coinSymbolId = settings.coins.SymbolID;
-  console.log(coinSymbolId, "coinsymbol");
-
+  const { settings, currentGameData } = gameInstance;
+  const coinSymbolId = settings.coins.SymbolID;  
   const cashCollectSymbolId = settings.cashCollect.SymbolID;
 
   let totalCoinValue = 0;
   let cashCollectCount = 0;
-  const hasCoinSymbols = hasSymbolInMatrix(settings.heisenbergSymbolMatrix, coinSymbolId);
+  const freezeIndicesLength = Array.from(settings.frozenIndices).length;
+  console.log(freezeIndicesLength, "FRozen INDICS LENGTH");
+  
+  if(freezeIndicesLength===15){
+    totalCoinValue = currentGameData.gameSettings.bonus.grandPrize;
+  }
+  const hasCoinSymbols = hasSymbolInMatrix(settings.heisenbergSymbolMatrix, coinSymbolId.toString());
 
-  if (hasCoinSymbols) {
+  if(hasCoinSymbols){    
     replaceCoinsWithValues(gameInstance, 'heisenberg');
   }
-
-  // Loop through the symbol matrix to calculate coin value and count cash collect symbols
-  settings.heisenbergSymbolMatrix.forEach(row => {
-    row.forEach((symbol: any) => {
-      console.log(symbol, "SYMBOL");
-      console.log(coinSymbolId, "SYMBOLID");
-      if (symbol == coinSymbolId) {
-        // Use getCoinValue to get the value of the coin symbol
-        const coinValue = getCoinValue(symbol, gameInstance);
-        console.log(coinValue, "COIN VALUE");
-
-        totalCoinValue += coinValue;
-      }
-      if (symbol === cashCollectSymbolId) {
+  if (settings.coins.values.length>0) {
+    console.log(totalCoinValue, "coin value before adding the cashcollect and coins");
+    
+    const coinValue = getCoinValue(settings.coins.values);
+    totalCoinValue += coinValue;
+    
+  }
+  settings.heisenbergSymbolMatrix.forEach((row) => {
+    row.forEach((symbol, colIndex) => {
+      console.log(symbol);
+      
+     
+      if (symbol == cashCollectSymbolId) {
         cashCollectCount++;
       }
     });
@@ -448,6 +464,8 @@ export function handleCashCollectandLink(gameInstance: SLBB) {
 
   // Calculate payout by multiplying total coin value by the number of cash collect symbols
   if (cashCollectCount > 0) {
+    console.log(totalCoinValue, "TOTAL COIN VALUE");
+    
     const payout = totalCoinValue * cashCollectCount;
     console.log(payout, "PAYOUT");
 
@@ -480,29 +498,20 @@ function handleHeisenbergSpin(gameInstance: SLBB) {
   }
 
   if (settings.heisenberg.freeSpin.noOfFreeSpins > 0) {
-    settings.heisenberg.freeSpin.noOfFreeSpins -= 1;
-    console.log(settings.heisenberg.freeSpin.noOfFreeSpins, "NUMBER OF FREE SPINS");
-
+    settings.heisenberg.freeSpin.noOfFreeSpins--; 
+   console.log(settings.heisenberg.freeSpin.noOfFreeSpins, "NUMBER OF FREE SPINS"); 
     if (coinCount > 0) {
       settings.heisenberg.freeSpin.noOfFreeSpins = 3;
       console.log("Coin found! Reset free spins to 3.");
     }
-
-    if (coinCount >= 15) {
-      settings.heisenberg.payout = 1000;
-      console.log("Grand Prize Awarded!");
-      // settings.freeSpin.freeSpinStarted = false;
-    }
-  } else {
-    settings.heisenberg.freeSpin.freeSpinStarted = false;
+    } else {
+    settings.heisenberg.freeSpin.freeSpinStarted = false; 
     settings.heisenberg.isTriggered = false;
     console.log("Free spins have ended.");
   }
-
-  if (settings.heisenberg.freeSpin.noOfFreeSpins == 0) {
+  if(settings.heisenberg.freeSpin.noOfFreeSpins==0){
     handleCashCollectandLink(gameInstance);
   }
-
   console.log(settings.heisenbergSymbolMatrix, "result matrix after Cash Collect and Link");
 }
 
@@ -634,7 +643,7 @@ export function checkForWin(gameInstance: SLBB) {
     const hasLosPollosSymbols = hasSymbolInMatrix(resultSymbolMatrix, losPollosId);
     const hasPrizeCoinSymbols = hasSymbolInMatrix(resultSymbolMatrix, prizeCoinId);
 
-    //populate lospollos count 
+
     if (hasLosPollosSymbols) {
       settings.losPollos.values = [];
       const losPollosValue = getRandomValue(gameInstance, "freespin")
@@ -655,19 +664,6 @@ export function checkForWin(gameInstance: SLBB) {
 
     //NOTE: freespin or LosPollos
     //
-    // if(hasCashCollect && hasLosPollosSymbols){
-    //   //freespins triggered
-    //   //find all lospollos counts 
-    //   const count = gameInstance.settings.losPollos.values
-    //   console.log("lospollos value", count);
-    //
-    // }
-
-    if(hasPrizeCoinSymbols){
-      const prize = getRandomValue(gameInstance, "prizes")
-      console.log("PRIZE WON:", prize);
-      
-    }
 
     if (hasCoinSymbols) {
       replaceCoinsWithValues(gameInstance, 'result');
