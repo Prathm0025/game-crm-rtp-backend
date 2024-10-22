@@ -10,13 +10,11 @@ export interface Symbol {
     reelInstance: { [key: string]: number };
 }
 
-//enum for magent trigger 
-enum position {
-    TOP_LEFT = "TOP_LEFT",
-    TOP_RIGHT = "TOP_RIGHT",
-    BOTTOM_LEFT = "BOTTOM_LEFT",
-    BOTTOM_RIGHT = "BOTTOM_RIGHT",
+type valueType = {
+  index : [number,number],
+  value: number
 }
+
 
 export  interface SLBBSETTINGS {
     id: string;
@@ -37,7 +35,7 @@ export  interface SLBBSETTINGS {
     magnet:{
       isEnabled: boolean;
       isTriggered: boolean;
-      position: number,//0:null, 1: TOP_LEFT, 2: TOP_RIGHT, 3: BOTTOM_LEFT, 4: BOTTOM_RIGHT
+      position: number[],//
       triggerProb : number
     },
     jackpot: {
@@ -50,12 +48,8 @@ export  interface SLBBSETTINGS {
     },
     freeSpin: {
         symbolID: string,
-        freeSpinMuiltiplier: any[],
-        freeSpinStarted: boolean,
         freeSpinCount: number,
-        noOfFreeSpins: number,
-        useFreeSpin: boolean,
-        freeSpinsAdded: boolean,
+        isFreeSpin:boolean
     };
     wild: {
         SymbolName: string;
@@ -82,6 +76,7 @@ export  interface SLBBSETTINGS {
         SymbolName: string;
         SymbolID: string;
         useWild: boolean;
+        values: valueType[]
     };
     prizeCoin: {
         SymbolName: string;
@@ -92,6 +87,7 @@ export  interface SLBBSETTINGS {
         SymbolName: string;
         SymbolID: string;
         useWild: boolean;
+        values: valueType[]
     };
     heisenberg:{
         isTriggered:boolean;

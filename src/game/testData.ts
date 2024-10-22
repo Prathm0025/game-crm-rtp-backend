@@ -227,8 +227,8 @@ export const gameData = [
       ],
       "magnet": {
         "isEnabled": true,
-        "position": 0, // 0: null , 1: TOP_LEFT, 2: TOP_RIGHT, 3: BOTTOM_LEFT, 4: BOTTOM_RIGHT
-        "triggerProb": 0.5 //probability of trigger , b/w 0 and 1
+        "position": [], // 
+        "triggerProb": 0.9 //probability of trigger , b/w 0 and 1
       },
       "coinsvalue": [1, 2, 5, 10, 15, 20, 25, 30, 35, 40],
       "coinsvalueprob": [10, 20, 30, 40, 50, 10, 15, 25, 35, 55],
@@ -250,13 +250,16 @@ export const gameData = [
           1.5,
           2
        ],
+      "freeSpin":{
+        "isEnabled":true,
+      },
       "bonus": {
-      "type": "spin",
-      "isEnabled": false,
-      "noOfItem": 8,
-      "payOut": [200, 100, 70, 50, 30, 20, 10, 5],
-      "payOutProb": [0.05, 0.5, 1, 3, 10, 20, 25, 39.4]
-    },
+        "type": "spin",
+        "isEnabled": false,
+        "noOfItem": 8,
+        "payOut": [200, 100, 70, 50, 30, 20, 10, 5],
+        "payOutProb": [0.05, 0.5, 1, 3, 10, 20, 25, 39.4]
+      },
       "gamble":{
          "type":"card",
          "isEnabled":false

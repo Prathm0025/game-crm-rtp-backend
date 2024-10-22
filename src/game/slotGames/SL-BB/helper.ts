@@ -47,13 +47,10 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBB) {
       useJackpot: false,
     },
     freeSpin: {
+      isEnabled: gameData.gameSettings.freeSpin.isEnabled,
+      isFreeSpin: false,
       symbolID: getSymbolIdByName("FreeSpin"),
-      freeSpinMuiltiplier: [],
-      freeSpinStarted: false,
-      freeSpinsAdded: false,
       freeSpinCount: 0,
-      noOfFreeSpins: 0,
-      useFreeSpin: false,
     },
     wild: {
       SymbolName: "Wild",
@@ -79,6 +76,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBB) {
       SymbolName: "Coins",
       SymbolID: getSymbolIdByName("Coins"),
       useWild: false,
+      values:[]
     },
     prizeCoin: {
       SymbolName: "PrizeCoin",
@@ -89,6 +87,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBB) {
       SymbolName: "LosPollos",
       SymbolID: getSymbolIdByName("LosPollos"),
       useWild: false,
+      values:[]
     },
     heisenberg:{
       isTriggered:false,
@@ -442,7 +441,7 @@ function handleHeisenbergSpin(gameInstance: SLBB) {
     if (coinCount >= 15) {
       settings.heisenberg.payout = 1000; 
       console.log("Grand Prize Awarded!");
-      settings.freeSpin.freeSpinStarted = false;
+      // settings.freeSpin.freeSpinStarted = false;
     }
     } else {
     settings.heisenberg.freeSpin.freeSpinStarted = false; 
@@ -462,7 +461,7 @@ function handleCashCollectandLospollos( gameInstance:SLBB){
   const {settings} = gameInstance;
   console.log("handle cash collect and lospollos getting called");
     
-  settings.freeSpin.freeSpinStarted = true;
+  // settings.freeSpin.freeSpinStarted = true;
   
 
   console.log(settings.resultSymbolMatrix, "result matrix for handle cash collected Link");
@@ -521,32 +520,50 @@ export function checkForWin(gameInstance: SLBB) {
     }
     //NOTE: magnet 
     if (settings.magnet.isEnabled) {
+      const possiblePositions = [
+        [0, 0],
+        [4, 0],
+        [0, 2],
+        [4, 2],
+      ]
       let { magnet} = settings
+      magnet.isTriggered = false
+      magnet.position = []
       //magnet.triggerProb is between 0 and 1 
       // isTriggered is based on the triggerProb
       const isTriggered = Math.random() < settings.magnet.triggerProb;
       if (isTriggered) {
-        console.log("MAGNET TRIGGERED");
         magnet.isTriggered = true
         //check if cashCollect is in resultmatrix
-        settings.resultSymbolMatrix.forEach((row,) => {
-          row.forEach((symbolID,j) => {
-            if (symbolID === settings.cashCollect.SymbolID) {
-              if(j===0){
-                magnet.position=Math.random() < 0.5 ? 1: 3
-              }else if(j===4){
-                magnet.position=Math.random() < 0.5 ? 2: 4
+        if(hasSymbolInMatrix(settings.resultSymbolMatrix, settings.cashCollect.SymbolID)){
+          //find the x,y indexes of cashCollect
+          let cashCollectX = 0
+          let cashCollectY = 0
+          settings.resultSymbolMatrix.forEach((row, y) => {
+            row.forEach((symbol, x) => {
+              if(symbol === settings.cashCollect.SymbolID){
+                cashCollectX = x
+                cashCollectY = y
               }
-            }
-          })
-        })
+            });
+          });
+          //checking if cashCollect is in possiblePositions
+          if(possiblePositions.some(([x, y]) => x === cashCollectX && y === cashCollectY)){
+            magnet.position = [cashCollectX, cashCollectY]
+          }else {
+            //randomly select one of the possiblePositions
+            const randomIndex = Math.floor(Math.random() * possiblePositions.length);
+            const [x, y] = possiblePositions[randomIndex];
+            magnet.position = [x, y]
+          }
+          //triggered magnet
+        }
       }else{
-        console.log("MAGNET NOT TRIGGERED");
+        magnet.isTriggered = false
       }
       //TODO: send msg ???
-      magnet.isTriggered = false
     }
-    console.log("MAGNET POSITION: ", settings.magnet);
+    console.log("MAGNET : ", settings.magnet);
     
 
 
@@ -619,7 +636,7 @@ export function checkForWin(gameInstance: SLBB) {
 export function handleAutoSpinStart(magnet: {
   isEnabled: boolean;
   isTriggered: boolean;
-  position: number;//0:null, 1: TOP_LEFT, 2: TOP_RIGHT, 3: BOTTOM_LEFT, 4: BOTTOM_RIGHT
+  position: number[];//0:null, 1: TOP_LEFT, 2: TOP_RIGHT, 3: BOTTOM_LEFT, 4: BOTTOM_RIGHT
   triggerProb : number
 }) {
   magnet.isEnabled = true;
@@ -627,7 +644,7 @@ export function handleAutoSpinStart(magnet: {
 export function handleAutoSpinEnd(magnet: {
   isEnabled: boolean;
   isTriggered: boolean;
-  position: number;//0:null, 1: TOP_LEFT, 2: TOP_RIGHT, 3: BOTTOM_LEFT, 4: BOTTOM_RIGHT
+  position: number[];//0:null, 1: TOP_LEFT, 2: TOP_RIGHT, 3: BOTTOM_LEFT, 4: BOTTOM_RIGHT
   triggerProb : number
 }) {
   magnet.isEnabled = false;

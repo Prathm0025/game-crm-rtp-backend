@@ -78,14 +78,32 @@ export class SLBB {
   public async spinResult(): Promise<void> {
     try {
       const playerData = this.getPlayerData();
-      if (!this.settings) {
-        await this.deductPlayerBalance(this.settings.currentBet);
-        this.playerData.totalbet += this.settings.currentBet;
-      }
-      if (this.settings.currentBet > playerData.credits) {
+      const {freeSpin} = this.settings
+      if (!freeSpin.isFreeSpin && this.settings.currentBet > playerData.credits) {
         this.sendError("Low Balance");
         return;
       }
+
+      if (!freeSpin.isFreeSpin) {
+        await this.deductPlayerBalance(this.settings.currentBet);
+        this.playerData.totalbet += this.settings.currentBet*3 ;
+      }
+      if (freeSpin.freeSpinCount === 1) {
+        freeSpin.isFreeSpin = false;
+      }
+      if (
+        freeSpin.isFreeSpin &&
+        freeSpin.freeSpinCount > 0
+      ) {
+        freeSpin.freeSpinCount--;
+
+        this.settings.currentBet = 0;
+        console.log(
+          freeSpin.freeSpinCount,
+          "this.settings.freeSpinCount"
+        );
+      }
+        this.updatePlayerBalance(this.playerData.currentWining)
       await new RandomResultGenerator(this);
       checkForWin(this)
     } catch (error) {
@@ -109,7 +127,7 @@ export class SLBB {
     }
 
     if (this.settings.heisenberg.freeSpin.noOfFreeSpins > 0) {
-      this.settings.freeSpin.noOfFreeSpins--;
+      // this.settings.freeSpin.noOfFreeSpins--;
 
       if (coinCount > 0) {
         this.settings.heisenberg.freeSpin.noOfFreeSpins = 3;
@@ -119,7 +137,7 @@ export class SLBB {
       if (coinCount >= 15) {
         this.settings.heisenberg.payout = 1000;
         console.log("Grand Prize Awarded!");
-        this.settings.freeSpin.freeSpinStarted = false;
+        // this.settings.freeSpin.freeSpinStarted = false;
       }
     } else {
       this.settings.heisenberg.freeSpin.freeSpinStarted = false;
