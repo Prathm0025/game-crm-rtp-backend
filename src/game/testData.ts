@@ -663,11 +663,11 @@ export const gameData = [
             "Name":"Coins",
             "Id":19,
             "reelInstance":{
-               "0":50,
-               "1":50,
-               "2":50,
-               "3":50,
-               "4":50
+               "0":0,
+               "1":0,
+               "2":0,
+               "3":0,
+               "4":0
             },
             "description":"",
             "useWildSub":false,

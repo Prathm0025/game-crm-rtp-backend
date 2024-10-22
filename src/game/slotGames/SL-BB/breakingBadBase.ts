@@ -135,11 +135,8 @@ export class SLBB {
             this.playerData.rtpSpinCount = spins;
 
             for (let i = 0; i < this.playerData.rtpSpinCount; i++) {
-                if(this.settings.heisenberg.isTriggered){
-                    await this.handleHeisenbergSpin();
-                }else{
+             
                 await this.spinResult();
-                }
                 spend = this.playerData.totalbet;
                 won = this.playerData.haveWon;
                 // console.log(`Spin ${i + 1} completed. ${this.playerData.totalbet} , ${won}`);
