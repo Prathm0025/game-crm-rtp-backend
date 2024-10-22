@@ -10,7 +10,7 @@ const checkToggle_1 = require("../middleware/checkToggle");
 const userController = new userController_1.UserController();
 const userRoutes = express_1.default.Router();
 // LOGIN
-userRoutes.post("/login", checkToggle_1.checkToggle, userController.loginUser);
+userRoutes.post("/login", checkToggle_1.checkLoginToggle, userController.loginUser);
 // LOGOUT
 userRoutes.post("/logout", checkUser_1.checkUser, userController.logoutUser);
 // ADD User
