@@ -8,12 +8,13 @@ import { SLSR } from "./SL-SR/stinkinRichBase";
 import { SLONE } from "./SL-ONE/OneOfAKindBase";
 import { SLLOL } from "./SL-LOL/LifeOfLuxury";
 import { SLBE } from "./SL-BE/bloodEternalBase"
+import { SLBB } from "./SL-BB/breakingBadBase";
 export default class SlotGameManager {
   public currentGame: any;
 
   gameClassMapping: { [key: string]: any } = {
     "SL-CM": SLCM, "SL-CRZ": SLCRZ, "SL-WOF": SLWOF, "SL-PM": SLPM, "SL-BE": SLBE,
-     "SL-ONE": SLONE, "SL-LOL": SLLOL, "SL-SR": SLSR,
+     "SL-ONE": SLONE, "SL-LOL": SLLOL, "SL-SR": SLSR, "SL-BB":SLBB
   };
 
   constructor(public currentGameData: currentGamedata) {
