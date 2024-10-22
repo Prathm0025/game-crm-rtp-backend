@@ -1,4 +1,3 @@
-import SlotGame from "../slotGame";
 import BaseSlotGame from "./BaseSlotGame";
 
 type Suit = 'Hearts' | 'Diamonds' | 'Clubs' | 'Spades';
@@ -24,7 +23,7 @@ export class gambleCardGame {
   shouldWin: boolean = false;
   winningCredit: number = 0;
 
-  constructor(public sltGame: BaseSlotGame) {
+  constructor(public sltGame: BaseSlotGame ) {
     this.resetGamble();
   }
 
@@ -117,16 +116,22 @@ export class gambleCardGame {
         this.initialUpdate = true;
         this.winningCredit = this.sltGame.settings._winData.totalWinningAmount * 2;
         resultData.currentWining = this.winningCredit;
+        console.log("gamble result", resultData);
+
         this.sltGame.sendMessage("GambleResult", resultData); // Ensure message is sent on initial update
       }
       else {
         this.winningCredit = this.winningCredit * 2;
         resultData.currentWining = this.winningCredit;
+
+        console.log("gamble result", resultData);
         this.sltGame.sendMessage("GambleResult", resultData);
       }
     } else {
       this.winningCredit = 0;
       resultData.playerWon = false;
+
+      console.log("gamble result", resultData);
       this.updateCredits();
     }
   }
@@ -135,7 +140,7 @@ export class gambleCardGame {
     this.initialUpdate = false;
     this.sltGame.deductPlayerBalance(this.sltGame.settings._winData.totalWinningAmount)
     this.sltGame.updatePlayerBalance(this.winningCredit);
-    
+
     this.sltGame.playerData.haveWon += this.winningCredit;
     this.sltGame.playerData.currentWining = this.winningCredit;
     let resultData = {
@@ -191,8 +196,8 @@ export class gambleCardGame {
 
   playHighCard(plCard: Card, dlCard: Card): boolean {
 
-    
-    
+
+
 
     const comparisonResult = this.compareCards(plCard, dlCard);
 
