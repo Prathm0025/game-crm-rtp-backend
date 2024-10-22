@@ -140,28 +140,25 @@ export class SLBB {
       let won: number = 0;
       this.playerData.rtpSpinCount = spins;
 
-      for (let i = 0; i < this.playerData.rtpSpinCount; i++) {
-        if (this.settings.heisenberg.isTriggered) {
-          await this.handleHeisenbergSpin();
-        } else {
-          await this.spinResult();
+            for (let i = 0; i < this.playerData.rtpSpinCount; i++) {
+             
+                await this.spinResult();
+                spend = this.playerData.totalbet;
+                won = this.playerData.haveWon;
+                // console.log(`Spin ${i + 1} completed. ${this.playerData.totalbet} , ${won}`);
+            }
+            let rtp = 0;
+            if (spend > 0) {
+                rtp = won / spend;
+            }
+            // console.log('RTP calculated:', rtp * 100);
+            return;
+        } catch (error) {
+            console.error("Failed to calculate RTP:", error);
+            this.sendError("RTP calculation error");
         }
-        spend = this.playerData.totalbet;
-        won = this.playerData.haveWon;
-        // console.log(`Spin ${i + 1} completed. ${this.playerData.totalbet} , ${won}`);
-      }
-      let rtp = 0;
-      if (spend > 0) {
-        rtp = won / spend;
-      }
-      // console.log('RTP calculated:', rtp * 100);
-      return;
-    } catch (error) {
-      console.error("Failed to calculate RTP:", error);
-      this.sendError("RTP calculation error");
     }
-  }
-
+     
 
 
 

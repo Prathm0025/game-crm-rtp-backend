@@ -64,12 +64,12 @@ export  interface SLBBSETTINGS {
     };
     link: {
         SymbolName: string;
-        SymbolID: number;
+        SymbolID: string;
         useWild: boolean;
     };
     megalink: {
         SymbolName: string;
-        SymbolID: number;
+        SymbolID: string;
         useWild: boolean;
 
     };
