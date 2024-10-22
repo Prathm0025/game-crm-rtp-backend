@@ -23,6 +23,7 @@ export  interface SLBBSETTINGS {
     resultSymbolMatrix: any[];
     prevresultSymbolMatrix: any[];
     heisenbergSymbolMatrix:any[];
+    frozenIndices: Set<string>; // Changed to Set<string>
     lineData: any[],
     _winData: WinData | undefined;
     currentBet: number;

@@ -258,7 +258,8 @@ export const gameData = [
         "isEnabled": false,
         "noOfItem": 8,
         "payOut": [200, 100, 70, 50, 30, 20, 10, 5],
-        "payOutProb": [0.05, 0.5, 1, 3, 10, 20, 25, 39.4]
+        "payOutProb": [0.05, 0.5, 1, 3, 10, 20, 25, 39.4],
+        "grandPrize":2000
       },
       "gamble":{
          "type":"card",
@@ -512,11 +513,11 @@ export const gameData = [
             "Name":"9",
             "Id":9,
             "reelInstance":{
-               "0":4,
-               "1":4,
-               "2":4,
-               "3":4,
-               "4":4
+               "0":0,
+               "1":0,
+               "2":0,
+               "3":0,
+               "4":0
             },
             "useWildSub":false,
             "useHeisenberg":true,
@@ -527,11 +528,11 @@ export const gameData = [
             "Name":"10",
             "Id":10,
             "reelInstance":{
-               "0":4,
-               "1":4,
-               "2":4,
-               "3":4,
-               "4":4
+               "0":0,
+               "1":0,
+               "2":0,
+               "3":0,
+               "4":0
             },
             "useWildSub":false,
             "useHeisenberg":true,
@@ -542,11 +543,11 @@ export const gameData = [
             "Name":"11",
             "Id":11,
             "reelInstance":{
-               "0":4,
-               "1":4,
-               "2":4,
-               "3":4,
-               "4":4
+               "0":0,
+               "1":0,
+               "2":0,
+               "3":0,
+               "4":0
             },
             "useWildSub":false,
             "useHeisenberg":true,
@@ -557,11 +558,11 @@ export const gameData = [
             "Name":"12",
             "Id":12,
             "reelInstance":{
-               "0":4,
-               "1":4,
-               "2":4,
-               "3":4,
-               "4":4
+               "0":0,
+               "1":0,
+               "2":0,
+               "3":0,
+               "4":0
             },
             "useWildSub":false,
             "useHeisenberg":true,
@@ -572,11 +573,11 @@ export const gameData = [
             "Name":"13",
             "Id":9,
             "reelInstance":{
-               "0":4,
-               "1":4,
-               "2":4,
-               "3":4,
-               "4":4
+               "0":0,
+               "1":0,
+               "2":0,
+               "3":0,
+               "4":0
             },
             "useWildSub":false,
             "useHeisenberg":true,
@@ -587,11 +588,11 @@ export const gameData = [
             "Name":"14",
             "Id":14,
             "reelInstance":{
-               "0":4,
-               "1":4,
-               "2":4,
-               "3":4,
-               "4":4
+               "0":0,
+               "1":0,
+               "2":0,
+               "3":0,
+               "4":0
             },
             "useWildSub":false,
             "useHeisenberg":true,
@@ -655,9 +656,9 @@ export const gameData = [
             "Id":18,
             "reelInstance":{
                "0":50,
-               "1":0,
-               "2":0,
-               "3":0,
+               "1":50,
+               "2":50,
+               "3":50,
                "4":50
             },
             "description":"",
@@ -671,11 +672,11 @@ export const gameData = [
             "Name":"Coins",
             "Id":19,
             "reelInstance":{
-               "0":0,
-               "1":0,
-               "2":0,
-               "3":0,
-               "4":0
+               "0":100,
+               "1":100,
+               "2":100,
+               "3":100,
+               "4":10
             },
             "description":"",
             "useWildSub":false,
@@ -720,7 +721,7 @@ export const gameData = [
          }, 
          {
             "Name":"FreeSpin",
-            "Id":17,
+            "Id":22,
             "reelInstance":{
                "0":0,
                "1":0,
