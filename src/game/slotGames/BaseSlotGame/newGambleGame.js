@@ -94,17 +94,20 @@ class gambleCardGame {
                 this.initialUpdate = true;
                 this.winningCredit = this.sltGame.settings._winData.totalWinningAmount * 2;
                 resultData.currentWining = this.winningCredit;
+                console.log("gamble result", resultData);
                 this.sltGame.sendMessage("GambleResult", resultData); // Ensure message is sent on initial update
             }
             else {
                 this.winningCredit = this.winningCredit * 2;
                 resultData.currentWining = this.winningCredit;
+                console.log("gamble result", resultData);
                 this.sltGame.sendMessage("GambleResult", resultData);
             }
         }
         else {
             this.winningCredit = 0;
             resultData.playerWon = false;
+            console.log("gamble result", resultData);
             this.updateCredits();
         }
     }

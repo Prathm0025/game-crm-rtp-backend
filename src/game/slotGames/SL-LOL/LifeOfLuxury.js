@@ -8,21 +8,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SLLOL = void 0;
 const helper_1 = require("./helper");
 const RandomResultGenerator_1 = require("../RandomResultGenerator");
+const gamble_1 = require("./gamble");
 class SLLOL {
     constructor(currentGameData) {
         this.currentGameData = currentGameData;
@@ -42,28 +32,17 @@ class SLLOL {
             this.settings.reels = (0, helper_1.generateInitialReel)(this.settings);
             // console.log("Initial reels generated:", this.settings.reels);
             (0, helper_1.sendInitData)(this);
+            console.log("credits : ", this.getPlayerData().credits);
         }
         catch (error) {
             console.error("Error initializing SLLOL game:", error);
         }
-    }
-    logSafeSettings() {
-        const _a = this.settings, { _winData } = _a, safeSettings = __rest(_a, ["_winData"]);
-        return JSON.stringify(safeSettings, null, 2);
     }
     get initSymbols() {
         console.log("Getting initial symbols");
         const Symbols = this.currentGameData.gameSettings.Symbols || [];
         // console.log("Initial symbols:", Symbols);
         return Symbols;
-    }
-    getSymbol(id) {
-        return this.settings.Symbols.find(s => s.Id === id);
-    }
-    isWild(symbolId) {
-        // const symbol = this.getSymbol(symbolId);
-        // return symbol ? symbol.Name === "Wild" : false;
-        return symbolId === 11;
     }
     sendMessage(action, message) {
         this.currentGameData.sendMessage(action, message);
@@ -74,10 +53,10 @@ class SLLOL {
     sendAlert(message) {
         this.currentGameData.sendAlert(message);
     }
-    updatePlayerBalance(amount) {
+    incrementPlayerBalance(amount) {
         this.currentGameData.updatePlayerBalance(amount);
     }
-    deductPlayerBalance(amount) {
+    decrementPlayerBalance(amount) {
         this.currentGameData.deductPlayerBalance(amount);
     }
     getPlayerData() {
@@ -87,8 +66,45 @@ class SLLOL {
         switch (response.id) {
             case "SPIN":
                 this.prepareSpin(response.data);
-                // this.spinResult();
-                this.getRTP(response.data.spins || 1);
+                this.spinResult();
+                break;
+            case "GENRTP":
+                this.settings.currentLines = response.data.currentLines;
+                this.settings.BetPerLines = this.settings.currentGamedata.bets[response.data.currentBet];
+                this.settings.currentBet =
+                    this.settings.currentGamedata.bets[response.data.currentBet] * this.settings.currentLines;
+                this.getRTP(response.data.spins);
+                break;
+            case "GambleInit":
+                const sendData = (0, gamble_1.sendInitGambleData)();
+                this.decrementPlayerBalance(this.playerData.currentWining);
+                this.playerData.haveWon -= this.playerData.currentWining;
+                this.sendMessage("gambleInitData", sendData);
+                break;
+            case "GambleResultData":
+                let result = (0, gamble_1.getGambleResult)({ selected: response.data.selected });
+                //calculate payout
+                switch (result.playerWon) {
+                    case true:
+                        this.playerData.currentWining *= 2;
+                        result.Balance = this.getPlayerData().credits + this.playerData.currentWining;
+                        result.currentWinning = this.playerData.currentWining;
+                        break;
+                    case false:
+                        result.currentWinning = 0;
+                        result.Balance = this.getPlayerData().credits;
+                        this.playerData.currentWining = 0;
+                        break;
+                }
+                this.sendMessage("GambleResult", result);
+                break;
+            case "GAMBLECOLLECT":
+                this.playerData.haveWon += this.playerData.currentWining;
+                this.incrementPlayerBalance(this.playerData.currentWining);
+                break;
+            default:
+                console.warn(`Unhandled message ID: ${response.id}`);
+                this.sendError(`Unhandled message ID: ${response.id}`);
                 break;
         }
     }
@@ -105,8 +121,11 @@ class SLLOL {
                     this.sendError("Low Balance");
                     return;
                 }
-                yield this.deductPlayerBalance(this.settings.currentBet);
-                this.playerData.totalbet += this.settings.currentBet;
+                //deduct only when freespin is not triggered
+                if (this.settings.freeSpinCount <= 0) {
+                    this.decrementPlayerBalance(this.settings.currentBet);
+                    this.playerData.totalbet += this.settings.currentBet;
+                }
                 new RandomResultGenerator_1.RandomResultGenerator(this);
                 this.checkResult();
             }
@@ -145,80 +164,34 @@ class SLLOL {
     checkResult() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const resultMatrix = this.settings.resultSymbolMatrix;
-                // console.log("Result Matrix:", resultMatrix);
-                const { payout, winningCombinations } = this.checkWin(resultMatrix);
-                // console.log("winning comb:", winningCombinations);
+                this.playerData.currentWining = 0;
+                const { payout, winningCombinations } = (0, helper_1.checkWin)(this);
                 (0, helper_1.printWinningCombinations)(winningCombinations);
-                this.playerData.currentWining = payout;
-                this.playerData.haveWon += payout;
+                console.log("balance:", this.getPlayerData().credits);
+                console.log("freespin:", {
+                    count: this.settings.freeSpinCount,
+                    isFreespin: this.settings.isFreeSpin,
+                    multipliers: this.settings.freeSpinMultipliers
+                });
                 if (payout > 0) {
-                    this.updatePlayerBalance(this.playerData.currentWining);
+                    this.playerData.currentWining = payout;
+                    this.playerData.haveWon += payout;
+                    this.incrementPlayerBalance(this.playerData.currentWining);
                 }
+                else {
+                    this.playerData.currentWining = 0;
+                }
+                console.log("Payout checkwin: ", payout);
+                //
+                // this.gamebleTesting()
                 (0, helper_1.makeResultJson)(this);
-                console.log("Total Payout:", payout);
-                // console.log("Winning Combinations:", winningCombinations);
+                console.log("playerData :", this.playerData);
+                console.log("windata :", this.settings._winData.totalWinningAmount);
             }
             catch (error) {
                 console.error("Error in checkResult:", error);
             }
         });
-    }
-    checkWin(result) {
-        let totalPayout = 0;
-        let winningCombinations = [];
-        const findCombinations = (symbolId, col, path) => {
-            // Stop if we've checked all columns or path is complete
-            if (col === this.settings.matrix.x) {
-                if (path.length >= this.settings.minMatchCount) {
-                    const symbol = this.getSymbol(symbolId);
-                    // Fix the payout index based on path length (5 -> 0, 4 -> 1, 3 -> 2)
-                    const multiplierIndex = path.length - this.settings.minMatchCount;
-                    const multiplier = symbol.multiplier[multiplierIndex][0];
-                    winningCombinations.push({ symbolId, positions: path, payout: multiplier * this.settings.BetPerLines });
-                    // console.log("payouttttt", symbol.payout[payoutIndex] );
-                    // console.log("asdasd");
-                }
-                return;
-            }
-            for (let row = 0; row < this.settings.matrix.y; row++) {
-                const currentSymbolId = result[row][col];
-                if (currentSymbolId === symbolId || this.isWild(currentSymbolId)) {
-                    findCombinations(symbolId, col + 1, [...path, [row, col]]);
-                }
-            }
-            // End the combination if it's long enough
-            if (path.length >= this.settings.minMatchCount) {
-                const symbol = this.getSymbol(symbolId);
-                // Fix the payout index based on path length (5 -> 0, 4 -> 1, 3 -> 2)
-                const multiplierIndex = path.length - this.settings.minMatchCount;
-                const multiplier = symbol.multiplier[multiplierIndex][0];
-                winningCombinations.push({ symbolId, positions: path, payout: multiplier * this.settings.BetPerLines });
-            }
-        };
-        // Iterate over each symbol in the first column
-        this.settings.Symbols.forEach(symbol => {
-            if (symbol.Name !== "Wild") {
-                for (let row = 0; row < this.settings.matrix.y; row++) {
-                    const startSymbolId = result[row][0]; // Start in the leftmost column (0)
-                    if (startSymbolId === symbol.Id || this.isWild(startSymbolId)) {
-                        findCombinations(symbol.Id, 1, [[row, 0]]);
-                    }
-                }
-            }
-        });
-        // Filter out shorter combinations that are subsets of longer ones
-        winningCombinations = winningCombinations.filter((combo, index, self) => !self.some((otherCombo, otherIndex) => index !== otherIndex &&
-            combo.symbolId === otherCombo.symbolId &&
-            combo.positions.length < otherCombo.positions.length &&
-            combo.positions.every((pos, i) => pos[0] === otherCombo.positions[i][0] && pos[1] === otherCombo.positions[i][1])));
-        winningCombinations.forEach(combo => {
-            // alter payout . multiply betsperline with payout
-            combo.payout = combo.payout * this.settings.BetPerLines;
-        });
-        // Calculate total payout
-        totalPayout = winningCombinations.reduce((sum, combo) => sum + combo.payout, 0);
-        return { payout: totalPayout, winningCombinations };
     }
 }
 exports.SLLOL = SLLOL;
