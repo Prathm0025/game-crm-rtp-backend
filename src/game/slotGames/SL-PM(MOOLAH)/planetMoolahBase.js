@@ -83,11 +83,12 @@ class SLPM {
                     this.settings.freeSpin.freeSpinCount--;
                     console.log("Free Spin remaining count ", this.settings.freeSpin.freeSpinCount);
                 }
-                if (this.settings.freeSpin.freeSpinCount == 0) {
-                    this.settings.freeSpin.freeSpinStarted = false;
-                }
                 yield new RandomResultGenerator_1.RandomResultGenerator(this);
                 (0, helper_1.checkForWin)(this);
+                if (this.settings.freeSpin.freeSpinCount == 0) {
+                    this.settings.freeSpin.freeSpinStarted = false;
+                    this.settings.freeSpin.freeSpinCount = 0;
+                }
             }
             catch (error) {
                 this.sendError("Spin error");
