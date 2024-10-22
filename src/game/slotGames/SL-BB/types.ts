@@ -47,7 +47,7 @@ export  interface SLBBSETTINGS {
         useJackpot: boolean;
     },
     freeSpin: {
-        symbolID: string,
+        // symbolID: string,
         freeSpinCount: number,
         isFreeSpin:boolean
     };
