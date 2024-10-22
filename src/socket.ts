@@ -65,6 +65,8 @@ const socketController = (io: Server) => {
             const decoded = (socket as any).decoded;
             const origin = socket.handshake.auth.origin;
             const gameId = socket.handshake.auth.gameId;
+            const userAgent = (socket as any).userAgent;
+            const username = decoded.username;
 
 
             if (!decoded || !decoded.username || !decoded.role) {
@@ -73,35 +75,47 @@ const socketController = (io: Server) => {
                 return;
             }
 
-
-            const userAgent = (socket as any).userAgent;
-            const username = decoded.username;
-
             const existingUser = users.get(username);
 
             if (existingUser) {
                 if (existingUser.playerData.userAgent !== userAgent) {
                     socket.emit("AnotherDevice", "You are already playing on another browser.");
                     socket.disconnect(true);
-                    throw createHttpError(403, "Please wait to disconnect")
+                    throw createHttpError(403, "Already playing on another device");
                 }
 
-                // Ensure the user has a platform connection before allowing a game connection
-                if (!existingUser.platformData.socket) {
-                    socket.emit("Error", "You need to have an active platform connection before joining a game.");
-                    socket.disconnect(true);
+                // Handle platform reconnections
+                if (origin) {
+                    // Check if the platform socket is already connected
+                    if (existingUser.platformData.socket && existingUser.platformData.socket.connected) {
+                        console.log(`User ${username} is already connected with an active platform socket.`);
+
+                        socket.emit("alert", "Platform already connected. Please disconnect the other session.");
+                        socket.disconnect(true);
+                        return;
+                    } else {
+                        // If the platform socket is not connected, reinitialize the platform socket for the user
+                        console.log(`Reinitializing platform socket for ${username}`);
+                        existingUser.initializePlatformSocket(socket);
+                        existingUser.sendAlert(`Platform reconnected for ${username}`, false);
+                        return;
+                    }
+                }
+
+                // Handle game connections
+                if (gameId) {
+                    // Ensure the user has a platform connection before allowing a game connection
+                    if (!existingUser.platformData.socket) {
+                        socket.emit("internalError", "You need to have an active platform connection before joining a game.");
+                        socket.disconnect(true);
+                        return;
+                    }
+
+                    await existingUser.updateGameSocket(socket);
+                    existingUser.sendAlert(`Game initialized for ${username} in game ${gameId}`);
                     return;
                 }
 
-                // If gameId is provided, this is a request for a game connection
-                if (gameId) {
-                    await existingUser.updateGameSocket(socket); // Initialize or update the game socket
-                    existingUser.sendAlert(`Game initialized for ${username} in game ${gameId}`);
-                }
-
-                // If no gameId is provided, just confirm platform connection
-                existingUser.sendAlert(`Platform connection for ${username} is already active.`);
-                return;
             }
 
             // If no existing user, this is a new connection
@@ -109,12 +123,13 @@ const socketController = (io: Server) => {
                 // Platform connection :  Only initialze the player, no game initialization
                 const newUser = new Player(username, decoded.role, decoded.credits, userAgent, socket);
                 users.set(username, newUser);
+
                 newUser.sendAlert(`Player initialized for ${newUser.playerData.username} on platform ${origin}`, false);
                 return;
             }
             else {
                 // Reject game connection without an active platform connection
-                socket.emit("Error", "You need to have an active platform connection before joining a game.");
+                socket.emit("internalError", "You need to have an active platform connection before joining a game.");
                 socket.disconnect(true);
             }
 
@@ -125,6 +140,7 @@ const socketController = (io: Server) => {
             }
         }
     });
+
 
     // Error handling middleware
     io.use((socket: Socket, next: (err?: Error) => void) => {

@@ -134,6 +134,8 @@ export default class BaseSlotGame implements RequiredSocketMethods {
   messageHandler(response: any) {
     switch (response.id) {
       case "SPIN":
+        console.log("SPIN ; ", response);
+      
         if (this.settings.startGame) {
           this.settings.currentLines = response.data.currentLines;
           this.settings.BetPerLines = this.settings.currentGamedata.bets[response.data.currentBet];

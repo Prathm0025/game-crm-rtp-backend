@@ -463,7 +463,7 @@ export class UserController {
     try {
       const activePlayers = new Set();
       users.forEach((value, key) => {
-        activePlayers.add({ username: key, currentGame: value.gameId });
+        activePlayers.add({ username: key, currentGame: value.currentGameData.gameId });
       });
 
       const _req = req as AuthRequest;
