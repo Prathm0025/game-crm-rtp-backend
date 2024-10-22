@@ -211,7 +211,7 @@ export function checkForWin(gameInstance: SLPM) {
         break;
       default:
         console.log("NO PAYLINE MATCH");
-        if (settings.cascadingNo >= 4 && !settings.freeSpin.useFreeSpin && !settings.freeSpin.freeSpinStarted) {
+        if (settings.cascadingNo >= 4 && !settings.freeSpin.useFreeSpin && !settings.freeSpin.freeSpinStarted ) {
           console.log("Cascading Count:", settings.cascadingNo);
           console.log("FreeSpin Data:", settings.freeSpinData);
           const freeSpinData = settings.freeSpinData;
@@ -244,6 +244,7 @@ export function checkForWin(gameInstance: SLPM) {
         settings.payoutAfterCascading = 0;
         settings.cascadingResult=[];
         settings.freeSpin.useFreeSpin = false;
+        
         break;
     }
     return winningLines;
