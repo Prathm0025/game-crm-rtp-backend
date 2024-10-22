@@ -6,9 +6,9 @@ import { SLWOF } from "./SL-WOF/wheelOfFortuneBase";
 import { SLPM } from "./SL-PM(MOOLAH)/planetMoolahBase";
 import { SLSR } from "./SL-SR/stinkinRichBase";
 import { SLONE } from "./SL-ONE/OneOfAKindBase";
-import { SLLOL } from "./SL-LOL/LifeOfLuxury";
 import { SLBE } from "./SL-BE/bloodEternalBase"
 import { SLBB } from "./SL-BB/breakingBadBase";
+import { SLLOL } from "./SL-LOL/LifeOfLuxury";
 export default class SlotGameManager {
   public currentGame: any;
 

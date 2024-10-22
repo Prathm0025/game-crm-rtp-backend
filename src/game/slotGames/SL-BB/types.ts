@@ -10,6 +10,14 @@ export interface Symbol {
     reelInstance: { [key: string]: number };
 }
 
+//enum for magent trigger 
+enum position {
+    TOP_LEFT = "TOP_LEFT",
+    TOP_RIGHT = "TOP_RIGHT",
+    BOTTOM_LEFT = "BOTTOM_LEFT",
+    BOTTOM_RIGHT = "BOTTOM_RIGHT",
+}
+
 export  interface SLBBSETTINGS {
     id: string;
     matrix: { x: number, y: number };
@@ -26,6 +34,12 @@ export  interface SLBBSETTINGS {
     reels: any[][];
     heisenbergReels:any[][],
     Symbols: Symbol[];
+    magnet:{
+      isEnabled: boolean;
+      isTriggered: boolean;
+      position: number,//0:null, 1: TOP_LEFT, 2: TOP_RIGHT, 3: BOTTOM_LEFT, 4: BOTTOM_RIGHT
+      triggerProb : number
+    },
     jackpot: {
         symbolName: string;
         symbolsCount: number;

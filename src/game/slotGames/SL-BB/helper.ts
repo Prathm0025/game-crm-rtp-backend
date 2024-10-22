@@ -32,6 +32,12 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBB) {
     firstReel: [],
     tempReelSym: [],
     freeSpinData: [],
+    magnet:{
+      isEnabled:gameData.gameSettings.magnet.isEnabled,
+      isTriggered: false,
+      position:gameData.gameSettings.magnet.position,
+      triggerProb: gameData.gameSettings.magnet.triggerProb
+    },
     jackpot: {
       symbolName: "",
       symbolsCount: 0,
@@ -506,6 +512,37 @@ export function checkForWin(gameInstance: SLBB) {
       
       handleHeisenbergSpin(gameInstance)
     }
+    //NOTE: magnet 
+    if (settings.magnet.isEnabled) {
+      let { magnet} = settings
+      //magnet.triggerProb is between 0 and 1 
+      // isTriggered is based on the triggerProb
+      const isTriggered = Math.random() < settings.magnet.triggerProb;
+      if (isTriggered) {
+        console.log("MAGNET TRIGGERED");
+        magnet.isTriggered = true
+        //check if cashCollect is in resultmatrix
+        settings.resultSymbolMatrix.forEach((row,) => {
+          row.forEach((symbolID,j) => {
+            if (symbolID === settings.cashCollect.SymbolID) {
+              if(j===0){
+                magnet.position=Math.random() < 0.5 ? 1: 3
+              }else if(j===4){
+                magnet.position=Math.random() < 0.5 ? 2: 4
+              }
+            }
+          })
+        })
+      }else{
+        console.log("MAGNET NOT TRIGGERED");
+      }
+      //TODO: send msg ???
+      magnet.isTriggered = false
+    }
+    console.log("MAGNET POSITION: ", settings.magnet);
+    
+
+
     const coinSymbolId =settings.coins.SymbolID;  
     const cashCollectId =settings.cashCollect.SymbolID;  
     const linkSymbolId = settings.link.SymbolID;    
@@ -574,4 +611,19 @@ export function checkForWin(gameInstance: SLBB) {
   }
 }
 
-
+export function handleAutoSpinStart(magnet: {
+  isEnabled: boolean;
+  isTriggered: boolean;
+  position: number;//0:null, 1: TOP_LEFT, 2: TOP_RIGHT, 3: BOTTOM_LEFT, 4: BOTTOM_RIGHT
+  triggerProb : number
+}) {
+  magnet.isEnabled = true;
+}
+export function handleAutoSpinEnd(magnet: {
+  isEnabled: boolean;
+  isTriggered: boolean;
+  position: number;//0:null, 1: TOP_LEFT, 2: TOP_RIGHT, 3: BOTTOM_LEFT, 4: BOTTOM_RIGHT
+  triggerProb : number
+}) {
+  magnet.isEnabled = false;
+}

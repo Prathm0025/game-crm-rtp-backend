@@ -225,6 +225,11 @@ export const gameData = [
          25,
          30
       ],
+      "magnet": {
+        "isEnabled": true,
+        "position": 0, // 0: null , 1: TOP_LEFT, 2: TOP_RIGHT, 3: BOTTOM_LEFT, 4: BOTTOM_RIGHT
+        "triggerProb": 0.5 //probability of trigger , b/w 0 and 1
+      },
       "coinsvalue": [1, 2, 5, 10, 15, 20, 25, 30, 35, 40],
       "coinsvalueprob": [10, 20, 30, 40, 50, 10, 15, 25, 35, 55],
       "bets":[
@@ -647,9 +652,9 @@ export const gameData = [
             "Id":18,
             "reelInstance":{
                "0":50,
-               "1":50,
-               "2":50,
-               "3":50,
+               "1":0,
+               "2":0,
+               "3":0,
                "4":50
             },
             "description":"",
