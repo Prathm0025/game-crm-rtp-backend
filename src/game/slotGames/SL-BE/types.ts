@@ -33,12 +33,35 @@ export interface SLBESETTINGS {
         SymbolName: string;
         SymbolID: number;
         useWild: boolean
+    },
+    vampireMan: {
+        SymbolName: string;
+        SymbolID: number;
+        useWild: boolean
+    },
+    vampireWomen: {
+        SymbolName: string;
+        SymbolID: number;
+        useWild: boolean
+    },
+    HumanMan: {
+        SymbolName: string;
+        SymbolID: number;
+        useWild: boolean
+    },
+    HumanWomen: {
+        SymbolName: string;
+        SymbolID: number;
+        useWild: boolean
     }
 }
 
 
 export enum specialIcons {
-    jackpot = "Jackpot",
     wild = "Wild",
-    FreeSpin = "FreeSpin"
+    FreeSpin = "FreeSpin",
+    VampireMan = "VampireMan",
+    VampireWomen = "VampireWomen",
+    HumanMan = "HumanMan",
+    HumanWomen = "HumanMan"
 }

@@ -41,6 +41,26 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBE) {
             SymbolID: -1,
             useWild: false,
         },
+        vampireMan: {
+            SymbolName: "",
+            SymbolID: -1,
+            useWild: false,
+        },
+        vampireWomen: {
+            SymbolName: "",
+            SymbolID: -1,
+            useWild: false,
+        },
+        HumanMan: {
+            SymbolName: "",
+            SymbolID: -1,
+            useWild: false,
+        },
+        HumanWomen: {
+            SymbolName: "",
+            SymbolID: -1,
+            useWild: false,
+        }
     };
 }
 /**
@@ -77,9 +97,7 @@ function shuffleArray(array: any[]) {
 export function makePayLines(gameInstance: SLBE) {
     const { settings } = gameInstance;
     settings.currentGamedata.Symbols.forEach((element) => {
-        if (!element.useWildSub) {
             handleSpecialSymbols(element, gameInstance);
-        }
     });
 }
 
@@ -90,8 +108,27 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLBE) {
             gameInstance.settings.wild.SymbolID = symbol.Id;
             gameInstance.settings.wild.useWild = true;
             break;
-        default:
+        case specialIcons.VampireMan:
+            gameInstance.settings.vampireMan.SymbolName = symbol.Name;
+            gameInstance.settings.vampireMan.SymbolID = symbol.Id;
+            gameInstance.settings.vampireMan.useWild = true;
             break;
+        case specialIcons.VampireWomen:
+            gameInstance.settings.vampireWomen.SymbolName = symbol.Name;
+            gameInstance.settings.vampireWomen.SymbolID = symbol.Id;
+            gameInstance.settings.vampireWomen.useWild = true;
+            break;
+        case specialIcons.HumanMan:
+            gameInstance.settings.HumanMan.SymbolName = symbol.Name;
+            gameInstance.settings.HumanMan.SymbolID = symbol.Id;
+            gameInstance.settings.HumanMan.useWild = true;
+            break;
+        case specialIcons.HumanWomen:
+            gameInstance.settings.HumanWomen.SymbolName = symbol.Name;
+            gameInstance.settings.HumanWomen.SymbolID = symbol.Id;
+            gameInstance.settings.HumanWomen.useWild = true;
+            break;
+        default:
     }
 }
 
@@ -118,10 +155,6 @@ export function checkForWin(gameInstance: SLBE) {
                     settings.Symbols[firstSymbol].Name as specialIcons
                 )
             ) {
-                // console.log(
-                //     "Special Icon Matched : ",
-                //     settings.Symbols[firstSymbol].Name
-                // );
                 return;
             }
             const { isWinningLine, matchCount, matchedIndices } = checkLineSymbols(
