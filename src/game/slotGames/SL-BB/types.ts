@@ -23,7 +23,7 @@ export  interface SLBBSETTINGS {
     resultSymbolMatrix: any[];
     prevresultSymbolMatrix: any[];
     heisenbergSymbolMatrix:any[];
-    frozenIndices: Set<string>; // Changed to Set<string>
+    heisenbergFreeze: Set<string>; 
     lineData: any[],
     _winData: WinData | undefined;
     currentBet: number;
@@ -33,19 +33,9 @@ export  interface SLBBSETTINGS {
     reels: any[][];
     heisenbergReels:any[][],
     Symbols: Symbol[];
-    magnet:{
-      isEnabled: boolean;
-      isTriggered: boolean;
-      position: number[],//
-      triggerProb : number
-    },
     jackpot: {
-        symbolName: string;
-        symbolsCount: number;
-        symbolId: number;
-        defaultAmount: number;
-        increaseValue: number;
-        useJackpot: boolean;
+        isTriggered:boolean;
+        payout:number;
     },
     freeSpin: {
         // symbolID: string,

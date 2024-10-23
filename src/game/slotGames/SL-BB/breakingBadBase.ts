@@ -1,6 +1,6 @@
 import { currentGamedata } from "../../../Player";
 import { SLBBSETTINGS } from "./types";
-import { initializeGameSettings, generateInitialReel, checkForWin, sendInitData, generateInitialHeisenberg, handleCashCollectandLink, handleAutoSpinStart, handleAutoSpinEnd } from "./helper";
+import { initializeGameSettings, generateInitialReel, checkForWin, sendInitData, generateInitialHeisenberg, handleCashCollectandLink } from "./helper";
 import { RandomResultGenerator } from "../RandomResultGenerator";
 
 export class SLBB {
@@ -59,12 +59,7 @@ export class SLBB {
         this.getRTP(response.data.spins || 1);
         break;
 
-      case "AUTOSPIN_START":
-        handleAutoSpinStart(this.settings.magnet)
-        break;
-      case "AUTOSPIN_END":
-        handleAutoSpinEnd(this.settings.magnet)
-        break;
+     
     }
 
   }
