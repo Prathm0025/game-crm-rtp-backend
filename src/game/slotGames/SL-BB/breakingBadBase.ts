@@ -1,6 +1,6 @@
 import { currentGamedata } from "../../../Player";
 import { SLBBSETTINGS } from "./types";
-import { initializeGameSettings, generateInitialReel, checkForWin, sendInitData, generateInitialHeisenberg, handleCashCollectandLink, handleAutoSpinStart, handleAutoSpinEnd } from "./helper";
+import { initializeGameSettings, generateInitialReel, checkForWin, sendInitData, generateInitialHeisenberg,  } from "./helper";
 import { RandomResultGenerator } from "../RandomResultGenerator";
 
 export class SLBB {
@@ -40,11 +40,11 @@ export class SLBB {
     this.currentGameData.sendAlert(message);
   }
 
-  updatePlayerBalance(amount: number) {
+  incrementPlayerBalance(amount: number) {
     this.currentGameData.updatePlayerBalance(amount);
   }
 
-  deductPlayerBalance(amount: number) {
+  decrementPlayerBalance(amount: number) {
     this.currentGameData.deductPlayerBalance(amount);
   }
 
@@ -59,12 +59,8 @@ export class SLBB {
         this.getRTP(response.data.spins || 1);
         break;
 
-      case "AUTOSPIN_START":
-        handleAutoSpinStart(this.settings.magnet)
-        break;
-      case "AUTOSPIN_END":
-        handleAutoSpinEnd(this.settings.magnet)
-        break;
+      default:
+        this.sendMessage(response.id, "invalid request");
     }
 
   }
@@ -78,15 +74,15 @@ export class SLBB {
   public async spinResult(): Promise<void> {
     try {
       const playerData = this.getPlayerData();
-      const {freeSpin} = this.settings
+      const { freeSpin } = this.settings
       if (!freeSpin.isFreeSpin && this.settings.currentBet > playerData.credits) {
         this.sendError("Low Balance");
         return;
       }
 
       if (!freeSpin.isFreeSpin) {
-        await this.deductPlayerBalance(this.settings.currentBet);
-        this.playerData.totalbet += this.settings.currentBet*3 ;
+        this.decrementPlayerBalance(this.settings.currentBet);
+        this.playerData.totalbet += this.settings.currentBet * 3;
       }
       if (freeSpin.freeSpinCount === 1) {
         freeSpin.isFreeSpin = false;
@@ -103,54 +99,14 @@ export class SLBB {
           "this.settings.freeSpinCount"
         );
       }
-        this.updatePlayerBalance(this.playerData.currentWining)
-      await new RandomResultGenerator(this);
+      this.incrementPlayerBalance(this.playerData.currentWining)
+      new RandomResultGenerator(this);
       checkForWin(this)
     } catch (error) {
       this.sendError("Spin error");
       console.error("Failed to generate spin results:", error);
     }
   }
-  public handleHeisenbergSpin() {
-
-    const coinSymbolId = this.settings.coins.SymbolID;
-    this.settings.prevresultSymbolMatrix = this.settings.resultSymbolMatrix;
-    let coinCount = 0;
-    this.settings.heisenbergSymbolMatrix.forEach(row => {
-      coinCount += row.filter(symbol => symbol === coinSymbolId).length;
-    });
-
-    if (!this.settings.heisenberg.isTriggered) {
-      this.settings.heisenberg.isTriggered = true;
-      this.settings.heisenberg.freeSpin.freeSpinStarted = true;
-      this.settings.heisenberg.freeSpin.noOfFreeSpins = 3;
-    }
-
-    if (this.settings.heisenberg.freeSpin.noOfFreeSpins > 0) {
-      // this.settings.freeSpin.noOfFreeSpins--;
-
-      if (coinCount > 0) {
-        this.settings.heisenberg.freeSpin.noOfFreeSpins = 3;
-        console.log("Coin found! Reset free spins to 3.");
-      }
-
-      if (coinCount >= 15) {
-        this.settings.heisenberg.payout = 1000;
-        console.log("Grand Prize Awarded!");
-        // this.settings.freeSpin.freeSpinStarted = false;
-      }
-    } else {
-      this.settings.heisenberg.freeSpin.freeSpinStarted = false;
-      console.log("Free spins have ended.");
-    }
-
-    if (!this.settings.heisenberg.freeSpin.freeSpinStarted) {
-      handleCashCollectandLink(this);
-    }
-
-    console.log(this.settings.resultSymbolMatrix, "result matrix after Cash Collect and Link");
-  }
-
 
   private async getRTP(spins: number): Promise<void> {
     try {
@@ -158,25 +114,25 @@ export class SLBB {
       let won: number = 0;
       this.playerData.rtpSpinCount = spins;
 
-            for (let i = 0; i < this.playerData.rtpSpinCount; i++) {
-             
-                await this.spinResult();
-                spend = this.playerData.totalbet;
-                won = this.playerData.haveWon;
-                // console.log(`Spin ${i + 1} completed. ${this.playerData.totalbet} , ${won}`);
-            }
-            let rtp = 0;
-            if (spend > 0) {
-                rtp = won / spend;
-            }
-            // console.log('RTP calculated:', rtp * 100);
-            return;
-        } catch (error) {
-            console.error("Failed to calculate RTP:", error);
-            this.sendError("RTP calculation error");
-        }
+      for (let i = 0; i < this.playerData.rtpSpinCount; i++) {
+
+        await this.spinResult();
+        spend = this.playerData.totalbet;
+        won = this.playerData.haveWon;
+        // console.log(`Spin ${i + 1} completed. ${this.playerData.totalbet} , ${won}`);
+      }
+      let rtp = 0;
+      if (spend > 0) {
+        rtp = won / spend;
+      }
+      // console.log('RTP calculated:', rtp * 100);
+      return;
+    } catch (error) {
+      console.error("Failed to calculate RTP:", error);
+      this.sendError("RTP calculation error");
     }
-     
+  }
+
 
 
 

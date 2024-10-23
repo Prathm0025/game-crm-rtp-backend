@@ -225,11 +225,6 @@ export const gameData = [
       25,
       30
     ],
-    "magnet": {
-      "isEnabled": true,
-      "position": [], // 
-      "triggerProb": 0.9 //probability of trigger , b/w 0 and 1
-    },
     "coinsvalue": [25, 26, 27, 28, 29, 30, 31, 32, 33, 34],
     "coinsvalueprob": [10, 20, 30, 40, 50, 10, 15, 25, 35, 55],
     "bets": [
@@ -256,7 +251,7 @@ export const gameData = [
     "freeSpin": {
       "isEnabled": true,
       "losPollosValues": [2, 3, 4, 5, 7],
-      "losPollosProbs": [20, 20, 20, 20, 20]
+      "losPollosProbs": [20, 2, 2, 2, 2]
     },
     "bonus": {
       "type": "spin",
@@ -527,83 +522,8 @@ export const gameData = [
         ]
       },
       {
-        "Name": "10",
-        "Id": 10,
-        "reelInstance": {
-          "0": 4,
-          "1": 4,
-          "2": 4,
-          "3": 4,
-          "4": 4
-        },
-        "useWildSub": false,
-        "useHeisenberg": true,
-        "multiplier": [
-        ]
-      },
-      {
-        "Name": "11",
-        "Id": 11,
-        "reelInstance": {
-          "0": 4,
-          "1": 4,
-          "2": 4,
-          "3": 4,
-          "4": 4
-        },
-        "useWildSub": false,
-        "useHeisenberg": true,
-        "multiplier": [
-        ]
-      },
-      {
-        "Name": "12",
-        "Id": 12,
-        "reelInstance": {
-          "0": 4,
-          "1": 4,
-          "2": 4,
-          "3": 4,
-          "4": 4
-        },
-        "useWildSub": false,
-        "useHeisenberg": true,
-        "multiplier": [
-        ]
-      },
-      {
-        "Name": "13",
-        "Id": 9,
-        "reelInstance": {
-          "0": 4,
-          "1": 4,
-          "2": 4,
-          "3": 4,
-          "4": 4
-        },
-        "useWildSub": false,
-        "useHeisenberg": true,
-        "multiplier": [
-        ]
-      },
-      {
-        "Name": "14",
-        "Id": 14,
-        "reelInstance": {
-          "0": 4,
-          "1": 4,
-          "2": 4,
-          "3": 4,
-          "4": 4
-        },
-        "useWildSub": false,
-        "useHeisenberg": true,
-        "multiplier": [
-        ]
-      },
-      {
         "Name": "Wild",
-        "Id": 15,
+        "Id": 10,
         "reelInstance": {
           "0": 5,
           "1": 5,
@@ -621,13 +541,13 @@ export const gameData = [
       },
       {
         "Name": "Link",
-        "Id": 16,
+        "Id": 11,
         "reelInstance": {
-          "0": 5,
-          "1": 5,
-          "2": 5,
-          "3": 5,
-          "4": 5
+          "0": 0,
+          "1": 0,
+          "2": 0,
+          "3": 0,
+          "4": 0
         },
         "description": "",
         "useWildSub": false,
@@ -638,13 +558,13 @@ export const gameData = [
       },
       {
         "Name": "MegaLink",
-        "Id": 17,
+        "Id": 12,
         "reelInstance": {
-          "0": 5,
-          "1": 5,
-          "2": 5,
-          "3": 5,
-          "4": 5
+          "0": 0,
+          "1": 0,
+          "2": 0,
+          "3": 0,
+          "4": 0
         },
         "description": "",
         "useWildSub": false,
@@ -655,9 +575,9 @@ export const gameData = [
       },
       {
         "Name": "CashCollect",
-        "Id": 18,
+        "Id": 13,
         "reelInstance": {
-          "0": 5,
+          "0": 50,
           "1": 0,
           "2": 0,
           "3": 0,
@@ -672,7 +592,7 @@ export const gameData = [
       },
       {
         "Name": "Coins",
-        "Id": 19,
+        "Id": 14,
         "reelInstance": {
           "0": 0,
           "1": 0,
@@ -689,7 +609,7 @@ export const gameData = [
       },
       {
         "Name": "PrizeCoin",
-        "Id": 20,
+        "Id": 15,
         "reelInstance": {
           "0": 30,
           "1": 30,
@@ -706,7 +626,7 @@ export const gameData = [
       },
       {
         "Name": "LosPollos",
-        "Id": 21,
+        "Id": 16,
         "reelInstance": {
           "0": 25,
           "1": 25,
