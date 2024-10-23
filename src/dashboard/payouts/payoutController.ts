@@ -6,7 +6,6 @@ import path from "path";
 import { Platform } from "../games/gameModel";
 import { ObjectId } from "mongodb";
 import { currentActivePlayers } from "../../socket";
-import PlayerSocket from "../../Player";
 
 interface GameRequest extends Request {
   files?: {
@@ -69,7 +68,7 @@ class PayoutsController {
         throw createHttpError(404, "Platform or game not found");
       }
       for (const [username, playerSocket] of currentActivePlayers) {
-
+        //TODO: NEED TO FIX LIVE
         const gameId = payoutFileName.split('_')[0];
         if (playerSocket.currentGameData.gameId === gameId) {
           const socketUser = currentActivePlayers.get(username);

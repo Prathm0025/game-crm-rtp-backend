@@ -125,6 +125,14 @@ export const updateCredits = async (
   session.startTransaction();
 
   try {
+
+    const clientSocket = currentActivePlayers.get(client.username)
+    if (clientSocket) {
+      if (clientSocket.gameData.socket || clientSocket.currentGameData.gameId) {
+        throw createHttpError(409, "Cannot recharge while in a game")
+      }
+    }
+
     const { type, amount } = credits;
 
     // Validate credits
@@ -153,6 +161,11 @@ export const updateCredits = async (
 
     await client.save({ session });
     await creator.save({ session });
+
+    if (clientSocket && clientSocket.platformData.socket && clientSocket.platformData.socket.connected) {
+      clientSocket.playerData.credits = client.credits;
+      clientSocket.sendData({ type: playerDataType.CREDIT, data: { credits: client.credits } }, "platform")
+    }
 
     await session.commitTransaction();
     session.endSession();
@@ -215,3 +228,15 @@ export const getManagerName = async (username: string): Promise<string | null> =
     return null;
   }
 };
+
+export enum eventType {
+  JOIN_PLATFORM = "join_platform",
+  ENTER_GAME = "enter_game",
+  EXIT_GAME = "exit_game",
+  EXIT_PLATFORM = "exit_platform",
+}
+
+export enum playerDataType {
+  CREDIT = "CREDIT",
+  GAMES = "GAMES"
+}

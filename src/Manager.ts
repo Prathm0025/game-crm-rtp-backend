@@ -13,24 +13,31 @@ export default class Manager {
         this.userAgent = userAgent;
         this.socket = socket;
         this.initializeEventListeners();
+        console.log("Manager Initlized");
+
     }
 
     private initializeEventListeners() {
-        // Listen for player platform connection events
-        eventEmitter.on("platformConnect", (message) => {
-            console.log("FROM MANAGER : ", message);
-        })
+        eventEmitter.on("platform", (event) => {
+            if (event.to === this.username) {
+                this.notifyManager({ type: event.type, data: event.data });
+            }
+        });
+
+        eventEmitter.on("game", (event) => {
+            if (event.to === this.username) {
+                this.notifyManager({ type: event.type, data: event.data });
+            }
+        });
     }
 
-    public initializeHandlers() {
+    private notifyManager(data: { type: string, data: any }) {
         if (this.socket) {
-            this.socket.on("data", async (message) => {
-                try {
-                    const res = message as { action: string, payload: any }
-                } catch (error) {
 
-                }
-            })
+            this.socket.emit("player", data);  // Emit event to the manager's socket
+            console.log(`Notified manager ${this.username} about event ${data.type}:`, data);
+        } else {
+            console.error(`Socket is not available for manager ${this.username}`);
         }
     }
 }

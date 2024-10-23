@@ -104,15 +104,31 @@ const handleManagerConnection = async (socket: Socket, decoded: DecodedToken, us
     let existingManager = currentActiveManagers.get(username);
 
     if (existingManager) {
-        socket.emit("AnotherDevice", "You are already managing on another browser.");
-        socket.disconnect(true);
-        return;
+        if (existingManager.socket.connected) {
+            socket.emit("AnotherDevice", "You are already managing on another browser.");
+            socket.disconnect(true);
+            return;
+        }
+
+        console.log(`Manager ${username} is reconnecting.`);
+        existingManager.socket = socket;
+        existingManager.userAgent = userAgent;
+        socket.emit(messageType.ALERT, `Manager ${username} has been reconnected.`);
+    } else {
+        const newManager = new Manager(username, role, userAgent, socket);
+        currentActiveManagers.set(username, newManager);
+        socket.emit(messageType.ALERT, `Manager ${username} has been connected.`);
     }
 
-    // Initialize a new manager connection
-    const newManager = new Manager(username, role, userAgent, socket);
-    currentActiveManagers.set(username, newManager);
-    socket.emit(messageType.ALERT, `Manager ${username} has been connected.`);
+
+    // Send All active players to the manager upon connection
+    const activeUsersData = Array.from(currentActivePlayers.values()).map(player => ({
+        username: player.playerData.username,
+        credits: player.playerData.credits,
+        currentGame: player.currentGameData.gameId || "No Active Game",
+    }))
+
+    socket.emit("activeUsers", activeUsersData);
 };
 
 
@@ -123,6 +139,8 @@ const socketController = (io: Server) => {
         const userAgent = socket.request.headers['user-agent'];
         try {
             const decoded = await verifySocketToken(socket);
+            console.log("Decoded : ", decoded);
+
 
             (socket as any).decoded = { ...decoded };
             (socket as any).userAgent = userAgent;
@@ -142,7 +160,7 @@ const socketController = (io: Server) => {
 
             if (role === "player") {
                 await handlePlayerConnection(socket, decoded, userAgent);
-            } else if (['master', 'distributor', 'subdistributor', 'store'].includes(role)) {
+            } else if (['company', 'master', 'distributor', 'subdistributor', 'store'].includes(role)) {
                 await handleManagerConnection(socket, decoded, userAgent)
             } else {
                 console.error("Unsupported role : ", role);

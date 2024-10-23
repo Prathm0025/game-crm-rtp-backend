@@ -9,10 +9,10 @@ import { gameData } from "./game/testData";
 import { currentActivePlayers } from "./socket";
 import GameManager from "./game/GameManager";
 import createHttpError from "http-errors";
-import { GameSession } from "./dashboard/activity/gameSession";
-import { SpecialFeatures } from "./dashboard/activity/activityTypes";
-import { getManagerName } from "./utils/utils";
+import { GameSession } from "./dashboard/session/gameSession";
+import { eventType, getManagerName } from "./utils/utils";
 import { eventEmitter } from "./utils/eventEmitter";
+import { sessionManager } from "./dashboard/session/sessionManager";
 
 export interface currentGamedata {
   gameId: string | null;
@@ -70,7 +70,6 @@ export default class PlayerSocket {
         return;
       }
     }
-    // Initialize platform socket and its related data
     this.platformData = {
       socket: socket,
       heartbeatInterval: setInterval(() => { }, 0),
@@ -96,7 +95,6 @@ export default class PlayerSocket {
       userAgent
     };
 
-
     this.currentGameData = {
       gameId: null,
       username: this.playerData.username,
@@ -117,91 +115,53 @@ export default class PlayerSocket {
     if (!currentActivePlayers.has(username)) {
       currentActivePlayers.set(username, this);
     }
-
-
   }
 
 
   public async initializePlatformSocket(socket: Socket) {
-    console.log("Player Initialzed : ", this.playerData.username);
-
     this.platformData.socket = socket;
     this.messageHandler(false);
     this.startPlatformHeartbeat()
+    this.managerName = await this.getManager(this.playerData.username);
+
+    sessionManager.startPlatformSession(this.playerData.username, this.managerName, this.playerData.credits);
 
     this.platformData.socket.on("disconnect", () => {
       this.handlePlatformDisconnection();
     });
 
-    this.managerName = await this.getManager(this.playerData.username)
+    this.sendData({ type: "CREDIT", data: { credits: this.playerData.credits } }, "platform")
 
-    const connectionMessage = {
-      username: this.playerData.username,
-      credits: this.playerData.credits,
-      managerName: this.managerName,
-      action: "connect",
-    };
-
-    eventEmitter.emit("platformConnect", connectionMessage);
   }
 
-  // Initialze or update the game socket when a game is required
   private initializeGameSocket(socket: Socket) {
 
     if (this.gameData.socket) {
-      this.cleanupGameSocket(); // Clean up previous game socket if it exists
+      this.cleanupGameSocket();
     }
 
     this.gameData.socket = socket;
     this.currentGameData.gameId = socket.handshake.auth.gameId;
-
-    // Start the game session when the game starts
-    this.startGameSession();
+    sessionManager.startGameSession(this.playerData.username, this.currentGameData.gameId, this.playerData.credits)
 
     this.gameData.socket.on("disconnect", () => this.handleGameDisconnection());
-    this.initGameData(); // Initialize game-specific data
-    this.startGameHeartbeat(); // Start a heartbeat for the game socket
-    this.onExit(); // Handle user exit for game
-    this.messageHandler(true); // handle game messages
+    this.initGameData();
+    this.startGameHeartbeat();
+    this.onExit();
+    this.messageHandler(true);
     this.gameData.socket.emit("socketState", true);
-  }
 
-  private startGameSession(): void {
-    const playerId = this.playerData.username;
-    const gameId = this.currentGameData.gameId;
-    const creditsAtEntry = this.playerData.credits;
-
-    if (!gameId) {
-      console.error("Failed to start game session: Game ID is missing.");
-      return;
+    const playerEnterGameEvent = {
+      type: eventType.ENTER_GAME,
+      data: {
+        username: this.playerData.username,
+        gameId: this.currentGameData.gameId,
+        credits: this.playerData.credits,
+        userAgent: this.playerData.userAgent,
+      }
     }
 
-    // Initialize the game session
-    this.currentGameData.session = new GameSession(playerId, gameId, creditsAtEntry);
-    console.log(`Game session started for player: ${playerId} in game: ${gameId}`);
-  }
-
-  public recordSpin(betAmount: number, winAmount: number, specialFeatures?: SpecialFeatures): void {
-    if (this.currentGameData.session) {
-      this.currentGameData.session.recordSpin(betAmount, winAmount, specialFeatures);
-      console.log(`Spin recorded for player ${this.playerData.username}: Bet ${betAmount}, Win ${winAmount}`);
-    } else {
-      console.error("Failed to record spin: Game session is not active.");
-    }
-  }
-
-  public endGameSession(): void {
-    if (this.currentGameData.session) {
-      const creditsAtExit = this.playerData.credits;
-      this.currentGameData.session.endSession(creditsAtExit);
-      console.log(`Game session ended for player ${this.playerData.username}:`, this.currentGameData.session.getSessionSummary());
-
-      // Optionally, you could update the database here with the session data
-      // this.saveSessionToDatabase();
-
-      // Clear the session
-      this.currentGameData.session = null;
-    }
+    eventEmitter.emit("game", playerEnterGameEvent);
   }
 
   // Handle platform disconnection and reconnection
@@ -211,36 +171,38 @@ export default class PlayerSocket {
 
   // Handle game disconnection and reconnection
   private handleGameDisconnection() {
-    console.log(`Platform disconnected for ${this.playerData.username}`);
     this.attemptReconnection(this.gameData);
   }
 
   // Cleanup only the game socket
   private cleanupGameSocket() {
+    sessionManager.endGameSession(this.playerData.username, this.playerData.credits);
+
     if (this.gameData.socket) {
       this.gameData.socket.disconnect(true);
       this.gameData.socket = null;
     }
     clearInterval(this.gameData.heartbeatInterval);
 
-    // End the game session if one exists
-    this.endGameSession();
-
     this.currentGameData.currentGameManager = null;
     this.currentGameData.gameSettings = null;
-    this.currentGameData.gameId = null;  // Reset gameId when game socket is cleaned up
+    this.currentGameData.gameId = null;
     this.gameData.reconnectionAttempts = 0;
   }
 
   // Cleanup only the platform socket
   public cleanupPlatformSocket() {
+    sessionManager.endPlatformSession(this.playerData.username);
+
     if (this.platformData.socket) {
       this.platformData.socket.disconnect(true);
       this.platformData.socket = null;
     }
+
     clearInterval(this.platformData.heartbeatInterval);
     this.platformData.reconnectionAttempts = 0;
     this.platformData.cleanedUp = true;
+
 
     // Only remove the user from the map if the socket is still the same
     // This ensures that if the user has already reconnected with a new socket, they are not removed.
@@ -270,13 +232,10 @@ export default class PlayerSocket {
         if (socketData.cleanedUp) return;
       }
 
-      // Clean up socket if reconnection fails
       if (socketData === this.platformData) {
-        console.log(`Platform destroyed for ${this.playerData.username}`);
-        this.cleanupPlatformSocket();  // Clean up platform socket after max attempts 
+        this.cleanupPlatformSocket();
       } else {
-        console.log("Cleanup Game");
-        this.cleanupGameSocket();  // Clean up game socket after max attempts
+        this.cleanupGameSocket();
       }
     } catch (error) {
       console.error("Reconnection attempt failed:", error);
@@ -291,9 +250,7 @@ export default class PlayerSocket {
         if (this.gameData.socket) {
           this.sendAlert(`Currenlty Playing : ${this.currentGameData.gameId}`)
         }
-        this.sendData({ type: "CREDIT", payload: this.playerData.credits }, "platform");
-        this.sendData({ type: "MANAGER_NAME", payload: this.managerName }, "platform");
-
+        this.sendData({ type: "CREDIT", data: { credits: this.playerData.credits } }, "platform");
       }, 10000)
     }
   }
@@ -371,7 +328,9 @@ export default class PlayerSocket {
   public sendData(data: any, type: "platform" | "game"): void {
     try {
       const socket = type === "platform" ? this.platformData.socket : this.gameData.socket;
-      socket.emit(messageType.DATA, data)
+      if (socket) {
+        socket.emit(messageType.DATA, data)
+      }
     } catch (error) {
       console.error(`Error sending data to ${this.playerData.username}'s platform`)
       console.error(error)
@@ -402,7 +361,6 @@ export default class PlayerSocket {
       socket.on("message", (message) => {
         try {
           const response = JSON.parse(message);
-          console.log(`Message received from ${this.playerData.username}:`, message);
 
           if (isGameSocket) {
             // Delegate message to the current game manager's handler for game-specific logic
@@ -425,11 +383,9 @@ export default class PlayerSocket {
     if (socket) {
       socket.on("EXIT", () => {
         if (isGameSocket) {
-          console.log(`${this.playerData.username} exits from game ${this.currentGameData.gameId}`);
           this.sendMessage('ExitUser', '', true);  // Notify game exit
           this.cleanupGameSocket(); // Clean up game socket
         } else {
-          console.log(`${this.playerData.username} exits from the platform.`);
           this.cleanupPlatformSocket(); // Clean up platform socket
           currentActivePlayers.delete(this.playerData.username)
         }

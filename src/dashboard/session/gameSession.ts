@@ -9,6 +9,7 @@ export class GameSession {
     exitTime: Date | null = null;
     creditsAtEntry: number;
     creditsAtExit: number = 0;
+    currentCredits: number;
     totalSpins: number = 0;
     totalBetAmount: number = 0;
     totalWinAmount: number = 0;
@@ -31,6 +32,10 @@ export class GameSession {
     // Generate a unique ID for each spin
     private generateSpinId(): string {
         return `${this.gameId}-${Date.now()}-${uuidv4()}`;  // Use UUID and timestamp for uniqueness
+    }
+
+    public updateCredits(newCredits: number) {
+        this.currentCredits = newCredits;
     }
 
     // Record a spin

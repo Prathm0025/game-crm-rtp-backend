@@ -594,8 +594,6 @@ export class UserController {
   }
 
 
-
-
   async getCurrentUserSubordinates(
     req: Request,
     res: Response,
@@ -874,6 +872,7 @@ export class UserController {
       if (credits) {
         credits.amount = Number(credits.amount);
         await updateCredits(client, admin, credits);
+
       }
 
       await admin.save();
