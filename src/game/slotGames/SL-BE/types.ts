@@ -20,6 +20,7 @@ export interface SLBESETTINGS {
     bets: number[];
     reels: any[][];
     Symbols: Symbol[];
+    isLeftWinTrue: boolean;
     freeSpin: {
         symbolID: string,
         freeSpinMuiltiplier: any[],
