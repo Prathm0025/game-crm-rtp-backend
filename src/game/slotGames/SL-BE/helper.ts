@@ -99,87 +99,80 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLBE) {
 //CHECK WINS ON PAYLINES WITH OR WITHOUT WILD
 //check for win function
 export function checkForWin(gameInstance: SLBE) {
-
     try {
-
-        const { settings } = gameInstance;
-        const winningLines = [];
-        let totalPayout = 0;
-        settings.lineData.forEach((line, index) => {
-            const firstSymbolPosition = line[0];
-            let firstSymbol = settings.resultSymbolMatrix[firstSymbolPosition][0];
-            // Handle wild symbols
-            if (settings.wild.useWild && firstSymbol === settings.wild.SymbolID) {
-                firstSymbol = findFirstNonWildSymbol(line, gameInstance);
-            }
-            // Handle special icons
-            if (
-                Object.values(specialIcons).includes(
-                    settings.Symbols[firstSymbol].Name as specialIcons
-                )
-            ) {
-                // console.log(
-                //     "Special Icon Matched : ",
-                //     settings.Symbols[firstSymbol].Name
-                // );
-                return;
-            }
-            const { isWinningLine, matchCount, matchedIndices } = checkLineSymbols(
-                firstSymbol,
+      const { settings } = gameInstance;
+      const winningLines = [];
+      let totalPayout = 0;
+      let freeSpinLinesCount = 0; 
+      
+      settings.lineData.forEach((line, index) => {
+        const firstSymbolPosition = line[0];
+        const firstSymbolRightPosition = line[line.length-1]
+        let firstSymbol = settings.resultSymbolMatrix[firstSymbolPosition][0];
+        let firstSymbolRight = settings.resultSymbolMatrix[firstSymbolRightPosition][line.length-1];
+        
+  
+        // Handle wild symbols
+        if (settings.wild.useWild && firstSymbol === settings.wild.SymbolID) {
+          firstSymbol = findFirstNonWildSymbol(line, gameInstance);
+        }
+  
+        // Handle special icons (log but do not return)
+        if (Object.values(specialIcons).includes(settings.Symbols[firstSymbol].Name as specialIcons)) {
+          // console.log("Special Icon Matched : ", settings.Symbols[firstSymbol].Name);
+        }
+        // Check for matching symbols on the line
+        const { isWinningLine, matchCount } = checkLineSymbols(firstSymbol, line, gameInstance);
+        const {isWinningRight, matchCountRight} = checkLineSymbolsRight(firstSymbolRight, line, gameInstance);
+        
+        if (isWinningLine && matchCount >= 3) {
+          const symbolMultiplier = accessData(firstSymbol, matchCount, gameInstance);
+  
+          if (symbolMultiplier > 0) {
+            totalPayout = symbolMultiplier * gameInstance.settings.BetPerLines;
+            gameInstance.playerData.currentWining += totalPayout;
+            settings._winData.winningLines.push(index + 1);
+            winningLines.push({
+              line,
+              symbol: firstSymbol,
+              multiplier: symbolMultiplier,
+              matchCount,
+            });
+            console.log(`Line ${index + 1}:`, line);
+            console.log(`Payout for Line ${index + 1}:`, "payout", totalPayout);
+          }
+        }
+        if (isWinningRight && matchCountRight >= 3) {
+            const symbolMultiplierRight = accessData(firstSymbolRight, matchCountRight, gameInstance);
+    
+            if (symbolMultiplierRight > 0) {
+              totalPayout = symbolMultiplierRight * gameInstance.settings.BetPerLines;
+              gameInstance.playerData.currentWining += totalPayout;
+              settings._winData.winningLines.push(index + 1);
+              winningLines.push({
                 line,
-                gameInstance
-            );
-            switch (true) {
-                case isWinningLine && matchCount >= 3:
-                    const symbolMultiplier = accessData(
-                        firstSymbol,
-                        matchCount,
-                        gameInstance
-                    );
-                    switch (true) {
-                        case symbolMultiplier > 0:
-                            totalPayout += symbolMultiplier;
-                            settings._winData.winningLines.push(index + 1);
-                            winningLines.push({
-                                line,
-                                symbol: firstSymbol,
-                                multiplier: symbolMultiplier,
-                                matchCount,
-                            });
-                            console.log(`Line ${index + 1}:`, line);
-                            console.log(
-                                `Payout for Line ${index + 1}:`,
-                                "payout",
-                                symbolMultiplier
-                            );
-                            const formattedIndices = matchedIndices.map(
-                                ({ col, row }) => `${row},${col}`
-                            );
-                            const validIndices = formattedIndices.filter(
-                                (index) => index.length > 2
-                            );
-                            if (validIndices.length > 0) {
-                                // console.log(settings.lastReel, 'settings.lastReel')
-                                console.log(validIndices);
-                                settings._winData.winningSymbols.push(validIndices);
-                                settings._winData.totalWinningAmount = totalPayout * settings.BetPerLines;
-                                console.log(settings._winData.totalWinningAmount)
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                    break;
-                default:
-                    break;
+                symbol: firstSymbol,
+                multiplier: symbolMultiplierRight,
+                matchCountRight,
+              });
+              console.log(`Line ${index + 1}:`, line);
+              console.log(`Payout for Line ${index + 1}:`, "payout", totalPayout);
             }
-        });
-        return winningLines;
+          }
+      });
+      // Calculate total Free Spins won (5 free spins per line with Free Spin win)
+      console.log("Total Winning", gameInstance.playerData.currentWining);
+      console.log("Total Free Spins Won: ", gameInstance.settings.freeSpin.freeSpinCount);
+  
+      gameInstance.playerData.haveWon += gameInstance.playerData.currentWining;
+      makeResultJson(gameInstance);
+      gameInstance.playerData.currentWining = 0;
+      return winningLines;
     } catch (error) {
-        console.error("Error in checkForWin", error);
-        return [];
+      console.error("Error in checkForWin", error);
+      return [];
     }
-}
+  }
 
 
 //checking matching lines with first symbol and wild subs
@@ -229,7 +222,63 @@ function checkLineSymbols(
         return { isWinningLine: false, matchCount: 0, matchedIndices: [] };
     }
 }
+function checkLineSymbolsRight(
+    firstSymbol: string,
+    line: number[],
+    gameInstance: SLBE
+): {
+    isWinningRight: boolean;
+    matchCountRight: number;
+    matchedIndices: { col: number; row: number }[];
+} {
+    try {
+        const { settings } = gameInstance;
+        const wildSymbol = settings.wild.SymbolID || "";
+        let matchCountRight = 1;
+        let currentSymbol = firstSymbol;
 
+        // Adjusting firstSymbol to be the last symbol in the line
+        currentSymbol = settings.resultSymbolMatrix[line[line.length - 1]][line.length - 1];
+
+        // Initializing matchedIndices with the last symbol (rightmost)
+        const matchedIndices: { col: number; row: number }[] = [
+            { col: line.length - 1, row: line[line.length - 1] },
+        ];
+
+        // Iterate from second-last to the first (right-to-left)
+        for (let i = line.length - 2; i >= 0; i--) {
+            const rowIndex = line[i];
+            const symbol = settings.resultSymbolMatrix[rowIndex][i];
+
+
+            if (symbol === undefined) {
+                console.error(`Symbol at position [${rowIndex}, ${i}] is undefined.`);
+                return { isWinningRight: false, matchCountRight: 0, matchedIndices: [] };
+            }
+
+            switch (true) {
+                case symbol == currentSymbol || symbol === wildSymbol:
+                    matchCountRight++;
+                    matchedIndices.push({ col: i, row: rowIndex });
+                    break;
+                case currentSymbol === wildSymbol:
+                    currentSymbol = symbol;
+                    matchCountRight++;
+                    matchedIndices.push({ col: i, row: rowIndex });
+                    break;
+                default:
+                    return { isWinningRight: matchCountRight >= 3, matchCountRight, matchedIndices };
+            }
+        }
+
+        
+
+        return { isWinningRight: matchCountRight >= 3, matchCountRight, matchedIndices };
+    } catch (error) {
+        console.error("Error in checkLineSymbolsRight:", error);
+        return { isWinningRight: false, matchCountRight: 0, matchedIndices: [] };
+    }
+}
 //checking first non wild symbol in lines which start with wild symbol
 function findFirstNonWildSymbol(line, gameInstance: SLBE) {
     try {
@@ -252,14 +301,20 @@ function findFirstNonWildSymbol(line, gameInstance: SLBE) {
 //payouts to user according to symbols count in matched lines
 function accessData(symbol, matchCount, gameInstance: SLBE) {
     const { settings } = gameInstance;
+    console.log("Symbol",symbol);
+    console.log("matchCount",matchCount);
+    
     try {
         const symbolData = settings.currentGamedata.Symbols.find(
             (s) => s.Id.toString() === symbol.toString()
         );
         if (symbolData) {
             const multiplierArray = symbolData.multiplier;
-            if (multiplierArray && multiplierArray[5 - matchCount]) {
-                return multiplierArray[5 - matchCount][0];
+            console.log("multiplierArray",multiplierArray);
+            
+            if (multiplierArray && multiplierArray[6 - matchCount]) {
+                return multiplierArray[6 - matchCount][0];
+                
             }
         }
         return 0;
