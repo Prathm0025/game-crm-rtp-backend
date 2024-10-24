@@ -163,8 +163,9 @@ export function sendInitData(gameInstance: SLBB) {
   gameInstance.settings.heisenbergReels = heisenbergReels;
   const dataToSend = {
     GameData: {
-      // Reel: reels,
-      // Bets: gameInstance.settings.currentGamedata.bets,
+      Reel: reels,
+      Bets: gameInstance.settings.currentGamedata.bets,
+      PayLines:gameInstance.currentGameData.gameSettings.linesApiData
     },
     UIData: UiInitData,
     PlayerData: {
