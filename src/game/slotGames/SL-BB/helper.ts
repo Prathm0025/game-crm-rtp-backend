@@ -4,6 +4,7 @@ import { SLBB } from "./breakingBadBase";
 import { convertSymbols, UiInitData } from "../../Utils/gameUtils";
 import { valueType } from "./types";
 import { freezeIndex } from "../SL-CM/helper";
+import { log } from "console";
 
 export function initializeGameSettings(gameData: any, gameInstance: SLBB) {
   const getSymbolIdByName = (name: string) => {
@@ -163,8 +164,10 @@ export function sendInitData(gameInstance: SLBB) {
   gameInstance.settings.heisenbergReels = heisenbergReels;
   const dataToSend = {
     GameData: {
-      // Reel: reels,
-      // Bets: gameInstance.settings.currentGamedata.bets,
+      Reel: reels,
+      Lines:gameInstance.currentGameData.gameSettings.linesApiData,
+      Bets: gameInstance.settings.currentGamedata.bets,
+
     },
     UIData: UiInitData,
     PlayerData: {
@@ -560,12 +563,15 @@ console.log(hasPrizeCoinSymbols, "hasPrizeCoinSymbols");
     settings.heisenberg.freeSpin.noOfFreeSpins--;
     // console.log(settings.heisenberg.freeSpin.noOfFreeSpins, "NUMBER OF FREE SPINS");
     if (coinCount > 0) {
-      // settings.heisenberg.freeSpin.noOfFreeSpins = 3;
+      settings.heisenberg.freeSpin.noOfFreeSpins = 3;
+      settings.heisenberg.freeSpin.freeSpinsAdded = true;
       // console.log("Coin found! Reset free spins to 3.");
     }
   } else {
     settings.heisenberg.freeSpin.freeSpinStarted = false;
     settings.heisenberg.isTriggered = false;
+    settings.heisenberg.freeSpin.freeSpinsAdded = false;
+
     console.log("Free spins have ended.");
   }
   if (settings.heisenberg.freeSpin.noOfFreeSpins == 0) {
@@ -692,7 +698,21 @@ export function checkForWin(gameInstance: SLBB) {
         // console.log(winMultiplier, "winMultiplier");
         totalWin += winMultiplier * gameInstance.settings.BetPerLines;
         winningLines.push(lineIndex);
+        settings._winData.winningLines.push(lineIndex)
+        const formattedIndices = matchedIndices.map(
+          ({ col, row }) => `${row},${col}`
+      );
+       console.log(formattedIndices, "FORMATTED");
+       const validIndices = formattedIndices.filter(
+        (index) => index.length > 2
+    );
+    if (validIndices.length > 0) {
+        // console.log(settings.lastReel, 'settings.lastReel')
+        console.log(validIndices);
+        settings._winData.winningSymbols.push(validIndices);
+    }
         settings.matchedIndices.push(matchedIndices);
+        
       }
     }
     if (hasCoinSymbols && hasCashCollect) {
@@ -701,6 +721,7 @@ export function checkForWin(gameInstance: SLBB) {
     }
 
     if ((hasCashCollect && (hasLinkSymbols || hasMegaLinkSymbols)) && !settings.heisenberg.isTriggered) {
+      console.log("HEISENBERG IS TRIGGERED");
       settings.heisenberg.isTriggered = true;
       settings.heisenberg.freeSpin.noOfFreeSpins = 3;
       settings.prevresultSymbolMatrix = settings.resultSymbolMatrix;
@@ -711,10 +732,7 @@ export function checkForWin(gameInstance: SLBB) {
       linkIndices.map((index)=> settings.heisenbergFreeze.add(index.toString()))
       const losPollosIndices = findIndicesOfSymbol(settings.losPollos.SymbolID, settings.resultSymbolMatrix );
       losPollosIndices.map((index)=> settings.heisenbergFreeze.add(index.toString()))
-      console.log(linkIndices);
-      console.log(settings.heisenbergFreeze, "heisenbergFreeze set after link indices");
-
-
+      console.log(settings.heisenbergFreeze, "heisenbergFreeze set after link indices")
     }
     // console.log(totalWin, "Total win before trigger of heisenberg ");
 
@@ -759,23 +777,27 @@ export function makeResultJson(gameInstance: SLBB) {
   try {
     const { settings, playerData } = gameInstance;
     const credits = gameInstance.getPlayerData().credits + playerData.currentWining
-    const Balance = credits.toFixed(2)
+    const Balance = Number(credits.toFixed(2))
     const sendData = {
       GameData: {
-        resultSymbols: settings.resultSymbolMatrix,
+        ResultReel: settings.resultSymbolMatrix,
         isFreeSpin: settings.freeSpin.isFreeSpin,
         freeSpinCount: settings.freeSpin.freeSpinCount,
-        winData:{
-          // winningLines: settings._winData.winningLines
-          matched: settings.matchedIndices
+        linesToEmit: settings._winData.winningLines,
+        symbolsToEmit: settings._winData.winningSymbols,
+        WinAmount:gameInstance.playerData.currentWining,
+        freeSpins:{
+          count:settings.freeSpin.freeSpinCount,
+          isNewAdded:settings.freeSpin.isFreeSpin
         },
-        bonus: {
-          isTriggered: settings.heisenberg.isTriggered,
-          count: settings.heisenberg.freeSpin.freeSpinCount,
-          resultSymbols: settings.heisenbergSymbolMatrix,
-          //TODO: fix later
-          freeze: settings.heisenbergFreeze
-        }
+        winData:{
+          coinValues:settings.coins.values,
+          losPollos:settings.losPollos.values
+        },
+        jackpot:0,
+         isBonus:settings.heisenberg.isTriggered,
+         BonusResult:settings.heisenbergSymbolMatrix,
+        
       },
       PlayerData: {
         Balance: Balance,
@@ -784,6 +806,8 @@ export function makeResultJson(gameInstance: SLBB) {
         haveWon: playerData.haveWon,
       }
     };
+    console.log(sendData);
+    
     gameInstance.sendMessage('ResultData', sendData);
   } catch (error) {
     console.error("Error generating result JSON or sending message:", error);
