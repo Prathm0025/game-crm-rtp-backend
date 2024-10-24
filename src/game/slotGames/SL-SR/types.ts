@@ -29,6 +29,7 @@ export interface SLSRSETTINGS {
     selectedMultiplier: number;
     isNewAdded: boolean,
     isFreeSpinRunning: boolean;
+    freeSpinTemp: number;
     freeSpin: {
         symbolID: string,
         freeSpinMuiltiplier: any[],

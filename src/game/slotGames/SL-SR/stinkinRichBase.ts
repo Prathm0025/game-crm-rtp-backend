@@ -77,18 +77,12 @@ export class SLSR {
                 this.sendError("Low Balance");
                 return;
             }
-            if(this.settings.isFreeSpinRunning)
+            if(this.settings.freeSpin.freeSpinCount>0)
             {
                 this.settings.freeSpin.freeSpinCount --;
-                console.log("Free Spin COPunt",this.settings.freeSpin.freeSpinCount);
-                console.log("this.settings.isFreeSpinRunning",this.settings.isFreeSpinRunning);
-                
-                
+            
             }
-            if(this.settings.freeSpin.freeSpinCount == 0) 
-            {
-                this.settings.isFreeSpinRunning= false;
-            }
+            
             await new RandomResultGenerator(this);
             checkForWin(this)
         } catch (error) {
