@@ -724,18 +724,17 @@ export function checkForWin(gameInstance: SLBB) {
       // console.log(totalWin, "Total win after trigger of heisenberg");
       settings.heisenberg.payout = 0;
     }
-    console.log("winning ", winningLines);
+    // console.log("winning ", winningLines);
 
     gameInstance.playerData.currentWining = totalWin;
-    gameInstance.playerData.haveWon += totalWin;
-    settings._winData.winningLines
+    settings._winData.winningLines = winningLines;
     console.log("PLAYERDATA:", gameInstance.playerData);
     
     makeResultJson(gameInstance)
     gameInstance.incrementPlayerBalance(gameInstance.playerData.currentWining)
     settings.coins.values = [];
-    settings._winData.winningLines = winningLines;
     gameInstance.playerData.currentWining = 0
+    settings._winData.winningLines = [];
     
     // settings.hasCascading = false;
     // settings.resultSymbolMatrix = [];
