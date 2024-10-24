@@ -14,8 +14,8 @@ export class RandomResultGenerator {
         // matrix.pop();
         // matrix.pop();
         // matrix.pop();
-        // matrix.push(['5', '2', '5', '3', '3', '3'])
-        // matrix.push(['3', '6', '2', '2', '2', '2'])
+        // matrix.push(['5', '10', '5', '3', '3', '3'])
+        // matrix.push(['3', '6', '2', '10', '2', '10'])
         // matrix.push(['1', '3', '7', '4', '2', '3'])
         matrix.forEach(row => console.log(row.join(' ')));
         current.settings.resultReelIndex = matrix;
