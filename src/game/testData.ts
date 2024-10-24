@@ -543,11 +543,11 @@ export const gameData = [
         "Name": "Link",
         "Id": 11,
         "reelInstance": {
-          "0": 5,
-          "1": 10,
-          "2": 20,
-          "3": 5,
-          "4": 5
+          "0": 0,
+          "1": 0,
+          "2": 0,
+          "3": 0,
+          "4": 0
         },
         "description": "",
         "useWildSub": false,
@@ -594,11 +594,11 @@ export const gameData = [
         "Name": "Coins",
         "Id": 14,
         "reelInstance": {
-          "0": 5,
-          "1": 5,
-          "2": 5,
-          "3": 5,
-          "4": 5
+          "0": 0,
+          "1": 0,
+          "2": 0,
+          "3": 0,
+          "4": 0
         },
         "description": "",
         "useWildSub": false,
@@ -628,7 +628,7 @@ export const gameData = [
         "Name": "LosPollos",
         "Id": 16,
         "reelInstance": {
-          "0": 1,
+          "0": 100,
           "1": 1,
           "2": 1,
           "3": 1,

@@ -4,6 +4,7 @@ import { SLBB } from "./breakingBadBase";
 import { convertSymbols, UiInitData } from "../../Utils/gameUtils";
 import { valueType } from "./types";
 import { freezeIndex } from "../SL-CM/helper";
+import { log } from "console";
 
 export function initializeGameSettings(gameData: any, gameInstance: SLBB) {
   const getSymbolIdByName = (name: string) => {
@@ -695,6 +696,18 @@ export function checkForWin(gameInstance: SLBB) {
         totalWin += winMultiplier * gameInstance.settings.BetPerLines;
         winningLines.push(lineIndex);
         settings._winData.winningLines.push(lineIndex)
+        const formattedIndices = matchedIndices.map(
+          ({ col, row }) => `${row},${col}`
+      );
+       console.log(formattedIndices, "FORMATTED");
+       const validIndices = formattedIndices.filter(
+        (index) => index.length > 2
+    );
+    if (validIndices.length > 0) {
+        // console.log(settings.lastReel, 'settings.lastReel')
+        console.log(validIndices);
+        settings._winData.winningSymbols.push(validIndices);
+    }
         settings.matchedIndices.push(matchedIndices);
         
       }
@@ -769,7 +782,7 @@ export function makeResultJson(gameInstance: SLBB) {
         isFreeSpin: settings.freeSpin.isFreeSpin,
         freeSpinCount: settings.freeSpin.freeSpinCount,
         linesToEmit: settings._winData.winningLines,
-        symbolsToEmit: settings.matchedIndices,
+        symbolsToEmit: settings._winData.winningSymbols,
         WinAmount:gameInstance.playerData.currentWining,
         freeSpins:{
           count:settings.freeSpin.freeSpinCount,
