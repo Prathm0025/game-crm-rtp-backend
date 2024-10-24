@@ -35,6 +35,7 @@ export interface SLLOLSETTINGS {
   minMatchCount: number;
   isFreeSpin: boolean;
   freeSpinCount: number;
+  freeSpinSymbolId: number;
   freeSpinMultipliers: number[];
   maxMultiplier: number;
   gamble: {
