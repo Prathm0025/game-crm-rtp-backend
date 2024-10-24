@@ -34,15 +34,11 @@ export  interface SLBBSETTINGS {
     heisenbergReels:any[][],
     Symbols: Symbol[];
     jackpot: {
-        symbolName: string;
-        symbolsCount: number;
-        symbolId: number;
-        defaultAmount: number;
-        increaseValue: number;
-        useJackpot: boolean;
+      isTriggered: boolean;
+      payout: number;
     },
     freeSpin: {
-        // symbolID: string,
+        isEnabled: boolean,
         freeSpinCount: number,
         isFreeSpin:boolean,
         cashCollectValues : valueType[]
