@@ -24,14 +24,12 @@ export class GameSession {
         this.creditsAtEntry = creditsAtEntry;
     }
 
-    // Generate a unique ID
     private generateSessionId(): string {
         return `${this.playerId}-${this.gameId}-${Date.now()}`;
     }
 
-    // Generate a unique ID for each spin
     private generateSpinId(): string {
-        return `${this.gameId}-${Date.now()}-${uuidv4()}`;  // Use UUID and timestamp for uniqueness
+        return `${this.gameId}-${Date.now()}-${uuidv4()}`;
     }
 
     public updateCredits(newCredits: number) {
@@ -39,26 +37,38 @@ export class GameSession {
     }
 
     // Record a spin
-    public recordSpin(betAmount: number, winAmount: number, specialFeatures?: SpecialFeatures) {
+    public createSpin(): string {
         const spinId = this.generateSpinId();  // Generate spin ID internally
-        const spin: SpinData = {
+        const newSpin: SpinData = {
             spinId,
-            betAmount,
-            winAmount,
-            specialFeatures
+            betAmount: 0,
+            winAmount: 0
         };
-
-        // Add the spin data to the session
-        this.spinData.push(spin);
-
-        // Increment spin counters
+        this.spinData.push(newSpin);
         this.totalSpins++;
-        this.totalBetAmount += betAmount;
+        return spinId;
+    }
 
-        // Add the win amount, even if it’s zero (lost bet)
-        this.totalWinAmount += winAmount;
+    public updateSpinField<T extends keyof SpinData>(spinId: string, field: T, value: SpinData[T]): boolean {
+        const spin = this.getSpinById(spinId);
+        if (spin) {
+            spin[field] = value;
 
-        console.log(`Spin recorded: Bet: ${betAmount}, Win: ${winAmount}, Special Features: ${specialFeatures ? JSON.stringify(specialFeatures) : 'None'}`);
+            // If betAmount or winAmount is updated, adjust totals accordingly
+            if (field === 'betAmount') {
+                this.totalBetAmount += value as number;
+            } else if (field === 'winAmount') {
+                this.totalWinAmount += value as number;
+            }
+
+            return true;
+        }
+        return false;
+    }
+
+
+    public getSpinById(spinId: string): SpinData | undefined {
+        return this.spinData.find(spin => spin.spinId === spinId);
     }
 
     // Tigger game exit and finalize session details
@@ -66,6 +76,8 @@ export class GameSession {
         this.exitTime = new Date();
         this.creditsAtExit = creditsAtExit;
         this.sessionDuration = (this.exitTime.getTime() - this.entryTime.getTime()) / 1000;
+
+        console.log(this.getSessionSummary())
     }
 
     // Get a summary of the session

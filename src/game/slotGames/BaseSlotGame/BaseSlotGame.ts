@@ -1,4 +1,7 @@
 
+import { GameSession } from "../../../dashboard/session/gameSession";
+import PlatformSession from "../../../dashboard/session/PlatformSession";
+import { sessionManager } from "../../../dashboard/session/sessionManager";
 import { currentGamedata } from "../../../Player";
 import { UiInitData, convertSymbols, specialIcons, bonusGameType, shuffleArray, ResultType, RequiredSocketMethods } from "../../Utils/gameUtils";
 import { combineUniqueSymbols, removeRecurringIndexSymbols, cascadeMoveTowardsNull, transposeMatrix } from "../../Utils/SlotUtils";
@@ -18,6 +21,9 @@ export default class BaseSlotGame implements RequiredSocketMethods {
     rtpSpinCount: 0,
     totalSpin: 0,
   };
+  session: PlatformSession;
+  gameSession: GameSession;
+
 
   constructor(public currentGameData: currentGamedata) {
     this.settings = {
@@ -108,7 +114,8 @@ export default class BaseSlotGame implements RequiredSocketMethods {
     };
 
     this.initialize(currentGameData.gameSettings);
-    // this.messageHandler((data: any));
+    this.session = sessionManager.getPlatformSession(this.getPlayerData().username)
+    this.gameSession = this.session.getCurrentGameSession();
   }
 
   sendMessage(action: string, message: any) {
@@ -135,13 +142,15 @@ export default class BaseSlotGame implements RequiredSocketMethods {
     switch (response.id) {
       case "SPIN":
         console.log("SPIN ; ", response);
-      
         if (this.settings.startGame) {
           this.settings.currentLines = response.data.currentLines;
           this.settings.BetPerLines = this.settings.currentGamedata.bets[response.data.currentBet];
           this.settings.currentBet =
             this.settings.currentGamedata.bets[response.data.currentBet] *
             this.settings.currentLines;
+
+          // const spinId = this.gameSession.createSpin();
+          // this.gameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
           this.spinResult();
         }
         break;
@@ -361,18 +370,54 @@ export default class BaseSlotGame implements RequiredSocketMethods {
           this.settings.freeSpin.freeSpinsAdded = false;
         }
       }
+
+      const spinId = this.gameSession.createSpin();
+      this.gameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
+
+
       this.settings.tempReels = [[]];
       this.settings.bonus.start = false;
       this.playerData.totalbet += this.settings.currentBet;
+
       new RandomResultGenerator(this);
       const result = new CheckResult(this);
       result.makeResultJson(ResultType.normal);
+
+      const winAmount = this.playerData.currentWining;
+      this.gameSession.updateSpinField(spinId, 'winAmount', winAmount);
+
+      const specialFeatures = this.getSpecialFeatures();
+      if (specialFeatures) {
+        this.gameSession.updateSpinField(spinId, 'specialFeatures', specialFeatures);
+      }
+      console.log(`Spin result recorded for player: ${this.getPlayerData().username}, win: ${winAmount}`);
+
     } catch (error) {
       console.error("Failed to generate spin results:", error);
       this.sendError("Spin error");
     }
   }
 
+  private getSpecialFeatures(): any {
+    const specialFeatures: any = {};
+    if (this.settings.jackpot.useJackpot) {
+      specialFeatures.jackpot = {
+        triggered: true,
+        amountWon: this.settings.jackpot.defaultAmount,
+      }
+    }
+
+    if (this.settings.freeSpin.useFreeSpin) {
+      specialFeatures.freeSpin = {
+        triggered: true,
+        freeSpinsRemaining: this.settings.freeSpin.freeSpinCount,
+      }
+    }
+
+    return Object.keys(specialFeatures).length > 0 ? specialFeatures : null;
+  }
+
+  //TODO : NEED TO GO THORUGH
   private getRTP(spins: number) {
     try {
       let spend: number = 0;

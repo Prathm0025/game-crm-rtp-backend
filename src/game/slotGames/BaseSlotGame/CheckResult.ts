@@ -35,6 +35,8 @@ export class CheckResult {
         this.bonusResult = [];
         this.bonusGame = this.bonusGame
         this.searchWinSymbols();
+
+        // this.currentGame.gameSession.rec
     }
 
 

@@ -18,6 +18,7 @@ class SessionManager {
             data: {
                 username: playerId,
                 entryTime,
+                exitTime: null,
                 credits: initialCredits,
             }
         }
@@ -117,18 +118,55 @@ class SessionManager {
         }
     }
 
-    // Record a spin the current game session
-    public recordSpin(playerId: string, betAmount: number, winAmount: number, specialFeatures?: any) {
+    public recordBetAmount(playerId: string, betAmount: number) {
         const platformSession = this.platformSessions.get(playerId);
 
         if (platformSession) {
             const currentSession = platformSession.getCurrentGameSession();
             if (currentSession) {
-                currentSession.recordSpin(betAmount, winAmount, specialFeatures);
-                console.log(`Spin recorded for player: ${playerId}, bet: ${betAmount}, win: ${winAmount}`);
+                // Create a new spin and record the bet amount
+                const spinId = currentSession.createSpin();
+                currentSession.updateSpinField(spinId, 'betAmount', betAmount);
+                console.log(`Bet amount recorded for player: ${playerId}, bet: ${betAmount}`);
+            } else {
+                console.error(`No active game session found for player: ${playerId}`);
             }
         } else {
-            console.error(`No active platform session or game session found for player: ${playerId}`);
+            console.error(`No active platform session found for player: ${playerId}`);
+        }
+    }
+
+    public recordWinAmount(playerId: string, spinId: string, winAmount: number) {
+        const platformSession = this.platformSessions.get(playerId);
+
+        if (platformSession) {
+            const currentSession = platformSession.getCurrentGameSession();
+            if (currentSession) {
+                // Update the win amount for the specific spin
+                currentSession.updateSpinField(spinId, 'winAmount', winAmount);
+                console.log(`Win amount recorded for player: ${playerId}, win: ${winAmount}`);
+            } else {
+                console.error(`No active game session found for player: ${playerId}`);
+            }
+        } else {
+            console.error(`No active platform session found for player: ${playerId}`);
+        }
+    }
+
+    public recordSpecialFeatures(playerId: string, spinId: string, specialFeatures: any) {
+        const platformSession = this.platformSessions.get(playerId);
+
+        if (platformSession) {
+            const currentSession = platformSession.getCurrentGameSession();
+            if (currentSession) {
+                // Update special features for the specific spin
+                currentSession.updateSpinField(spinId, 'specialFeatures', specialFeatures);
+                console.log(`Special features recorded for player: ${playerId}, features: ${JSON.stringify(specialFeatures)}`);
+            } else {
+                console.error(`No active game session found for player: ${playerId}`);
+            }
+        } else {
+            console.error(`No active platform session found for player: ${playerId}`);
         }
     }
 

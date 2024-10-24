@@ -6,6 +6,7 @@ import Player from "./Player";
 import createHttpError from "http-errors";
 import { messageType } from "./game/Utils/gameUtils";
 import Manager from "./Manager";
+import { sessionManager } from "./dashboard/session/sessionManager";
 
 
 interface DecodedToken {
@@ -122,12 +123,17 @@ const handleManagerConnection = async (socket: Socket, decoded: DecodedToken, us
 
 
     // Send All active players to the manager upon connection
-    const activeUsersData = Array.from(currentActivePlayers.values()).map(player => ({
-        username: player.playerData.username,
-        credits: player.playerData.credits,
-        currentGame: player.currentGameData.gameId || "No Active Game",
-    }))
+    const activeUsersData = Array.from(currentActivePlayers.values()).map(player => {
+        const platformSession = sessionManager.getPlatformSession(player.playerData.username);
 
+        return {
+            username: player.playerData.username,
+            credits: player.playerData.credits,
+            currentGame: player.currentGameData.gameId || "No Active Game",
+            entryTime: platformSession?.entryTime || "N/A",
+            exitTime: platformSession?.exitTime || null
+        };
+    });
     socket.emit("activeUsers", activeUsersData);
 };
 

@@ -19,13 +19,13 @@ export default class Manager {
 
     private initializeEventListeners() {
         eventEmitter.on("platform", (event) => {
-            if (event.to === this.username) {
+            if (event.to === this.username || this.role === "master") {
                 this.notifyManager({ type: event.type, data: event.data });
             }
         });
 
         eventEmitter.on("game", (event) => {
-            if (event.to === this.username) {
+            if (event.to === this.username || this.role === "master") {
                 this.notifyManager({ type: event.type, data: event.data });
             }
         });
