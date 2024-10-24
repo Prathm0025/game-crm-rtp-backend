@@ -563,12 +563,15 @@ console.log(hasPrizeCoinSymbols, "hasPrizeCoinSymbols");
     settings.heisenberg.freeSpin.noOfFreeSpins--;
     // console.log(settings.heisenberg.freeSpin.noOfFreeSpins, "NUMBER OF FREE SPINS");
     if (coinCount > 0) {
-      // settings.heisenberg.freeSpin.noOfFreeSpins = 3;
+      settings.heisenberg.freeSpin.noOfFreeSpins = 3;
+      settings.heisenberg.freeSpin.freeSpinsAdded = true;
       // console.log("Coin found! Reset free spins to 3.");
     }
   } else {
     settings.heisenberg.freeSpin.freeSpinStarted = false;
     settings.heisenberg.isTriggered = false;
+    settings.heisenberg.freeSpin.freeSpinsAdded = false;
+
     console.log("Free spins have ended.");
   }
   if (settings.heisenberg.freeSpin.noOfFreeSpins == 0) {
@@ -775,7 +778,7 @@ export function makeResultJson(gameInstance: SLBB) {
   try {
     const { settings, playerData } = gameInstance;
     const credits = gameInstance.getPlayerData().credits + playerData.currentWining
-    const Balance = credits.toFixed(2)
+    const Balance = Number(credits.toFixed(2))
     const sendData = {
       GameData: {
         ResultReel: settings.resultSymbolMatrix,

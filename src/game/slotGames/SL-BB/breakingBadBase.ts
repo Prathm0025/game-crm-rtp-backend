@@ -99,7 +99,7 @@ export class SLBB {
           "this.settings.freeSpinCount"
         );
       }
-      this.incrementPlayerBalance(this.playerData.currentWining)
+      // this.incrementPlayerBalance(this.playerData.currentWining)
       new RandomResultGenerator(this);
       checkForWin(this)
     } catch (error) {
