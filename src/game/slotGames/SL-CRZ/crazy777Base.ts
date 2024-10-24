@@ -90,7 +90,7 @@ export class SLCRZ {
       ) {
         this.settings.freeSpinCount--;
 
-        this.settings.currentBet = 0;
+        // this.settings.currentBet = 0;
         console.log(
           this.settings.freeSpinCount,
           "this.settings.freeSpinCount"
@@ -120,6 +120,9 @@ export class SLCRZ {
       if (spend > 0) {
         rtp = won / spend;
       }
+      console.log("Total Spent",spend);
+      console.log("Total Won",won);
+      
       console.log('RTP calculated:', rtp * 100);
       return;
     } catch (error) {

@@ -30,6 +30,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLSR) {
     currentLines: 0,
     BetPerLines: 0,
     reels: [],
+    totalPayout: 0,
     freeSpinValue: gameData.gameSettings.freeSpinValue,
     bonusValuesArray: gameData.gameSettings.bonusValuesArray,
     bonusProbabilities:  gameData.gameSettings.bonusValuesArray,
@@ -48,6 +49,11 @@ export function initializeGameSettings(gameData: any, gameInstance: SLSR) {
       SymbolName: "",
       SymbolID: -1,
       useWild: false,
+    },
+    scatter: {
+      symbolID: "-1",
+      multiplier: [],
+      useScatter: false,
     },
     bonus: {
       start: false,
@@ -115,6 +121,12 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLSR) {
       gameInstance.settings.wild.SymbolID = symbol.Id;
       gameInstance.settings.wild.useWild = true;
       break;
+    case specialIcons.scatter:
+      gameInstance.settings.scatter.symbolID = symbol.Id,
+      gameInstance.settings.scatter.multiplier = symbol.multiplier;
+      gameInstance.settings.scatter.useScatter = true;
+
+      break;
     case specialIcons.bonus:
       gameInstance.settings.bonus.id = symbol.Id;
       gameInstance.settings.bonus.symbolCount = symbol.symbolCount;
@@ -133,7 +145,7 @@ export function checkForWin(gameInstance: SLSR) {
   try {
     const { settings } = gameInstance;
     const winningLines = [];
-    let totalPayout = 0;
+
     let freeSpinLinesCount = 0; 
     
     settings.lineData.forEach((line, index) => {
@@ -156,16 +168,14 @@ export function checkForWin(gameInstance: SLSR) {
       if (isFreeSpinLine) {
         freeSpinLinesCount++; // Increment the count for Free Spin lines
       }
-      // const isBonusValues =;
-      // Check for matching symbols on the line
       const { isWinningLine, matchCount } = checkLineSymbols(firstSymbol, line, gameInstance);
 
       if (isWinningLine && matchCount >= 3) {
         const symbolMultiplier = accessData(firstSymbol, matchCount, gameInstance);
-
+        
         if (symbolMultiplier > 0) {
-          totalPayout = symbolMultiplier * gameInstance.settings.BetPerLines;
-          gameInstance.playerData.currentWining += totalPayout;
+          gameInstance.settings.totalPayout = symbolMultiplier * gameInstance.settings.BetPerLines;
+          gameInstance.playerData.currentWining += gameInstance.settings.totalPayout;
           settings._winData.winningLines.push(index + 1);
           winningLines.push({
             line,
@@ -174,11 +184,12 @@ export function checkForWin(gameInstance: SLSR) {
             matchCount,
           });
           console.log(`Line ${index + 1}:`, line);
-          console.log(`Payout for Line ${index + 1}:`, "payout", totalPayout);
+          console.log(`Payout for Line ${index + 1}:`, "payout", gameInstance.settings.totalPayout);
         }
       }
     });
     checkForBonus(gameInstance);
+    checkForScatter(gameInstance);
     // Calculate total Free Spins won (5 free spins per line with Free Spin win)
     gameInstance.settings.freeSpin.freeSpinCount = freeSpinLinesCount * settings.freeSpinValue;
     console.log("Total Winning", gameInstance.playerData.currentWining);
@@ -206,7 +217,7 @@ export function checkForBonus(gameInstance: SLSR) {
         }
       });
     });
-
+ 
     // If 3 or more bonus symbols are found, trigger the bonus game
     if (bonusSymbolCount >= 3) {
       console.log(`Bonus Game Triggered with ${bonusSymbolCount} Bonus Symbols`);
@@ -240,6 +251,28 @@ function runBonusGame(bonusSymbolCount: number, gameInstance: SLSR) {
 
   } catch (error) {
     console.error("Error in runBonusGame", error);
+  }
+}
+export function checkForScatter(gameInstance: SLSR)
+{
+  try {
+    const { settings } = gameInstance;
+    let scatterSymbolCount = 0;
+    
+    settings.resultSymbolMatrix.forEach((row) => {
+      row.forEach((symbol) => {
+        if (symbol === settings.scatter.symbolID) {
+          scatterSymbolCount++;
+        }
+      });
+    });
+    if (scatterSymbolCount >= 3) {
+      console.log(`Scatter Won `);
+      const scatterWin = accessData(settings.scatter.symbolID,scatterSymbolCount,gameInstance);
+      
+    }
+  } catch (error) {
+    console.error("Error in checkForBonus", error);
   }
 }
 
@@ -433,6 +466,7 @@ export function makeResultJson(gameInstance: SLSR) {
         symbolsToEmit: settings._winData.winningSymbols,
         isFreeSpin: settings.freeSpin.useFreeSpin,
         freeSpinCount: settings.freeSpin.freeSpinCount,
+
       },
       PlayerData: {
         Balance: Balance,
