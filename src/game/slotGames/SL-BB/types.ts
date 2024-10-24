@@ -4,10 +4,11 @@ import { WinData } from "../BaseSlotGame/WinData";
 export interface Symbol {
   Name: string;
   Id: number;
-  payout: string;
-  canCallRedSpin: boolean;
-  canCallRespin: boolean;
+  multiplier: string;
+  useWildSub: boolean;
+  useHeisenberg: boolean;
   reelInstance: { [key: string]: number };
+  
 }
 
 export type valueType = {

@@ -74,7 +74,7 @@ export class SLBB {
   public async spinResult(): Promise<void> {
     try {
       const playerData = this.getPlayerData();
-      const { freeSpin } = this.settings
+      const { freeSpin, heisenberg } = this.settings
       if (!freeSpin.isFreeSpin && this.settings.currentBet > playerData.credits) {
         this.sendError("Low Balance");
         return;
@@ -84,12 +84,18 @@ export class SLBB {
         this.decrementPlayerBalance(this.settings.currentBet);
         this.playerData.totalbet += this.settings.currentBet * 3;
       }
+      if (!heisenberg.isTriggered) {
+        this.decrementPlayerBalance(this.settings.currentBet);
+      }
+      // if (heisenberg.freeSpin.freeSpinCount === 1) {
+      //   heisenberg.isTriggered= false;
+      // }
       if (freeSpin.freeSpinCount === 1) {
         freeSpin.isFreeSpin = false;
       }
       if (
         freeSpin.isFreeSpin &&
-        freeSpin.freeSpinCount > 0
+        freeSpin.freeSpinCount > 0 &&  !this.settings.heisenberg.isTriggered
       ) {
         freeSpin.freeSpinCount--;
 

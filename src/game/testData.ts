@@ -526,7 +526,7 @@ export const gameData = [
         "Id": 10,
         "reelInstance": {
           "0": 5,
-          "1": 5,
+          "1": 50,
           "2": 5,
           "3": 5,
           "4": 5
@@ -594,11 +594,11 @@ export const gameData = [
         "Name": "Coins",
         "Id": 14,
         "reelInstance": {
-          "0": 0,
-          "1": 0,
-          "2": 0,
-          "3": 0,
-          "4": 0
+          "0": 2,
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2
         },
         "description": "",
         "useWildSub": false,
