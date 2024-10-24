@@ -25,7 +25,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLLOL) {
     _winData: null,
     currentLines: 0,
     BetPerLines: 0,
-    reels: [],
+    reels: generateInitialReel(gameInstance),
     defaultPayout: gameSettings.defaultPayout || 0,
     minMatchCount: gameSettings.minMatchCount || 3,
     isFreeSpin: false,
@@ -91,11 +91,11 @@ export function sendInitData(gameInstance: SLLOL) {
   UiInitData.paylines = convertSymbols(gameInstance.settings.Symbols);
   const credits = gameInstance.getPlayerData().credits
   const Balance = credits.toFixed(2)
-  const reels = generateInitialReel(gameInstance.settings);
+  const reels = gameInstance.settings.reels
   gameInstance.settings.reels = reels;
   const dataToSend = {
     GameData: {
-      // Reel: reels,
+      Reel: reels,
       Bets: gameInstance.settings.currentGamedata.bets,
     },
     UIData: UiInitData,
