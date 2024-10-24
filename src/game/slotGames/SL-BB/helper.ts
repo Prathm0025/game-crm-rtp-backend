@@ -692,7 +692,9 @@ export function checkForWin(gameInstance: SLBB) {
         // console.log(winMultiplier, "winMultiplier");
         totalWin += winMultiplier * gameInstance.settings.BetPerLines;
         winningLines.push(lineIndex);
+        settings._winData.winningLines.push(lineIndex)
         settings.matchedIndices.push(matchedIndices);
+        
       }
     }
     if (hasCoinSymbols && hasCashCollect) {
@@ -767,7 +769,7 @@ export function makeResultJson(gameInstance: SLBB) {
         isFreeSpin: settings.freeSpin.isFreeSpin,
         freeSpinCount: settings.freeSpin.freeSpinCount,
         winData:{
-          // winningLines: settings._winData.winningLines
+          winningLines: settings._winData.winningLines,
           matched: settings.matchedIndices
         },
         bonus: {
@@ -785,6 +787,8 @@ export function makeResultJson(gameInstance: SLBB) {
         haveWon: playerData.haveWon,
       }
     };
+    console.log(sendData);
+    
     gameInstance.sendMessage('ResultData', sendData);
   } catch (error) {
     console.error("Error generating result JSON or sending message:", error);

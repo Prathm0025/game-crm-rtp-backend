@@ -611,11 +611,11 @@ export const gameData = [
         "Name": "PrizeCoin",
         "Id": 15,
         "reelInstance": {
-          "0": 30,
-          "1": 30,
-          "2": 30,
-          "3": 30,
-          "4": 30
+          "0": 0,
+          "1": 0,
+          "2": 0,
+          "3": 0,
+          "4": 0
         },
         "description": "",
         "useWildSub": false,
@@ -628,11 +628,11 @@ export const gameData = [
         "Name": "LosPollos",
         "Id": 16,
         "reelInstance": {
-          "0": 25,
-          "1": 25,
-          "2": 25,
-          "3": 25,
-          "4": 25
+          "0": 0,
+          "1": 0,
+          "2": 0,
+          "3": 0,
+          "4": 0
         },
         "description": "",
         "useWildSub": false,
