@@ -164,8 +164,9 @@ export function sendInitData(gameInstance: SLBB) {
   const dataToSend = {
     GameData: {
       Reel: reels,
+      Lines:gameInstance.currentGameData.gameSettings.linesApiData,
       Bets: gameInstance.settings.currentGamedata.bets,
-      PayLines:gameInstance.currentGameData.gameSettings.linesApiData
+
     },
     UIData: UiInitData,
     PlayerData: {
@@ -704,6 +705,7 @@ export function checkForWin(gameInstance: SLBB) {
     }
 
     if ((hasCashCollect && (hasLinkSymbols || hasMegaLinkSymbols)) && !settings.heisenberg.isTriggered) {
+      console.log("HEISENBERG IS TRIGGERED");
       settings.heisenberg.isTriggered = true;
       settings.heisenberg.freeSpin.noOfFreeSpins = 3;
       settings.prevresultSymbolMatrix = settings.resultSymbolMatrix;
@@ -714,10 +716,7 @@ export function checkForWin(gameInstance: SLBB) {
       linkIndices.map((index)=> settings.heisenbergFreeze.add(index.toString()))
       const losPollosIndices = findIndicesOfSymbol(settings.losPollos.SymbolID, settings.resultSymbolMatrix );
       losPollosIndices.map((index)=> settings.heisenbergFreeze.add(index.toString()))
-      console.log(linkIndices);
-      console.log(settings.heisenbergFreeze, "heisenbergFreeze set after link indices");
-
-
+      console.log(settings.heisenbergFreeze, "heisenbergFreeze set after link indices")
     }
     // console.log(totalWin, "Total win before trigger of heisenberg ");
 
@@ -766,22 +765,24 @@ export function makeResultJson(gameInstance: SLBB) {
     const Balance = credits.toFixed(2)
     const sendData = {
       GameData: {
-        resultSymbols: settings.resultSymbolMatrix,
+        ResultReel: settings.resultSymbolMatrix,
         isFreeSpin: settings.freeSpin.isFreeSpin,
         freeSpinCount: settings.freeSpin.freeSpinCount,
+        linesToEmit: settings._winData.winningLines,
+        symbolsToEmit: settings.matchedIndices,
+        WinAmount:gameInstance.playerData.currentWining,
+        freeSpins:{
+          count:settings.freeSpin.freeSpinCount,
+          isNewAdded:settings.freeSpin.isFreeSpin
+        },
         winData:{
-          winningLines: settings._winData.winningLines,
-          matched: settings.matchedIndices,
           coinValues:settings.coins.values,
           losPollos:settings.losPollos.values
         },
-        bonus: {
-          isTriggered: settings.heisenberg.isTriggered,
-          count: settings.heisenberg.freeSpin.freeSpinCount,
-          resultSymbols: settings.heisenbergSymbolMatrix,
-          //TODO: fix later
-          freeze: settings.heisenbergFreeze
-        }
+        jackpot:0,
+         isBonus:settings.heisenberg.isTriggered,
+         BonusResult:settings.heisenbergSymbolMatrix,
+        
       },
       PlayerData: {
         Balance: Balance,
