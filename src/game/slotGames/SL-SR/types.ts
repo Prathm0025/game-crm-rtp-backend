@@ -25,6 +25,7 @@ export interface SLSRSETTINGS {
     bonusProbabilities: number[];
     multiplierArray:number[];
     multiplierProbabilities: number[];
+    totalPayout: number;
 
     freeSpin: {
         symbolID: string,
@@ -40,15 +41,20 @@ export interface SLSRSETTINGS {
         SymbolID: number;
         useWild: boolean
     },
-      bonus: {
-        start: boolean;
-        stopIndex: number;
-        game: any;
-        id: number;
-        symbolCount: number,
-        pay: number,
-        useBonus: boolean,
-      };
+    scatter: {
+        symbolID: string,
+        multiplier: number[],
+        useScatter: boolean,
+    },
+    bonus: {
+    start: boolean;
+    stopIndex: number;
+    game: any;
+    id: number;
+    symbolCount: number,
+    pay: number,
+    useBonus: boolean,
+    };
 }
 
 
