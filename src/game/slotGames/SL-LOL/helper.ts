@@ -27,7 +27,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLLOL) {
     isFreeSpin: false,
     freeSpinCount: 0,
     freeSpinMultipliers: [1, 1, 1, 1, 1],
-    freeSpinSymbolId:gameInstance.currentGameData.gameSettings.Symbols.find((sym:SymbolType)=>sym.Name==='FreeSpin')?.Id || "12",
+    freeSpinSymbolId:gameInstance.currentGameData.gameSettings.Symbols.find((sym:SymbolType)=>sym.Name=='FreeSpin')?.Id || "12",
     maxMultiplier: 10,
     gamble: gameSettings.gamble,
     winningCombinations:[]
@@ -144,7 +144,7 @@ export function printMatrix(matrix: GameResult, getSymbol: (id: number) => Symbo
   }
 }
 export function printWinningCombinations(winningCombinations: WinningCombination[]): void {
-  if (winningCombinations.length === 0) {
+  if (winningCombinations.length == 0) {
     console.log("No winning combinations.");
     return;
   }
@@ -265,7 +265,7 @@ export function checkWin(gameInstance: SLLOL): { payout: number; winningCombinat
 
   const findCombinations = (symbolId: number, col: number, path: [number, number][]): void => {
     // Stop if we've checked all columns or path is complete
-    if (col === settings.matrix.x) {
+    if (col == settings.matrix.x) {
       if (path.length >= settings.minMatchCount) {
         const symbol = getSymbol(symbolId, settings.Symbols);
         const multiplierIndex = path.length - settings.minMatchCount;
@@ -300,7 +300,7 @@ export function checkWin(gameInstance: SLLOL): { payout: number; winningCombinat
     if (symbol.Name !== "Wild") {
       for (let row = 0; row < settings.matrix.y; row++) {
         const startSymbolId = settings.resultSymbolMatrix[row][0]; // Start in the leftmost column (0)
-        if (startSymbolId === symbol.Id || isWild(startSymbolId)) {
+        if (startSymbolId == symbol.Id || isWild(startSymbolId)) {
           findCombinations(symbol.Id, 1, [[row, 0]]);
         }
       }
@@ -313,7 +313,7 @@ export function checkWin(gameInstance: SLLOL): { payout: number; winningCombinat
       index != otherIndex &&
       combo.symbolId == otherCombo.symbolId &&
       combo.positions.length < otherCombo.positions.length &&
-      combo.positions.every((pos, i) => pos[0] == otherCombo.positions[i][0] && pos[1] === otherCombo.positions[i][1])
+      combo.positions.every((pos, i) => pos[0] == otherCombo.positions[i][0] && pos[1] == otherCombo.positions[i][1])
     )
   );
 
@@ -334,7 +334,7 @@ export function checkWin(gameInstance: SLLOL): { payout: number; winningCombinat
   console.log("isFreespin", bool);
   
   //reset multiplers for freespin when its over 
-  if (settings.freeSpinCount <= 0 && settings.isFreeSpin === false) {
+  if (settings.freeSpinCount <= 0 && settings.isFreeSpin == false) {
     settings.freeSpinMultipliers = [1, 1, 1, 1, 1]
   } else {
     settings.freeSpinCount -= 1
