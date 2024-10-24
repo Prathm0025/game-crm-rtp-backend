@@ -32,7 +32,8 @@ export function initializeGameSettings(gameData: any, gameInstance: SLLOL) {
     freeSpinCount: 0,
     freeSpinMultipliers: [1, 1, 1, 1, 1],
     maxMultiplier: 10,
-    gamble: gameSettings.gamble
+    gamble: gameSettings.gamble,
+    winningCombinations:[]
   };
 
   // Add WinData separately to avoid circular reference in logging
@@ -116,6 +117,12 @@ export function makeResultJson(gameInstance: SLLOL) {
     const sendData = {
       gameData: {
         resultSymbols: settings.resultSymbolMatrix,
+        freeSpin: {
+          isFreeSpin: settings.isFreeSpin,
+          freeSpinCount: settings.freeSpinCount,
+          freeSpinMultipliers: settings.freeSpinMultipliers
+        },
+        winningCombinations: settings.winningCombinations,
       },
       PlayerData: {
         Balance: Balance,
@@ -330,7 +337,7 @@ export function checkWin(gameInstance: SLLOL): { payout: number; winningCombinat
   //reset multiplers for freespin when its over 
   if (settings.freeSpinCount <= 0 && settings.isFreeSpin === false) {
     settings.freeSpinMultipliers = [1, 1, 1, 1, 1]
-  }else{
+  } else {
     settings.freeSpinCount -= 1
   }
   winningCombinations.forEach(combo => {
@@ -343,6 +350,8 @@ export function checkWin(gameInstance: SLLOL): { payout: number; winningCombinat
     }
     totalPayout += combo.payout;
   })
+
+  makeResultJson(gameInstance)
 
   return { payout: totalPayout, winningCombinations };
 }
