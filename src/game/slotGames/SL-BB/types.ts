@@ -16,47 +16,51 @@ export type valueType = {
 }
 
 
-export interface SLBBSETTINGS {
-  id: string;
-  matrix: { x: number, y: number };
-  currentGamedata: GameData;
-  resultSymbolMatrix: any[];
-  prevresultSymbolMatrix: any[];
-  heisenbergSymbolMatrix: any[];
-  frozenIndices: Set<string>; // Changed to Set<string>
-  lineData: any[],
-  _winData: WinData | undefined;
-  currentBet: number;
-  currentLines: number;
-  BetPerLines: number;
-  bets: number[];
-  reels: any[][];
-  heisenbergReels: any[][],
-  Symbols: Symbol[];
-  jackpot: {
-    isTriggered:boolean,
-    payout:number
-  },
-  freeSpin: {
-    // symbolID: string,
-    freeSpinCount: number,
-    isFreeSpin: boolean,
-    cashCollectValues : valueType[]
-  };
-  wild: {
-    SymbolName: string;
-    SymbolID: number;
-    useWild: boolean
-  };
-  link: {
-    SymbolName: string;
-    SymbolID: string;
-    useWild: boolean;
-  };
-  megalink: {
-    SymbolName: string;
-    SymbolID: string;
-    useWild: boolean;
+export  interface SLBBSETTINGS {
+    id: string;
+    matrix: { x: number, y: number };
+    currentGamedata: GameData;
+    resultSymbolMatrix: any[];
+    prevresultSymbolMatrix: any[];
+    heisenbergSymbolMatrix:any[];
+    heisenbergFreeze: Set<string>;
+    lineData: any[],
+    _winData: WinData | undefined;
+    currentBet: number;
+    currentLines: number;
+    BetPerLines: number;
+    bets: number[];
+    reels: any[][];
+    heisenbergReels:any[][],
+    Symbols: Symbol[];
+    jackpot: {
+        symbolName: string;
+        symbolsCount: number;
+        symbolId: number;
+        defaultAmount: number;
+        increaseValue: number;
+        useJackpot: boolean;
+    },
+    freeSpin: {
+        // symbolID: string,
+        freeSpinCount: number,
+        isFreeSpin:boolean,
+        cashCollectValues : valueType[]
+    };
+    wild: {
+        SymbolName: string;
+        SymbolID: number;
+        useWild: boolean
+    };
+    link: {
+        SymbolName: string;
+        SymbolID: string;
+        useWild: boolean;
+    };
+    megalink: {
+        SymbolName: string;
+        SymbolID: string;
+        useWild: boolean;
 
   };
   cashCollect: {
