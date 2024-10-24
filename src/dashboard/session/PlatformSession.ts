@@ -2,41 +2,53 @@ import { GameSession } from "./gameSession";
 
 export default class PlatformSession {
     playerId: string;
+    managerName: string;
+    initialCredits: number;
+    currentCredits: number;
     entryTime: Date;
     exitTime: Date | null = null;
-    managerName: string;
-    currentCredits: number;
-    private gameSessions: GameSession[] = []
+    rtp: number = 0;
+    currentGameSession: GameSession | null = null;
 
     constructor(playerId: string, entryTime: Date, managerName: string, initialCredits: number) {
         this.playerId = playerId;
-        this.entryTime = entryTime;
         this.managerName = managerName;
+        this.initialCredits = initialCredits;
         this.currentCredits = initialCredits;
+        this.entryTime = entryTime;
     }
 
-    // Set platform exit time
-    setExitTime(exitTime: Date) {
-        this.exitTime = exitTime
+    public updateRTP(rtp: number): void {
+        this.rtp = rtp;
+    }
+
+    public getCurrentRTP(): number {
+        return this.rtp;
     }
 
     public updateCredits(newCredits: number) {
         this.currentCredits = newCredits;
     }
 
-    // Add a new game session
-    addGameSession(session: GameSession) {
-        this.gameSessions.push(session);
+    public addGameSession(gameSession: GameSession) {
+        this.currentGameSession = gameSession;
     }
 
-    // Get the current game session
-    getCurrentGameSession(): GameSession | undefined {
-        return this.gameSessions.length > 0 ? this.gameSessions[this.gameSessions.length - 1] : undefined;
+    public setExitTime(exitTime: Date) {
+        this.exitTime = exitTime;
     }
 
-    // Get all game sessions
-    getAllGameSessions(): GameSession[] {
-        return this.gameSessions;
+    public getCurrentGameSession(): GameSession | null {
+        return this.currentGameSession;
+    }
+
+    logSummary() {
+        console.log("Session Summary for: ", this.playerId);
+        console.log("Manager : ", this.managerName);
+        console.log("initial credits ; ", this.initialCredits);
+        console.log("current credit : ", this.currentCredits);
+        console.log("entry time :", this.entryTime);
+        console.log("exit time :", this.exitTime);
+        console.log("rtp : ", this.rtp)
     }
 }
-

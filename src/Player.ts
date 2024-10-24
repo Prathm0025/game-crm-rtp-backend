@@ -194,6 +194,7 @@ export default class PlayerSocket {
   public cleanupPlatformSocket() {
     sessionManager.endPlatformSession(this.playerData.username);
 
+
     if (this.platformData.socket) {
       this.platformData.socket.disconnect(true);
       this.platformData.socket = null;

@@ -148,9 +148,6 @@ export default class BaseSlotGame implements RequiredSocketMethods {
           this.settings.currentBet =
             this.settings.currentGamedata.bets[response.data.currentBet] *
             this.settings.currentLines;
-
-          // const spinId = this.gameSession.createSpin();
-          // this.gameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
           this.spinResult();
         }
         break;
@@ -329,8 +326,10 @@ export default class BaseSlotGame implements RequiredSocketMethods {
   private async spinResult() {
     try {
       const playerData = this.getPlayerData();
-      if (this.settings.currentBet > playerData.credits) {
-        console.log("Low Balance : ", playerData.credits);
+      const currentCredits = playerData.credits;
+
+      if (this.settings.currentBet > currentCredits) {
+        console.log("Low Balance : ", currentCredits);
         console.log("Current Bet : ", this.settings.currentBet);
         this.sendError("Low Balance");
         return;
@@ -390,7 +389,13 @@ export default class BaseSlotGame implements RequiredSocketMethods {
       if (specialFeatures) {
         this.gameSession.updateSpinField(spinId, 'specialFeatures', specialFeatures);
       }
+
+      // Add the winnings to the player's credits
+      const updatedCredits = currentCredits - this.settings.currentBet + winAmount;
+      this.session.updateCredits(updatedCredits);
+
       console.log(`Spin result recorded for player: ${this.getPlayerData().username}, win: ${winAmount}`);
+
 
     } catch (error) {
       console.error("Failed to generate spin results:", error);

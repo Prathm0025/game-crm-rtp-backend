@@ -33,9 +33,7 @@ export default class Manager {
 
     private notifyManager(data: { type: string, data: any }) {
         if (this.socket) {
-
             this.socket.emit("player", data);  // Emit event to the manager's socket
-            console.log(`Notified manager ${this.username} about event ${data.type}:`, data);
         } else {
             console.error(`Socket is not available for manager ${this.username}`);
         }
