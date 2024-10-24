@@ -628,11 +628,11 @@ export const gameData = [
         "Name": "LosPollos",
         "Id": 16,
         "reelInstance": {
-          "0": 0,
-          "1": 0,
-          "2": 0,
-          "3": 0,
-          "4": 0
+          "0": 100,
+          "1": 100,
+          "2": 1,
+          "3": 1,
+          "4": 100
         },
         "description": "",
         "useWildSub": false,

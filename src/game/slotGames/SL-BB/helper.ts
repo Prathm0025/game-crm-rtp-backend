@@ -770,7 +770,9 @@ export function makeResultJson(gameInstance: SLBB) {
         freeSpinCount: settings.freeSpin.freeSpinCount,
         winData:{
           winningLines: settings._winData.winningLines,
-          matched: settings.matchedIndices
+          matched: settings.matchedIndices,
+          coinValues:settings.coins.values,
+          losPollos:settings.losPollos.values
         },
         bonus: {
           isTriggered: settings.heisenberg.isTriggered,
