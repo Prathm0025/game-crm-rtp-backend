@@ -25,8 +25,8 @@ export interface SLSRSETTINGS {
     bonusProbabilities: number[];
     multiplierArray:number[];
     multiplierProbabilities: number[];
-    totalPayout: number;
-
+    shuffledBonusValues: number[];
+    selectedMultiplier: number;
     freeSpin: {
         symbolID: string,
         freeSpinMuiltiplier: any[],
