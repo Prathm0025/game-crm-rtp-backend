@@ -27,6 +27,8 @@ export interface SLSRSETTINGS {
     multiplierProbabilities: number[];
     shuffledBonusValues: number[];
     selectedMultiplier: number;
+    isNewAdded: boolean,
+    isFreeSpinRunning: boolean;
     freeSpin: {
         symbolID: string,
         freeSpinMuiltiplier: any[],

@@ -478,6 +478,6 @@ export const gameData = [
        }
     ]
  }
- 
+
  ]
  

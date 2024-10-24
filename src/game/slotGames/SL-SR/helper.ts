@@ -30,6 +30,8 @@ export function initializeGameSettings(gameData: any, gameInstance: SLSR) {
     currentLines: 0,
     BetPerLines: 0,
     reels: [],
+    isNewAdded: false,
+    isFreeSpinRunning: false,
     freeSpinValue: gameData.gameSettings.freeSpinValue,
     bonusValuesArray: gameData.gameSettings.bonusValuesArray,
     bonusProbabilities:  gameData.gameSettings.bonusValuesArray,
@@ -139,35 +141,27 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLSR) {
   }
 }
 
-/// Function to check for wins on paylines with or without wild symbols
-// Function to check for wins on paylines with or without wild symbols and Free Spin count
-// Function to check for wins on paylines with or without wild symbols and Free Spin count
 export function checkForWin(gameInstance: SLSR) {
   try {
     const { settings } = gameInstance;
     const winningLines = [];
     let totalPayout =0
     let freeSpinLinesCount = 0; 
-    
     settings.lineData.forEach((line, index) => {
       const firstSymbolPosition = line[0];
       let firstSymbol = settings.resultSymbolMatrix[firstSymbolPosition][0];
 
-      // Handle wild symbols
       if (settings.wild.useWild && firstSymbol === settings.wild.SymbolID) {
         firstSymbol = findFirstNonWildSymbol(line, gameInstance);
       }
-
-      // Handle special icons (log but do not return)
       if (Object.values(specialIcons).includes(settings.Symbols[firstSymbol].Name as specialIcons)) {
         // console.log("Special Icon Matched : ", settings.Symbols[firstSymbol].Name);
       }
 
-      // Check if the first 3 symbols in the current line are Free Spin symbols
       const isFreeSpinLine = checkFreeSpinSymbolsOnLine(line, index, gameInstance);
 
       if (isFreeSpinLine) {
-        freeSpinLinesCount++; // Increment the count for Free Spin lines
+        freeSpinLinesCount++; 
       }
       const { isWinningLine, matchCount } = checkLineSymbols(firstSymbol, line, gameInstance);
 
@@ -192,10 +186,19 @@ export function checkForWin(gameInstance: SLSR) {
     });
     checkForBonus(gameInstance);
     checkForScatter(gameInstance);
-    gameInstance.settings.freeSpin.freeSpinCount = freeSpinLinesCount * settings.freeSpinValue;
+    if(freeSpinLinesCount >0 )
+    {
+      gameInstance.settings.freeSpin.freeSpinCount = freeSpinLinesCount * settings.freeSpinValue;
+    }
     console.log("Total Winning", gameInstance.playerData.currentWining);
     console.log("Total Free Spins Won: ", gameInstance.settings.freeSpin.freeSpinCount);
-    
+    if(gameInstance.settings.freeSpin.freeSpinCount>0)
+    {
+      gameInstance.settings.freeSpin.useFreeSpin =true;
+      gameInstance.settings.isFreeSpinRunning =true;
+    }
+    console.log("IsFreeSpin: ", gameInstance.settings.freeSpin.useFreeSpin);
+    console.log("settings.isNewAdded",gameInstance.settings.isNewAdded );
     gameInstance.playerData.haveWon += gameInstance.playerData.currentWining;
     makeResultJson(gameInstance);
     gameInstance.playerData.currentWining = 0;
@@ -204,6 +207,8 @@ export function checkForWin(gameInstance: SLSR) {
     gameInstance.settings.shuffledBonusValues = [];
     gameInstance.settings._winData.winningLines =[];
     gameInstance.settings.bonus.pay= 0;
+    gameInstance.settings.freeSpin.useFreeSpin = false;
+    gameInstance.settings.isNewAdded = false;
   } catch (error) {
     console.error("Error in checkForWin", error);
     return [];
@@ -339,6 +344,10 @@ function checkFreeSpinSymbolsOnLine(line: number[], index: number, gameInstance:
         count++;
       }
     }
+    if (settings.isFreeSpinRunning && count>3)
+    {
+        settings.isNewAdded = true
+    }
     return count === 3;
   } catch (error) {
     console.error("Error in checkFreeSpinSymbolsOnLine:", error);
@@ -470,10 +479,12 @@ export function makeResultJson(gameInstance: SLSR) {
     const Balance = credits.toFixed(2)
     const sendData = {
       GameData: {
+        resultReel: settings.resultSymbolMatrix,
         linesToEmit: settings._winData.winningLines,
         symbolsToEmit: settings._winData.winningSymbols,
         isFreeSpin: settings.freeSpin.useFreeSpin,
         freeSpinCount: settings.freeSpin.freeSpinCount,
+        isNewAdded: settings.isNewAdded,
         isBonus: settings.bonus.start,
         bonusWin: gameInstance.settings.bonus.pay,
         shuffledBonusValues: settings.shuffledBonusValues,
