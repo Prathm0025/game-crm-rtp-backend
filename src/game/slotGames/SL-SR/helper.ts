@@ -203,7 +203,7 @@ export function checkForWin(gameInstance: SLSR) {
     gameInstance.settings.selectedMultiplier =0;
     gameInstance.settings.shuffledBonusValues = [];
     gameInstance.settings._winData.winningLines =[];
-
+    gameInstance.settings.bonus.pay= 0;
   } catch (error) {
     console.error("Error in checkForWin", error);
     return [];
@@ -251,7 +251,7 @@ function runBonusGame(bonusSymbolCount: number, gameInstance: SLSR) {
     const sumOfValues = settings.shuffledBonusValues .slice(0, -1).reduce((sum, value) => sum + value, 0);
     const bonusWin = sumOfValues * settings.selectedMultiplier;
     console.log("Bonus Win Amount: ", bonusWin);
-
+    gameInstance.settings.bonus.pay = bonusWin;
     gameInstance.playerData.currentWining += bonusWin *  gameInstance.settings.BetPerLines;;
     console.log("Player's Total Winnings after Bonus: ", gameInstance.playerData.currentWining);
 
@@ -475,6 +475,7 @@ export function makeResultJson(gameInstance: SLSR) {
         isFreeSpin: settings.freeSpin.useFreeSpin,
         freeSpinCount: settings.freeSpin.freeSpinCount,
         isBonus: settings.bonus.start,
+        bonusWin: gameInstance.settings.bonus.pay,
         shuffledBonusValues: settings.shuffledBonusValues,
         selectedBonusMultiplier: settings.selectedMultiplier,
       },
