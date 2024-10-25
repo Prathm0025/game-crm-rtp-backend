@@ -38,7 +38,7 @@ function initializeGameSettings(gameData, gameInstance) {
         tempReel: [],
         firstReel: [],
         tempReelSym: [],
-        freeSpinData: [],
+        freeSpinData: gameData.gameSettings.freeSpinData,
         jackpot: {
             symbolName: "",
             symbolsCount: 0,
@@ -118,6 +118,7 @@ function handleSpecialSymbols(symbol, gameInstance) {
             break;
         default:
             break;
+            ``;
     }
 }
 //CHECK WINS ON PAYLINES WITH OR WITHOUT WILD
@@ -187,20 +188,22 @@ function checkForWin(gameInstance) {
                 break;
             default:
                 console.log("NO PAYLINE MATCH");
-                if (settings.cascadingNo >= 4 && !settings.freeSpin.useFreeSpin) {
+                if (settings.cascadingNo >= 4 && !settings.freeSpin.useFreeSpin && !settings.freeSpin.freeSpinStarted) {
                     console.log("Cascading Count:", settings.cascadingNo);
-                    console.log("FreeSpin Data:", settings.currentGamedata.freeSpinData);
-                    const freeSpinData = settings.currentGamedata.freeSpinData;
+                    console.log("FreeSpin Data:", settings.freeSpinData);
+                    const freeSpinData = settings.freeSpinData;
                     for (let i = 0; i < freeSpinData.length; i++) {
                         const [requiredCascadingCount, awardedFreeSpins] = freeSpinData[i];
                         if (settings.cascadingNo == requiredCascadingCount) {
                             settings.freeSpin.useFreeSpin = true;
+                            settings.freeSpin.freeSpinStarted = true;
                             settings.freeSpin.freeSpinCount += awardedFreeSpins;
                             console.log(`Free spins awarded: ${awardedFreeSpins}`);
                             break;
                         }
                         if (settings.cascadingNo > 8) {
                             settings.freeSpin.useFreeSpin = true;
+                            settings.freeSpin.freeSpinStarted = true;
                             settings.freeSpin.freeSpinCount = 25;
                             console.log(`Free spins awarded: ${settings.freeSpin.freeSpinCount}`);
                             break;
@@ -414,7 +417,7 @@ function sendInitData(gameInstance) {
             Reel: reels,
             linesApiData: gameInstance.settings.currentGamedata.linesApiData,
             Bets: gameInstance.settings.currentGamedata.bets,
-            freeSpinData: gameInstance.settings.currentGamedata.freeSpinData,
+            freeSpinData: gameInstance.settings.freeSpinData,
         },
         UIData: gameUtils_1.UiInitData,
         PlayerData: {

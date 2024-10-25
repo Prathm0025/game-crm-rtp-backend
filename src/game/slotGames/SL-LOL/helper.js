@@ -7,6 +7,10 @@ exports.makeResultJson = makeResultJson;
 exports.printMatrix = printMatrix;
 exports.printWinningCombinations = printWinningCombinations;
 exports.logGame = logGame;
+exports.getSymbol = getSymbol;
+exports.isWild = isWild;
+exports.checkWin = checkWin;
+exports.checkForFreespin = checkForFreespin;
 const WinData_1 = require("../BaseSlotGame/WinData");
 const gameUtils_1 = require("../../Utils/gameUtils");
 function initializeGameSettings(gameData, gameInstance) {
@@ -32,7 +36,9 @@ function initializeGameSettings(gameData, gameInstance) {
         minMatchCount: gameSettings.minMatchCount || 3,
         isFreeSpin: false,
         freeSpinCount: 0,
-        freeSpinMultipliers: [],
+        freeSpinMultipliers: [1, 1, 1, 1, 1],
+        maxMultiplier: 10,
+        gamble: gameSettings.gamble
     };
     // Add WinData separately to avoid circular reference in logging
     settings._winData = new WinData_1.WinData(gameInstance);
@@ -100,13 +106,6 @@ function sendInitData(gameInstance) {
     };
     gameInstance.sendMessage("InitData", dataToSend);
 }
-// export function calculatePayout(gameInstance: SLLOL,  symbolId: number, count: number): number {
-//   const symbol = gameInstance.settings.Symbols.find(sym => sym.Id === symbolId);
-//   if (!symbol) return 0;
-//
-//   const payoutIndex = Math.min(count - 3, symbol.payout.length - 1);
-//   return symbol.payout[payoutIndex] * gameInstance.settings.BetPerLines;
-// }
 function makeResultJson(gameInstance) {
     try {
         const { settings, playerData } = gameInstance;
@@ -129,21 +128,6 @@ function makeResultJson(gameInstance) {
         console.error("Error generating result JSON or sending message:", error);
     }
 }
-// export function getRandomSymbolForReel(symbols: SymbolType[], reelIndex: number): number {
-//   const availableSymbols = symbols.filter(symbol => symbol.reelInstance.hasOwnProperty(reelIndex));
-//   const totalInstances = availableSymbols.reduce((sum, symbol) => sum + symbol.reelInstance[reelIndex], 0);
-//   let randomValue = crypto.getRandomValues(new Uint32Array(1))[0] % totalInstances;
-//
-//   for (const symbol of availableSymbols) {
-//     if (randomValue < symbol.reelInstance[reelIndex]) {
-//       return symbol.Id;
-//     }
-//     randomValue -= symbol.reelInstance[reelIndex];
-//   }
-//
-//   // This should never happen, but TypeScript requires a return statement
-//   return availableSymbols[0].Id;
-// }
 function printMatrix(matrix, getSymbol, gameInstance) {
     const symbolNames = matrix.map(col => col.map(symbolId => { var _a; return ((_a = getSymbol(symbolId)) === null || _a === void 0 ? void 0 : _a.Name.substring(0, 4)) || 'Unkn'; }));
     for (let row = 0; row < gameInstance.settings.matrix.y; row++) {
@@ -166,26 +150,6 @@ function printWinningCombinations(winningCombinations) {
     const totalPayout = winningCombinations.reduce((sum, combo) => sum + combo.payout, 0);
     console.log(`Total Payout: ${totalPayout}`);
 }
-// export function printWinningGrid(result: GameResult, winningCombinations: WinningCombination[]): void {
-//   // Print the game result matrix
-//   console.log("Game Result:");
-//   result.forEach(row => console.log(row.join(' ')));
-//
-//   console.log("\nWinning Combinations:");
-//
-//   winningCombinations.forEach(combo => {
-//     console.log(`${combo.symbolId} ->`);
-//
-//     const grid = result.map(row => row.map(() => '-'));
-//
-//     combo.positions.forEach(([col, row]) => {
-//       grid[row][col] = '0';
-//     });
-//
-//     grid.forEach(row => console.log(row.join(' ')));
-//     console.log();  // Empty line for separation
-//   });
-// }
 function logGame(result, payout, winningCombinations, getSymbol, gameInstance) {
     console.log("Game Result:");
     printMatrix(result, getSymbol, gameInstance);
@@ -202,5 +166,190 @@ function logGame(result, payout, winningCombinations, getSymbol, gameInstance) {
     }
     else {
         console.log("\nNo winning combinations.");
+    }
+}
+function getSymbol(id, Symbols) {
+    return Symbols.find(s => s.Id === id);
+}
+function isWild(symbolId) {
+    // const symbol = this.getSymbol(symbolId);
+    // return symbol ? symbol.Name === "Wild" : false;
+    return symbolId === 11;
+}
+// export function simulateFreespin(gameInstance: SLLOL): FreeSpinResponse {
+//   const { settings } = gameInstance;
+//   settings.isFreeSpin = true;
+//   settings.freeSpinCount = 10;
+//   let response: FreeSpinResponse = {
+//     freeSpinCount: [],
+//     freeSpinMultipliers: [],
+//     combinations: [],
+//     results: [],
+//     isRetriggered: [],
+//     payouts: []
+//   };
+//
+//   // Initialize freeSpinMultipliers for major symbols
+//   // const majorSymbolIds = settings.Symbols
+//   //   .filter(symbol => symbol.isFreeSpinMultiplier)
+//   //   .map(symbol => symbol.Id);
+//   let currentMultipliers = settings.freeSpinMultipliers
+//
+//   while (settings.freeSpinCount > 0) {
+//     new RandomResultGenerator(gameInstance);
+//     settings.freeSpinCount -= 1;
+//     const resultMatrix = settings.resultSymbolMatrix;
+//     const { winningCombinations } = checkWin(gameInstance);
+//
+//     let totalPayout = 0;
+//     winningCombinations.forEach((combination) => {
+//       const symbol = getSymbol(combination.symbolId, settings.Symbols);
+//       if (symbol.isFreeSpinMultiplier) {
+//         combination.payout = combination.payout * settings.BetPerLines * currentMultipliers[combination.symbolId];
+//       } else {
+//         combination.payout = combination.payout * settings.BetPerLines;
+//       }
+//       totalPayout += combination.payout;
+//     });
+//
+//     response.results.push(resultMatrix);
+//     response.payouts.push(totalPayout);
+//     response.combinations.push(winningCombinations);
+//
+//     //NOTE: retrigger 
+//     if (checkForFreespin(gameInstance)) {
+//       response.isRetriggered.push(true);
+//       settings.freeSpinCount += 3;
+//     } else {
+//       response.isRetriggered.push(false);
+//     }
+//     response.freeSpinCount.push(settings.freeSpinCount);
+//
+//     //NOTE: 
+//     // Update multipliers based on symbol occurrences, capped at MAX_MULTIPLIER
+//     resultMatrix.flat().forEach((symbolId) => {
+//       if (currentMultipliers.hasOwnProperty(symbolId)) {
+//         currentMultipliers[symbolId] = Math.min(currentMultipliers[symbolId] + 1, settings.maxMultiplier);
+//       }
+//     });
+//
+//     response.freeSpinMultipliers.push([...Object.values(currentMultipliers)]);
+//   }
+//
+//   settings.isFreeSpin = false;
+//   settings.freeSpinCount = 0;
+//   settings.freeSpinMultipliers = [1, 1, 1, 1, 1];
+//   return response;
+// }
+function checkWin(gameInstance) {
+    const { settings } = gameInstance;
+    let totalPayout = 0;
+    let winningCombinations = [];
+    const findCombinations = (symbolId, col, path) => {
+        // Stop if we've checked all columns or path is complete
+        if (col === settings.matrix.x) {
+            if (path.length >= settings.minMatchCount) {
+                const symbol = getSymbol(symbolId, settings.Symbols);
+                const multiplierIndex = path.length - settings.minMatchCount;
+                if (symbol && symbol.multiplier[multiplierIndex]) { // Check if multiplier exists
+                    const multiplier = symbol.multiplier[multiplierIndex][0];
+                    winningCombinations.push({ symbolId, positions: path, payout: multiplier * settings.BetPerLines });
+                }
+            }
+            return;
+        }
+        for (let row = 0; row < settings.resultSymbolMatrix.length; row++) {
+            const currentSymbolId = settings.resultSymbolMatrix[row][col];
+            if (currentSymbolId === symbolId || isWild(currentSymbolId)) {
+                findCombinations(symbolId, col + 1, [...path, [row, col]]);
+            }
+        }
+        // End the combination if it's long enough
+        if (path.length >= settings.minMatchCount) {
+            const symbol = getSymbol(symbolId, settings.Symbols);
+            const multiplierIndex = path.length - settings.minMatchCount;
+            if (symbol && symbol.multiplier[multiplierIndex]) { // Check if multiplier exists
+                const multiplier = symbol.multiplier[multiplierIndex][0];
+                winningCombinations.push({ symbolId, positions: path, payout: multiplier * settings.BetPerLines });
+            }
+        }
+    };
+    // Iterate over each symbol in the first column
+    settings.Symbols.forEach(symbol => {
+        if (symbol.Name !== "Wild") {
+            for (let row = 0; row < settings.matrix.y; row++) {
+                const startSymbolId = settings.resultSymbolMatrix[row][0]; // Start in the leftmost column (0)
+                if (startSymbolId === symbol.Id || isWild(startSymbolId)) {
+                    findCombinations(symbol.Id, 1, [[row, 0]]);
+                }
+            }
+        }
+    });
+    // Filter out shorter combinations that are subsets of longer ones
+    winningCombinations = winningCombinations.filter((combo, index, self) => !self.some((otherCombo, otherIndex) => index !== otherIndex &&
+        combo.symbolId === otherCombo.symbolId &&
+        combo.positions.length < otherCombo.positions.length &&
+        combo.positions.every((pos, i) => pos[0] === otherCombo.positions[i][0] && pos[1] === otherCombo.positions[i][1])));
+    //NOTE: FREESPIN related checks
+    //NOTE: check and increment freespinmultipliers 
+    // Update multipliers based on symbol occurrences, capped at MAX_MULTIPLIER
+    if (settings.freeSpinCount > 0) {
+        settings.resultSymbolMatrix.flat().forEach((symbolId) => {
+            if (settings.freeSpinMultipliers.hasOwnProperty(symbolId)) {
+                settings.freeSpinMultipliers[symbolId] = Math.min(settings.freeSpinMultipliers[symbolId] + 1, settings.maxMultiplier);
+            }
+        });
+    }
+    checkForFreespin(gameInstance);
+    //reset multiplers for freespin when its over 
+    if (settings.freeSpinCount <= 0 && settings.isFreeSpin === false) {
+        settings.freeSpinMultipliers = [1, 1, 1, 1, 1];
+    }
+    else {
+        settings.freeSpinCount -= 1;
+    }
+    winningCombinations.forEach(combo => {
+        // alter payout . multiply betsperline with payout
+        // NOTE: also check for freespin multipliers 
+        if (settings.freeSpinCount > 0 && getSymbol(combo.symbolId, settings.Symbols).isFreeSpinMultiplier) {
+            combo.payout = combo.payout * settings.freeSpinMultipliers[combo.symbolId] * settings.BetPerLines;
+        }
+        else {
+            combo.payout = combo.payout * settings.BetPerLines;
+        }
+        totalPayout += combo.payout;
+    });
+    return { payout: totalPayout, winningCombinations };
+}
+function checkForFreespin(gameInstance) {
+    try {
+        const { settings } = gameInstance;
+        const resultMatrix = settings.resultSymbolMatrix;
+        const rows = resultMatrix.length;
+        // Check if 1st, 2nd, and 3rd columns have symbol with ID 12 regardless of row
+        let col1Has12 = false;
+        let col2Has12 = false;
+        let col3Has12 = false;
+        for (let j = 0; j < rows; j++) { // Loop through rows
+            if (resultMatrix[j][0] === 12)
+                col1Has12 = true; // Check 1st column
+            if (resultMatrix[j][1] === 12)
+                col2Has12 = true; // Check 2nd column
+            if (resultMatrix[j][2] === 12)
+                col3Has12 = true; // Check 3rd column
+            // If all three columns have the symbol, return true
+            if (col1Has12 && col2Has12 && col3Has12) {
+                settings.isFreeSpin = true;
+                settings.freeSpinCount += 10;
+                return true;
+            }
+        }
+        settings.isFreeSpin = false;
+        // If one of the columns doesn't have the symbol, return false
+        return false;
+    }
+    catch (e) {
+        console.error("Error in checkForFreespin:", e);
+        return false; // Handle error by returning false in case of failure
     }
 }
