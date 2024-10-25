@@ -8,7 +8,7 @@ export interface Symbol {
   useWildSub: boolean;
   useHeisenberg: boolean;
   reelInstance: { [key: string]: number };
-  
+
 }
 
 export type valueType = {
@@ -36,6 +36,10 @@ export interface SLBBSETTINGS {
   heisenbergReels: any[][],
   Symbols: Symbol[];
   jackpot: {
+    isTriggered: boolean;
+    payout: number;
+  },
+  grandPrize:{
     isTriggered: boolean;
     payout: number;
   },
@@ -88,7 +92,6 @@ export interface SLBBSETTINGS {
     freeSpin: {
       freeSpinStarted: boolean,
       freeSpinsAdded: boolean,
-      freeSpinCount: number,
       noOfFreeSpins: number,
       // useFreeSpin: false,
     };

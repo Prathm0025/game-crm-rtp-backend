@@ -1,3 +1,4 @@
+
 export const gameData = [
   {
     "id": "SL-BB",
@@ -257,6 +258,7 @@ export const gameData = [
       "type": "spin",
       "isEnabled": false,
       "noOfItem": 8,
+      "jackpot":5000,
     },
     "gamble": {
       "type": "card",
@@ -526,7 +528,7 @@ export const gameData = [
         "Id": 10,
         "reelInstance": {
           "0": 5,
-          "1": 50,
+          "1": 5,
           "2": 5,
           "3": 5,
           "4": 5
@@ -544,8 +546,8 @@ export const gameData = [
         "Id": 11,
         "reelInstance": {
           "0": 0,
-          "1": 0,
-          "2": 0,
+          "1": 10,
+          "2": 50,
           "3": 0,
           "4": 0
         },
