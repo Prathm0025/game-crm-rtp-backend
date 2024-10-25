@@ -70,17 +70,16 @@ class SLSR {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const playerData = this.getPlayerData();
-                yield this.deductPlayerBalance(this.settings.currentBet);
-                this.playerData.totalbet += this.settings.currentBet;
                 if (this.settings.currentBet > playerData.credits) {
                     this.sendError("Low Balance");
                     return;
                 }
-                if (this.settings.freeSpinCount > 0) {
-                    console.log('minus');
-                    this.settings.freeSpinCount--;
-                    this.settings.isNewAdded = false;
-                    console.log("Free Spin COPunt", this.settings.freeSpinCount);
+                if (this.settings.freeSpin.freeSpinCount == 0) {
+                    yield this.deductPlayerBalance(this.settings.currentBet);
+                    this.playerData.totalbet += this.settings.currentBet;
+                }
+                if (this.settings.freeSpin.freeSpinCount > 0) {
+                    this.settings.freeSpin.freeSpinCount--;
                 }
                 yield new RandomResultGenerator_1.RandomResultGenerator(this);
                 (0, helper_1.checkForWin)(this);
@@ -101,13 +100,13 @@ class SLSR {
                     yield this.spinResult();
                     spend = this.playerData.totalbet;
                     won = this.playerData.haveWon;
-                    // console.log(`Spin ${i + 1} completed. ${this.playerData.totalbet} , ${won}`);
+                    console.log(`Spin ${i + 1} completed. ${this.playerData.totalbet} , ${won}`);
                 }
                 let rtp = 0;
                 if (spend > 0) {
                     rtp = won / spend;
                 }
-                // console.log('RTP calculated:', rtp * 100);
+                console.log('RTP calculated:', rtp * 100);
                 return;
             }
             catch (error) {

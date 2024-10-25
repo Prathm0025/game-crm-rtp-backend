@@ -70,7 +70,7 @@ class SLBB {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const playerData = this.getPlayerData();
-                const { freeSpin } = this.settings;
+                const { freeSpin, heisenberg } = this.settings;
                 if (!freeSpin.isFreeSpin && this.settings.currentBet > playerData.credits) {
                     this.sendError("Low Balance");
                     return;
@@ -79,17 +79,26 @@ class SLBB {
                     this.decrementPlayerBalance(this.settings.currentBet);
                     this.playerData.totalbet += this.settings.currentBet * 3;
                 }
+                if (!heisenberg.isTriggered) {
+                    this.decrementPlayerBalance(this.settings.currentBet);
+                }
+                // if (heisenberg.freeSpin.freeSpinCount === 1) {
+                //   heisenberg.isTriggered= false;
+                // }
                 if (freeSpin.freeSpinCount === 1) {
                     freeSpin.isFreeSpin = false;
                 }
                 if (freeSpin.isFreeSpin &&
-                    freeSpin.freeSpinCount > 0) {
+                    freeSpin.freeSpinCount > 0 &&
+                    !this.settings.heisenberg.isTriggered) {
                     freeSpin.freeSpinCount--;
                     this.settings.currentBet = 0;
                     console.log(freeSpin.freeSpinCount, "this.settings.freeSpinCount");
                 }
-                this.incrementPlayerBalance(this.playerData.currentWining);
-                new RandomResultGenerator_1.RandomResultGenerator(this);
+                // this.incrementPlayerBalance(this.playerData.currentWining)
+                if (!this.settings.heisenberg.isTriggered) {
+                    new RandomResultGenerator_1.RandomResultGenerator(this);
+                }
                 (0, helper_1.checkForWin)(this);
             }
             catch (error) {
