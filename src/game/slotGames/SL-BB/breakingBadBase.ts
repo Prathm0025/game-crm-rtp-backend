@@ -1,6 +1,6 @@
 import { currentGamedata } from "../../../Player";
 import { SLBBSETTINGS } from "./types";
-import { initializeGameSettings, generateInitialReel, checkForWin, sendInitData, generateInitialHeisenberg,  } from "./helper";
+import { initializeGameSettings, generateInitialReel, checkForWin, sendInitData, generateInitialHeisenberg, } from "./helper";
 import { RandomResultGenerator } from "../RandomResultGenerator";
 
 export class SLBB {
@@ -106,7 +106,10 @@ export class SLBB {
           "this.settings.freeSpinCount"
         );
       }
-      new RandomResultGenerator(this);
+      if (!heisenberg.isTriggered) {
+
+        new RandomResultGenerator(this);
+      }
       checkForWin(this)
     } catch (error) {
       this.sendError("Spin error");

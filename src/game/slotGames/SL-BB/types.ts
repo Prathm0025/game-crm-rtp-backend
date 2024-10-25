@@ -45,6 +45,7 @@ export interface SLBBSETTINGS {
   },
   freeSpin: {
     isEnabled: boolean,
+    isTriggered: boolean,
     freeSpinCount: number,
     isFreeSpin: boolean,
     cashCollectValues: valueType[]
