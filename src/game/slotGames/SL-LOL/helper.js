@@ -38,7 +38,8 @@ function initializeGameSettings(gameData, gameInstance) {
         freeSpinCount: 0,
         freeSpinMultipliers: [1, 1, 1, 1, 1],
         maxMultiplier: 10,
-        gamble: gameSettings.gamble
+        gamble: gameSettings.gamble,
+        winningCombinations: []
     };
     // Add WinData separately to avoid circular reference in logging
     settings._winData = new WinData_1.WinData(gameInstance);
@@ -114,6 +115,12 @@ function makeResultJson(gameInstance) {
         const sendData = {
             gameData: {
                 resultSymbols: settings.resultSymbolMatrix,
+                freeSpin: {
+                    isFreeSpin: settings.isFreeSpin,
+                    freeSpinCount: settings.freeSpinCount,
+                    freeSpinMultipliers: settings.freeSpinMultipliers
+                },
+                winningCombinations: settings.winningCombinations,
             },
             PlayerData: {
                 Balance: Balance,
@@ -319,6 +326,7 @@ function checkWin(gameInstance) {
         }
         totalPayout += combo.payout;
     });
+    makeResultJson(gameInstance);
     return { payout: totalPayout, winningCombinations };
 }
 function checkForFreespin(gameInstance) {

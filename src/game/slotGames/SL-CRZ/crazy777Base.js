@@ -85,7 +85,7 @@ class SLCRZ {
                 if (this.settings.isFreeSpin &&
                     this.settings.freeSpinCount > 0) {
                     this.settings.freeSpinCount--;
-                    this.settings.currentBet = 0;
+                    // this.settings.currentBet = 0;
                     console.log(this.settings.freeSpinCount, "this.settings.freeSpinCount");
                     this.updatePlayerBalance(this.playerData.currentWining);
                     // makeResultJson(this)
@@ -115,6 +115,8 @@ class SLCRZ {
                 if (spend > 0) {
                     rtp = won / spend;
                 }
+                console.log("Total Spent", spend);
+                console.log("Total Won", won);
                 console.log('RTP calculated:', rtp * 100);
                 return;
             }
