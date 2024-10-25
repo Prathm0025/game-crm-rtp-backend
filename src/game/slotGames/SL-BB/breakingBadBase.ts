@@ -89,7 +89,8 @@ export class SLBB {
       }
       if (
         freeSpin.isFreeSpin &&
-        freeSpin.freeSpinCount > 0
+        freeSpin.freeSpinCount > 0 &&
+        !this.settings.heisenberg.isTriggered
       ) {
         freeSpin.freeSpinCount--;
 
