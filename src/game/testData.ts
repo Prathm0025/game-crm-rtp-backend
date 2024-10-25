@@ -114,10 +114,10 @@ export const gameData = [
        20
     ],
     "freeSpinValue": 3,
-    "bonusValuesArray": [5, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150],
-     "bonusProbabilities" : [0.1, 0.1, 0.1, 0.1, 0.1, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05], 
-     "multiplierArray": [1, 2, 3, 4, 5],
-     "multiplierProbabilities" : [0.4, 0.3, 0.15, 0.1, 0.05],
+    "bonusValuesArray": [2, 3, 4, 5, 6, 7, 8, 9, 10],
+    "bonusProbabilities" : [0.1, 0.1, 0.1, 0.1, 0.1, 0.05, 0.05, 0.05, 0.05], 
+    "multiplierArray": [2, 3, 4, 5],
+    "multiplierProbabilities" : [0.1, 0.8, 0.08, 0.02],
     "bets":[
        0.0005,
        0.001,
@@ -452,9 +452,9 @@ export const gameData = [
           "Name":"FreeSpin",
           "Id":11,
           "reelInstance":{
-             "0":25,
-             "1":25,
-             "2":25,
+             "0":2,
+             "1":2,
+             "2":2,
              "3":0,
              "4":0
           },

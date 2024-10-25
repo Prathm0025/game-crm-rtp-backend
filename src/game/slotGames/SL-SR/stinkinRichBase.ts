@@ -71,16 +71,19 @@ export class SLSR {
     public async spinResult(): Promise<void> {
         try {
             const playerData = this.getPlayerData();
-                await this.deductPlayerBalance(this.settings.currentBet);
-                this.playerData.totalbet += this.settings.currentBet;
             if (this.settings.currentBet > playerData.credits) {
                 this.sendError("Low Balance");
                 return;
             }
+            if(this.settings.freeSpin.freeSpinCount ==0)
+                {
+                 await this.deductPlayerBalance(this.settings.currentBet);
+                this.playerData.totalbet += this.settings.currentBet;
+            }
+        
             if(this.settings.freeSpin.freeSpinCount>0)
             {
                 this.settings.freeSpin.freeSpinCount --;
-            
             }
             console.log("Bet per line",this.settings.BetPerLines);
             

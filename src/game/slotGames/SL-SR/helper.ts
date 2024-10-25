@@ -35,9 +35,9 @@ export function initializeGameSettings(gameData: any, gameInstance: SLSR) {
     freeSpinTemp: 0,
     freeSpinValue: gameData.gameSettings.freeSpinValue,
     bonusValuesArray: gameData.gameSettings.bonusValuesArray,
-    bonusProbabilities:  gameData.gameSettings.bonusValuesArray,
+    bonusProbabilities:  gameData.gameSettings.bonusProbabilities,
     multiplierArray: gameData.gameSettings.bonusValuesArray,
-    multiplierProbabilities:  gameData.gameSettings.bonusValuesArray,
+    multiplierProbabilities:  gameData.gameSettings.multiplierProbabilities,
     shuffledBonusValues: [],
     selectedMultiplier: 0,
     scatterWinningSymbols: [],
@@ -165,7 +165,7 @@ export function checkForWin(gameInstance: SLSR) {
         const formattedIndicesFS = winningSymbolsFreeSpin.map(({ col, row }) => `${col},${row}`);
         const validIndices = formattedIndicesFS.filter(index => index.length > 2);
         gameInstance.settings._winData.winningSymbols.push(validIndices);
-        gameInstance.settings._winData.winningLines.push(index); // Add the free spin line to winning lines
+        gameInstance.settings._winData.winningLines.push(index); 
       }
 
       const { isWinningLine, matchCount, matchedIndices: winMatchedIndices } = checkLineSymbols(firstSymbol, line, gameInstance);
@@ -209,6 +209,7 @@ export function checkForWin(gameInstance: SLSR) {
     console.log("Total Free Spins Won:", gameInstance.settings.freeSpin.freeSpinCount);
 
     gameInstance.playerData.haveWon += gameInstance.playerData.currentWining;
+    gameInstance.updatePlayerBalance(gameInstance.playerData.currentWining);
     makeResultJson(gameInstance);
 
     // Reset properties after result processing
@@ -265,7 +266,6 @@ export function checkForBonus(gameInstance: SLSR) {
 function runBonusGame(bonusSymbolCount: number, gameInstance: SLSR) {
   try {
     const { settings } = gameInstance;
-
     const selectedBonusValues = selectValuesFromArray(settings.bonusValuesArray, settings.bonusProbabilities, bonusSymbolCount);
     console.log("Selected Bonus Values: ", selectedBonusValues);
 
@@ -323,9 +323,11 @@ export function checkForScatter(gameInstance: SLSR)
 // Function to select values from an array based on probabilities
 function selectValuesFromArray(array: number[], probabilities: number[], count: number): number[] {
   const selectedValues = [];
+
   for (let i = 0; i < count; i++) {
     const randomValue = Math.random();
     let cumulativeProbability = 0;
+
     for (let j = 0; j < array.length; j++) {
       cumulativeProbability += probabilities[j];
       if (randomValue <= cumulativeProbability) {
@@ -334,6 +336,8 @@ function selectValuesFromArray(array: number[], probabilities: number[], count: 
       }
     }
   }
+
+  console.log("Selected Values:", selectedValues);
   return selectedValues;
 }
 
@@ -341,13 +345,16 @@ function selectValuesFromArray(array: number[], probabilities: number[], count: 
 function selectMultiplierFromArray(array: number[], probabilities: number[]): number {
   const randomValue = Math.random();
   let cumulativeProbability = 0;
+
   for (let i = 0; i < array.length; i++) {
     cumulativeProbability += probabilities[i];
     if (randomValue <= cumulativeProbability) {
+      console.log("Selected Multiplier:", array[i]);
       return array[i];
     }
   }
-  return array[0]; // Default return value if probabilities don't sum to 1
+  console.log("Fallback Multiplier:", array[array.length - 1]);
+  return array[array.length - 1]; // Fallback if cumulative probability doesn't reach 1
 }
 
 // Function to check if the first 3 symbols on a line are Free Spin symbols
@@ -527,7 +534,6 @@ export function makeResultJson(gameInstance: SLSR) {
         freeSpin :{
         isNewAdded: settings.freeSpin.useFreeSpin,
         freeSpinCount: settings.freeSpin.freeSpinCount,
-        freeSpinSymbols: settings._winData.winningSymbolsFreeSpin,
         },
         isBonus: settings.bonus.start,
         bonusWin: gameInstance.settings.bonus.pay,
