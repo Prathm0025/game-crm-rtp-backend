@@ -106,9 +106,9 @@ export class SLBB {
           "this.settings.freeSpinCount"
         );
       }
-      if (!heisenberg.isTriggered) {
-
-        new RandomResultGenerator(this);
+      // this.incrementPlayerBalance(this.playerData.currentWining)
+      if(!this.settings.heisenberg.isTriggered){
+      new RandomResultGenerator(this);
       }
       checkForWin(this)
     } catch (error) {
