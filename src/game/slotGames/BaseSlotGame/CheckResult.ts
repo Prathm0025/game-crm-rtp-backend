@@ -60,7 +60,7 @@ export class CheckResult {
         const winRate: number =
             (this.currentGame.playerData.haveWon / this.currentGame.playerData.totalbet) * 100;
 
-        this.currentGame.session.updateRTP(winRate)
+        this.currentGame.session.rtp = winRate;
         console.log(
             `Total Spend : ${this.currentGame.playerData.totalbet}  Total Won : ${this.currentGame.playerData.haveWon
             } 

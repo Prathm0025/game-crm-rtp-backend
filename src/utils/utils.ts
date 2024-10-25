@@ -230,10 +230,12 @@ export const getManagerName = async (username: string): Promise<string | null> =
 };
 
 export enum eventType {
-  JOIN_PLATFORM = "join_platform",
-  ENTER_GAME = "enter_game",
-  EXIT_GAME = "exit_game",
-  EXIT_PLATFORM = "exit_platform",
+  ENTERED_PLATFORM = "ENTERED_PLATFORM",
+  EXITED_PLATFORM = "EXITED_PLATFORM",
+  ENTERED_GAME = "ENTERED_GAME",
+  EXITED_GAME = "EXITED_GAME",
+  GAME_SPIN = "HIT_SPIN",
+  UPDATED_SPIN = "UPDATED_SPIN",
 }
 
 export enum playerDataType {

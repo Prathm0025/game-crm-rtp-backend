@@ -1,4 +1,6 @@
 import { GameSession } from "./gameSession";
+import { eventEmitter } from "../../utils/eventEmitter";
+import { eventType } from "../../utils/utils";
 
 export default class PlatformSession {
     playerId: string;
@@ -18,37 +20,38 @@ export default class PlatformSession {
         this.entryTime = entryTime;
     }
 
-    public updateRTP(rtp: number): void {
-        this.rtp = rtp;
-    }
+    public startNewGameSession(gameId: string, creditsAtEntry: number) {
+        const gameSession = new GameSession(this.playerId, gameId, creditsAtEntry);
+        this.currentGameSession = gameSession;
 
-    public getCurrentRTP(): number {
-        return this.rtp;
+        // Listen to events from GameSession and emit higher-level events
+        gameSession.on("spinUpdated", (summary) => {
+            eventEmitter.emit("game", { to: this.managerName, type: eventType.UPDATED_SPIN, payload: summary });
+        });
+
+        gameSession.on("sessionEnded", (summary) => {
+            eventEmitter.emit("game", { to: this.managerName, type: eventType.EXITED_GAME, payload: summary });
+        });
     }
 
     public updateCredits(newCredits: number) {
         this.currentCredits = newCredits;
     }
 
-    public addGameSession(gameSession: GameSession) {
-        this.currentGameSession = gameSession;
-    }
-
     public setExitTime(exitTime: Date) {
         this.exitTime = exitTime;
     }
 
-    public getCurrentGameSession(): GameSession | null {
-        return this.currentGameSession;
-    }
-
-    logSummary() {
-        console.log("Session Summary for: ", this.playerId);
-        console.log("Manager : ", this.managerName);
-        console.log("initial credits ; ", this.initialCredits);
-        console.log("current credit : ", this.currentCredits);
-        console.log("entry time :", this.entryTime);
-        console.log("exit time :", this.exitTime);
-        console.log("rtp : ", this.rtp)
+    public getSummary() {
+        return {
+            playerId: this.playerId,
+            managerName: this.managerName,
+            initialCredits: this.initialCredits,
+            currentCredits: this.currentCredits,
+            entryTime: this.entryTime,
+            exitTime: this.exitTime,
+            currentRTP: this.rtp,
+            currentGame: this.currentGameSession?.getSummary() || null,
+        };
     }
 }

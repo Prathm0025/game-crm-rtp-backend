@@ -114,8 +114,8 @@ export default class BaseSlotGame implements RequiredSocketMethods {
     };
 
     this.initialize(currentGameData.gameSettings);
-    this.session = sessionManager.getPlatformSession(this.getPlayerData().username)
-    this.gameSession = this.session.getCurrentGameSession();
+    this.session = sessionManager.getPlatformSession(this.getPlayerData().username);
+    this.gameSession = this.session.currentGameSession;
   }
 
   sendMessage(action: string, message: any) {

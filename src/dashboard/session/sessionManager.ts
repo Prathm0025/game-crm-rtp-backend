@@ -12,18 +12,11 @@ class SessionManager {
         const platformSession = new PlatformSession(playerId, entryTime, managerName, initialCredits);
         this.platformSessions.set(playerId, platformSession);
 
-        const playerJoinPlatformEvent = {
-            to: platformSession.managerName,
-            type: eventType.JOIN_PLATFORM,
-            data: {
-                username: playerId,
-                entryTime,
-                exitTime: null,
-                credits: initialCredits,
-            }
-        }
-
-        eventEmitter.emit("platform", playerJoinPlatformEvent);
+        eventEmitter.emit("platform", {
+            to: managerName,
+            type: eventType.ENTERED_PLATFORM,
+            payload: platformSession.getSummary()
+        });
         console.log(`Platform session started for player: ${playerId}`);
     }
 
@@ -34,20 +27,12 @@ class SessionManager {
             platformSession.setExitTime(new Date());
             this.platformSessions.delete(playerId);
 
-            platformSession.logSummary()
-
-            const playerExitPlatformEvent = {
+            eventEmitter.emit("platform", {
                 to: platformSession.managerName,
-                type: eventType.EXIT_PLATFORM,
-                data: {
-                    username: playerId,
-                    entryTime: platformSession.entryTime,
-                    exitTime: platformSession.exitTime,
-                    credits: platformSession.currentCredits
-                }
-            }
+                type: eventType.EXITED_PLATFORM,
+                payload: platformSession.getSummary()
+            })
 
-            eventEmitter.emit("platform", playerExitPlatformEvent);
             console.log(`Platform session ended for player: ${playerId}`);
         }
     }
@@ -55,24 +40,21 @@ class SessionManager {
     // Start a new Game session under the player's paltform session
     public startGameSession(playerId: string, gameId: string, creditsAtEntry: number) {
         const platformSession = this.platformSessions.get(playerId);
-
         if (platformSession) {
-            const gameSession = new GameSession(playerId, gameId, creditsAtEntry);
-            platformSession.addGameSession(gameSession);
+            platformSession.startNewGameSession(gameId, creditsAtEntry);
+            const gameSummary = platformSession.currentGameSession?.getSummary();
 
-            const playerEnterGameEvent = {
-                to: platformSession.managerName,
-                type: eventType.ENTER_GAME,
-                data: {
-                    username: playerId,
-                    gameId: gameId,
-                    credits: creditsAtEntry,
-                    entryTime: gameSession.entryTime,
-                }
+
+            if (gameSummary) {
+                eventEmitter.emit("game", {
+                    to: platformSession.managerName,
+                    type: eventType.ENTERED_GAME,
+                    payload: gameSummary
+                })
+                console.log(`Game session started for player: ${playerId}, game: ${gameId}`);
+            } else {
+                console.error(`No active platform session found for player: ${playerId}`);
             }
-
-            eventEmitter.emit("game", playerEnterGameEvent);
-            console.log(`Game session started for player: ${playerId}, game: ${gameId}`);
         } else {
             console.error(`No active platform session found for player: ${playerId}`);
         }
@@ -81,24 +63,10 @@ class SessionManager {
     // End the current game session for the player
     public endGameSession(playerId: string, creditsAtExit: number) {
         const platformSession = this.platformSessions.get(playerId);
-
         if (platformSession) {
-            const currentSession = platformSession.getCurrentGameSession();
+            const currentSession = platformSession.currentGameSession;
             if (currentSession) {
                 currentSession.endSession(creditsAtExit);
-
-                const playerExitGameEvent = {
-                    to: platformSession.managerName,
-                    type: eventType.EXIT_GAME,
-                    data: {
-                        username: playerId,
-                        gameId: currentSession.gameId,
-                        credits: creditsAtExit,
-                        exitTime: currentSession.exitTime,
-                    }
-                };
-
-                eventEmitter.emit("game", playerExitGameEvent);
                 console.log(`Game session ended for player: ${playerId}, game: ${currentSession.gameId}`);
             }
         } else {
@@ -111,9 +79,8 @@ class SessionManager {
         return this.platformSessions.get(playerId);
     }
 
-    public getCurrentGameSession(playerId: string): GameSession | undefined {
-        const platformSession = this.platformSessions.get(playerId);
-        return platformSession?.getCurrentGameSession();
+    public getCurrentGameSession(playerId: string) {
+        return this.platformSessions.get(playerId)?.currentGameSession;
     }
 }
 

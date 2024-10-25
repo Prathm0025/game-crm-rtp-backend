@@ -50,7 +50,7 @@ export default class PlayerSocket {
   gameData: socketConnectionData;
   currentGameData: currentGamedata;
   playerData: playerData;
-  managerName: string | null;
+  public managerName: string | null;
 
 
   constructor(
@@ -122,7 +122,11 @@ export default class PlayerSocket {
     this.platformData.socket = socket;
     this.messageHandler(false);
     this.startPlatformHeartbeat()
+
     this.managerName = await this.getManager(this.playerData.username);
+    if (!this.managerName) {
+      throw new Error(`Manager name not found for player ${this.playerData.username}`);
+    }
 
     sessionManager.startPlatformSession(this.playerData.username, this.managerName, this.playerData.credits);
 
@@ -152,7 +156,7 @@ export default class PlayerSocket {
     this.gameData.socket.emit("socketState", true);
 
     const playerEnterGameEvent = {
-      type: eventType.ENTER_GAME,
+      type: eventType.ENTERED_GAME,
       data: {
         username: this.playerData.username,
         gameId: this.currentGameData.gameId,

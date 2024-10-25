@@ -20,20 +20,20 @@ export default class Manager {
     private initializeEventListeners() {
         eventEmitter.on("platform", (event) => {
             if (event.to === this.username || this.role === "master") {
-                this.notifyManager({ type: event.type, data: event.data });
+                this.notifyManager({ type: event.type, payload: event.payload });
             }
         });
 
         eventEmitter.on("game", (event) => {
             if (event.to === this.username || this.role === "master") {
-                this.notifyManager({ type: event.type, data: event.data });
+                this.notifyManager({ type: event.type, payload: event.payload });
             }
         });
     }
 
-    private notifyManager(data: { type: string, data: any }) {
+    private notifyManager(data: { type: string, payload: any }) {
         if (this.socket) {
-            this.socket.emit("player", data);  // Emit event to the manager's socket
+            this.socket.emit("PLATFORM", data); 
         } else {
             console.error(`Socket is not available for manager ${this.username}`);
         }

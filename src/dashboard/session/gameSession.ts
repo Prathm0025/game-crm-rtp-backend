@@ -1,7 +1,8 @@
-import { v4 as uuidv4 } from 'uuid';
-import {  SpinData } from "./activityTypes";
+import { v4 as uuidv4 } from "uuid";
+import { EventEmitter } from "events";
+import { SpinData } from "./activityTypes";
 
-export class GameSession {
+export class GameSession extends EventEmitter {
     playerId: string;
     gameId: string;
     sessionId: string;
@@ -16,6 +17,7 @@ export class GameSession {
     sessionDuration: number = 0;
 
     constructor(playerId: string, gameId: string, creditsAtEntry: number) {
+        super();
         this.playerId = playerId;
         this.gameId = gameId;
         this.sessionId = this.generateSessionId();
@@ -27,19 +29,13 @@ export class GameSession {
         return `${this.playerId}-${this.gameId}-${Date.now()}`;
     }
 
-    private generateSpinId(): string {
-        return `${this.gameId}-${Date.now()}-${uuidv4()}`;
-    }
-
     public createSpin(): string {
-        const spinId = this.generateSpinId();  
-        const newSpin: SpinData = {
-            spinId,
-            betAmount: 0,
-            winAmount: 0
-        };
+        const spinId = `${this.gameId}-${Date.now()}-${uuidv4()}`;
+        const newSpin: SpinData = { spinId, betAmount: 0, winAmount: 0 };
         this.spinData.push(newSpin);
         this.totalSpins++;
+
+        this.emit("spinCreated", newSpin);
         return spinId;
     }
 
@@ -48,20 +44,13 @@ export class GameSession {
         if (spin) {
             spin[field] = value;
 
-            // If betAmount or winAmount is updated, adjust totals accordingly
-            if (field === 'betAmount') {
-                this.totalBetAmount += value as number;
-            } else if (field === 'winAmount') {
-                this.totalWinAmount += value as number;
-            }
+            if (field === "betAmount") this.totalBetAmount += value as number;
+            if (field === "winAmount") this.totalWinAmount += value as number;
 
+            this.emit("spinUpdated", this.getSummary());
             return true;
         }
         return false;
-    }
-
-    public getSpinById(spinId: string): SpinData | undefined {
-        return this.spinData.find(spin => spin.spinId === spinId);
     }
 
     public endSession(creditsAtExit: number) {
@@ -69,10 +58,10 @@ export class GameSession {
         this.creditsAtExit = creditsAtExit;
         this.sessionDuration = (this.exitTime.getTime() - this.entryTime.getTime()) / 1000;
 
-        console.log(this.getSessionSummary())
+        this.emit("sessionEnded", this.getSummary());
     }
 
-    public getSessionSummary(): object {
+    public getSummary() {
         return {
             playerId: this.playerId,
             gameId: this.gameId,
@@ -85,7 +74,11 @@ export class GameSession {
             totalBetAmount: this.totalBetAmount,
             totalWinAmount: this.totalWinAmount,
             spinData: this.spinData,
-            sessionDuration: this.sessionDuration
-        }
+            sessionDuration: this.sessionDuration,
+        };
+    }
+
+    private getSpinById(spinId: string): SpinData | undefined {
+        return this.spinData.find((spin) => spin.spinId === spinId);
     }
 }
