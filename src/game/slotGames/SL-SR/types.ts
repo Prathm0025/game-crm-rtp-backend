@@ -28,8 +28,10 @@ export interface SLSRSETTINGS {
     shuffledBonusValues: number[];
     selectedMultiplier: number;
     isNewAdded: boolean,
-
-    freeSpinCount: number,
+    isFreeSpinRunning: boolean;
+    freeSpinTemp: number;
+    scatterWinningSymbols: any[];
+    trashForCashWinningSymbols: any[];
     freeSpin: {
         symbolID: string,
         freeSpinMuiltiplier: any[],

@@ -71,18 +71,21 @@ export class SLSR {
     public async spinResult(): Promise<void> {
         try {
             const playerData = this.getPlayerData();
-            await this.deductPlayerBalance(this.settings.currentBet);
-            this.playerData.totalbet += this.settings.currentBet;
             if (this.settings.currentBet > playerData.credits) {
                 this.sendError("Low Balance");
                 return;
             }
-            if (this.settings.freeSpinCount > 0) {
-                console.log('minus')
-                this.settings.freeSpinCount--;
-                this.settings.isNewAdded = false
-                console.log("Free Spin COPunt", this.settings.freeSpinCount);
+            if(this.settings.freeSpin.freeSpinCount ==0)
+                {
+                 await this.deductPlayerBalance(this.settings.currentBet);
+                this.playerData.totalbet += this.settings.currentBet;
             }
+        
+            if(this.settings.freeSpin.freeSpinCount>0)
+            {
+                this.settings.freeSpin.freeSpinCount --;
+            }
+            
             await new RandomResultGenerator(this);
             checkForWin(this)
         } catch (error) {
@@ -101,13 +104,13 @@ export class SLSR {
                 await this.spinResult();
                 spend = this.playerData.totalbet;
                 won = this.playerData.haveWon;
-                // console.log(`Spin ${i + 1} completed. ${this.playerData.totalbet} , ${won}`);
+                console.log(`Spin ${i + 1} completed. ${this.playerData.totalbet} , ${won}`);
             }
             let rtp = 0;
             if (spend > 0) {
                 rtp = won / spend;
             }
-            // console.log('RTP calculated:', rtp * 100);
+            console.log('RTP calculated:', rtp * 100);
             return;
         } catch (error) {
             console.error("Failed to calculate RTP:", error);

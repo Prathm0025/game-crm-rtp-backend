@@ -4,10 +4,11 @@ import { WinData } from "../BaseSlotGame/WinData";
 export interface Symbol {
   Name: string;
   Id: number;
-  payout: string;
-  canCallRedSpin: boolean;
-  canCallRespin: boolean;
+  multiplier: string;
+  useWildSub: boolean;
+  useHeisenberg: boolean;
   reelInstance: { [key: string]: number };
+
 }
 
 export type valueType = {
@@ -38,8 +39,13 @@ export interface SLBBSETTINGS {
     isTriggered: boolean;
     payout: number;
   },
+  grandPrize:{
+    isTriggered: boolean;
+    payout: number;
+  },
   freeSpin: {
     isEnabled: boolean,
+    isTriggered: boolean,
     freeSpinCount: number,
     isFreeSpin: boolean,
     cashCollectValues: valueType[]
@@ -87,7 +93,6 @@ export interface SLBBSETTINGS {
     freeSpin: {
       freeSpinStarted: boolean,
       freeSpinsAdded: boolean,
-      freeSpinCount: number,
       noOfFreeSpins: number,
       // useFreeSpin: false,
     };

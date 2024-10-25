@@ -31,14 +31,17 @@ export function initializeGameSettings(gameData: any, gameInstance: SLSR) {
     BetPerLines: 0,
     reels: [],
     isNewAdded: false,
-    freeSpinCount: 0,
+    isFreeSpinRunning: false,
+    freeSpinTemp: 0,
     freeSpinValue: gameData.gameSettings.freeSpinValue,
     bonusValuesArray: gameData.gameSettings.bonusValuesArray,
-    bonusProbabilities: gameData.gameSettings.bonusValuesArray,
+    bonusProbabilities:  gameData.gameSettings.bonusProbabilities,
     multiplierArray: gameData.gameSettings.bonusValuesArray,
-    multiplierProbabilities: gameData.gameSettings.bonusValuesArray,
+    multiplierProbabilities:  gameData.gameSettings.multiplierProbabilities,
     shuffledBonusValues: [],
     selectedMultiplier: 0,
+    scatterWinningSymbols: [],
+    trashForCashWinningSymbols: [],
     freeSpin: {
       symbolID: "-1",
       freeSpinMuiltiplier: [],
@@ -116,26 +119,26 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLSR) {
     case specialIcons.FreeSpin:
       gameInstance.settings.freeSpin.symbolID = symbol.Id;
       gameInstance.settings.freeSpin.freeSpinMuiltiplier = symbol.multiplier;
-      gameInstance.settings.freeSpin.useFreeSpin = true;
+      gameInstance.settings.freeSpin.useFreeSpin = false;
       break;
 
     case specialIcons.wild:
       gameInstance.settings.wild.SymbolName = symbol.Name;
       gameInstance.settings.wild.SymbolID = symbol.Id;
-      gameInstance.settings.wild.useWild = true;
+      gameInstance.settings.wild.useWild = false;
       break;
     case specialIcons.scatter:
       gameInstance.settings.scatter.symbolID = symbol.Id,
-        gameInstance.settings.scatter.multiplier = symbol.multiplier;
-      gameInstance.settings.scatter.useScatter = true;
+      gameInstance.settings.scatter.multiplier = symbol.multiplier;
+      gameInstance.settings.scatter.useScatter = false;
 
       break;
     case specialIcons.bonus:
       gameInstance.settings.bonus.id = symbol.Id;
       gameInstance.settings.bonus.symbolCount = symbol.symbolCount;
       gameInstance.settings.bonus.pay = symbol.pay;
-      gameInstance.settings.bonus.useBonus = true;
-      break;
+      gameInstance.settings.bonus.useBonus = false;
+       break;
     default:
       break;
   }
@@ -145,28 +148,36 @@ export function checkForWin(gameInstance: SLSR) {
   try {
     const { settings } = gameInstance;
     const winningLines = [];
-    let totalPayout = 0
     let freeSpinLinesCount = 0;
+
     settings.lineData.forEach((line, index) => {
       const firstSymbolPosition = line[0];
       let firstSymbol = settings.resultSymbolMatrix[firstSymbolPosition][0];
+      let totalPayout = 0;
+      // Handle wild symbol substitution
       if (settings.wild.useWild && firstSymbol === settings.wild.SymbolID) {
         firstSymbol = findFirstNonWildSymbol(line, gameInstance);
       }
-      if (Object.values(specialIcons).includes(settings.Symbols[firstSymbol].Name as specialIcons)) {
-        // console.log("Special Icon Matched : ", settings.Symbols[firstSymbol].Name);
-      }
-      const isFreeSpinLine = checkFreeSpinSymbolsOnLine(line, index, gameInstance);
+
+      const { isFreeSpinLine, winningSymbolsFreeSpin } = checkFreeSpinSymbolsOnLine(line, index, gameInstance);
       if (isFreeSpinLine) {
         freeSpinLinesCount++;
+        const formattedIndicesFS = winningSymbolsFreeSpin.map(({ col, row }) => `${col},${row}`);
+        const validIndices = formattedIndicesFS.filter(index => index.length > 2);
+        gameInstance.settings._winData.winningSymbols.push(validIndices);
+        gameInstance.settings._winData.winningLines.push(index); 
       }
-      const { isWinningLine, matchCount } = checkLineSymbols(firstSymbol, line, gameInstance);
-      if (isWinningLine && matchCount >= 3) {
+
+      const { isWinningLine, matchCount, matchedIndices: winMatchedIndices } = checkLineSymbols(firstSymbol, line, gameInstance);
+
+      if ((isWinningLine && matchCount >= 3) || isFreeSpinLine) {
         const symbolMultiplier = accessData(firstSymbol, matchCount, gameInstance);
-        if (symbolMultiplier > 0) {
-          totalPayout = symbolMultiplier * gameInstance.settings.BetPerLines;
+
+        if (symbolMultiplier > 0 ) {
+          totalPayout += symbolMultiplier * gameInstance.settings.BetPerLines;
           gameInstance.playerData.currentWining += totalPayout;
-          settings._winData.winningLines.push(index + 1);
+          
+          settings._winData.winningLines.push(index);
           winningLines.push({
             line,
             symbol: firstSymbol,
@@ -174,24 +185,44 @@ export function checkForWin(gameInstance: SLSR) {
             matchCount,
           });
           console.log(`Line ${index + 1}:`, line);
-          console.log(`Payout for Line ${index + 1}:`, "payout", totalPayout);
+          console.log(`Payout for Line ${index + 1}:`, 'payout', symbolMultiplier);
+          const formattedIndices = winMatchedIndices.map(({ col, row }) => `${col},${row}`);
+          const validIndices = formattedIndices.filter(index => index.length > 2);
+          if (validIndices.length > 0) {
+            gameInstance.settings._winData.winningSymbols.push(validIndices);
+        }
+          
         }
       }
     });
+
     checkForBonus(gameInstance);
     checkForScatter(gameInstance);
-   
-    console.log("Total Free Spins Won: ", gameInstance.settings.freeSpinCount);
+
+    // Handle free spins if any free spin lines are won
+    if (freeSpinLinesCount > 0) {
+      gameInstance.settings.freeSpin.freeSpinCount += freeSpinLinesCount * settings.freeSpinValue;
+      gameInstance.settings.isNewAdded = true;
+    }
+
+    console.log("Total Winning", gameInstance.playerData.currentWining);
+    console.log("Total Free Spins Won:", gameInstance.settings.freeSpin.freeSpinCount);
+
     gameInstance.playerData.haveWon += gameInstance.playerData.currentWining;
+    gameInstance.updatePlayerBalance(gameInstance.playerData.currentWining);
     makeResultJson(gameInstance);
+
+    // Reset properties after result processing
     gameInstance.playerData.currentWining = 0;
     gameInstance.settings.bonus.start = false;
     gameInstance.settings.selectedMultiplier = 0;
     gameInstance.settings.shuffledBonusValues = [];
     gameInstance.settings._winData.winningLines = [];
     gameInstance.settings.bonus.pay = 0;
-    gameInstance.settings.freeSpin.useFreeSpin = false;
     gameInstance.settings.isNewAdded = false;
+    gameInstance.settings._winData.winningSymbols = [];
+    gameInstance.settings.scatterWinningSymbols = [];
+    gameInstance.settings.trashForCashWinningSymbols = [];
   } catch (error) {
     console.error("Error in checkForWin", error);
     return [];
@@ -203,15 +234,23 @@ export function checkForBonus(gameInstance: SLSR) {
     let bonusSymbolCount = 0;
 
     // Count Bonus symbols in the result matrix
-    settings.resultSymbolMatrix.forEach((row) => {
-      row.forEach((symbol) => {
+    settings.resultSymbolMatrix.forEach((row, rowIndex) => {
+      row.forEach((symbol, colIndex) => {
+        if ((rowIndex === 0 && colIndex === 2) || (rowIndex === 4 && colIndex === 2)) {
+          return; 
+        }
         if (symbol === settings.bonus.id) {
           bonusSymbolCount++;
+          settings.trashForCashWinningSymbols.push(`${rowIndex},${colIndex}`);
         }
       });
     });
-
-    // If 3 or more bonus symbols are found, trigger the bonus game
+    if( settings.trashForCashWinningSymbols.length <3)
+    {
+      settings.trashForCashWinningSymbols =[];
+    }
+    console.log("Bonus winning Symbols",settings.trashForCashWinningSymbols);
+    
     if (bonusSymbolCount >= 3) {
       settings.bonus.start = true;
       console.log(`Bonus Game Triggered with ${bonusSymbolCount} Bonus Symbols`);
@@ -226,7 +265,6 @@ export function checkForBonus(gameInstance: SLSR) {
 function runBonusGame(bonusSymbolCount: number, gameInstance: SLSR) {
   try {
     const { settings } = gameInstance;
-
     const selectedBonusValues = selectValuesFromArray(settings.bonusValuesArray, settings.bonusProbabilities, bonusSymbolCount);
     console.log("Selected Bonus Values: ", selectedBonusValues);
 
@@ -238,9 +276,9 @@ function runBonusGame(bonusSymbolCount: number, gameInstance: SLSR) {
 
     const sumOfValues = settings.shuffledBonusValues.slice(0, -1).reduce((sum, value) => sum + value, 0);
     const bonusWin = sumOfValues * settings.selectedMultiplier;
-    console.log("Bonus Win Amount: ", bonusWin);
     gameInstance.settings.bonus.pay = bonusWin;
-    gameInstance.playerData.currentWining += bonusWin * gameInstance.settings.BetPerLines;;
+    gameInstance.playerData.currentWining += bonusWin *  gameInstance.settings.BetPerLines;
+    console.log("Bonus Win Amount: ", bonusWin);
     console.log("Player's Total Winnings after Bonus: ", gameInstance.playerData.currentWining);
 
   } catch (error) {
@@ -251,24 +289,29 @@ export function checkForScatter(gameInstance: SLSR) {
   try {
     const { settings } = gameInstance;
     let scatterSymbolCount = 0;
-
-    settings.resultSymbolMatrix.forEach((row) => {
-      row.forEach((symbol) => {
+    
+    settings.resultSymbolMatrix.forEach((row,rowIndex) => {
+      row.forEach((symbol,colIndex) => {
         if (symbol === settings.scatter.symbolID) {
           scatterSymbolCount++;
+          settings.scatterWinningSymbols.push(`${rowIndex},${colIndex}`);
         }
       });
     });
-
+    if( settings.scatterWinningSymbols.length <settings.scatter.multiplier.length)
+    {
+      settings.scatterWinningSymbols = [];   
+    } 
     if (scatterSymbolCount >= settings.scatter.multiplier.length && scatterSymbolCount < 6) {
       const scatterWin = accessData(settings.scatter.symbolID, scatterSymbolCount, gameInstance);
       console.log(`Scatter Won `, scatterWin * gameInstance.settings.BetPerLines);
       gameInstance.playerData.currentWining += scatterWin * gameInstance.settings.BetPerLines;;
     }
-    if (scatterSymbolCount > 5) {
-      const scatterWin = accessData(settings.scatter.symbolID, 5, gameInstance);
-      console.log(`Scatter Won `, scatterWin * gameInstance.settings.BetPerLines);
-      gameInstance.playerData.currentWining += scatterWin * gameInstance.settings.BetPerLines;;
+    if(scatterSymbolCount >5 )
+    {
+      const scatterWin = accessData(settings.scatter.symbolID,5,gameInstance);
+      console.log(`Scatter Won `,scatterWin* gameInstance.settings.BetPerLines);
+      gameInstance.playerData.currentWining += scatterWin * gameInstance.settings.BetPerLines;
     }
   } catch (error) {
     console.error("Error in checkForScatter", error);
@@ -278,9 +321,11 @@ export function checkForScatter(gameInstance: SLSR) {
 // Function to select values from an array based on probabilities
 function selectValuesFromArray(array: number[], probabilities: number[], count: number): number[] {
   const selectedValues = [];
+
   for (let i = 0; i < count; i++) {
     const randomValue = Math.random();
     let cumulativeProbability = 0;
+
     for (let j = 0; j < array.length; j++) {
       cumulativeProbability += probabilities[j];
       if (randomValue <= cumulativeProbability) {
@@ -289,6 +334,8 @@ function selectValuesFromArray(array: number[], probabilities: number[], count: 
       }
     }
   }
+
+  console.log("Selected Values:", selectedValues);
   return selectedValues;
 }
 
@@ -296,42 +343,58 @@ function selectValuesFromArray(array: number[], probabilities: number[], count: 
 function selectMultiplierFromArray(array: number[], probabilities: number[]): number {
   const randomValue = Math.random();
   let cumulativeProbability = 0;
+
   for (let i = 0; i < array.length; i++) {
     cumulativeProbability += probabilities[i];
     if (randomValue <= cumulativeProbability) {
+      console.log("Selected Multiplier:", array[i]);
       return array[i];
     }
   }
-  return array[0]; // Default return value if probabilities don't sum to 1
+  console.log("Fallback Multiplier:", array[array.length - 1]);
+  return array[array.length - 1]; // Fallback if cumulative probability doesn't reach 1
 }
 
 // Function to check if the first 3 symbols on a line are Free Spin symbols
-function checkFreeSpinSymbolsOnLine(line: number[], index: number, gameInstance: SLSR): boolean {
+function checkFreeSpinSymbolsOnLine(
+  line: number[],
+  index: number,
+  gameInstance: SLSR
+): { isFreeSpinLine: boolean; winningSymbolsFreeSpin: { col: number; row: number }[] } {
   try {
     const { settings } = gameInstance;
     const freeSpinSymbolID = settings.freeSpin.symbolID;
     let count = 0;
-    settings.freeSpin.useFreeSpin = false;
-    // Loop through the first 3 symbols in the current line
-    for (let i = 0; i < 3; i++) {
-      const rowIndex = line[i]; // Get the index of the symbol in this line
-      const symbol = settings.resultSymbolMatrix[rowIndex][i]; // Fetch the symbol from the matrix
+    let winningSymbolsFS: { col: number; row: number }[] = []; // Array to store matched indices
+
+    for (let i = 0; i < line.length; i++) {
+      const rowIndex = line[i];
+      const symbol = settings.resultSymbolMatrix[rowIndex][i];
 
       if (symbol === undefined) {
         console.error(`Symbol at position [${rowIndex}, ${i}] is undefined.`);
-        return false;
+        return { isFreeSpinLine: false, winningSymbolsFreeSpin: [] };
       }
+
+      // Check if the symbol matches the Free Spin symbol
       if (symbol === freeSpinSymbolID) {
         count++;
+        winningSymbolsFS.push({ col: i, row: rowIndex });
       }
     }
-    return count === 3;
+    // Return only, do not push directly here
+    return count === 3
+      ? { isFreeSpinLine: true, winningSymbolsFreeSpin: winningSymbolsFS }
+      
+      : { isFreeSpinLine: false, winningSymbolsFreeSpin: [] };
+  
   } catch (error) {
     console.error("Error in checkFreeSpinSymbolsOnLine:", error);
-    return false;
+    return { isFreeSpinLine: false, winningSymbolsFreeSpin: [] };
   }
 }
 
+// Function to check for matching symbols on a line (with wild substitution)
 // Function to check for matching symbols on a line (with wild substitution)
 function checkLineSymbols(
   firstSymbol: string,
@@ -340,36 +403,43 @@ function checkLineSymbols(
 ): {
   isWinningLine: boolean;
   matchCount: number;
+  matchedIndices: { col: number, row: number }[];
 } {
   try {
     const { settings } = gameInstance;
     const wildSymbol = settings.wild.SymbolID || "";
     let matchCount = 1;
     let currentSymbol = firstSymbol;
+    const matchedIndices: { col: number, row: number }[] = [{ col: 0, row: line[0] }]; // Collect matched indices
 
+    // Loop through the line
     for (let i = 1; i < line.length; i++) {
       const rowIndex = line[i];
       const symbol = settings.resultSymbolMatrix[rowIndex][i];
 
       if (symbol === undefined) {
         console.error(`Symbol at position [${rowIndex}, ${i}] is undefined.`);
-        return { isWinningLine: false, matchCount: 0 };
+        return { isWinningLine: false, matchCount: 0, matchedIndices: [] };
       }
 
+      // Check for matches (consider wild symbols)
       if (symbol === currentSymbol || symbol === wildSymbol) {
         matchCount++;
+        matchedIndices.push({ col: i, row: rowIndex });
       } else if (currentSymbol === wildSymbol) {
         currentSymbol = symbol;
         matchCount++;
+        matchedIndices.push({ col: i, row: rowIndex });
       } else {
-        return { isWinningLine: matchCount >= 3, matchCount };
+        break;
       }
     }
 
-    return { isWinningLine: matchCount >= 3, matchCount };
+    // Return true if the line is a winning line
+    return { isWinningLine: matchCount >= 3, matchCount, matchedIndices };
   } catch (error) {
     console.error("Error in checkLineSymbols:", error);
-    return { isWinningLine: false, matchCount: 0 };
+    return { isWinningLine: false, matchCount: 0, matchedIndices: [] };
   }
 }
 
@@ -434,7 +504,7 @@ export function sendInitData(gameInstance: SLSR) {
   const dataToSend = {
     GameData: {
       Reel: reels,
-      linesApiData: gameInstance.settings.currentGamedata.linesApiData,
+      Lines: gameInstance.settings.currentGamedata.linesApiData,
       Bets: gameInstance.settings.currentGamedata.bets,
       // freeSpinValue:  gameInstance.settings.currentGamedata.freeSpinValue,
     },
@@ -459,13 +529,16 @@ export function makeResultJson(gameInstance: SLSR) {
         resultReel: settings.resultSymbolMatrix,
         linesToEmit: settings._winData.winningLines,
         symbolsToEmit: settings._winData.winningSymbols,
-        isFreeSpin: settings.freeSpin.useFreeSpin,
-        freeSpinCount: settings.freeSpin.freeSpinCount,
+        freeSpin :{
         isNewAdded: settings.isNewAdded,
+        freeSpinCount: settings.freeSpin.freeSpinCount,
+        },
         isBonus: settings.bonus.start,
         bonusWin: gameInstance.settings.bonus.pay,
         shuffledBonusValues: settings.shuffledBonusValues,
         selectedBonusMultiplier: settings.selectedMultiplier,
+        scatterWinningSymbols: settings.scatterWinningSymbols,
+        trashForCashWinningSymbols: settings.trashForCashWinningSymbols,
       },
       PlayerData: {
         Balance: Balance,
