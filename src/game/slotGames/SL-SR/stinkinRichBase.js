@@ -76,7 +76,12 @@ class SLSR {
                     this.sendError("Low Balance");
                     return;
                 }
-                console.log("total bet ", this.settings.currentBet);
+                if (this.settings.freeSpinCount > 0) {
+                    console.log('minus');
+                    this.settings.freeSpinCount--;
+                    this.settings.isNewAdded = false;
+                    console.log("Free Spin COPunt", this.settings.freeSpinCount);
+                }
                 yield new RandomResultGenerator_1.RandomResultGenerator(this);
                 (0, helper_1.checkForWin)(this);
             }
