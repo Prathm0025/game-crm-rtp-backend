@@ -395,12 +395,7 @@ function generateHeisenbergSpin(gameInstance: SLBB): string[][] {
         } else {
         
           const newSymbol = heisenbergReels[x][(startPosition + y) % heisenbergReels[x].length];
-          resultMatrix[y][x] = newSymbol;
-          if(newSymbol === settings.losPollos.SymbolID.toString()){
-            console.log(newSymbol, "AALOO");
-            const losPollosValue = getRandomValue(gameInstance, "freespin")
-            settings.losPollos.values.push({ index: [x, y], value: losPollosValue })
-          }
+          resultMatrix[y][x] = newSymbol;        
           if (newSymbol === settings.coins.SymbolID.toString()) {
             console.log("Coin symbol detected! Resetting number of freespins");
             settings.heisenbergFreeze.add(`${y},${x}`);
@@ -416,12 +411,7 @@ function generateHeisenbergSpin(gameInstance: SLBB): string[][] {
       } else {
         const newSymbol = heisenbergReels[x][(startPosition + y) % heisenbergReels[x].length];
         resultMatrix[y][x] = newSymbol;
-        if(newSymbol === settings.losPollos.SymbolID.toString()){
-          console.log(newSymbol, "AALOO");
-          
-          const losPollosValue = getRandomValue(gameInstance, "freespin")
-          settings.losPollos.values.push({ index: [x, y], value: losPollosValue })
-        }
+      
         if (newSymbol === settings.coins.SymbolID.toString()) {
           settings.heisenbergFreeze.add(`${y},${x}`);
           console.log("Coin symbol detected! Resetting number of freespins");

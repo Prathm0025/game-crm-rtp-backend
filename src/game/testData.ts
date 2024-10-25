@@ -579,7 +579,7 @@ export const gameData = [
         "Name": "CashCollect",
         "Id": 13,
         "reelInstance": {
-          "0": 50,
+          "0": 0,
           "1": 0,
           "2": 0,
           "3": 0,
