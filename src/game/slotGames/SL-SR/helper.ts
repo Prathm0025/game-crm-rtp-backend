@@ -119,26 +119,26 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLSR) {
     case specialIcons.FreeSpin:
       gameInstance.settings.freeSpin.symbolID = symbol.Id;
       gameInstance.settings.freeSpin.freeSpinMuiltiplier = symbol.multiplier;
-      gameInstance.settings.freeSpin.useFreeSpin = true;
+      gameInstance.settings.freeSpin.useFreeSpin = false;
       break;
 
     case specialIcons.wild:
       gameInstance.settings.wild.SymbolName = symbol.Name;
       gameInstance.settings.wild.SymbolID = symbol.Id;
-      gameInstance.settings.wild.useWild = true;
+      gameInstance.settings.wild.useWild = false;
       break;
     case specialIcons.scatter:
       gameInstance.settings.scatter.symbolID = symbol.Id,
-        gameInstance.settings.scatter.multiplier = symbol.multiplier;
-      gameInstance.settings.scatter.useScatter = true;
+      gameInstance.settings.scatter.multiplier = symbol.multiplier;
+      gameInstance.settings.scatter.useScatter = false;
 
       break;
     case specialIcons.bonus:
       gameInstance.settings.bonus.id = symbol.Id;
       gameInstance.settings.bonus.symbolCount = symbol.symbolCount;
       gameInstance.settings.bonus.pay = symbol.pay;
-      gameInstance.settings.bonus.useBonus = true;
-      break;
+      gameInstance.settings.bonus.useBonus = false;
+       break;
     default:
       break;
   }
@@ -202,7 +202,7 @@ export function checkForWin(gameInstance: SLSR) {
     // Handle free spins if any free spin lines are won
     if (freeSpinLinesCount > 0) {
       gameInstance.settings.freeSpin.freeSpinCount += freeSpinLinesCount * settings.freeSpinValue;
-      gameInstance.settings.freeSpin.useFreeSpin = true;
+      gameInstance.settings.isNewAdded = true;
     }
 
     console.log("Total Winning", gameInstance.playerData.currentWining);
@@ -219,7 +219,6 @@ export function checkForWin(gameInstance: SLSR) {
     gameInstance.settings.shuffledBonusValues = [];
     gameInstance.settings._winData.winningLines = [];
     gameInstance.settings.bonus.pay = 0;
-    gameInstance.settings.freeSpin.useFreeSpin = false;
     gameInstance.settings.isNewAdded = false;
     gameInstance.settings._winData.winningSymbols = [];
     gameInstance.settings.scatterWinningSymbols = [];
@@ -531,7 +530,7 @@ export function makeResultJson(gameInstance: SLSR) {
         linesToEmit: settings._winData.winningLines,
         symbolsToEmit: settings._winData.winningSymbols,
         freeSpin :{
-        isNewAdded: settings.freeSpin.useFreeSpin,
+        isNewAdded: settings.isNewAdded,
         freeSpinCount: settings.freeSpin.freeSpinCount,
         },
         isBonus: settings.bonus.start,

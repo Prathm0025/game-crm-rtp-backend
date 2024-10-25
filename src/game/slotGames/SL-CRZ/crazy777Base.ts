@@ -77,10 +77,10 @@ export class SLCRZ {
       }
 
       if (!this.settings.isFreeSpin) {
-        await this.deductPlayerBalance(this.settings.currentBet);
+        await this.deductPlayerBalance(this.settings.currentBet*3);
         this.playerData.totalbet += this.settings.currentBet*3 ;
       }
-      if (this.settings.freeSpinCount === 1) {
+      if (this.settings.freeSpinCount == 0) {
         this.settings.isFreeSpin = false;
 
       }
@@ -181,6 +181,7 @@ export class SLCRZ {
         this.playerData.haveWon += this.playerData.currentWining
         this.updatePlayerBalance(this.playerData.currentWining)
         makeResultJson(this)
+        return 
       }
       this.playerData.haveWon += this.playerData.currentWining
       makeResultJson(this)
