@@ -238,10 +238,14 @@ function checkLineSymbols(
       }
       switch (true) {
         case (symbol == currentSymbol || symbol === wildSymbol) && isWildSubAllowed(symbol):
+          console.log(symbol, "SYMBOL HERE");
+          
           matchCount++;
           matchedIndices.push({ col: i, row: rowIndex });
           break;
-          case currentSymbol === wildSymbol && isWildSubAllowed(symbol):
+          case currentSymbol === wildSymbol :
+            console.log(currentSymbol, "wild symbol");
+            
             currentSymbol = symbol;
           matchCount++;
           matchedIndices.push({ col: i, row: rowIndex });
@@ -331,16 +335,28 @@ function getRandomValue(gameInstance: SLBB, type: 'coin' | 'freespin' | 'prizes'
 export function replaceCoinsWithValues(gameInstance: SLBB, matrixType: 'result' | 'heisenberg') {
   const { settings } = gameInstance;
   const matrix = matrixType === 'result' ? settings.resultSymbolMatrix : settings.heisenbergSymbolMatrix;
+
   for (let row = 0; row < matrix.length; row++) {
     for (let col = 0; col < matrix[row].length; col++) {
       const symbol = matrix[row][col];
+      
       if (symbol === settings.coins.SymbolID.toString()) {
         const coinValue = getRandomCoinValue(gameInstance);
-        settings.coins.values.push({ index: [row, col], value: coinValue });
+
+        // Check if index already exists in settings.coins.values
+        const indexExists = settings.coins.values.find(
+          item => item.index[0] === row && item.index[1] === col
+        );
+
+        // Only add the new value if the index does not already exist
+        if (!indexExists) {
+          settings.coins.values.push({ index: [row, col], value: coinValue });
+        }
       }
     }
   }
 }
+
 
 
 
@@ -729,26 +745,30 @@ export function checkForWin(gameInstance: SLBB) {
       const line = linesApiData[lineIndex];
       const firstSymbolId = resultSymbolMatrix[line[0]]?.[0];
       const { isWinningLine, matchCount, matchedIndices } = checkLineSymbols(firstSymbolId, line, gameInstance);
-
+         
       if (isWinningLine && !settings.heisenberg.isTriggered) {
-        // console.log(matchedIndices, "matchedIndices");
-        // console.log(matchCount, "match count");
+        console.log(matchedIndices, "matchedIndices");
+        console.log(matchCount, "match count");
         const winMultiplier = accessData(firstSymbolId, matchCount, gameInstance);
-        // console.log(winMultiplier, "winMultiplier");
+        console.log(winMultiplier, "winMultiplier");
         totalWin += winMultiplier * gameInstance.settings.BetPerLines;
+        console.log(totalWin, "totalwin");
+        
         winningLines.push(lineIndex);
+        console.log(winningLines, "winningLines");
+        
         settings._winData.winningLines.push(lineIndex)
         const formattedIndices = matchedIndices.map(
           ({ col, row }) => `${col},${row}`
       );
-       const validIndices = formattedIndices.filter(
-        (index) => index.length > 2
-    );
-    if (validIndices.length > 0) {
+    //    const validIndices = formattedIndices.filter(
+    //     (index) => index.length > 2
+    // );
+    // if (validIndices.length > 0) {
         // console.log(settings.lastReel, 'settings.lastReel')
-        console.log(validIndices);
-        settings._winData.winningSymbols.push(validIndices);
-    }
+        // console.log(validIndices, "validIndices");
+        settings._winData.winningSymbols.push(formattedIndices);
+    // }
         settings.matchedIndices.push(matchedIndices);
         
       }
@@ -789,8 +809,9 @@ export function checkForWin(gameInstance: SLBB) {
     
     makeResultJson(gameInstance)
     gameInstance.incrementPlayerBalance(gameInstance.playerData.currentWining)
-    settings.coins.values = [];
-    settings._winData.winningLines = winningLines;
+    // settings.coins.values = [];
+    settings._winData.winningLines = [];
+    settings._winData.winningSymbols  = [];
     gameInstance.playerData.currentWining = 0
     
     // settings.hasCascading = false;
@@ -859,7 +880,8 @@ export function makeResultJson(gameInstance: SLBB) {
     gameInstance.sendMessage('ResultData', sendData);
     // console.log(sendData.GameData.bonus.BonusResult);
     
-
+  //  console.log(sendData.GameData.winData.coinValues, "coins");
+   
     console.log(sendData);
     
   } catch (error) {
