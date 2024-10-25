@@ -40,8 +40,8 @@ export interface SLLOLSETTINGS {
   gamble: {
     type: string;
     isEnabled: boolean;
-  }
-
+  },
+  winningCombinations: WinningCombination[]
 }
 
 export interface FreeSpinResponse {

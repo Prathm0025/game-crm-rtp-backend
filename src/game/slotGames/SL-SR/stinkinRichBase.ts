@@ -71,14 +71,18 @@ export class SLSR {
     public async spinResult(): Promise<void> {
         try {
             const playerData = this.getPlayerData();
-                await this.deductPlayerBalance(this.settings.currentBet);
-                this.playerData.totalbet += this.settings.currentBet;
+            await this.deductPlayerBalance(this.settings.currentBet);
+            this.playerData.totalbet += this.settings.currentBet;
             if (this.settings.currentBet > playerData.credits) {
                 this.sendError("Low Balance");
                 return;
             }
-            console.log("total bet ",this.settings.currentBet);
-            
+            if (this.settings.freeSpinCount > 0) {
+                console.log('minus')
+                this.settings.freeSpinCount--;
+                this.settings.isNewAdded = false
+                console.log("Free Spin COPunt", this.settings.freeSpinCount);
+            }
             await new RandomResultGenerator(this);
             checkForWin(this)
         } catch (error) {
@@ -110,7 +114,7 @@ export class SLSR {
             this.sendError("RTP calculation error");
         }
     }
-    
+
 }
 
 

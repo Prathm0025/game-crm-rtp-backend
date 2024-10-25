@@ -81,7 +81,7 @@ export class SLLOL {
         this.getRTP(response.data.spins);
         break;
 
-      case "GambleInit":
+      case "GAMBLEINIT":
         const sendData = sendInitGambleData();
 
         this.decrementPlayerBalance(this.playerData.currentWining);
@@ -89,7 +89,7 @@ export class SLLOL {
         this.sendMessage("gambleInitData", sendData);
         break;
 
-      case "GambleResultData":
+      case "GAMBLERESULT":
         let result = getGambleResult({ selected: response.data.selected });
         //calculate payout
         switch (result.playerWon) {
@@ -109,6 +109,8 @@ export class SLLOL {
         break;
       case "GAMBLECOLLECT":
         this.playerData.haveWon += this.playerData.currentWining;
+
+        this.sendMessage("GambleCollect", this.playerData.currentWining)
         this.incrementPlayerBalance(this.playerData.currentWining);
         break;
       default:

@@ -23,9 +23,13 @@ export interface SLSRSETTINGS {
     freeSpinValue: number;
     bonusValuesArray: number[];
     bonusProbabilities: number[];
-    multiplierArray:number[];
+    multiplierArray: number[];
     multiplierProbabilities: number[];
+    shuffledBonusValues: number[];
+    selectedMultiplier: number;
+    isNewAdded: boolean,
 
+    freeSpinCount: number,
     freeSpin: {
         symbolID: string,
         freeSpinMuiltiplier: any[],
@@ -40,7 +44,12 @@ export interface SLSRSETTINGS {
         SymbolID: number;
         useWild: boolean
     },
-      bonus: {
+    scatter: {
+        symbolID: string,
+        multiplier: number[],
+        useScatter: boolean,
+    },
+    bonus: {
         start: boolean;
         stopIndex: number;
         game: any;
@@ -48,7 +57,7 @@ export interface SLSRSETTINGS {
         symbolCount: number,
         pay: number,
         useBonus: boolean,
-      };
+    };
 }
 
 
