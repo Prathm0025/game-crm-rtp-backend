@@ -85,7 +85,6 @@ export class SLSR {
             {
                 this.settings.freeSpin.freeSpinCount --;
             }
-            console.log("Bet per line",this.settings.BetPerLines);
             
             await new RandomResultGenerator(this);
             checkForWin(this)
@@ -105,13 +104,13 @@ export class SLSR {
                 await this.spinResult();
                 spend = this.playerData.totalbet;
                 won = this.playerData.haveWon;
-                // console.log(`Spin ${i + 1} completed. ${this.playerData.totalbet} , ${won}`);
+                console.log(`Spin ${i + 1} completed. ${this.playerData.totalbet} , ${won}`);
             }
             let rtp = 0;
             if (spend > 0) {
                 rtp = won / spend;
             }
-            // console.log('RTP calculated:', rtp * 100);
+            console.log('RTP calculated:', rtp * 100);
             return;
         } catch (error) {
             console.error("Failed to calculate RTP:", error);
