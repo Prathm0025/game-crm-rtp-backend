@@ -527,11 +527,11 @@ export const gameData = [
         "Name": "Wild",
         "Id": 10,
         "reelInstance": {
-          "0": 5,
-          "1": 5,
-          "2": 5,
-          "3": 5,
-          "4": 5
+          "0":55,
+          "1":55,
+          "2":55,
+          "3":55,
+          "4":55
         },
         "description": "Substitutes for all symbols except Jackpot, Free Spin, Bonus, and Scatter.",
         "useWildSub": false,
@@ -546,8 +546,8 @@ export const gameData = [
         "Id": 11,
         "reelInstance": {
           "0": 0,
-          "1": 10,
-          "2": 5,
+          "1": 0,
+          "2": 0,
           "3": 0,
           "4": 0
         },
@@ -630,7 +630,7 @@ export const gameData = [
         "Name": "LosPollos",
         "Id": 16,
         "reelInstance": {
-          "0": 15,
+          "0": 1,
           "1": 1,
           "2": 1,
           "3": 1,
