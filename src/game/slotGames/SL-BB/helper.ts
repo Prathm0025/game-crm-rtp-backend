@@ -842,7 +842,7 @@ export function makeResultJson(gameInstance: SLBB) {
         jackpot:settings.jackpot.payout,
          bonus:{
           isBonus:settings.heisenberg.isTriggered,
-          BonusResult:settings.heisenbergSymbolMatrix,
+          BonusResult: settings.heisenbergSymbolMatrix.map(row => row.map(item => Number(item))), 
           payout:settings.heisenberg.payout,
           spinCount:settings.heisenberg.freeSpin.noOfFreeSpins,
           freeSpinAdded: settings.heisenberg.freeSpin.freeSpinsAdded,
@@ -850,8 +850,9 @@ export function makeResultJson(gameInstance: SLBB) {
           walterStashPayout:settings.jackpot.payout,
           isGrandPrize:settings.grandPrize.isTriggered,
            grandPrizePayout:settings.grandPrize.payout,
-           freezeIndices:settings.heisenbergFreeze,
-         },
+           freezeIndices: Array.from(settings.heisenbergFreeze, item =>
+            item.split(',').map(Number) 
+          ),   },
         
       },
       PlayerData: {
