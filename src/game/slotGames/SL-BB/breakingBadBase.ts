@@ -106,7 +106,9 @@ export class SLBB {
         );
       }
       // this.incrementPlayerBalance(this.playerData.currentWining)
+      if(!this.settings.heisenberg.isTriggered){
       new RandomResultGenerator(this);
+      }
       checkForWin(this)
     } catch (error) {
       this.sendError("Spin error");
