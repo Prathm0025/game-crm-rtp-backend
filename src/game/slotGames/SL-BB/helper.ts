@@ -398,6 +398,7 @@ function generateHeisenbergSpin(gameInstance: SLBB): string[][] {
           if (newSymbol === settings.coins.SymbolID.toString()) {
             console.log("Coin symbol detected! Resetting number of freespins");
             settings.heisenbergFreeze.add(`${y},${x}`);
+            
   settings.heisenberg.freeSpin.noOfFreeSpins = 3;
       settings.heisenberg.freeSpin.freeSpinsAdded = true;
                 }
@@ -828,10 +829,11 @@ export function makeResultJson(gameInstance: SLBB) {
         },
         jackpot:settings.jackpot.payout,
          bonus:{
-          isBonus:settings.heisenberg.freeSpin.freeSpinStarted,
+          isBonus:settings.heisenberg.isTriggered,
           BonusResult:settings.heisenbergSymbolMatrix,
           payout:settings.heisenberg.payout,
           spinCount:settings.heisenberg.freeSpin.noOfFreeSpins,
+          freeSpinAdded: settings.heisenberg.freeSpin.freeSpinsAdded,
           isWalterStash:settings.jackpot.isTriggered,
           walterStashPayout:settings.jackpot.payout,
           isGrandPrize:settings.grandPrize.isTriggered,
