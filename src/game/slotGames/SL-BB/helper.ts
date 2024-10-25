@@ -864,8 +864,6 @@ export function makeResultJson(gameInstance: SLBB) {
     };
     console.log("losPollosValues", settings.losPollos.values);
     console.log("coins", settings.coins.values);
-    console.log("syms", settings._winData.winningSymbols);
-
     
     gameInstance.sendMessage('ResultData', sendData);
     console.log(sendData);

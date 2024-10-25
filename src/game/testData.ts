@@ -527,11 +527,11 @@ export const gameData = [
         "Name": "Wild",
         "Id": 10,
         "reelInstance": {
-          "0": 50,
-          "1": 50,
-          "2": 50,
-          "3": 50,
-          "4": 50,
+          "0": 5,
+          "1": 5,
+          "2": 5,
+          "3": 5,
+          "4": 5
         },
         "description": "Substitutes for all symbols except Jackpot, Free Spin, Bonus, and Scatter.",
         "useWildSub": false,
@@ -546,7 +546,7 @@ export const gameData = [
         "Id": 11,
         "reelInstance": {
           "0": 0,
-          "1": 1,
+          "1": 10,
           "2": 5,
           "3": 0,
           "4": 0
@@ -583,7 +583,7 @@ export const gameData = [
           "1": 0,
           "2": 0,
           "3": 0,
-          "4": 40
+          "4": 25
         },
         "description": "",
         "useWildSub": false,
@@ -596,11 +596,11 @@ export const gameData = [
         "Name": "Coins",
         "Id": 14,
         "reelInstance": {
-          "0": 20,
-          "1": 20,
-          "2": 20,
-          "3": 20,
-          "4": 20,
+          "0": 2,
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2
         },
         "description": "",
         "useWildSub": false,
