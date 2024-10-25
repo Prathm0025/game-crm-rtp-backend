@@ -2,8 +2,6 @@
 import { WinData } from "../BaseSlotGame/WinData";
 import { SLBB } from "./breakingBadBase";
 import { convertSymbols, UiInitData } from "../../Utils/gameUtils";
-import { valueType } from "./types";
-import { freezeIndex } from "../SL-CM/helper";
 
 export function initializeGameSettings(gameData: any, gameInstance: SLBB) {
   const getSymbolIdByName = (name: string) => {
@@ -34,11 +32,15 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBB) {
       payout: 0,
       // payout: 0,
     },
+    grandPrize: {
+      isTriggered: false,
+      payout: 0
+    },
     freeSpin: {
       isEnabled: gameData.gameSettings.freeSpin.isEnabled,
+      isTriggered: false,
       isFreeSpin: false,
       cashCollectValues: [],
-      // cashCollectValues: [],
       freeSpinCount: 0,
     },
     wild: {
@@ -83,7 +85,6 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBB) {
       freeSpin: {
         freeSpinStarted: false,
         freeSpinsAdded: false,
-        freeSpinCount: 0,
         noOfFreeSpins: 0,
         // useFreeSpin: false,
       },
@@ -163,8 +164,10 @@ export function sendInitData(gameInstance: SLBB) {
   gameInstance.settings.heisenbergReels = heisenbergReels;
   const dataToSend = {
     GameData: {
-      // Reel: reels,
-      // Bets: gameInstance.settings.currentGamedata.bets,
+      Reel: reels,
+      Lines: gameInstance.currentGameData.gameSettings.linesApiData,
+      Bets: gameInstance.settings.currentGamedata.bets,
+
     },
     UIData: UiInitData,
     PlayerData: {
@@ -211,6 +214,18 @@ function checkLineSymbols(
     const matchedIndices: { col: number; row: number }[] = [
       { col: 0, row: line[0] },
     ];
+
+
+    const getSymbolSettings = (symbolId: string) => {
+      return settings.Symbols.find(symbol => symbol.Id === parseInt(symbolId));
+    };
+
+    const isWildSubAllowed = (symbolId: string) => {
+      const symbolSettings = getSymbolSettings(symbolId);
+      return symbolSettings.useWildSub;
+    };
+
+
     for (let i = 1; i < line.length; i++) {
       const rowIndex = line[i];
       const symbol = settings.resultSymbolMatrix[rowIndex][i];
@@ -219,11 +234,11 @@ function checkLineSymbols(
         return { isWinningLine: false, matchCount: 0, matchedIndices: [] };
       }
       switch (true) {
-        case symbol == currentSymbol || symbol === wildSymbol:
+        case (symbol == currentSymbol || symbol === wildSymbol) && isWildSubAllowed(symbol):
           matchCount++;
           matchedIndices.push({ col: i, row: rowIndex });
           break;
-        case currentSymbol === wildSymbol:
+        case currentSymbol === wildSymbol && isWildSubAllowed(symbol):
           currentSymbol = symbol;
           matchCount++;
           matchedIndices.push({ col: i, row: rowIndex });
@@ -359,51 +374,59 @@ function generateHeisenbergSpin(gameInstance: SLBB): string[][] {
     const startPosition = getRandomIndex(heisenbergReels[x].length - 1);
     for (let y = 0; y < settings.matrix.y; y++) {
       if (!resultMatrix[y]) resultMatrix[y] = [];
-
       // Check if this position is frozen
-      if (settings.heisenbergFreeze.has(`${x},${y}`)) {
-        
+      if (settings.heisenberg &&settings.heisenbergFreeze.has(`${y},${x}`)) {        
         const prevSymbol = settings.prevresultSymbolMatrix[y][x];   
-                                           
-        if (prevSymbol === settings.link.SymbolID || prevSymbol === settings.cashCollect.SymbolID || prevSymbol ===settings.losPollos.SymbolID) {
+            // console.log(prevSymbol, "prevSymbol");
+                                             
+        if ((prevSymbol == settings.link.SymbolID)|| (prevSymbol == settings.cashCollect.SymbolID) || (prevSymbol == settings.losPollos.SymbolID) ) {
+            // console.log("CAME HERE FOR ", prevSymbol);
+            
           resultMatrix[y][x] = prevSymbol.toString();   
+          console.log(resultMatrix);
+          
           continue;  
         }
-        if(settings.heisenbergSymbolMatrix[y] && settings.heisenbergSymbolMatrix[y][x]){
-        resultMatrix[y][x] = settings.heisenbergSymbolMatrix[y][x]           
+        if (settings.heisenbergSymbolMatrix[y] && settings.heisenbergSymbolMatrix[y][x]) {
+          resultMatrix[y][x] = settings.heisenbergSymbolMatrix[y][x]
         } else {
+        
           const newSymbol = heisenbergReels[x][(startPosition + y) % heisenbergReels[x].length];
-          resultMatrix[y][x] = newSymbol;
+          resultMatrix[y][x] = newSymbol;        
           if (newSymbol === settings.coins.SymbolID.toString()) {
             console.log("Coin symbol detected! Resetting number of freespins");
-            settings.heisenberg.freeSpin.noOfFreeSpins = 3;
-          }
+            settings.heisenbergFreeze.add(`${y},${x}`);
+            
+  settings.heisenberg.freeSpin.noOfFreeSpins = 3;
+      settings.heisenberg.freeSpin.freeSpinsAdded = true;
+                }
           if ([settings.cashCollect.SymbolID.toString(), settings.coins.SymbolID.toString(), settings.losPollos.SymbolID.toString()].includes(newSymbol)) {
-            settings.heisenbergFreeze.add(`${x},${y}`);
+            settings.heisenbergFreeze.add(`${y},${x}`);
             settings.heisenbergSymbolMatrix = resultMatrix;
           }
         }
       } else {
         const newSymbol = heisenbergReels[x][(startPosition + y) % heisenbergReels[x].length];
         resultMatrix[y][x] = newSymbol;
+      
         if (newSymbol === settings.coins.SymbolID.toString()) {
+          settings.heisenbergFreeze.add(`${y},${x}`);
           console.log("Coin symbol detected! Resetting number of freespins");
           settings.heisenberg.freeSpin.noOfFreeSpins = 3;
+          settings.heisenberg.freeSpin.freeSpinsAdded = true;
         }
         // Freeze positions with specific symbols
         if ([settings.cashCollect.SymbolID.toString(), settings.coins.SymbolID.toString(), settings.losPollos.SymbolID.toString()].includes(newSymbol)) {
-          settings.heisenbergFreeze.add(`${x},${y}`);
+          settings.heisenbergFreeze.add(`${y},${x}`);
           settings.heisenbergSymbolMatrix = resultMatrix;
         }
       }
     }
   }
 
-  // Replace all occurrences of '16' with '19' in the resultMatrix
   for (let row = 0; row < resultMatrix.length; row++) {
     for (let col = 0; col < resultMatrix[row].length; col++) {
       if (resultMatrix[row][col] === settings.link.SymbolID.toString()) {
-        // console.log("FREE SOIN RESET AND SUBSTITUTE");
         // settings.heisenberg.freeSpin.noOfFreeSpins = 3;
         resultMatrix[row][col] = settings.coins.SymbolID.toString();
       }
@@ -444,25 +467,31 @@ function checkHeisenbergJackPot(gameInstance: SLBB): boolean {
 //COINS +CASH COLLECT ON 0 OR 4 -> triggers coin collection with cash collect
 
 function handleCoinsAndCashCollect(
-  gameInstance: SLBB
+  gameInstance: SLBB,
+  matrixType: 'result' | 'heisenberg'
 ): number {
   const { currentGameData, settings } = gameInstance;
   let totalCoinValue = 0;
   let cashCollectCount = 0;
   const cashCollectSymbolId = settings.cashCollect.SymbolID;
   const coinSymbolId = settings.coins.SymbolID;
-  const hasCoinSymbols = hasSymbolInMatrix(settings.heisenbergSymbolMatrix, coinSymbolId.toString());
-
-  if(hasCoinSymbols){    
-    replaceCoinsWithValues(gameInstance, 'result');
+  let hasCoinSymbols :boolean
+  if (matrixType === 'heisenberg') {
+    hasCoinSymbols = hasSymbolInMatrix(settings.heisenbergSymbolMatrix, coinSymbolId.toString());
+  } else if (matrixType === 'result') {
+    hasCoinSymbols = hasSymbolInMatrix(settings.resultSymbolMatrix, coinSymbolId.toString());
   }
 
-  if (settings.coins.values.length>0) {
+  if (hasCoinSymbols) {
+    replaceCoinsWithValues(gameInstance, matrixType);
+  }
+
+  if (settings.coins.values.length > 0) {
     console.log(totalCoinValue, "coin value before adding the cashcollect and coins");
-    
+
     const coinValue = getCoinValue(settings.coins.values);
     totalCoinValue += coinValue;
-    
+
   }
 
   // If there's at least one coin collect symbol, apply the multiplier
@@ -484,15 +513,18 @@ export function handleCashCollectandLink(gameInstance: SLBB) {
   let totalCoinValue = 0;
   let cashCollectCount = 0;
   const isJackPot = checkHeisenbergJackPot(gameInstance);
-  
-  if(isJackPot){
-    totalCoinValue = currentGameData.gameSettings.bonus.grandPrize;
+
+  if (isJackPot) {
+    settings.jackpot.isTriggered = true
+    totalCoinValue = currentGameData.gameSettings.bonus.jackpot;
+    settings.jackpot.payout = totalCoinValue;
+    settings.heisenberg.payout += totalCoinValue;
   }
   const hasCoinSymbols = hasSymbolInMatrix(settings.heisenbergSymbolMatrix, coinSymbolId.toString());
 
-  if (hasCoinSymbols) {
-    replaceCoinsWithValues(gameInstance, 'heisenberg');
-  }
+  // if (hasCoinSymbols) {
+  //   replaceCoinsWithValues(gameInstance, 'heisenberg');
+  // }
   if (settings.coins.values.length > 0) {
     // console.log(totalCoinValue, "coin value before adding the cashcollect and coins");
 
@@ -502,9 +534,6 @@ export function handleCashCollectandLink(gameInstance: SLBB) {
   }
   settings.heisenbergSymbolMatrix.forEach((row) => {
     row.forEach((symbol, colIndex) => {
-      // console.log(symbol);
-
-
       if (symbol == cashCollectSymbolId) {
         cashCollectCount++;
       }
@@ -531,19 +560,37 @@ export function handleCashCollectandLink(gameInstance: SLBB) {
 //HANDLES HEISNBER SPIN
 function handleHeisenbergSpin(gameInstance: SLBB) {
   const { settings } = gameInstance;
+  console.log(settings.losPollos.values, "values");
+  
   generateHeisenbergSpin(gameInstance);
+  console.log(settings.losPollos.values, "values");
+
   const coinSymbolId = settings.coins.SymbolID;
   let coinCount = 0;
   const prizeCoinId = settings.prizeCoin.SymbolID;
   const hasPrizeCoinSymbols = hasSymbolInMatrix(settings.heisenbergSymbolMatrix, prizeCoinId);
   console.log(settings.heisenbergSymbolMatrix);
   
-console.log(hasPrizeCoinSymbols, "hasPrizeCoinSymbols");
+// console.log(hasPrizeCoinSymbols, "hasPrizeCoinSymbols");
+const hasCoinSymbols = hasSymbolInMatrix(settings.heisenbergSymbolMatrix, coinSymbolId.toString());
 
+  if (hasCoinSymbols) {
+    replaceCoinsWithValues(gameInstance, 'heisenberg');
+  }
+
+  const isJackPot = checkHeisenbergJackPot(gameInstance);
+  
+  if(isJackPot){
+    settings.jackpot.isTriggered = true
+    settings.heisenberg.freeSpin.noOfFreeSpins = 0;
+  }
   if(hasPrizeCoinSymbols){
+    settings.grandPrize.isTriggered = true;
+
     const prize = getRandomValue(gameInstance, "prizes")
+    settings.heisenberg.payout += prize;
+    settings.grandPrize.payout = prize;
     console.log("PRIZE WON:", prize);
-    
 
   }
 
@@ -561,17 +608,18 @@ console.log(hasPrizeCoinSymbols, "hasPrizeCoinSymbols");
     // console.log(settings.heisenberg.freeSpin.noOfFreeSpins, "NUMBER OF FREE SPINS");
     if (coinCount > 0) {
       // settings.heisenberg.freeSpin.noOfFreeSpins = 3;
-      // console.log("Coin found! Reset free spins to 3.");
+      // settings.heisenberg.freeSpin.freeSpinsAdded = true;
+      console.log("Coin found! Reset free spins to 3.");
     }
   } else {
     settings.heisenberg.freeSpin.freeSpinStarted = false;
-    settings.heisenberg.isTriggered = false;
+    settings.heisenberg.freeSpin.freeSpinsAdded = false;
+
     console.log("Free spins have ended.");
   }
   if (settings.heisenberg.freeSpin.noOfFreeSpins == 0) {
     handleCashCollectandLink(gameInstance);
-    console.log(settings.heisenbergFreeze);
-    
+    settings.heisenberg.isTriggered = false;
   }
   // console.log(settings.heisenbergSymbolMatrix, "result matrix after Cash Collect and Link");
 }
@@ -670,9 +718,12 @@ export function checkForWin(gameInstance: SLBB) {
 
 
 
+    //NOTE: freespin lp
+    settings.freeSpin.isTriggered = false
+    // if()
     handleFreeSpin(hasLosPollosSymbols, hasCashCollect, gameInstance)
 
-    console.log("freespin", settings.freeSpin);
+    // console.log("freespin", settings.freeSpin);
 
 
     if (hasCoinSymbols) {
@@ -685,58 +736,69 @@ export function checkForWin(gameInstance: SLBB) {
       const firstSymbolId = resultSymbolMatrix[line[0]]?.[0];
       const { isWinningLine, matchCount, matchedIndices } = checkLineSymbols(firstSymbolId, line, gameInstance);
 
-      if (isWinningLine) {
+      if (isWinningLine && !settings.heisenberg.isTriggered) {
         // console.log(matchedIndices, "matchedIndices");
         // console.log(matchCount, "match count");
         const winMultiplier = accessData(firstSymbolId, matchCount, gameInstance);
         // console.log(winMultiplier, "winMultiplier");
         totalWin += winMultiplier * gameInstance.settings.BetPerLines;
         winningLines.push(lineIndex);
+        settings._winData.winningLines.push(lineIndex)
+        const formattedIndices = matchedIndices.map(
+          ({ col, row }) => `${col},${row}`
+        );
+        const validIndices = formattedIndices.filter(
+          (index) => index.length > 2
+        );
+        if (validIndices.length > 0) {
+          // console.log(settings.lastReel, 'settings.lastReel')
+          console.log(validIndices);
+          settings._winData.winningSymbols.push(validIndices);
+        }
         settings.matchedIndices.push(matchedIndices);
+
       }
     }
-    if (hasCoinSymbols && hasCashCollect) {
-      coinWins = handleCoinsAndCashCollect(gameInstance);
+
+
+    if (hasCoinSymbols && hasCashCollect && !settings.heisenberg.isTriggered) {
+      coinWins = handleCoinsAndCashCollect(gameInstance,"result");
       totalWin += coinWins;
     }
-
     if ((hasCashCollect && (hasLinkSymbols || hasMegaLinkSymbols)) && !settings.heisenberg.isTriggered) {
+      console.log("HEISENBERG IS TRIGGERED");
       settings.heisenberg.isTriggered = true;
       settings.heisenberg.freeSpin.noOfFreeSpins = 3;
       settings.prevresultSymbolMatrix = settings.resultSymbolMatrix;
       const cashCollectIndices = findIndicesOfSymbol(settings.cashCollect.SymbolID, settings.resultSymbolMatrix);
-      cashCollectIndices.map((index)=> settings.heisenbergFreeze.add(index.toString()))
-      console.log(cashCollectIndices);      
-      const  linkIndices = findIndicesOfSymbol(settings.link.SymbolID, settings.resultSymbolMatrix);
-      linkIndices.map((index)=> settings.heisenbergFreeze.add(index.toString()))
-      const losPollosIndices = findIndicesOfSymbol(settings.losPollos.SymbolID, settings.resultSymbolMatrix );
-      losPollosIndices.map((index)=> settings.heisenbergFreeze.add(index.toString()))
-      console.log(linkIndices);
-      console.log(settings.heisenbergFreeze, "heisenbergFreeze set after link indices");
-
-
+      cashCollectIndices.map((index) => settings.heisenbergFreeze.add(index.toString()))
+      // console.log(cashCollectIndices);      
+      const linkIndices = findIndicesOfSymbol(settings.link.SymbolID, settings.resultSymbolMatrix);
+      linkIndices.map((index) => settings.heisenbergFreeze.add(index.toString()))
+      const losPollosIndices = findIndicesOfSymbol(settings.losPollos.SymbolID, settings.resultSymbolMatrix);
+      losPollosIndices.map((index) => settings.heisenbergFreeze.add(index.toString()))
+      // console.log(settings.heisenbergFreeze, "heisenbergFreeze set after link indices")
     }
     // console.log(totalWin, "Total win before trigger of heisenberg ");
 
-
     if (settings.heisenberg.isTriggered) {
       totalWin += settings.heisenberg.payout;
-      // console.log(totalWin, "Total win after trigger of heisenberg");
+      console.log(totalWin, "Total win after trigger of heisenberg");
       settings.heisenberg.payout = 0;
     }
-    console.log("winning ", winningLines);
+    // console.log("winning ", winningLines);
 
     gameInstance.playerData.currentWining = totalWin;
     gameInstance.playerData.haveWon += totalWin;
-    settings._winData.winningLines
-    console.log("PLAYERDATA:", gameInstance.playerData);
-    
+    settings._winData.winningLines = winningLines;
+    // console.log("PLAYERDATA:", gameInstance.playerData);
+
     makeResultJson(gameInstance)
     gameInstance.incrementPlayerBalance(gameInstance.playerData.currentWining)
     settings.coins.values = [];
-    settings._winData.winningLines = winningLines;
     gameInstance.playerData.currentWining = 0
-    
+    settings._winData.winningLines = [];
+
     // settings.hasCascading = false;
     // settings.resultSymbolMatrix = [];
     // settings.tempReelSym = [];
@@ -760,23 +822,37 @@ export function makeResultJson(gameInstance: SLBB) {
   try {
     const { settings, playerData } = gameInstance;
     const credits = gameInstance.getPlayerData().credits + playerData.currentWining
-    const Balance = credits.toFixed(2)
+    const Balance = Number(credits.toFixed(2))
     const sendData = {
       GameData: {
-        resultSymbols: settings.resultSymbolMatrix,
-        isFreeSpin: settings.freeSpin.isFreeSpin,
-        freeSpinCount: settings.freeSpin.freeSpinCount,
-        winData:{
-          // winningLines: settings._winData.winningLines
-          matched: settings.matchedIndices
+        ResultReel: settings.resultSymbolMatrix,
+        // isFreeSpin: settings.freeSpin.isTriggered,
+        // freeSpinCount: settings.freeSpin.freeSpinCount,
+        linesToEmit: settings._winData.winningLines,
+        symbolsToEmit: settings._winData.winningSymbols,
+        WinAmount: gameInstance.playerData.currentWining,
+        freeSpins: {
+          count: settings.freeSpin.freeSpinCount,
+          isNewAdded: settings.freeSpin.isTriggered
         },
-        bonus: {
-          isTriggered: settings.heisenberg.isTriggered,
-          count: settings.heisenberg.freeSpin.freeSpinCount,
-          resultSymbols: settings.heisenbergSymbolMatrix,
-          //TODO: fix later
-          freeze: settings.heisenbergFreeze
-        }
+        winData: {
+          coinValues: settings.coins.values,
+          losPollos: settings.losPollos.values
+        },
+        jackpot:settings.jackpot.payout,
+         bonus:{
+          isBonus:settings.heisenberg.isTriggered,
+          BonusResult:settings.heisenbergSymbolMatrix,
+          payout:settings.heisenberg.payout,
+          spinCount:settings.heisenberg.freeSpin.noOfFreeSpins,
+          freeSpinAdded: settings.heisenberg.freeSpin.freeSpinsAdded,
+          isWalterStash:settings.jackpot.isTriggered,
+          walterStashPayout:settings.jackpot.payout,
+          isGrandPrize:settings.grandPrize.isTriggered,
+           grandPrizePayout:settings.grandPrize.payout,
+           freezeIndices:settings.heisenbergFreeze,
+         },
+        
       },
       PlayerData: {
         Balance: Balance,
@@ -785,13 +861,21 @@ export function makeResultJson(gameInstance: SLBB) {
         haveWon: playerData.haveWon,
       }
     };
+    console.log("losPollosValues", settings.losPollos.values);
+    console.log("coins", settings.coins.values);
+    console.log("syms", settings._winData.winningSymbols);
+
+    
     gameInstance.sendMessage('ResultData', sendData);
+    console.log(sendData);
+
   } catch (error) {
     console.error("Error generating result JSON or sending message:", error);
   }
 }
 
 
+//NOTE: lp freespin
 function handleFreeSpin(hasLP: boolean, hasCC: boolean, gameInstance: SLBB) {
   const { settings } = gameInstance
   if (hasLP && hasCC) {
@@ -811,8 +895,12 @@ function handleFreeSpin(hasLP: boolean, hasCC: boolean, gameInstance: SLBB) {
     settings.losPollos.values.map((value) => {
       count += value.value
     })
+    if (count > 0) {
+      settings.freeSpin.isTriggered = true
+    }
     settings.freeSpin.isFreeSpin = true
     settings.freeSpin.freeSpinCount += count
 
   }
 }
+
