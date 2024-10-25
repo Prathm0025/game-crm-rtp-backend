@@ -16,6 +16,8 @@ class WinData {
         this.freeSpins = 0;
         this.winningLines = [];
         this.winningSymbols = [];
+        this.winningSymbolsFreeSpin = [];
+        this.winningLinesFreeSpin = [];
         this.totalWinningAmount = 0;
         this.jackpotwin = 0;
         this.slotGame = slotGame;

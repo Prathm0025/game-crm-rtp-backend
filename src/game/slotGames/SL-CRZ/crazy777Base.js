@@ -71,15 +71,15 @@ class SLCRZ {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const playerData = this.getPlayerData();
-                if (!this.settings.isFreeSpin && this.settings.currentBet > playerData.credits) {
+                if (this.settings.currentBet > playerData.credits) {
                     this.sendError("Low Balance");
                     return;
                 }
                 if (!this.settings.isFreeSpin) {
-                    yield this.deductPlayerBalance(this.settings.currentBet);
+                    yield this.deductPlayerBalance(this.settings.currentBet * 3);
                     this.playerData.totalbet += this.settings.currentBet * 3;
                 }
-                if (this.settings.freeSpinCount === 1) {
+                if (this.settings.freeSpinCount == 0) {
                     this.settings.isFreeSpin = false;
                 }
                 if (this.settings.isFreeSpin &&
@@ -141,6 +141,7 @@ class SLCRZ {
                 if (middleRow.includes(0)) {
                     this.playerData.currentWining = 0;
                     (0, helper_1.makeResultJson)(this);
+                    this.updatePlayerBalance(this.playerData.currentWining);
                     console.log("No win: '0' present in the middle row.");
                     return;
                 }
@@ -170,6 +171,7 @@ class SLCRZ {
                     this.playerData.haveWon += this.playerData.currentWining;
                     this.updatePlayerBalance(this.playerData.currentWining);
                     (0, helper_1.makeResultJson)(this);
+                    return;
                 }
                 this.playerData.haveWon += this.playerData.currentWining;
                 (0, helper_1.makeResultJson)(this);

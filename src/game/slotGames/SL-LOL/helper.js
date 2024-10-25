@@ -6,7 +6,6 @@ exports.sendInitData = sendInitData;
 exports.makeResultJson = makeResultJson;
 exports.printMatrix = printMatrix;
 exports.printWinningCombinations = printWinningCombinations;
-exports.logGame = logGame;
 exports.getSymbol = getSymbol;
 exports.isWild = isWild;
 exports.checkWin = checkWin;
@@ -14,9 +13,7 @@ exports.checkForFreespin = checkForFreespin;
 const WinData_1 = require("../BaseSlotGame/WinData");
 const gameUtils_1 = require("../../Utils/gameUtils");
 function initializeGameSettings(gameData, gameInstance) {
-    // console.log("Entering initializeGameSettings function");
-    // console.log("gameData:", JSON.stringify(gameData, null, 2));
-    var _a;
+    var _a, _b;
     const gameSettings = gameData.gameSettings || gameData; // Handle both possible structures
     const settings = {
         id: gameSettings.id,
@@ -35,8 +32,10 @@ function initializeGameSettings(gameData, gameInstance) {
         defaultPayout: gameSettings.defaultPayout || 0,
         minMatchCount: gameSettings.minMatchCount || 3,
         isFreeSpin: false,
+        isFreeSpinTriggered: false,
         freeSpinCount: 0,
         freeSpinMultipliers: [1, 1, 1, 1, 1],
+        freeSpinSymbolId: ((_b = gameInstance.currentGameData.gameSettings.Symbols.find((sym) => sym.Name == 'FreeSpin')) === null || _b === void 0 ? void 0 : _b.Id) || "12",
         maxMultiplier: 10,
         gamble: gameSettings.gamble,
         winningCombinations: []
@@ -47,8 +46,6 @@ function initializeGameSettings(gameData, gameInstance) {
 }
 function generateInitialReel(gameSettings) {
     try {
-        // console.log("Entering generateInitialReel function");
-        // console.log("gameSettings:", JSON.stringify(gameSettings, (key, value) => key === '_winData' ? undefined : value, 2));
         if (!gameSettings || !gameSettings.matrix || !gameSettings.Symbols) {
             console.error("Invalid gameSettings object:", gameSettings);
             return [];
@@ -90,11 +87,11 @@ function sendInitData(gameInstance) {
     gameUtils_1.UiInitData.paylines = (0, gameUtils_1.convertSymbols)(gameInstance.settings.Symbols);
     const credits = gameInstance.getPlayerData().credits;
     const Balance = credits.toFixed(2);
-    const reels = generateInitialReel(gameInstance.settings);
+    const reels = gameInstance.settings.reels;
     gameInstance.settings.reels = reels;
     const dataToSend = {
         GameData: {
-            // Reel: reels,
+            Reel: reels,
             Bets: gameInstance.settings.currentGamedata.bets,
         },
         UIData: gameUtils_1.UiInitData,
@@ -129,6 +126,7 @@ function makeResultJson(gameInstance) {
                 haveWon: playerData.haveWon,
             }
         };
+        console.log("Sending result JSON:", sendData);
         gameInstance.sendMessage('ResultData', sendData);
     }
     catch (error) {
@@ -142,7 +140,7 @@ function printMatrix(matrix, getSymbol, gameInstance) {
     }
 }
 function printWinningCombinations(winningCombinations) {
-    if (winningCombinations.length === 0) {
+    if (winningCombinations.length == 0) {
         console.log("No winning combinations.");
         return;
     }
@@ -157,31 +155,31 @@ function printWinningCombinations(winningCombinations) {
     const totalPayout = winningCombinations.reduce((sum, combo) => sum + combo.payout, 0);
     console.log(`Total Payout: ${totalPayout}`);
 }
-function logGame(result, payout, winningCombinations, getSymbol, gameInstance) {
-    console.log("Game Result:");
-    printMatrix(result, getSymbol, gameInstance);
-    console.log("\nTotal Payout:", payout);
-    if (winningCombinations.length > 0) {
-        console.log("\nWinning Combinations:");
-        winningCombinations.forEach((combo, index) => {
-            const symbol = getSymbol(combo.symbolId);
-            console.log(`\nCombination ${index + 1}:`);
-            console.log(`Symbol: ${symbol === null || symbol === void 0 ? void 0 : symbol.Name}`);
-            console.log(`Payout: ${combo.payout}`);
-            // printWinningCombination(result, combo.positions, getSymbol, gameInstance);
-        });
-    }
-    else {
-        console.log("\nNo winning combinations.");
-    }
-}
+// export function logGame(result: GameResult, payout: number, winningCombinations: WinningCombination[], getSymbol: (id: number) => SymbolType | undefined, gameInstance: SLLOL): void {
+//   console.log("Game Result:");
+//   printMatrix(result, getSymbol, gameInstance);
+//   console.log("\nTotal Payout:", payout);
+//
+//   if (winningCombinations.length > 0) {
+//     console.log("\nWinning Combinations:");
+//     winningCombinations.forEach((combo, index) => {
+//       const symbol = getSymbol(combo.symbolId);
+//       console.log(`\nCombination ${index + 1}:`);
+//       console.log(`Symbol: ${symbol?.Name}`);
+//       console.log(`Payout: ${combo.payout}`);
+//       // printWinningCombination(result, combo.positions, getSymbol, gameInstance);
+//     });
+//   } else {
+//     console.log("\nNo winning combinations.");
+//   }
+// }
 function getSymbol(id, Symbols) {
-    return Symbols.find(s => s.Id === id);
+    return Symbols.find(s => s.Id == id);
 }
 function isWild(symbolId) {
     // const symbol = this.getSymbol(symbolId);
     // return symbol ? symbol.Name === "Wild" : false;
-    return symbolId === 11;
+    return symbolId == 11;
 }
 // export function simulateFreespin(gameInstance: SLLOL): FreeSpinResponse {
 //   const { settings } = gameInstance;
@@ -249,12 +247,12 @@ function isWild(symbolId) {
 //   return response;
 // }
 function checkWin(gameInstance) {
-    const { settings } = gameInstance;
+    const { settings, playerData } = gameInstance;
     let totalPayout = 0;
     let winningCombinations = [];
     const findCombinations = (symbolId, col, path) => {
         // Stop if we've checked all columns or path is complete
-        if (col === settings.matrix.x) {
+        if (col == settings.matrix.x) {
             if (path.length >= settings.minMatchCount) {
                 const symbol = getSymbol(symbolId, settings.Symbols);
                 const multiplierIndex = path.length - settings.minMatchCount;
@@ -267,7 +265,7 @@ function checkWin(gameInstance) {
         }
         for (let row = 0; row < settings.resultSymbolMatrix.length; row++) {
             const currentSymbolId = settings.resultSymbolMatrix[row][col];
-            if (currentSymbolId === symbolId || isWild(currentSymbolId)) {
+            if (currentSymbolId == symbolId || isWild(currentSymbolId)) {
                 findCombinations(symbolId, col + 1, [...path, [row, col]]);
             }
         }
@@ -286,17 +284,17 @@ function checkWin(gameInstance) {
         if (symbol.Name !== "Wild") {
             for (let row = 0; row < settings.matrix.y; row++) {
                 const startSymbolId = settings.resultSymbolMatrix[row][0]; // Start in the leftmost column (0)
-                if (startSymbolId === symbol.Id || isWild(startSymbolId)) {
+                if (startSymbolId == symbol.Id || isWild(startSymbolId)) {
                     findCombinations(symbol.Id, 1, [[row, 0]]);
                 }
             }
         }
     });
     // Filter out shorter combinations that are subsets of longer ones
-    winningCombinations = winningCombinations.filter((combo, index, self) => !self.some((otherCombo, otherIndex) => index !== otherIndex &&
-        combo.symbolId === otherCombo.symbolId &&
+    winningCombinations = winningCombinations.filter((combo, index, self) => !self.some((otherCombo, otherIndex) => index != otherIndex &&
+        combo.symbolId == otherCombo.symbolId &&
         combo.positions.length < otherCombo.positions.length &&
-        combo.positions.every((pos, i) => pos[0] === otherCombo.positions[i][0] && pos[1] === otherCombo.positions[i][1])));
+        combo.positions.every((pos, i) => pos[0] == otherCombo.positions[i][0] && pos[1] == otherCombo.positions[i][1])));
     //NOTE: FREESPIN related checks
     //NOTE: check and increment freespinmultipliers 
     // Update multipliers based on symbol occurrences, capped at MAX_MULTIPLIER
@@ -307,9 +305,10 @@ function checkWin(gameInstance) {
             }
         });
     }
-    checkForFreespin(gameInstance);
+    const bool = checkForFreespin(gameInstance);
+    console.log("isFreespin", bool);
     //reset multiplers for freespin when its over 
-    if (settings.freeSpinCount <= 0 && settings.isFreeSpin === false) {
+    if (settings.freeSpinCount <= 0 && settings.isFreeSpin == false) {
         settings.freeSpinMultipliers = [1, 1, 1, 1, 1];
     }
     else {
@@ -326,6 +325,9 @@ function checkWin(gameInstance) {
         }
         totalPayout += combo.payout;
     });
+    settings.winningCombinations = winningCombinations;
+    playerData.currentWining = totalPayout;
+    playerData.haveWon += totalPayout;
     makeResultJson(gameInstance);
     return { payout: totalPayout, winningCombinations };
 }
@@ -339,14 +341,15 @@ function checkForFreespin(gameInstance) {
         let col2Has12 = false;
         let col3Has12 = false;
         for (let j = 0; j < rows; j++) { // Loop through rows
-            if (resultMatrix[j][0] === 12)
+            if (resultMatrix[j][0] == settings.freeSpinSymbolId)
                 col1Has12 = true; // Check 1st column
-            if (resultMatrix[j][1] === 12)
+            if (resultMatrix[j][1] == settings.freeSpinSymbolId)
                 col2Has12 = true; // Check 2nd column
-            if (resultMatrix[j][2] === 12)
+            if (resultMatrix[j][2] == settings.freeSpinSymbolId)
                 col3Has12 = true; // Check 3rd column
             // If all three columns have the symbol, return true
             if (col1Has12 && col2Has12 && col3Has12) {
+                settings.isFreeSpinTriggered = true;
                 settings.isFreeSpin = true;
                 settings.freeSpinCount += 10;
                 return true;

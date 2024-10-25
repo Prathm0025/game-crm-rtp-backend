@@ -167,13 +167,13 @@ class SLLOL {
             try {
                 this.playerData.currentWining = 0;
                 const { payout, winningCombinations } = (0, helper_1.checkWin)(this);
-                (0, helper_1.printWinningCombinations)(winningCombinations);
-                console.log("balance:", this.getPlayerData().credits);
-                console.log("freespin:", {
-                    count: this.settings.freeSpinCount,
-                    isFreespin: this.settings.isFreeSpin,
-                    multipliers: this.settings.freeSpinMultipliers
-                });
+                // printWinningCombinations(winningCombinations)
+                // console.log("balance:", this.getPlayerData().credits)
+                // console.log("freespin:", {
+                //   count: this.settings.freeSpinCount,
+                //   isFreespin: this.settings.isFreeSpin,
+                //   multipliers: this.settings.freeSpinMultipliers
+                // })
                 if (payout > 0) {
                     this.playerData.currentWining = payout;
                     this.playerData.haveWon += payout;
@@ -182,12 +182,11 @@ class SLLOL {
                 else {
                     this.playerData.currentWining = 0;
                 }
-                console.log("Payout checkwin: ", payout);
+                // console.log("Payout checkwin: ", payout);
                 //
                 // this.gamebleTesting()
-                (0, helper_1.makeResultJson)(this);
-                console.log("playerData :", this.playerData);
-                console.log("windata :", this.settings._winData.totalWinningAmount);
+                // console.log("playerData :", this.playerData);
+                // console.log("windata :", this.settings._winData.totalWinningAmount);
             }
             catch (error) {
                 console.error("Error in checkResult:", error);

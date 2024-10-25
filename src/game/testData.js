@@ -361,12 +361,12 @@ exports.gameData = [
                 "Name": "Bat",
                 "Id": 9,
                 "reelInstance": {
-                    "0": 5,
-                    "1": 5,
-                    "2": 5,
-                    "3": 5,
-                    "4": 5,
-                    "5": 5
+                    "0": 0,
+                    "1": 0,
+                    "2": 0,
+                    "3": 0,
+                    "4": 0,
+                    "5": 0
                 },
                 "useWildSub": true,
                 "multiplier": []
@@ -375,12 +375,12 @@ exports.gameData = [
                 "Name": "BatX2",
                 "Id": 10,
                 "reelInstance": {
-                    "0": 5,
-                    "1": 5,
-                    "2": 5,
-                    "3": 5,
-                    "4": 5,
-                    "5": 5
+                    "0": 0,
+                    "1": 0,
+                    "2": 0,
+                    "3": 0,
+                    "4": 0,
+                    "5": 0
                 },
                 "useWildSub": true,
                 "multiplier": []
@@ -390,7 +390,7 @@ exports.gameData = [
                 "Id": 11,
                 "reelInstance": {
                     "0": 0,
-                    "1": 4,
+                    "1": 0,
                     "2": 0,
                     "3": 0,
                     "4": 0,
@@ -407,7 +407,7 @@ exports.gameData = [
                     "1": 0,
                     "2": 0,
                     "3": 0,
-                    "4": 4,
+                    "4": 0,
                     "5": 0
                 },
                 "useWildSub": true,
@@ -419,7 +419,7 @@ exports.gameData = [
                 "reelInstance": {
                     "0": 0,
                     "1": 0,
-                    "2": 4,
+                    "2": 0,
                     "3": 0,
                     "4": 0,
                     "5": 0
@@ -445,12 +445,12 @@ exports.gameData = [
                 "Name": "Wild",
                 "Id": 15,
                 "reelInstance": {
-                    "0": 20,
-                    "1": 20,
-                    "2": 20,
-                    "3": 20,
-                    "4": 20,
-                    "5": 20
+                    "0": 10,
+                    "1": 10,
+                    "2": 10,
+                    "3": 10,
+                    "4": 10,
+                    "5": 10
                 },
                 "description": "Substitutes for all symbols except Jackpot, Free Spin, Bonus, and Scatter.",
                 "useWildSub": false,
