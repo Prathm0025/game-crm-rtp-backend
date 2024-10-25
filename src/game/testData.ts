@@ -425,11 +425,11 @@ export const gameData = [
           "Name":"Scatter",
           "Id":10,
           "reelInstance":{
-             "0":10,
-             "1":10,
+             "0":2,
+             "1":2,
              "2":0,
-             "3":10,
-             "4":10
+             "3":2,
+             "4":2
           },
           "description":"Scatter: Offers higher pay outs when 3 or more symbols appear anywhere on the result matrix. Payout: 5x - 1000, 4x - 700, 3x - 500",
           "useWildSub":false,
@@ -452,9 +452,9 @@ export const gameData = [
           "Name":"FreeSpin",
           "Id":11,
           "reelInstance":{
-             "0":40,
-             "1":40,
-             "2":40,
+             "0":25,
+             "1":25,
+             "2":25,
              "3":0,
              "4":0
           },
@@ -468,9 +468,9 @@ export const gameData = [
           "reelInstance":{
              "0":0,
              "1":0,
-             "2":15,
-             "3":15,
-             "4":15
+             "2":40,
+             "3":40,
+             "4":40
           },
           "description":"Starts a spinning wheel game for a pay out when 3 or more symbols appear anywhere on the result matrix.",
           "useWildSub":false,

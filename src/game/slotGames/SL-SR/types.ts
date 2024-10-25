@@ -30,6 +30,8 @@ export interface SLSRSETTINGS {
     isNewAdded: boolean,
     isFreeSpinRunning: boolean;
     freeSpinTemp: number;
+    scatterWinningSymbols: any[];
+    trashForCashWinningSymbols: any[];
     freeSpin: {
         symbolID: string,
         freeSpinMuiltiplier: any[],

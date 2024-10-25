@@ -82,6 +82,7 @@ export class SLSR {
                 this.settings.freeSpin.freeSpinCount --;
             
             }
+            console.log("Bet per line",this.settings.BetPerLines);
             
             await new RandomResultGenerator(this);
             checkForWin(this)
