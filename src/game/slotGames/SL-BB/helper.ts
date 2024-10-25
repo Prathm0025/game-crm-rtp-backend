@@ -393,8 +393,14 @@ function generateHeisenbergSpin(gameInstance: SLBB): string[][] {
         if(settings.heisenbergSymbolMatrix[y] && settings.heisenbergSymbolMatrix[y][x]){
         resultMatrix[y][x] = settings.heisenbergSymbolMatrix[y][x]           
         } else {
+        
           const newSymbol = heisenbergReels[x][(startPosition + y) % heisenbergReels[x].length];
           resultMatrix[y][x] = newSymbol;
+          if(newSymbol === settings.losPollos.SymbolID.toString()){
+            console.log(newSymbol, "AALOO");
+            const losPollosValue = getRandomValue(gameInstance, "freespin")
+            settings.losPollos.values.push({ index: [x, y], value: losPollosValue })
+          }
           if (newSymbol === settings.coins.SymbolID.toString()) {
             console.log("Coin symbol detected! Resetting number of freespins");
             settings.heisenbergFreeze.add(`${y},${x}`);
@@ -410,6 +416,12 @@ function generateHeisenbergSpin(gameInstance: SLBB): string[][] {
       } else {
         const newSymbol = heisenbergReels[x][(startPosition + y) % heisenbergReels[x].length];
         resultMatrix[y][x] = newSymbol;
+        if(newSymbol === settings.losPollos.SymbolID.toString()){
+          console.log(newSymbol, "AALOO");
+          
+          const losPollosValue = getRandomValue(gameInstance, "freespin")
+          settings.losPollos.values.push({ index: [x, y], value: losPollosValue })
+        }
         if (newSymbol === settings.coins.SymbolID.toString()) {
           settings.heisenbergFreeze.add(`${y},${x}`);
           console.log("Coin symbol detected! Resetting number of freespins");
@@ -555,7 +567,11 @@ export function handleCashCollectandLink(gameInstance: SLBB) {
 //HANDLES HEISNBER SPIN
 function handleHeisenbergSpin(gameInstance: SLBB) {
   const { settings } = gameInstance;
+  console.log(settings.losPollos.values, "values");
+  
   generateHeisenbergSpin(gameInstance);
+  console.log(settings.losPollos.values, "values");
+
   const coinSymbolId = settings.coins.SymbolID;
   let coinCount = 0;
   const prizeCoinId = settings.prizeCoin.SymbolID;
@@ -850,7 +866,9 @@ export function makeResultJson(gameInstance: SLBB) {
       }
     };    
     gameInstance.sendMessage('ResultData', sendData);
-    console.log(sendData);
+    // console.log(sendData.GameData.bonus.isBonus);
+    
+    // console.log(sendData.GameData.bonus.freezeIndices);
     
   } catch (error) {
     console.error("Error generating result JSON or sending message:", error);
