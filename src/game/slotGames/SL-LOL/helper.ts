@@ -25,6 +25,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLLOL) {
     defaultPayout: gameSettings.defaultPayout || 0,
     minMatchCount: gameSettings.minMatchCount || 3,
     isFreeSpin: false,
+    isFreeSpinTriggered:false,
     freeSpinCount: 0,
     freeSpinMultipliers: [1, 1, 1, 1, 1],
     freeSpinSymbolId:gameInstance.currentGameData.gameSettings.Symbols.find((sym:SymbolType)=>sym.Name=='FreeSpin')?.Id || "12",
@@ -162,24 +163,24 @@ export function printWinningCombinations(winningCombinations: WinningCombination
   console.log(`Total Payout: ${totalPayout}`);
 }
 
-export function logGame(result: GameResult, payout: number, winningCombinations: WinningCombination[], getSymbol: (id: number) => SymbolType | undefined, gameInstance: SLLOL): void {
-  console.log("Game Result:");
-  printMatrix(result, getSymbol, gameInstance);
-  console.log("\nTotal Payout:", payout);
-
-  if (winningCombinations.length > 0) {
-    console.log("\nWinning Combinations:");
-    winningCombinations.forEach((combo, index) => {
-      const symbol = getSymbol(combo.symbolId);
-      console.log(`\nCombination ${index + 1}:`);
-      console.log(`Symbol: ${symbol?.Name}`);
-      console.log(`Payout: ${combo.payout}`);
-      // printWinningCombination(result, combo.positions, getSymbol, gameInstance);
-    });
-  } else {
-    console.log("\nNo winning combinations.");
-  }
-}
+// export function logGame(result: GameResult, payout: number, winningCombinations: WinningCombination[], getSymbol: (id: number) => SymbolType | undefined, gameInstance: SLLOL): void {
+//   console.log("Game Result:");
+//   printMatrix(result, getSymbol, gameInstance);
+//   console.log("\nTotal Payout:", payout);
+//
+//   if (winningCombinations.length > 0) {
+//     console.log("\nWinning Combinations:");
+//     winningCombinations.forEach((combo, index) => {
+//       const symbol = getSymbol(combo.symbolId);
+//       console.log(`\nCombination ${index + 1}:`);
+//       console.log(`Symbol: ${symbol?.Name}`);
+//       console.log(`Payout: ${combo.payout}`);
+//       // printWinningCombination(result, combo.positions, getSymbol, gameInstance);
+//     });
+//   } else {
+//     console.log("\nNo winning combinations.");
+//   }
+// }
 
 
 export function getSymbol(id: number, Symbols: SymbolType[]): SymbolType | undefined {
@@ -378,6 +379,7 @@ export function checkForFreespin(gameInstance: SLLOL): boolean {
 
       // If all three columns have the symbol, return true
       if (col1Has12 && col2Has12 && col3Has12) {
+        settings.isFreeSpinTriggered=true
         settings.isFreeSpin = true;
         settings.freeSpinCount += 10;
         return true;

@@ -179,7 +179,7 @@ export class SLLOL {
       this.playerData.currentWining = 0
 
       const { payout, winningCombinations } = checkWin(this);
-      printWinningCombinations(winningCombinations)
+      // printWinningCombinations(winningCombinations)
 
       // console.log("balance:", this.getPlayerData().credits)
       // console.log("freespin:", {

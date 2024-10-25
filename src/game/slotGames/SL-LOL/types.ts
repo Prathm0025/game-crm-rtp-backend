@@ -34,6 +34,7 @@ export interface SLLOLSETTINGS {
   defaultPayout: number;
   minMatchCount: number;
   isFreeSpin: boolean;
+  isFreeSpinTriggered:boolean;
   freeSpinCount: number;
   freeSpinSymbolId: number;
   freeSpinMultipliers: number[];
