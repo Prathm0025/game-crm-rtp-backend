@@ -590,7 +590,7 @@ export const gameData = [
         },
         "description": "",
         "useWildSub": false,
-        "useHeisenberg": true,
+        "useHeisenberg": false,
         "multiplier": [
 
         ]

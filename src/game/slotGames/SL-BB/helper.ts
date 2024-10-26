@@ -36,6 +36,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBB) {
       isTriggered: false,
       payout: 0
     },
+    isCashCollect:false,
     freeSpin: {
       isEnabled: gameData.gameSettings.freeSpin.isEnabled,
       isTriggered: false,
@@ -492,6 +493,7 @@ function handleCoinsAndCashCollect(
   matrixType: 'result' | 'heisenberg'
 ): number {
   const { currentGameData, settings } = gameInstance;
+  settings.isCashCollect = true;
   let totalCoinValue = 0;
   let cashCollectCount = 0;
   const cashCollectSymbolId = settings.cashCollect.SymbolID;
@@ -717,6 +719,8 @@ export function checkForWin(gameInstance: SLBB) {
 
 
     const { settings, currentGameData } = gameInstance;
+    settings.isCashCollect = false;
+
     if (settings.heisenberg.isTriggered) {
       handleHeisenbergSpin(gameInstance)
     }
@@ -881,6 +885,7 @@ export function makeResultJson(gameInstance: SLBB) {
           coinValues: settings.coins.values,
           losPollos: settings.losPollos.values
         },
+        isCashCollect :settings.isCashCollect,
         jackpot:settings.jackpot.payout,
          bonus:{
           isBonus:settings.heisenberg.isTriggered,
@@ -905,17 +910,17 @@ export function makeResultJson(gameInstance: SLBB) {
       }
     };
     //FIX: remove logs
-    console.log("losPollosValues", settings.losPollos.values);
-    console.log("coins", settings.coins.values);
-    console.log("linestoemit", settings._winData.winningLines);
-    console.log("symtoemit", settings._winData.winningSymbols);
+    // console.log("losPollosValues", settings.losPollos.values);
+    // console.log("coins", settings.coins.values);
+    // console.log("linestoemit", settings._winData.winningLines);
+    // console.log("symtoemit", settings._winData.winningSymbols);
     
     gameInstance.sendMessage('ResultData', sendData);
     // console.log(sendData.GameData.bonus.BonusResult);
     
   //  console.log(sendData.GameData.winData.coinValues, "coins");
    
-    console.log(sendData.GameData.ResultReel);
+    console.log(sendData.GameData.bonus.BonusResult);
 
   } catch (error) {
     console.error("Error generating result JSON or sending message:", error);
