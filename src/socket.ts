@@ -4,6 +4,9 @@ import { Player as PlayerModel } from "./dashboard/users/userModel";
 import { config } from "./config/config";
 import Player from "./Player";
 import createHttpError from "http-errors";
+import { messageType } from "./game/Utils/gameUtils";
+import Manager from "./Manager";
+import { sessionManager } from "./dashboard/session/sessionManager";
 
 
 interface DecodedToken {
@@ -11,7 +14,8 @@ interface DecodedToken {
     role?: string;
 }
 
-export let users: Map<string, Player> = new Map();
+export let currentActivePlayers: Map<string, Player> = new Map();
+export let currentActiveManagers: Map<string, Manager> = new Map();
 
 
 const verifySocketToken = (socket: Socket): Promise<DecodedToken> => {
@@ -34,13 +38,99 @@ const verifySocketToken = (socket: Socket): Promise<DecodedToken> => {
     });
 };
 
-const getUserCredits = async (username: string): Promise<number> => {
+const getPlayerCredits = async (username: string): Promise<number> => {
     const player = await PlayerModel.findOne({ username });
     if (player) {
         return player.credits;
     }
     throw new Error("User not found");
 };
+
+const handlePlayerConnection = async (socket: Socket, decoded: DecodedToken, userAgent: string) => {
+    const username = decoded.username;
+    const origin = socket.handshake.auth.origin;
+    const gameId = socket.handshake.auth.gameId;
+    const credits = await getPlayerCredits(decoded.username)
+
+    let existingPlayer = currentActivePlayers.get(username);
+
+    if (existingPlayer) {
+        if (existingPlayer.playerData.userAgent !== userAgent) {
+            socket.emit("AnotherDevice", "You are already playing on another browser.");
+            socket.disconnect(true);
+            throw createHttpError(403, "Already playing on another device");
+        }
+
+        // Handle platform reconnections
+        if (origin) {
+            if (existingPlayer.platformData.socket && existingPlayer.platformData.socket.connected) {
+                socket.emit("alert", "Platform already connected. Please disconnect the other session.");
+                socket.disconnect(true);
+                return;
+            } else {
+                existingPlayer.initializePlatformSocket(socket);
+                existingPlayer.sendAlert(`Platform reconnected for ${username}`, false);
+                return;
+            }
+        }
+
+        // Handle game connections
+        if (gameId) {
+            if (!existingPlayer.platformData.socket) {
+                socket.emit(messageType.ERROR, "You need to have an active platform connection before joining a game.");
+                socket.disconnect(true);
+                return;
+            }
+
+            await existingPlayer.updateGameSocket(socket);
+            existingPlayer.sendAlert(`Game initialized for ${username} in game ${gameId}`);
+            return;
+        }
+    }
+    // If no existing user, this is a new connection
+    if (origin) {
+        const newUser = new Player(username, decoded.role, credits, userAgent, socket);
+        currentActivePlayers.set(username, newUser);
+        newUser.sendAlert(`Player initialized for ${newUser.playerData.username} on platform ${origin}`, false);
+    } else {
+        socket.emit(messageType.ERROR, "You need to have an active platform connection before joining a game.");
+        socket.disconnect(true);
+    }
+};
+
+const handleManagerConnection = async (socket: Socket, decoded: DecodedToken, userAgent: string) => {
+    const username = decoded.username;
+    const role = decoded.role
+
+    let existingManager = currentActiveManagers.get(username);
+
+    if (existingManager) {
+        if (existingManager.socket.connected) {
+            socket.emit("AnotherDevice", "You are already managing on another browser.");
+            socket.disconnect(true);
+            return;
+        }
+
+        console.log(`Manager ${username} is reconnecting.`);
+        existingManager.socket = socket;
+        existingManager.userAgent = userAgent;
+        socket.emit(messageType.ALERT, `Manager ${username} has been reconnected.`);
+    } else {
+        const newManager = new Manager(username, role, userAgent, socket);
+        currentActiveManagers.set(username, newManager);
+        socket.emit(messageType.ALERT, `Manager ${username} has been connected.`);
+    }
+
+
+    // Send all active players to the manager upon connection
+    const activeUsersData = Array.from(currentActivePlayers.values()).map(player => {
+        const platformSession = sessionManager.getPlatformSession(player.playerData.username);
+        return platformSession?.getSummary() || {};
+    });
+
+    socket.emit("activePlayers", activeUsersData);
+};
+
 
 const socketController = (io: Server) => {
 
@@ -49,9 +139,10 @@ const socketController = (io: Server) => {
         const userAgent = socket.request.headers['user-agent'];
         try {
             const decoded = await verifySocketToken(socket);
-            const credits = await getUserCredits(decoded.username);
+            console.log("Decoded : ", decoded);
 
-            (socket as any).decoded = { ...decoded, credits };
+
+            (socket as any).decoded = { ...decoded };
             (socket as any).userAgent = userAgent;
             next();
         } catch (error) {
@@ -63,58 +154,16 @@ const socketController = (io: Server) => {
     io.on("connection", async (socket) => {
         try {
             const decoded = (socket as any).decoded;
-            const origin = socket.handshake.auth.origin;
-            const gameId = socket.handshake.auth.gameId;
-
-
-            if (!decoded || !decoded.username || !decoded.role) {
-                console.error("Connection rejected: missing required fields in token");
-                socket.disconnect(true);
-                return;
-            }
-
-
             const userAgent = (socket as any).userAgent;
-            const username = decoded.username;
+            const role = decoded.role;
 
-            const existingUser = users.get(username);
 
-            if (existingUser) {
-                if (existingUser.playerData.userAgent !== userAgent) {
-                    socket.emit("AnotherDevice", "You are already playing on another browser.");
-                    socket.disconnect(true);
-                    throw createHttpError(403, "Please wait to disconnect")
-                }
-
-                // Ensure the user has a platform connection before allowing a game connection
-                if (!existingUser.platformData.socket) {
-                    socket.emit("Error", "You need to have an active platform connection before joining a game.");
-                    socket.disconnect(true);
-                    return;
-                }
-
-                // If gameId is provided, this is a request for a game connection
-                if (gameId) {
-                    await existingUser.updateGameSocket(socket); // Initialize or update the game socket
-                    existingUser.sendAlert(`Game initialized for ${username} in game ${gameId}`);
-                }
-
-                // If no gameId is provided, just confirm platform connection
-                existingUser.sendAlert(`Platform connection for ${username} is already active.`);
-                return;
-            }
-
-            // If no existing user, this is a new connection
-            if (origin) {
-                // Platform connection :  Only initialze the player, no game initialization
-                const newUser = new Player(username, decoded.role, decoded.credits, userAgent, socket);
-                users.set(username, newUser);
-                newUser.sendAlert(`Player initialized for ${newUser.playerData.username} on platform ${origin}`, false);
-                return;
-            }
-            else {
-                // Reject game connection without an active platform connection
-                socket.emit("Error", "You need to have an active platform connection before joining a game.");
+            if (role === "player") {
+                await handlePlayerConnection(socket, decoded, userAgent);
+            } else if (['company', 'master', 'distributor', 'subdistributor', 'store'].includes(role)) {
+                await handleManagerConnection(socket, decoded, userAgent)
+            } else {
+                console.error("Unsupported role : ", role);
                 socket.disconnect(true);
             }
 
@@ -125,6 +174,7 @@ const socketController = (io: Server) => {
             }
         }
     });
+
 
     // Error handling middleware
     io.use((socket: Socket, next: (err?: Error) => void) => {

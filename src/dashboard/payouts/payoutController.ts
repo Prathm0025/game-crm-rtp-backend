@@ -5,8 +5,7 @@ import Payouts from "./payoutModel";
 import path from "path";
 import { Platform } from "../games/gameModel";
 import { ObjectId } from "mongodb";
-import { users } from "../../socket";
-import PlayerSocket from "../../Player";
+import { currentActivePlayers } from "../../socket";
 
 interface GameRequest extends Request {
   files?: {
@@ -68,11 +67,11 @@ class PayoutsController {
       if (!platform) {
         throw createHttpError(404, "Platform or game not found");
       }
-      for (const [username, playerSocket] of users) {
-        
+      for (const [username, playerSocket] of currentActivePlayers) {
+        //TODO: NEED TO FIX LIVE
         const gameId = payoutFileName.split('_')[0];
-        if (playerSocket.gameId === gameId) {
-          const socketUser = users.get(username);
+        if (playerSocket.currentGameData.gameId === gameId) {
+          const socketUser = currentActivePlayers.get(username);
           if (socketUser?.currentGameData && socketUser.currentGameData.gameSettings) {
             socketUser.currentGameData.currentGameManager.currentGameType.currentGame.initialize(payoutJSONData)
             // console.log(`Updated current game data for user: ${username} to `, socketUser.currentGameData.gameSettings);
@@ -266,10 +265,10 @@ class PayoutsController {
 
 
       const matchingPayout = currentUpdatedPayout.find(payout => payout.content._id.toString() === targetPayoutId);
-      for (const [username, playerSocket] of users) {
+      for (const [username, playerSocket] of currentActivePlayers) {
         const gameId = tagName;
-        if (playerSocket.gameId === gameId) {
-          const socketUser = users.get(username);
+        if (playerSocket.currentGameData.gameId === gameId) {
+          const socketUser = currentActivePlayers.get(username);
           if (socketUser.currentGameData.currentGameManager && socketUser.currentGameData.gameSettings) {
             socketUser.currentGameData.currentGameManager.currentGameType.currentGame.initialize(matchingPayout.content.data)
             // console.log(`Updated current game data for user: ${username} to `, socketUser.currentGameData.gameSettings);
