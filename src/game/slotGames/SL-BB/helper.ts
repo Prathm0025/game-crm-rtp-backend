@@ -236,13 +236,13 @@ function checkLineSymbols(
       }
       switch (true) {
         case (symbol == currentSymbol || symbol === wildSymbol) && isWildSubAllowed(symbol):
-          console.log(symbol, "SYMBOL HERE");
+          // console.log(symbol, "SYMBOL HERE");
           
           matchCount++;
           matchedIndices.push({ col: i, row: rowIndex });
           break;
           case currentSymbol === wildSymbol :
-            console.log(currentSymbol, "wild symbol");
+            // console.log(currentSymbol, "wild symbol");
             
             currentSymbol = symbol;
           matchCount++;
@@ -397,7 +397,9 @@ function generateHeisenbergSpin(gameInstance: SLBB): string[][] {
     for (let y = 0; y < settings.matrix.y; y++) {
       if (!resultMatrix[y]) resultMatrix[y] = [];
       // Check if this position is frozen
-      if (settings.heisenberg &&settings.heisenbergFreeze.has(`${y},${x}`)) {        
+      if (settings.heisenberg &&settings.heisenbergFreeze.has(`${y},${x}`)) {    
+        console.log(y, x);
+            
         const prevSymbol = settings.prevresultSymbolMatrix[y][x];   
             // console.log(prevSymbol, "prevSymbol");
                                              
@@ -405,24 +407,23 @@ function generateHeisenbergSpin(gameInstance: SLBB): string[][] {
             // console.log("CAME HERE FOR ", prevSymbol);
             
           resultMatrix[y][x] = prevSymbol.toString();   
-          console.log(resultMatrix);
+          // console.log(resultMatrix);
           
           continue;  
         }
         if (settings.heisenbergSymbolMatrix[y] && settings.heisenbergSymbolMatrix[y][x]) {
           resultMatrix[y][x] = settings.heisenbergSymbolMatrix[y][x]
         } else {
-        
           const newSymbol = heisenbergReels[x][(startPosition + y) % heisenbergReels[x].length];
           resultMatrix[y][x] = newSymbol;        
-          if (newSymbol === settings.coins.SymbolID.toString()) {
+          if (newSymbol == settings.coins.SymbolID.toString()) {            
             console.log("Coin symbol detected! Resetting number of freespins");
             settings.heisenbergFreeze.add(`${y},${x}`);
             
          settings.heisenberg.freeSpin.noOfFreeSpins = 3;
          settings.heisenberg.freeSpin.freeSpinsAdded = true;
                 }
-          if ([settings.cashCollect.SymbolID.toString(), settings.coins.SymbolID.toString(), settings.losPollos.SymbolID.toString()].includes(newSymbol)) {
+          if ([settings.cashCollect.SymbolID.toString(), settings.losPollos.SymbolID.toString()].includes(newSymbol)) {
             settings.heisenbergFreeze.add(`${y},${x}`);
             settings.heisenbergSymbolMatrix = resultMatrix;
           }
@@ -430,20 +431,19 @@ function generateHeisenbergSpin(gameInstance: SLBB): string[][] {
       } else {
         const newSymbol = heisenbergReels[x][(startPosition + y) % heisenbergReels[x].length];
         resultMatrix[y][x] = newSymbol;
-      
-        if (newSymbol === settings.coins.SymbolID.toString()) {
+        if (newSymbol == settings.coins.SymbolID.toString()) {
           settings.heisenbergFreeze.add(`${y},${x}`);
           console.log("Coin symbol detected! Resetting number of freespins");
           settings.heisenberg.freeSpin.noOfFreeSpins = 3;
           settings.heisenberg.freeSpin.freeSpinsAdded = true;
         }
         // Freeze positions with specific symbols
-        if ([settings.cashCollect.SymbolID.toString(), settings.coins.SymbolID.toString(), settings.losPollos.SymbolID.toString()].includes(newSymbol)) {
+        if ([settings.cashCollect.SymbolID.toString(), , settings.losPollos.SymbolID.toString()].includes(newSymbol)) {
           settings.heisenbergFreeze.add(`${y},${x}`);
           settings.heisenbergSymbolMatrix = resultMatrix;
         }
       }
-    }
+    }    
   }
 
   for (let row = 0; row < resultMatrix.length; row++) {
@@ -458,7 +458,7 @@ function generateHeisenbergSpin(gameInstance: SLBB): string[][] {
   // Update the settings with the new matrix
   settings.heisenbergSymbolMatrix = resultMatrix;
 
-  console.log("Heisenberg Spin Result:", settings.heisenbergSymbolMatrix);
+  // console.log("Heisenberg Spin Result:", settings.heisenbergSymbolMatrix);
 
   return resultMatrix;
 }
@@ -470,7 +470,9 @@ function getRandomIndex(maxValue: number): number {
 
 function checkHeisenbergJackPot(gameInstance: SLBB): boolean {
   const { settings } = gameInstance;
-  const allowedSymbols = new Set([settings.cashCollect.SymbolID.toString(), settings.coins.SymbolID.toString(), settings.losPollos.SymbolID.toString()]);
+  const allowedSymbols = new Set([settings.cashCollect.SymbolID.toString(), settings.coins.SymbolID.toString()]);
+  // console.log(allowedSymbols, allowedSymbols);
+  
   const heisenbergMatrix = settings.heisenbergSymbolMatrix;
 
   for (let row = 0; row < heisenbergMatrix.length; row++) {
@@ -482,6 +484,7 @@ function checkHeisenbergJackPot(gameInstance: SLBB): boolean {
       }
     }
   }
+  
   return true;
 }
 
@@ -510,7 +513,7 @@ function handleCoinsAndCashCollect(
   }
 
   if (settings.coins.values.length > 0) {
-    console.log(totalCoinValue, "coin value before adding the cashcollect and coins");
+    // console.log(totalCoinValue, "coin value before adding the cashcollect and coins");
 
     const coinValue = getCoinValue(settings.coins.values);
     totalCoinValue += coinValue;
@@ -535,14 +538,7 @@ export function handleCashCollectandLink(gameInstance: SLBB) {
 
   let totalCoinValue = 0;
   let cashCollectCount = 0;
-  const isJackPot = checkHeisenbergJackPot(gameInstance);
-
-  if (isJackPot) {
-    settings.jackpot.isTriggered = true
-    totalCoinValue = currentGameData.gameSettings.bonus.jackpot;
-    settings.jackpot.payout = totalCoinValue;
-    settings.heisenberg.payout += totalCoinValue;
-  }
+  
   const hasCoinSymbols = hasSymbolInMatrix(settings.heisenbergSymbolMatrix, coinSymbolId.toString());
 
   // if (hasCoinSymbols) {
@@ -592,7 +588,7 @@ function handleHeisenbergSpin(gameInstance: SLBB) {
   let coinCount = 0;
   const prizeCoinId = settings.prizeCoin.SymbolID;
   const hasPrizeCoinSymbols = hasSymbolInMatrix(settings.heisenbergSymbolMatrix, prizeCoinId);
-  console.log(settings.heisenbergSymbolMatrix);
+  // console.log(settings.heisenbergSymbolMatrix);
   
 // console.log(hasPrizeCoinSymbols, "hasPrizeCoinSymbols");
 const hasCoinSymbols = hasSymbolInMatrix(settings.heisenbergSymbolMatrix, coinSymbolId.toString());
@@ -602,6 +598,7 @@ const hasCoinSymbols = hasSymbolInMatrix(settings.heisenbergSymbolMatrix, coinSy
   }
 
   const isJackPot = checkHeisenbergJackPot(gameInstance);
+  console.log(isJackPot, "JAcKPot");
   
   if(isJackPot){
     settings.jackpot.isTriggered = true
@@ -632,7 +629,7 @@ const hasCoinSymbols = hasSymbolInMatrix(settings.heisenbergSymbolMatrix, coinSy
     if (coinCount > 0) {
       // settings.heisenberg.freeSpin.noOfFreeSpins = 3;
       // settings.heisenberg.freeSpin.freeSpinsAdded = true;
-      console.log("Coin found! Reset free spins to 3.");
+      // console.log("Coin found! Reset free spins to 3.");
     }
   } else {
     settings.heisenberg.freeSpin.freeSpinStarted = false;
@@ -800,12 +797,13 @@ export function checkForWin(gameInstance: SLBB) {
       settings.heisenberg.isTriggered = true;
       settings.heisenberg.freeSpin.noOfFreeSpins = 3;
       settings.prevresultSymbolMatrix = JSON.parse(JSON.stringify(settings.resultSymbolMatrix));
+     
       const previousMatrix = settings.prevresultSymbolMatrix;
       for (let row = 0; row < previousMatrix.length; row++) {
         for (let col = 0; col < previousMatrix[row].length; col++) {
-          if (previousMatrix[row][col] === linkSymbolId || previousMatrix[row][col] === megaLinkSymbolId) {
+          if (previousMatrix[row][col] == linkSymbolId || previousMatrix[row][col] == megaLinkSymbolId) {
             previousMatrix[row][col] = coinSymbolId;
-            settings.heisenbergFreeze.add(`${row},${col}`);
+            
           }
         }
       }
@@ -821,7 +819,7 @@ export function checkForWin(gameInstance: SLBB) {
       const losPollosIndices = findIndicesOfSymbol(settings.losPollos.SymbolID, settings.resultSymbolMatrix);
       losPollosIndices.map((index) => settings.heisenbergFreeze.add(index.toString()))
       settings.prevresultSymbolMatrix = previousMatrix;     
-      // console.log(settings.heisenbergFreeze, "heisenbergFreeze set after link indices")
+        // console.log(settings.heisenbergFreeze, "heisenbergFreeze set after link indices")
     }
     // console.log(totalWin, "Total win before trigger of heisenberg ");
 
