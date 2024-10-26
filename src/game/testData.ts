@@ -513,11 +513,11 @@ export const gameData = [
         "Name": "9",
         "Id": 9,
         "reelInstance": {
-          "0": 5,
+          "0": 50,
           "1": 5,
           "2": 5,
           "3": 5,
-          "4": 5
+          "4": 50
         },
         "useWildSub": false,
         "useHeisenberg": true,

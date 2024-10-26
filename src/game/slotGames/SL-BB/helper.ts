@@ -801,6 +801,7 @@ export function checkForWin(gameInstance: SLBB) {
         for (let col = 0; col < previousMatrix[row].length; col++) {
           if (previousMatrix[row][col] === linkSymbolId || previousMatrix[row][col] === megaLinkSymbolId) {
             previousMatrix[row][col] = coinSymbolId;
+            settings.heisenbergFreeze.add(`${row},${col}`);
           }
         }
       }
@@ -874,7 +875,7 @@ export function makeResultJson(gameInstance: SLBB) {
         WinAmount: gameInstance.playerData.currentWining,
         freeSpins: {
           count: settings.freeSpin.freeSpinCount,
-          isNewAdded: settings.freeSpin.isTriggered
+          isNewAdded:   settings.freeSpin.isTriggered
         },
         winData: {
           coinValues: settings.coins.values,
