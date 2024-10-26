@@ -794,7 +794,7 @@ export function checkForWin(gameInstance: SLBB) {
       console.log("HEISENBERG IS TRIGGERED");
       settings.heisenberg.isTriggered = true;
       settings.heisenberg.freeSpin.noOfFreeSpins = 3;
-      settings.prevresultSymbolMatrix = settings.resultSymbolMatrix;
+      settings.prevresultSymbolMatrix = JSON.parse(JSON.stringify(settings.resultSymbolMatrix));
       const previousMatrix = settings.prevresultSymbolMatrix;
       for (let row = 0; row < previousMatrix.length; row++) {
         for (let col = 0; col < previousMatrix[row].length; col++) {
@@ -803,7 +803,6 @@ export function checkForWin(gameInstance: SLBB) {
           }
         }
       }
-      settings.prevresultSymbolMatrix = previousMatrix;
 
       replaceCoinsWithValues(gameInstance, 'prev');
       const cashCollectIndices = findIndicesOfSymbol(settings.cashCollect.SymbolID, settings.resultSymbolMatrix);
@@ -815,6 +814,7 @@ export function checkForWin(gameInstance: SLBB) {
       megalinkIndices.map((index) => settings.heisenbergFreeze.add(index.toString()))
       const losPollosIndices = findIndicesOfSymbol(settings.losPollos.SymbolID, settings.resultSymbolMatrix);
       losPollosIndices.map((index) => settings.heisenbergFreeze.add(index.toString()))
+      settings.prevresultSymbolMatrix = previousMatrix;     
       // console.log(settings.heisenbergFreeze, "heisenbergFreeze set after link indices")
     }
     // console.log(totalWin, "Total win before trigger of heisenberg ");
@@ -913,7 +913,7 @@ export function makeResultJson(gameInstance: SLBB) {
     
   //  console.log(sendData.GameData.winData.coinValues, "coins");
    
-    console.log(sendData);
+    console.log(sendData.GameData.ResultReel);
 
   } catch (error) {
     console.error("Error generating result JSON or sending message:", error);
