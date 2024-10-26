@@ -38,10 +38,10 @@ const verifySocketToken = (socket: Socket): Promise<DecodedToken> => {
     });
 };
 
-const getPlayerCredits = async (username: string): Promise<number> => {
+const getPlayerDetails = async (username: string) => {
     const player = await PlayerModel.findOne({ username });
     if (player) {
-        return player.credits;
+        return { credits: player.credits, status: player.status };
     }
     throw new Error("User not found");
 };
@@ -50,7 +50,7 @@ const handlePlayerConnection = async (socket: Socket, decoded: DecodedToken, use
     const username = decoded.username;
     const origin = socket.handshake.auth.origin;
     const gameId = socket.handshake.auth.gameId;
-    const credits = await getPlayerCredits(decoded.username)
+    const { credits, status } = await getPlayerDetails(decoded.username)
 
     let existingPlayer = currentActivePlayers.get(username);
 
@@ -89,7 +89,7 @@ const handlePlayerConnection = async (socket: Socket, decoded: DecodedToken, use
     }
     // If no existing user, this is a new connection
     if (origin) {
-        const newUser = new Player(username, decoded.role, credits, userAgent, socket);
+        const newUser = new Player(username, decoded.role, status, credits, userAgent, socket);
         currentActivePlayers.set(username, newUser);
         newUser.sendAlert(`Player initialized for ${newUser.playerData.username} on platform ${origin}`, false);
     } else {
@@ -105,22 +105,19 @@ const handleManagerConnection = async (socket: Socket, decoded: DecodedToken, us
     let existingManager = currentActiveManagers.get(username);
 
     if (existingManager) {
-        if (existingManager.socket.connected) {
-            socket.emit("AnotherDevice", "You are already managing on another browser.");
-            socket.disconnect(true);
-            return;
+        console.log(`Reinitializing manager ${username}`);
+
+        if (existingManager.socketData.reconnectionTimeout) {
+            clearTimeout(existingManager.socketData.reconnectionTimeout);
         }
 
-        console.log(`Manager ${username} is reconnecting.`);
-        existingManager.socket = socket;
-        existingManager.userAgent = userAgent;
+        existingManager.initializeManager(socket);
         socket.emit(messageType.ALERT, `Manager ${username} has been reconnected.`);
     } else {
         const newManager = new Manager(username, role, userAgent, socket);
         currentActiveManagers.set(username, newManager);
         socket.emit(messageType.ALERT, `Manager ${username} has been connected.`);
     }
-
 
     // Send all active players to the manager upon connection
     const activeUsersData = Array.from(currentActivePlayers.values()).map(player => {
@@ -139,9 +136,6 @@ const socketController = (io: Server) => {
         const userAgent = socket.request.headers['user-agent'];
         try {
             const decoded = await verifySocketToken(socket);
-            console.log("Decoded : ", decoded);
-
-
             (socket as any).decoded = { ...decoded };
             (socket as any).userAgent = userAgent;
             next();

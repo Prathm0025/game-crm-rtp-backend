@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { EventEmitter } from "events";
-import { SpinData } from "./activityTypes";
+import { ISpinData } from "./sessionTypes";
 
 export class GameSession extends EventEmitter {
     playerId: string;
@@ -13,8 +13,9 @@ export class GameSession extends EventEmitter {
     totalSpins: number = 0;
     totalBetAmount: number = 0;
     totalWinAmount: number = 0;
-    spinData: SpinData[] = [];
+    spinData: ISpinData[] = [];
     sessionDuration: number = 0;
+
 
     constructor(playerId: string, gameId: string, creditsAtEntry: number) {
         super();
@@ -31,7 +32,7 @@ export class GameSession extends EventEmitter {
 
     public createSpin(): string {
         const spinId = `${this.gameId}-${Date.now()}-${uuidv4()}`;
-        const newSpin: SpinData = { spinId, betAmount: 0, winAmount: 0 };
+        const newSpin: ISpinData = { spinId, betAmount: 0, winAmount: 0 };
         this.spinData.push(newSpin);
         this.totalSpins++;
 
@@ -39,7 +40,7 @@ export class GameSession extends EventEmitter {
         return spinId;
     }
 
-    public updateSpinField<T extends keyof SpinData>(spinId: string, field: T, value: SpinData[T]): boolean {
+    public updateSpinField<T extends keyof ISpinData>(spinId: string, field: T, value: ISpinData[T]): boolean {
         const spin = this.getSpinById(spinId);
         if (spin) {
             spin[field] = value;
@@ -78,7 +79,7 @@ export class GameSession extends EventEmitter {
         };
     }
 
-    private getSpinById(spinId: string): SpinData | undefined {
+    private getSpinById(spinId: string): ISpinData | undefined {
         return this.spinData.find((spin) => spin.spinId === spinId);
     }
 }

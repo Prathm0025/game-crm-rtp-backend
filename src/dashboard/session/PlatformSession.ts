@@ -4,6 +4,7 @@ import { eventType } from "../../utils/utils";
 
 export default class PlatformSession {
     playerId: string;
+    status: string;
     managerName: string;
     initialCredits: number;
     currentCredits: number;
@@ -12,8 +13,9 @@ export default class PlatformSession {
     rtp: number = 0;
     currentGameSession: GameSession | null = null;
 
-    constructor(playerId: string, entryTime: Date, managerName: string, initialCredits: number) {
+    constructor(playerId: string, status: string, entryTime: Date, managerName: string, initialCredits: number) {
         this.playerId = playerId;
+        this.status = status;
         this.managerName = managerName;
         this.initialCredits = initialCredits;
         this.currentCredits = initialCredits;
@@ -45,6 +47,7 @@ export default class PlatformSession {
     public getSummary() {
         return {
             playerId: this.playerId,
+            status: this.status,
             managerName: this.managerName,
             initialCredits: this.initialCredits,
             currentCredits: this.currentCredits,
