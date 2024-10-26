@@ -2,15 +2,24 @@ import { eventEmitter } from "../../utils/eventEmitter";
 import { eventType } from "../../utils/utils";
 import PlatformSession from "./PlatformSession";
 import { GameSession } from "./gameSession";
+import { PlatformSessionModel } from "./sessionModel";
 
 class SessionManager {
     private platformSessions: Map<string, PlatformSession> = new Map();
 
     // Start a new platform session when the player connects
-    public startPlatformSession(playerId: string, managerName: string, initialCredits: number) {
+    public async startPlatformSession(playerId: string, status: string, managerName: string, initialCredits: number) {
         const entryTime = new Date();
-        const platformSession = new PlatformSession(playerId, entryTime, managerName, initialCredits);
+        const platformSession = new PlatformSession(playerId, status, entryTime, managerName, initialCredits);
         this.platformSessions.set(playerId, platformSession);
+
+        try {
+            const platformSessionData = new PlatformSessionModel(platformSession.getSummary());
+            await platformSessionData.save();
+            console.log(`Platform session started and saved for player: ${playerId}`);
+        } catch (error) {
+            console.error(`Failed to save platform session for player: ${playerId}`, error);
+        }
 
         eventEmitter.emit("platform", {
             to: managerName,
@@ -21,7 +30,7 @@ class SessionManager {
     }
 
     // End the platform session when the player disconnects
-    public endPlatformSession(playerId: string) {
+    public async endPlatformSession(playerId: string) {
         const platformSession = this.platformSessions.get(playerId);
         if (platformSession) {
             platformSession.setExitTime(new Date());
@@ -34,6 +43,19 @@ class SessionManager {
             })
 
             console.log(`Platform session ended for player: ${playerId}`);
+
+            try {
+                await PlatformSessionModel.updateOne(
+                    { playerId: playerId, entryTime: platformSession.entryTime },
+                    { $set: { exitTime: platformSession.exitTime } }
+                )
+                console.log(`Platform session saved to database for player: ${playerId}`);
+            } catch (error) {
+                console.error(`Failed to save platform session for player: ${playerId}`, error);
+            }
+        }
+        else {
+            console.error(`No active platform session found for player: ${playerId}`);
         }
     }
 
@@ -61,13 +83,26 @@ class SessionManager {
     }
 
     // End the current game session for the player
-    public endGameSession(playerId: string, creditsAtExit: number) {
+    public async endGameSession(playerId: string, creditsAtExit: number) {
         const platformSession = this.platformSessions.get(playerId);
         if (platformSession) {
             const currentSession = platformSession.currentGameSession;
             if (currentSession) {
                 currentSession.endSession(creditsAtExit);
+                const gameSessionData = currentSession.getSummary();
+
                 console.log(`Game session ended for player: ${playerId}, game: ${currentSession.gameId}`);
+
+                try {
+                    await PlatformSessionModel.updateOne(
+                        { playerId: playerId, entryTime: platformSession.entryTime },
+                        { $push: { gameSessions: gameSessionData }, $set: { currentRTP: platformSession.rtp } }
+                    );
+                    console.log(`Game session saved to platform session for player: ${playerId}`);
+
+                } catch (error) {
+                    console.error(`Failed to save game session for player: ${playerId}`, error);
+                }
             }
         } else {
             console.error(`No active platform session or game session found for player: ${playerId}`);

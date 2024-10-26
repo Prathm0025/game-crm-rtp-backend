@@ -1,4 +1,4 @@
-export interface GameSession {
+export interface IGameSession {
     playerId: string;         // Unique player identifier
     gameId: string;           // Unique game identifier
     sessionId: string;        // Unique session identifier
@@ -9,35 +9,35 @@ export interface GameSession {
     totalSpins: number;       // Total number of spins in the session
     totalBetAmount: number;   // Total bet amount during the session
     totalWinAmount: number;   // Total win amount during the session
-    spinData: SpinData[];     // Array of individual spin data
+    spinData: ISpinData[];     // Array of individual spin data
     sessionDuration: number;  // Session duration in seconds or minutes
 }
 
-export interface SpinData {
+export interface ISpinData {
     spinId: string;           // Unique identifier for each spin
     betAmount: number;        // Bet amount for the spin
     winAmount: number;        // Win amount for the spin
-    specialFeatures?: SpecialFeatures; // Optional, only present if triggered
+    specialFeatures?: ISpecialFeatures; // Optional, only present if triggered
 }
 
-export interface SpecialFeatures {
-    jackpot?: Jackpot;        // Jackpot details (optional, if triggered)
-    scatter?: Scatter;        // Scatter details (optional, if triggered)
-    bonus?: Bonus;            // Bonus game details (optional, if triggered)
+export interface ISpecialFeatures {
+    jackpot?: IJackpot;        // Jackpot details (optional, if triggered)
+    scatter?: IScatter;        // Scatter details (optional, if triggered)
+    bonus?: IBonus;            // Bonus game details (optional, if triggered)
 }
 
 
-export interface Jackpot {
+export interface IJackpot {
     triggered: boolean;       // Whether the jackpot was triggered
     amountWon: number;        // Amount won from the jackpot
 }
 
-export interface Scatter {
+export interface IScatter {
     triggered: boolean;       // Whether scatter was triggered
     amountWon: number;        // Amount won from the scatter
 }
 
-export interface Bonus {
+export interface IBonus {
     triggered: boolean;        // Whether a bonus game was triggered
     bonusGameRounds: number;   // Number of bonus rounds played
     totalBonusWin: number;     // Total winnings from the bonus game

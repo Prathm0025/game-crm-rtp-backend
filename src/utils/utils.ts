@@ -10,6 +10,7 @@ import { config } from "../config/config";
 import bcrypt from "bcrypt";
 import { currentActivePlayers } from "../socket";
 import { Player } from "../dashboard/users/userModel";
+import { Socket } from "socket.io";
 
 
 const transactionController = new TransactionController()
@@ -64,6 +65,16 @@ export interface AuthRequest extends Request {
 export interface CustomJwtPayload extends JwtPayload {
   role: string;
 }
+
+export interface socketConnectionData {
+  socket: Socket | null;
+  heartbeatInterval: NodeJS.Timeout;
+  reconnectionAttempts: number;
+  maxReconnectionAttempts: number;
+  reconnectionTimeout: number;
+  cleanedUp: boolean;
+}
+
 
 export const updateStatus = (client: IUser | IPlayer, status: string) => {
   // Destroy SlotGame instance if we update user to inactive && the client is currently in a game
