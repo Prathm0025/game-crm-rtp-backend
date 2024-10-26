@@ -30,6 +30,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLLOL) {
     freeSpinMultipliers: [1, 1, 1, 1, 1],
     freeSpinSymbolId:gameInstance.currentGameData.gameSettings.Symbols.find((sym:SymbolType)=>sym.Name=='FreeSpin')?.Id || "12",
     maxMultiplier: 10,
+    freeSpinIncrement:gameSettings.freeSpin.incrementCount,
     gamble: gameSettings.gamble,
     winningCombinations:[]
   };
@@ -162,25 +163,6 @@ export function printWinningCombinations(winningCombinations: WinningCombination
   const totalPayout = winningCombinations.reduce((sum, combo) => sum + combo.payout, 0);
   console.log(`Total Payout: ${totalPayout}`);
 }
-
-// export function logGame(result: GameResult, payout: number, winningCombinations: WinningCombination[], getSymbol: (id: number) => SymbolType | undefined, gameInstance: SLLOL): void {
-//   console.log("Game Result:");
-//   printMatrix(result, getSymbol, gameInstance);
-//   console.log("\nTotal Payout:", payout);
-//
-//   if (winningCombinations.length > 0) {
-//     console.log("\nWinning Combinations:");
-//     winningCombinations.forEach((combo, index) => {
-//       const symbol = getSymbol(combo.symbolId);
-//       console.log(`\nCombination ${index + 1}:`);
-//       console.log(`Symbol: ${symbol?.Name}`);
-//       console.log(`Payout: ${combo.payout}`);
-//       // printWinningCombination(result, combo.positions, getSymbol, gameInstance);
-//     });
-//   } else {
-//     console.log("\nNo winning combinations.");
-//   }
-// }
 
 
 export function getSymbol(id: number, Symbols: SymbolType[]): SymbolType | undefined {
@@ -335,11 +317,12 @@ export function checkWin(gameInstance: SLLOL): { payout: number; winningCombinat
   console.log("isFreespin", bool);
   
   //reset multiplers for freespin when its over 
-  if (settings.freeSpinCount <= 0 && settings.isFreeSpin == false) {
+  if (settings.freeSpinCount <= 0 && settings.isFreeSpin === false) {
     settings.freeSpinMultipliers = [1, 1, 1, 1, 1]
-  } else {
-    settings.freeSpinCount -= 1
-  }
+  } 
+  // else {
+  //   settings.freeSpinCount -= 1
+  // }
   winningCombinations.forEach(combo => {
     // alter payout . multiply betsperline with payout
     // NOTE: also check for freespin multipliers 
@@ -355,6 +338,9 @@ export function checkWin(gameInstance: SLLOL): { payout: number; winningCombinat
   playerData.haveWon+= totalPayout
 
   makeResultJson(gameInstance)
+  if(settings.freeSpinCount>0 ){
+    settings.freeSpinCount -= 1
+  }
 
   return { payout: totalPayout, winningCombinations };
 }
@@ -381,7 +367,7 @@ export function checkForFreespin(gameInstance: SLLOL): boolean {
       if (col1Has12 && col2Has12 && col3Has12) {
         settings.isFreeSpinTriggered=true
         settings.isFreeSpin = true;
-        settings.freeSpinCount += 10;
+        settings.freeSpinCount += settings.freeSpinIncrement;
         return true;
       }
     }
