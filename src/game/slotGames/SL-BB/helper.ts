@@ -792,6 +792,7 @@ export function checkForWin(gameInstance: SLBB) {
     }
     if ((hasCashCollect && (hasLinkSymbols || hasMegaLinkSymbols)) && !settings.heisenberg.isTriggered) {
       console.log("HEISENBERG IS TRIGGERED");
+      settings.heisenbergFreeze =  new Set<string>();
       settings.heisenberg.isTriggered = true;
       settings.heisenberg.freeSpin.noOfFreeSpins = 3;
       settings.prevresultSymbolMatrix = JSON.parse(JSON.stringify(settings.resultSymbolMatrix));
