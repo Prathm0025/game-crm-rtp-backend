@@ -532,7 +532,9 @@ export const gameData = [
           "1": 5,
           "2": 5,
           "3": 5,
-          "4": 5,
+          "4": 5
+          
+          ,
         },
         "description": "Substitutes for all symbols except Jackpot, Free Spin, Bonus, and Scatter.",
         "useWildSub": false,
@@ -546,14 +548,11 @@ export const gameData = [
         "Name": "Link",
         "Id": 11,
         "reelInstance": {
-          "0": 0,
-          "1": 0,
-          "2": 0
-          
-          
-          ,
-          "3": 0,
-          "4": 0
+          "0": 5,
+          "1": 5,
+          "2": 50,
+          "3": 50,
+          "4": 5
         },
         "description": "",
         "useWildSub": false,
@@ -583,8 +582,8 @@ export const gameData = [
         "Name": "CashCollect",
         "Id": 13,
         "reelInstance": {
-          "0": 5,
-          "1": 0,
+          "0": 50,
+          "1": 50,
           "2": 0,
           "3": 0,
           "4": 25

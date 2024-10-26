@@ -329,15 +329,19 @@ function getRandomValue(gameInstance: SLBB, type: 'coin' | 'freespin' | 'prizes'
   return values[0];
 }
 // Function to replace "Coins" symbols with their respective values
-export function replaceCoinsWithValues(gameInstance: SLBB, matrixType: 'result' | 'heisenberg') {
+export function replaceCoinsWithValues(gameInstance: SLBB, matrixType: 'result' | 'heisenberg' |'prev') {
   const { settings } = gameInstance;
-  const matrix = matrixType === 'result' ? settings.resultSymbolMatrix : settings.heisenbergSymbolMatrix;
-
+  const matrix = matrixType === 'result' 
+  ? settings.resultSymbolMatrix 
+  : matrixType === 'heisenberg' 
+    ? settings.heisenbergSymbolMatrix 
+    : settings.prevresultSymbolMatrix;
+    
   for (let row = 0; row < matrix.length; row++) {
     for (let col = 0; col < matrix[row].length; col++) {
       const symbol = matrix[row][col];
       
-      if (symbol === settings.coins.SymbolID.toString()) {
+      if (symbol == settings.coins.SymbolID.toString()) {
         const coinValue = getRandomCoinValue(gameInstance);
 
         // Check if index already exists in settings.coins.values
@@ -349,6 +353,7 @@ export function replaceCoinsWithValues(gameInstance: SLBB, matrixType: 'result' 
         if (!indexExists) {
           settings.coins.values.push({ index: [row, col], value: coinValue });
         }
+        
       }
     }
   }
@@ -395,7 +400,7 @@ function generateHeisenbergSpin(gameInstance: SLBB): string[][] {
         const prevSymbol = settings.prevresultSymbolMatrix[y][x];   
             // console.log(prevSymbol, "prevSymbol");
                                              
-        if ((prevSymbol == settings.link.SymbolID)|| (prevSymbol == settings.cashCollect.SymbolID) || (prevSymbol == settings.losPollos.SymbolID) ) {
+        if ((prevSymbol == settings.link.SymbolID)|| (prevSymbol == settings.megalink.SymbolID)|| (prevSymbol == settings.cashCollect.SymbolID) || (prevSymbol == settings.losPollos.SymbolID) ) {
             // console.log("CAME HERE FOR ", prevSymbol);
             
           resultMatrix[y][x] = prevSymbol.toString();   
@@ -413,8 +418,8 @@ function generateHeisenbergSpin(gameInstance: SLBB): string[][] {
             console.log("Coin symbol detected! Resetting number of freespins");
             settings.heisenbergFreeze.add(`${y},${x}`);
             
-  settings.heisenberg.freeSpin.noOfFreeSpins = 3;
-      settings.heisenberg.freeSpin.freeSpinsAdded = true;
+         settings.heisenberg.freeSpin.noOfFreeSpins = 3;
+         settings.heisenberg.freeSpin.freeSpinsAdded = true;
                 }
           if ([settings.cashCollect.SymbolID.toString(), settings.coins.SymbolID.toString(), settings.losPollos.SymbolID.toString()].includes(newSymbol)) {
             settings.heisenbergFreeze.add(`${y},${x}`);
@@ -790,11 +795,24 @@ export function checkForWin(gameInstance: SLBB) {
       settings.heisenberg.isTriggered = true;
       settings.heisenberg.freeSpin.noOfFreeSpins = 3;
       settings.prevresultSymbolMatrix = settings.resultSymbolMatrix;
+      const previousMatrix = settings.prevresultSymbolMatrix;
+      for (let row = 0; row < previousMatrix.length; row++) {
+        for (let col = 0; col < previousMatrix[row].length; col++) {
+          if (previousMatrix[row][col] === linkSymbolId || previousMatrix[row][col] === megaLinkSymbolId) {
+            previousMatrix[row][col] = coinSymbolId;
+          }
+        }
+      }
+      settings.prevresultSymbolMatrix = previousMatrix;
+
+      replaceCoinsWithValues(gameInstance, 'prev');
       const cashCollectIndices = findIndicesOfSymbol(settings.cashCollect.SymbolID, settings.resultSymbolMatrix);
       cashCollectIndices.map((index) => settings.heisenbergFreeze.add(index.toString()))
       // console.log(cashCollectIndices);      
       const linkIndices = findIndicesOfSymbol(settings.link.SymbolID, settings.resultSymbolMatrix);
       linkIndices.map((index) => settings.heisenbergFreeze.add(index.toString()))
+      const megalinkIndices = findIndicesOfSymbol(settings.megalink.SymbolID, settings.resultSymbolMatrix);
+      megalinkIndices.map((index) => settings.heisenbergFreeze.add(index.toString()))
       const losPollosIndices = findIndicesOfSymbol(settings.losPollos.SymbolID, settings.resultSymbolMatrix);
       losPollosIndices.map((index) => settings.heisenbergFreeze.add(index.toString()))
       // console.log(settings.heisenbergFreeze, "heisenbergFreeze set after link indices")
