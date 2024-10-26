@@ -454,12 +454,12 @@ export const gameData = [
             "Name": "Wild",
             "Id": 15,
             "reelInstance": {
-               "0": 10,
-               "1": 10,
-               "2": 10,
-               "3": 10,
-               "4": 10,
-               "5": 10
+               "0": 30,
+               "1": 30,
+               "2": 30,
+               "3": 30,
+               "4": 30,
+               "5": 30
             },
             "description": "Substitutes for all symbols except Jackpot, Free Spin, Bonus, and Scatter.",
             "useWildSub": false,

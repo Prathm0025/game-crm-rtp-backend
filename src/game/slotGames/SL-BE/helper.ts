@@ -98,7 +98,9 @@ function shuffleArray(array: any[]) {
 export function makePayLines(gameInstance: SLBE) {
     const { settings } = gameInstance;
     settings.currentGamedata.Symbols.forEach((element) => {
-        handleSpecialSymbols(element, gameInstance);
+        if (!element.useWildSub) {
+            handleSpecialSymbols(element, gameInstance);
+        }
     });
 }
 
