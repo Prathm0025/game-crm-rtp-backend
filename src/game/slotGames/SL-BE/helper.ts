@@ -276,27 +276,17 @@ function checkLineSymbols(
         return { isWinningLine: false, matchCount: 0, matchedIndices: [] };
     }
 }
-function checkforBats( gameInstance: SLBE)
-{
+function checkforBats(gameInstance: SLBE) {
     const { settings } = gameInstance;
-    let batsCount= 0;
-    const batSymbols = settings.Symbols.filter(symbol => symbol.Id === 9 );
+    let batsCount = 0;
+    
     settings.resultSymbolMatrix.forEach((row) => {
         row.forEach((symbol) => {
-          if (symbol == 9 || symbol ==10) {
-            batsCount++;
-            console.log("symbol");
-            
-            // settings.scatterWinningSymbols.push(`${rowIndex},${colIndex}`);
-          }
+            batsCount += symbol === 9 ? 1 : symbol === 10 ? 2 : 0;
         });
-      });
-      console.log("Bats Count",batsCount);
-      
+    });
     
-    
-    
-
+    console.log("Bats Count", batsCount);
 }
 //checking first non wild symbol in lines which start with wild symbol
 function findFirstNonWildSymbol(line: number[], gameInstance: SLBE, direction: 'LTR' | 'RTL' = 'LTR') {

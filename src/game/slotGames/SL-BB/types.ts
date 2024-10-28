@@ -43,6 +43,7 @@ export interface SLBBSETTINGS {
     isTriggered: boolean;
     payout: number;
   },
+  isCashCollect:boolean
   freeSpin: {
     isEnabled: boolean,
     isTriggered: boolean,
