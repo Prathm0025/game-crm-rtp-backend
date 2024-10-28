@@ -6,6 +6,7 @@ import {
 import { RandomResultGenerator } from "../RandomResultGenerator";
 import { SLBE } from "./bloodEternalBase";
 import { specialIcons } from "./types";
+import { log } from "console";
 
 /**
  * Initializes the game settings using the provided game data and game instance.
@@ -27,6 +28,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBE) {
         currentLines: 0,
         BetPerLines: 0,
         reels: [],
+        isLeftWinTrue: false,
         freeSpin: {
             symbolID: "-1",
             freeSpinMuiltiplier: [],
@@ -41,6 +43,26 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBE) {
             SymbolID: -1,
             useWild: false,
         },
+        vampireMan: {
+            SymbolName: "",
+            SymbolID: -1,
+            useWild: false,
+        },
+        vampireWomen: {
+            SymbolName: "",
+            SymbolID: -1,
+            useWild: false,
+        },
+        HumanMan: {
+            SymbolName: "",
+            SymbolID: -1,
+            useWild: false,
+        },
+        HumanWomen: {
+            SymbolName: "",
+            SymbolID: -1,
+            useWild: false,
+        }
     };
 }
 /**
@@ -90,8 +112,27 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLBE) {
             gameInstance.settings.wild.SymbolID = symbol.Id;
             gameInstance.settings.wild.useWild = true;
             break;
-        default:
+        case specialIcons.VampireMan:
+            gameInstance.settings.vampireMan.SymbolName = symbol.Name;
+            gameInstance.settings.vampireMan.SymbolID = symbol.Id;
+            gameInstance.settings.vampireMan.useWild = true;
             break;
+        case specialIcons.VampireWomen:
+            gameInstance.settings.vampireWomen.SymbolName = symbol.Name;
+            gameInstance.settings.vampireWomen.SymbolID = symbol.Id;
+            gameInstance.settings.vampireWomen.useWild = true;
+            break;
+        case specialIcons.HumanMan:
+            gameInstance.settings.HumanMan.SymbolName = symbol.Name;
+            gameInstance.settings.HumanMan.SymbolID = symbol.Id;
+            gameInstance.settings.HumanMan.useWild = true;
+            break;
+        case specialIcons.HumanWomen:
+            gameInstance.settings.HumanWomen.SymbolName = symbol.Name;
+            gameInstance.settings.HumanWomen.SymbolID = symbol.Id;
+            gameInstance.settings.HumanWomen.useWild = true;
+            break;
+        default:
     }
 }
 
@@ -99,109 +140,114 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLBE) {
 //CHECK WINS ON PAYLINES WITH OR WITHOUT WILD
 //check for win function
 export function checkForWin(gameInstance: SLBE) {
-
     try {
-
         const { settings } = gameInstance;
         const winningLines = [];
         let totalPayout = 0;
+
         settings.lineData.forEach((line, index) => {
-            const firstSymbolPosition = line[0];
-            let firstSymbol = settings.resultSymbolMatrix[firstSymbolPosition][0];
-            // Handle wild symbols
-            if (settings.wild.useWild && firstSymbol === settings.wild.SymbolID) {
-                firstSymbol = findFirstNonWildSymbol(line, gameInstance);
+            const firstSymbolPositionLTR = line[0];
+            const firstSymbolPositionRTL = line[line.length - 1];
+
+            // Get first symbols for both directions
+            let firstSymbolLTR = settings.resultSymbolMatrix[firstSymbolPositionLTR][0];
+            let firstSymbolRTL = settings.resultSymbolMatrix[firstSymbolPositionRTL][line.length - 1];
+
+            // Handle wild symbols for both directions
+            if (settings.wild.useWild && firstSymbolLTR === settings.wild.SymbolID) {
+                firstSymbolLTR = findFirstNonWildSymbol(line, gameInstance);
             }
-            // Handle special icons
-            if (
-                Object.values(specialIcons).includes(
-                    settings.Symbols[firstSymbol].Name as specialIcons
-                )
-            ) {
-                // console.log(
-                //     "Special Icon Matched : ",
-                //     settings.Symbols[firstSymbol].Name
-                // );
-                return;
+            if (settings.wild.useWild && firstSymbolRTL === settings.wild.SymbolID) {
+                firstSymbolRTL = findFirstNonWildSymbol(line, gameInstance);
             }
-            const { isWinningLine, matchCount, matchedIndices } = checkLineSymbols(
-                firstSymbol,
-                line,
-                gameInstance
-            );
-            switch (true) {
-                case isWinningLine && matchCount >= 3:
-                    const symbolMultiplier = accessData(
-                        firstSymbol,
-                        matchCount,
-                        gameInstance
-                    );
-                    switch (true) {
-                        case symbolMultiplier > 0:
-                            totalPayout += symbolMultiplier;
-                            settings._winData.winningLines.push(index + 1);
-                            winningLines.push({
-                                line,
-                                symbol: firstSymbol,
-                                multiplier: symbolMultiplier,
-                                matchCount,
-                            });
-                            console.log(`Line ${index + 1}:`, line);
-                            console.log(
-                                `Payout for Line ${index + 1}:`,
-                                "payout",
-                                symbolMultiplier
-                            );
-                            const formattedIndices = matchedIndices.map(
-                                ({ col, row }) => `${row},${col}`
-                            );
-                            const validIndices = formattedIndices.filter(
-                                (index) => index.length > 2
-                            );
-                            if (validIndices.length > 0) {
-                                // console.log(settings.lastReel, 'settings.lastReel')
-                                console.log(validIndices);
-                                settings._winData.winningSymbols.push(validIndices);
-                                settings._winData.totalWinningAmount = totalPayout * settings.BetPerLines;
-                                console.log(settings._winData.totalWinningAmount)
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                    break;
-                default:
-                    break;
+
+            // Left-to-right check
+            const LTRResult = checkLineSymbols(firstSymbolLTR, line, gameInstance, 'LTR');
+            if (LTRResult.isWinningLine && LTRResult.matchCount >= 3) {
+                const symbolMultiplierLTR = accessData(firstSymbolLTR, LTRResult.matchCount, gameInstance);
+                if (symbolMultiplierLTR > 0) {
+                    const payout = symbolMultiplierLTR * gameInstance.settings.BetPerLines;
+                    totalPayout += payout;
+                    gameInstance.playerData.currentWining += payout;
+                    settings._winData.winningLines.push(index + 1);
+                    winningLines.push({
+                        line,
+                        symbol: firstSymbolLTR,
+                        multiplier: symbolMultiplierLTR,
+                        matchCount: LTRResult.matchCount,
+                        direction: 'LTR'
+                    });
+                    console.log(`Line ${index + 1} (LTR):`, line);
+                    console.log(`Payout for LTR Line ${index + 1}:`, "payout", payout);
+                    return;
+                }
+            }
+
+            // Right-to-left check
+            const RTLResult = checkLineSymbols(firstSymbolRTL, line, gameInstance, 'RTL');
+            if (RTLResult.isWinningLine && RTLResult.matchCount >= 3) {
+                const symbolMultiplierRTL = accessData(firstSymbolRTL, RTLResult.matchCount, gameInstance);
+                if (symbolMultiplierRTL > 0) {
+                    const payout = symbolMultiplierRTL * gameInstance.settings.BetPerLines;
+                    totalPayout += payout;
+                    gameInstance.playerData.currentWining += payout;
+                    settings._winData.winningLines.push(index + 1);
+                    winningLines.push({
+                        line,
+                        symbol: firstSymbolRTL,
+                        multiplier: symbolMultiplierRTL,
+                        matchCount: RTLResult.matchCount,
+                        direction: 'RTL'
+                    });
+                    console.log(`Line ${index + 1} (RTL):`, line);
+                    console.log(`Payout for RTL Line ${index + 1}:`, "payout", payout);
+                }
             }
         });
+        checkforBats(gameInstance)
+
+        // Log and update game state after all lines are checked
+        console.log("Total Winning", gameInstance.playerData.currentWining);
+        console.log("Total Free Spins Won:", gameInstance.settings.freeSpin.freeSpinCount);
+
+        gameInstance.playerData.haveWon += gameInstance.playerData.currentWining;
+        makeResultJson(gameInstance);
+        gameInstance.playerData.currentWining = 0;
+
         return winningLines;
     } catch (error) {
-        console.error("Error in checkForWin", error);
+        console.error("Error in checkForWin:", error);
         return [];
     }
 }
 
 
-//checking matching lines with first symbol and wild subs
+
+
+type MatchedIndex = { col: number; row: number };
+type CheckLineResult = { isWinningLine: boolean; matchCount: number; matchedIndices: MatchedIndex[] };
+type WinningLineDetail = { direction: 'LTR' | 'RTL'; lineIndex: number; details: CheckLineResult };
+
 function checkLineSymbols(
     firstSymbol: string,
     line: number[],
-    gameInstance: SLBE
-): {
-    isWinningLine: boolean;
-    matchCount: number;
-    matchedIndices: { col: number; row: number }[];
-} {
+    gameInstance: SLBE,
+    direction: 'LTR' | 'RTL' = 'LTR'
+): CheckLineResult {
     try {
         const { settings } = gameInstance;
         const wildSymbol = settings.wild.SymbolID || "";
         let matchCount = 1;
         let currentSymbol = firstSymbol;
 
-        const matchedIndices: { col: number; row: number }[] = [
-            { col: 0, row: line[0] },
-        ];
-        for (let i = 1; i < line.length; i++) {
+        const matchedIndices: MatchedIndex[] = [];
+        const start = direction === 'LTR' ? 0 : line.length - 1;
+        const end = direction === 'LTR' ? line.length : -1;
+        const step = direction === 'LTR' ? 1 : -1;
+
+        matchedIndices.push({ col: start, row: line[start] });
+
+        for (let i = start + step; i !== end; i += step) {
             const rowIndex = line[i];
             const symbol = settings.resultSymbolMatrix[rowIndex][i];
 
@@ -209,8 +255,9 @@ function checkLineSymbols(
                 console.error(`Symbol at position [${rowIndex}, ${i}] is undefined.`);
                 return { isWinningLine: false, matchCount: 0, matchedIndices: [] };
             }
+
             switch (true) {
-                case symbol == currentSymbol || symbol === wildSymbol:
+                case symbol === currentSymbol || symbol === wildSymbol:
                     matchCount++;
                     matchedIndices.push({ col: i, row: rowIndex });
                     break;
@@ -229,13 +276,27 @@ function checkLineSymbols(
         return { isWinningLine: false, matchCount: 0, matchedIndices: [] };
     }
 }
-
+function checkforBats(gameInstance: SLBE) {
+    const { settings } = gameInstance;
+    let batsCount = 0;
+    
+    settings.resultSymbolMatrix.forEach((row) => {
+        row.forEach((symbol) => {
+            batsCount += symbol === 9 ? 1 : symbol === 10 ? 2 : 0;
+        });
+    });
+    
+    console.log("Bats Count", batsCount);
+}
 //checking first non wild symbol in lines which start with wild symbol
-function findFirstNonWildSymbol(line, gameInstance: SLBE) {
+function findFirstNonWildSymbol(line: number[], gameInstance: SLBE, direction: 'LTR' | 'RTL' = 'LTR') {
     try {
         const { settings } = gameInstance;
         const wildSymbol = settings.wild.SymbolID;
-        for (let i = 0; i < line.length; i++) {
+        const start = direction === 'LTR' ? 0 : line.length - 1;
+        const end = direction === 'LTR' ? line.length : -1;
+        const step = direction === 'LTR' ? 1 : -1;
+        for (let i = start; i !== end; i += step) {
             const rowIndex = line[i];
             const symbol = settings.resultSymbolMatrix[rowIndex][i];
             if (symbol !== wildSymbol) {
@@ -244,22 +305,26 @@ function findFirstNonWildSymbol(line, gameInstance: SLBE) {
         }
         return wildSymbol;
     } catch (error) {
-        // console.error("Error in findFirstNonWildSymbol:");
+        console.error("Error in findFirstNonWildSymbol:", error);
         return null;
     }
 }
 
+
 //payouts to user according to symbols count in matched lines
 function accessData(symbol, matchCount, gameInstance: SLBE) {
     const { settings } = gameInstance;
+
     try {
         const symbolData = settings.currentGamedata.Symbols.find(
             (s) => s.Id.toString() === symbol.toString()
         );
         if (symbolData) {
             const multiplierArray = symbolData.multiplier;
-            if (multiplierArray && multiplierArray[5 - matchCount]) {
-                return multiplierArray[5 - matchCount][0];
+
+            if (multiplierArray && multiplierArray[settings.matrix.x - matchCount]) {
+                return multiplierArray[settings.matrix.x - matchCount][0];
+
             }
         }
         return 0;

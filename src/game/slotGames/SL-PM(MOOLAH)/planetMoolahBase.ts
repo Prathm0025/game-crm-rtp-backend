@@ -73,16 +73,28 @@ export class SLPM {
     public async spinResult(): Promise<void> {
         try {
             const playerData = this.getPlayerData();
+            if (this.settings.currentBet > playerData.credits) {
+                console.log(this.settings.currentBet + playerData.credits, 'dfdsfds')
+                this.sendError("Low Balance");
+                return;
+            }
             if (!this.settings.freeSpin.useFreeSpin) {
                 await this.deductPlayerBalance(this.settings.currentBet);
                 this.playerData.totalbet += this.settings.currentBet;
             }
-            if (this.settings.currentBet > playerData.credits) {
-                this.sendError("Low Balance");
-                return;
+
+
+            if (this.settings.freeSpin.freeSpinStarted) {
+                this.settings.freeSpin.freeSpinCount--;
+                console.log("Free Spin remaining count ", this.settings.freeSpin.freeSpinCount);
             }
             await new RandomResultGenerator(this);
             checkForWin(this)
+            if (this.settings.freeSpin.freeSpinCount == 0) {
+                this.settings.freeSpin.freeSpinStarted = false
+                this.settings.freeSpin.freeSpinCount = 0
+            }
+
         } catch (error) {
             this.sendError("Spin error");
             console.error("Failed to generate spin results:", error);
@@ -112,7 +124,7 @@ export class SLPM {
             this.sendError("RTP calculation error");
         }
     }
-    
+
 }
 
 
