@@ -199,11 +199,11 @@ export const gameData = [
         "useWildSub": true,
         "isFreeSpinMultiplier": false,
         "reelInstance": {
-          "0": 4,
-          "1": 2,
-          "2": 2,
-          "3": 2,
-          "4": 2
+          "0": 0,
+          "1": 0,
+          "2": 0,
+          "3": 0,
+          "4": 0
         },
         "multiplier": [
           [4, 0],
@@ -217,11 +217,13 @@ export const gameData = [
         "useWildSub": true,
         "isFreeSpinMultiplier": false,
         "reelInstance": {
-          "0": 4,
-          "1": 2,
-          "2": 2,
-          "3": 2,
-          "4": 2
+          "0": 5,
+          "1": 5,
+          "2": 5,
+          "3": 5,
+          "4": 5
+          
+          ,
         },
         "multiplier": [
           [3, 0],
@@ -232,10 +234,62 @@ export const gameData = [
       {
         "Name": "Wild",
         "Id": 11,
-        "useWildSub": false,
-        "isFreeSpinMultiplier": false,
         "reelInstance": {
-          "0": 0,
+          "0": 5,
+          "1": 5,
+          "2": 5,
+          "3": 5,
+          "4": 5,
+        },
+        "description": "Substitutes for all symbols except Jackpot, Free Spin, Bonus, and Scatter.",
+        "useWildSub": false,
+        "useHeisenberg": false,
+
+        "multiplier": [
+
+        ]
+      },
+      {
+        "Name": "Link",
+        "Id": 11,
+        "reelInstance": {
+          "0": 5,
+          "1": 5,
+          "2": 50,
+          "3": 50,
+          "4": 5
+        },
+        "description": "",
+        "useWildSub": false,
+   
+   
+        "useHeisenberg": false,
+        "multiplier": [
+
+        ]
+      },
+      {
+        "Name": "CashCollect",
+        "Id": 13,
+        "reelInstance": {
+          "0": 5,
+          "1": 0,
+          "2": 0,
+          "3": 0,
+          "4": 25
+        },
+        "description": "",
+        "useWildSub": false,
+        "useHeisenberg": true,
+        "multiplier": [
+
+        ]
+      },
+      {
+        "Name": "Coins",
+        "Id": 14,
+        "reelInstance": {
+          "0": 20,
           "1": 20,
           "2": 20,
           "3": 20,

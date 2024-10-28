@@ -82,7 +82,7 @@ export class SLBB {
 
       if (!freeSpin.isFreeSpin) {
         this.decrementPlayerBalance(this.settings.currentBet);
-        this.playerData.totalbet += this.settings.currentBet * 3;
+        this.playerData.totalbet += this.settings.currentBet;
       }
       if (!heisenberg.isTriggered) {
         this.decrementPlayerBalance(this.settings.currentBet);
