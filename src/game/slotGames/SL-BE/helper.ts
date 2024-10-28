@@ -6,6 +6,7 @@ import {
 import { RandomResultGenerator } from "../RandomResultGenerator";
 import { SLBE } from "./bloodEternalBase";
 import { specialIcons } from "./types";
+import { log } from "console";
 
 /**
  * Initializes the game settings using the provided game data and game instance.
@@ -203,6 +204,7 @@ export function checkForWin(gameInstance: SLBE) {
                 }
             }
         });
+        checkforBats(gameInstance)
 
         // Log and update game state after all lines are checked
         console.log("Total Winning", gameInstance.playerData.currentWining);
@@ -273,6 +275,28 @@ function checkLineSymbols(
         console.error("Error in checkLineSymbols:", error);
         return { isWinningLine: false, matchCount: 0, matchedIndices: [] };
     }
+}
+function checkforBats( gameInstance: SLBE)
+{
+    const { settings } = gameInstance;
+    let batsCount= 0;
+    const batSymbols = settings.Symbols.filter(symbol => symbol.Id === 9 );
+    settings.resultSymbolMatrix.forEach((row) => {
+        row.forEach((symbol) => {
+          if (symbol == 9 || symbol ==10) {
+            batsCount++;
+            console.log("symbol");
+            
+            // settings.scatterWinningSymbols.push(`${rowIndex},${colIndex}`);
+          }
+        });
+      });
+      console.log("Bats Count",batsCount);
+      
+    
+    
+    
+
 }
 //checking first non wild symbol in lines which start with wild symbol
 function findFirstNonWildSymbol(line: number[], gameInstance: SLBE, direction: 'LTR' | 'RTL' = 'LTR') {
