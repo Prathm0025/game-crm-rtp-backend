@@ -36,6 +36,8 @@ jobs:
         run: |
       
            git fetch origin dev-build:dev-build || true # Ignore error if it doesn't exist
+
+           git stash --include-untracked
            
            if git branch --list | grep -q "dev-build"; then
                git checkout dev-build
