@@ -101,25 +101,8 @@ export const updateStatus = (client: IUser | IPlayer, status: string) => {
 export const updatePassword = async (
   client: IUser | IPlayer,
   password: string,
-  existingPassword: string
 ) => {
   try {
-    if (!existingPassword) {
-      throw createHttpError(
-        400,
-        "Existing password is required to update the password"
-      );
-    }
-
-    // Check if existingPassword matches client's current password
-    const isPasswordValid = await bcrypt.compare(
-      existingPassword,
-      client.password
-    );
-    if (!isPasswordValid) {
-      throw createHttpError(400, "Existing password is incorrect");
-    }
-
     // Update password
     client.password = await bcrypt.hash(password, 10);
   } catch (error) {
