@@ -79,7 +79,7 @@ class SLLOL {
                 const sendData = (0, gamble_1.sendInitGambleData)();
                 this.decrementPlayerBalance(this.playerData.currentWining);
                 this.playerData.haveWon -= this.playerData.currentWining;
-                this.sendMessage("gambleInitData", sendData);
+                // this.sendMessage("gambleInitData", sendData);
                 break;
             case "GAMBLERESULT":
                 let result = (0, gamble_1.getGambleResult)({ selected: response.data.selected });
@@ -96,12 +96,15 @@ class SLLOL {
                         this.playerData.currentWining = 0;
                         break;
                 }
-                this.sendMessage("GambleResult", result);
+                this.sendMessage("GambleResult", result); // result card 
                 break;
             case "GAMBLECOLLECT":
                 this.playerData.haveWon += this.playerData.currentWining;
-                this.sendMessage("GambleCollect", this.playerData.currentWining);
                 this.incrementPlayerBalance(this.playerData.currentWining);
+                this.sendMessage("GambleCollect", {
+                    currentWinning: this.playerData.currentWining,
+                    balance: this.getPlayerData().credits
+                }); // balance , currentWinning
                 break;
             default:
                 console.warn(`Unhandled message ID: ${response.id}`);
