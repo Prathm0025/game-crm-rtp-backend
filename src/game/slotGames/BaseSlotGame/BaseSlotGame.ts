@@ -188,10 +188,12 @@ export default class BaseSlotGame implements RequiredSocketMethods {
   }
 
   private initialize(GameData: any) {
+    console.log("INITILIZE WITH  : ", GameData.matrix)
     this.settings.Symbols = [];
     this.settings.Weights = [];
     this.settings._winData = new WinData(this);
     this.settings.currentGamedata = GameData[0] || GameData;
+    console.log("AFTER INITILAZATION  : ", this.settings.currentGamedata.matrix)
     this.initSymbols();
     UiInitData.paylines = convertSymbols(this.settings.currentGamedata.Symbols);
     this.settings.startGame = true;

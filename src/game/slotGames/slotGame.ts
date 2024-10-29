@@ -24,6 +24,10 @@ export default class SlotGameManager {
       // throw new Error(`No game class found for id: ${currentGameData.gameSettings.id}`);
     }
   }
+
+  public updateGameSettings(newSettings: any) {
+    this.currentGameData.gameSettings = newSettings;
+  }
 }
 
 

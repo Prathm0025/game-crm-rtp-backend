@@ -114,12 +114,28 @@ export default class PlayerSocket {
     }
   }
 
+  public updateCurrentGameSettings(newSettings: any) {
+    console.log("NEW SETTING : ", newSettings);
+
+    if (this.currentGameData.currentGameManager) {
+      this.currentGameData.currentGameManager.updateSettings(newSettings);
+      console.log(`${this.playerData.username} : Game Setting Updated`)
+    } else {
+      console.log(`No active game manager to update settings`)
+    }
+  }
 
   public async initializePlatformSocket(socket: Socket) {
     if (socket) {
+      console.log(`Initializing platform connection for user ${this.playerData.username}`);
+      if (this.gameData.socket) {
+        console.log("Cleaning up existing game session before platform re-initialization.");
+        await this.cleanupGameSocket();
+      }
+
       this.platformData.socket = socket;
       this.messageHandler(false);
-      this.startPlatformHeartbeat()
+      this.startPlatformHeartbeat();
 
       this.managerName = await this.getManager(this.playerData.username);
       if (!this.managerName) {
@@ -129,16 +145,17 @@ export default class PlayerSocket {
       await sessionManager.startPlatformSession(this.playerData.username, this.playerData.status, this.managerName, this.playerData.credits);
 
       this.platformData.socket.on("disconnect", () => {
+        console.log(`Platform connection lost for user ${this.playerData.username}`);
         this.handlePlatformDisconnection();
       });
 
       eventEmitter.on("updateCredits", (event) => {
         if (this.playerData.username === event.username) {
-          this.playerData.credits = event.credits
+          this.playerData.credits = event.credits;
         }
-      })
-      this.sendData({ type: "CREDIT", data: { credits: this.playerData.credits } }, "platform")
+      });
 
+      this.sendData({ type: "CREDIT", data: { credits: this.playerData.credits } }, "platform");
     }
   }
 
@@ -276,18 +293,32 @@ export default class PlayerSocket {
   }
 
   public async updateGameSocket(socket: Socket) {
+    if (!this.platformData.socket || !this.platformData.socket.connected) {
+      console.log("Game connection blocked - platform connection missing.");
+      socket.emit(messageType.ERROR, "Platform connection required.");
+      socket.disconnect(true);
+      throw createHttpError(403, "Platform connection required before joining a game.");
+    }
+
+    // Check for user agent to prevent multiple devices
     if (socket.request.headers["user-agent"] !== this.playerData.userAgent) {
       socket.emit("alert", {
         id: "AnotherDevice",
         message: "You are already playing on another browser",
       });
       socket.disconnect(true);
-      throw createHttpError(403, "You are already playing on another browser")
-
+      throw createHttpError(403, "You are already playing on another browser");
     }
+
+    // Delay-based retry to ensure platform stability
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+
+    console.log("Initializing game socket connection after platform stability confirmed.");
     this.initializeGameSocket(socket);
     const credits = await getPlayerCredits(this.playerData.username);
     this.playerData.credits = typeof credits === "number" ? credits : 0;
+
   }
 
   private async initGameData() {
