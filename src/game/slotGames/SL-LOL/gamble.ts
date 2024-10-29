@@ -3,7 +3,7 @@ export interface gambleResponse {
   playerWon: boolean,
   currentWinning: number,
   cardId:number,
-  Balance: number,
+  balance: number,
 }
 
 /*
@@ -46,14 +46,14 @@ export function getGambleResult(response: {
         playerWon: true,
         currentWinning: 0,
         cardId:result ==="RED"? (Math.random()>=0.5?0:1):( Math.random()>=0.5?2:3),
-        Balance :0
+        balance :0
       }
     case false:
       return {
         playerWon: false,
         currentWinning: 0,
         cardId:result ==="RED"? (Math.random()>=0.5?0:1):( Math.random()>=0.5?2:3),
-        Balance :0,
+        balance :0,
       }
   }
 }
