@@ -30,20 +30,20 @@ jobs:
       - name: Build
         run: npm run build
    
-      - name: Push updated package.json to dev-build branch
+      - name: Push updated package.json to build-artifacts branch
         env:
           GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
         run: |
-           git fetch origin dev-build:dev-build # Ensure you're up-to-date with dev-build
+           git fetch origin build-artifacts:build-artifacts # Ensure you're up-to-date with build-artifacts
            git stash || echo "No changes to stash" # Stash only if there are changes
-           git checkout dev-build
+           git checkout build-artifacts
            git config user.name "TrippyRahul"
            git config user.email "rahulrawat.trippybug@gmail.com"
            rm -f package.json
            git checkout dev -- package.json
            git add package.json
            git commit -m "update package.json" || echo "No changes to commit"
-           git push --force origin dev-build
+           git push --force origin build-artifacts
            git stash pop || echo "No local changes to pop" # Handle no stash scenario
 
       - name: Upload Build Artifacts
