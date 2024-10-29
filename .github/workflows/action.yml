@@ -34,16 +34,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
         run: |
-          # Fetch the dev-build branch if it exists
-          git fetch origin dev-build || true
-
-          # Check if dev-build branch exists locally or remotely
-          if git show-ref --verify --quiet refs/heads/dev-build; then
-              git checkout dev-build
-          else
-              git checkout -b dev-build
-          fi
-
+          git fetch origin dev-build
+          git checkout dev-build
           # Configure Git user for committing
           git config user.name "Prathm0025"
           git config user.email "prathamesh@underpinservices.com"
