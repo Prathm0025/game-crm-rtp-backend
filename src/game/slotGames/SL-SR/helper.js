@@ -298,6 +298,7 @@ function checkForScatter(gameInstance) {
 // Function to select values from an array based on probabilities
 function selectValuesFromArray(array, probabilities, count) {
     const selectedValues = [];
+    console.log("Bonus Count", count);
     for (let i = 0; i < count; i++) {
         const randomValue = Math.random();
         let cumulativeProbability = 0;
