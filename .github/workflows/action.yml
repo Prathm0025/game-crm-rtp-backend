@@ -30,40 +30,8 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Ensure dist folder is committed on dev branch
-        run: |
-          # Stage the dist folder on the dev branch if it exists
-          if [ -d "dist" ]; then
-            git add dist
-            git commit -m "Add dist folder to dev branch" || echo "No changes in dist to commit"
-            git push origin dev
-          fi
-
-      - name: Push updated dist folder to dev-build branch
-        env:
-          GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
-        run: |
-          # Fetch the dev-build branch if it exists
-          git fetch origin dev-build || true
-          
-          # Check out dev-build or create it if it doesn't exist
-          if git show-ref --verify --quiet refs/heads/dev-build; then
-              git checkout dev-build
-          else
-              git checkout -b dev-build
-          fi
-
-          # Configure Git user for committing
-          git config user.name "Prathm0025"
-          git config user.email "prathamesh@underpinservices.com"
-
-          # Remove existing dist folder on dev-build
-          rm -rf dist
-
-          # Check out the dist folder from dev branch
-          git checkout dev -- ./dist/*
-
-          # Stage and commit dist folder if there are changes
-          git add .
-          git commit -m "Update dist folder with new build" || echo "No changes to commit"
-          git push --force origin dev-build
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: artifact
+          path: ./dist/**/*.js
