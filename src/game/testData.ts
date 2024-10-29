@@ -68,7 +68,7 @@ export const gameData = [
       "isEnabled": true,
       "countIncrement": 8,
       "bloodSplash": {
-        "countProb": [20, 10, 10, 10, 20, 25, 23, 22] // prob of 1 ,2,3,4,5,6,7 or 8 bloodsplashes
+        "countProb": [20, 10, 10, 10, 20, 25] // prob of 1 ,2,3,4,5,6,7 or 8 bloodsplashes
       }
     },
     "bonus": {
@@ -79,8 +79,7 @@ export const gameData = [
       "payOutProb": [0.05, 0.5, 1, 3, 10, 20, 25, 39.4]
     },
     "gamble": {
-      "type": "card",
-      "isEnabled": false
+      "isEnabled": true
     },
     "Symbols": [
       {

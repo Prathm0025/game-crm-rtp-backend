@@ -42,6 +42,9 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBE) {
         vampHuman: []
       }
     },
+    gamble: {
+      isEnabled: gameData.gameSettings.gamble.isEnabled
+    },
     wild: {
       SymbolName: "",
       SymbolID: -1,
@@ -156,7 +159,7 @@ function handleFreeSpin(gameInstance: SLBE) {
   const splashes: number = getRandomFromProbability(
     settings.freeSpin.isTriggered ?
       settings.freeSpin.bloodSplash.countProb :
-      settings.freeSpin.bloodSplash.countProb.slice(0, 4),
+      settings.freeSpin.bloodSplash.countProb.slice(0, 2),
   )
   console.log("bloodSplash", splashes);
   //now we need to swap random positions in matrix with wild other than the ones that are already wild 
@@ -442,6 +445,7 @@ export function sendInitData(gameInstance: SLBE) {
   const dataToSend = {
     GameData: {
       Reel: reels,
+      Lines: gameInstance.settings.currentGamedata.linesApiData,
       Bets: gameInstance.settings.currentGamedata.bets,
     },
     UIData: UiInitData,
@@ -462,6 +466,7 @@ export function makeResultJson(gameInstance: SLBE) {
     const Balance = credits.toFixed(2)
     const sendData = {
       GameData: {
+        ResultReel: settings.resultSymbolMatrix,
         linesToEmit: settings._winData.winningLines,
         symbolsToEmit: settings._winData.winningSymbols,
         jackpot: settings._winData.jackpotwin,
@@ -550,7 +555,7 @@ function getRandomEmptyPositions(matrix: string[][], symbolId: string): {
   // Collect all positions that don't have the symbolId
   for (let row = 0; row < matrix.length; row++) {
     for (let col = 0; col < matrix[row].length; col++) {
-      if (matrix[row][col] !== symbolId) {
+      if (matrix[row][col] != symbolId) {
         emptyPositions.push({ row, col });
       }
     }

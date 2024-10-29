@@ -39,6 +39,9 @@ export interface SLBESETTINGS {
       }[]
     }
   };
+  gamble: {
+    isEnabled: boolean,
+  }
   wild: {
     SymbolName: string;
     SymbolID: number;
