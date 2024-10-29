@@ -48,7 +48,6 @@ const getPlayerDetails = async (username: string) => {
 
 const getManagerDetails = async (username: string) => {
     const manager = await User.findOne({ username });
-    console.log("MANAGER : ", manager)
     if (manager) {
         return { credits: manager.credits, status: manager.status }
     }

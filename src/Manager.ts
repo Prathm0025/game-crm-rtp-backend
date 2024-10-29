@@ -126,6 +126,12 @@ export default class Manager {
                 this.notifyManager({ type: event.type, payload: event.payload });
             }
         });
+
+        eventEmitter.on("updateCredits", (event) => {
+            if (this.username === event.username) {
+                this.credits = event.credits
+            }
+        })
     }
 
     private notifyManager(data: { type: string, payload: any }) {
