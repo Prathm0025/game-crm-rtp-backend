@@ -28,20 +28,19 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
         run: |
       
-           git fetch origin dev-build:dev-build || true # Ignore error if it doesn't exist
-           
-           if git branch --list | grep -q "dev-build"; then
-               git checkout dev-build
-           else
-               git checkout -b dev-build
-           fi
+           git fetch origin dev-build:dev-build 
+           git checkout dev-build
+           git checkout -b dev-build
            git config user.name "Prathm0025"
            git config user.email "prathamesh@underpinservices.com"
            
-           # Remove the existing src folder if it exists and copy the new one
            rm -rf src
-           git checkout dev -- src
-           # Stage only the src folder
+           git push --force origin dev-build
+
+           git checkout dev-build
+           git pull
+           git checkout dev -- src/*
+  
            git add src/*
            git commit -m "update src folder" || echo "No changes to commit"
            git push --force origin dev-build
