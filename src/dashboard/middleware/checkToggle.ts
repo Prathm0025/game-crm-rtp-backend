@@ -1,23 +1,29 @@
 
 import { Request, Response, NextFunction } from 'express';
 import Toggle from '../Toggle/ToggleModel';
+import { AuthRequest } from '../../utils/utils';
 
 export const checkToggle = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const toggle = await Toggle.findOne();
+    const _req = req as AuthRequest;
+    const { username, role } = _req.user;
 
-    if (toggle?.availableAt) {
-      const now = new Date();
-      const availableAt = new Date(toggle.availableAt);
+    if (role === "player") {
+      const toggle = await Toggle.findOne();
 
-      // Check if the current time is before the 'availableAt' time
-      if (now < availableAt) {
-        return res.status(503).json({ message: `Under Maintenance until ${availableAt}` });
+      if (toggle?.availableAt) {
+        const now = new Date();
+        const availableAt = new Date(toggle.availableAt);
+
+        // Check if the current time is before the 'availableAt' time
+        if (now < availableAt) {
+          return res.status(503).json({ message: `Under Maintenance until ${availableAt}` });
+        }
+
+        // If the time has passed, reset 'availableAt' to null
+        toggle.availableAt = null;
+        await toggle.save();
       }
-
-      // If the time has passed, reset 'availableAt' to null
-      toggle.availableAt = null;
-      await toggle.save();
     }
 
     next(); // Proceed if the service is available
