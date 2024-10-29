@@ -1,46 +1,57 @@
 name: Build and Deploy
+
 on:
   push:
     branches:
       - "dev"
   workflow_dispatch:
+
 permissions:
   contents: write
   pull-requests: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
         with:
           ref: dev
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+
       - name: Install Dependencies
         run: npm install
+
       - name: Build
         run: npm run build
-   
+
       - name: Push updated src folder to dev-build branch
         env:
           GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
         run: |
-      
-           git fetch origin dev-build:dev-build 
-           git checkout dev-build
-           git checkout -b dev-build
-           git config user.name "Prathm0025"
-           git config user.email "prathamesh@underpinservices.com"
-           
-           rm -rf src
-           git push --force origin dev-build
+          # Fetch the dev-build branch if it exists
+          git fetch origin dev-build || true
 
-           git checkout dev-build
-           git pull
-           git checkout dev -- src/*
-  
-           git add src/*
-           git commit -m "update src folder" || echo "No changes to commit"
-           git push --force origin dev-build
+          # Check if dev-build branch exists locally or remotely
+          if git show-ref --verify --quiet refs/heads/dev-build; then
+              git checkout dev-build
+          else
+              git checkout -b dev-build
+          fi
+
+          # Configure Git user for committing
+          git config user.name "Prathm0025"
+          git config user.email "prathamesh@underpinservices.com"
+
+          # Pull updated src from the dev branch
+          git checkout dev -- src
+
+          # Stage and commit src updates if there are changes
+          git add src
+          git commit -m "Update src folder" || echo "No changes to commit"
+          git push --force origin dev-build
