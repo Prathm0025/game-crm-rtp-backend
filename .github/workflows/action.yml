@@ -30,8 +30,37 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: artifact
-          path: ./dist/**/*.js
+      - name: Push specific files to build-artifact branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
+        run: |
+          # Configure Git
+          git config user.name "Prathm0025"
+          git config user.email "prathamesh@underpinservices.com"
+
+          # Fetch the build-artifact branch if it exists
+          git fetch origin build-artifact || true
+
+          # Check out the build-artifact branch or create it if it doesn't exist
+          if git show-ref --verify --quiet refs/heads/build-artifact; then
+              git checkout build-artifact
+          else
+              git checkout -b build-artifact
+          fi
+
+          # Remove all files in the build-artifact branch
+          git rm -rf . > /dev/null 2>&1 || true
+
+          # Copy the src folder, app.js, package.json, and package-lock.json from the dist folder
+          mkdir -p src
+          cp -r dist/src/* src/
+          cp dist/app.js .
+          cp package.json .
+          cp package-lock.json .
+
+          # Stage and commit the selected files
+          git add src app.js package.json package-lock.json
+          git commit -m "Update src, app.js, package.json, and package-lock.json in build-artifact branch" || echo "No changes to commit"
+          
+          # Push to build-artifact branch
+          git push --force origin build-artifact
