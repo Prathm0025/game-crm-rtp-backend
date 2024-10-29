@@ -533,12 +533,14 @@ export function makeResultJson(gameInstance: SLSR) {
         isNewAdded: settings.isNewAdded,
         freeSpinCount: settings.freeSpin.freeSpinCount,
         },
+        bonusData:{
         isBonus: settings.bonus.start,
         bonusWin: gameInstance.settings.bonus.pay,
         shuffledBonusValues: settings.shuffledBonusValues,
         selectedBonusMultiplier: settings.selectedMultiplier,
-        scatterWinningSymbols: settings.scatterWinningSymbols,
         trashForCashWinningSymbols: settings.trashForCashWinningSymbols,
+        },
+        scatterWinningSymbols: settings.scatterWinningSymbols,
       },
       PlayerData: {
         Balance: Balance,

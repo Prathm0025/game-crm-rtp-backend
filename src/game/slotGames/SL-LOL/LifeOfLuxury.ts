@@ -95,12 +95,12 @@ export class SLLOL {
         switch (result.playerWon) {
           case true:
             this.playerData.currentWining *= 2
-            // result.Balance = this.getPlayerData().credits + this.playerData.currentWining
+             result.Balance = this.getPlayerData().credits + this.playerData.currentWining
             result.currentWinning = this.playerData.currentWining
             break;
           case false:
             result.currentWinning = 0;
-            // result.Balance = this.getPlayerData().credits;
+             result.Balance = this.getPlayerData().credits;
             this.playerData.currentWining = 0;
             break;
         }
