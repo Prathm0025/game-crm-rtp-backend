@@ -32,12 +32,15 @@ function initializeGameSettings(gameData, gameInstance) {
         isLeftWinTrue: false,
         freeSpin: {
             symbolID: "-1",
-            freeSpinMuiltiplier: [],
-            freeSpinStarted: false,
-            freeSpinsAdded: false,
             freeSpinCount: 0,
-            noOfFreeSpins: 0,
-            useFreeSpin: false,
+            isEnabled: gameData.gameSettings.freeSpin.isEnabled,
+            countIncrement: gameData.gameSettings.freeSpin.countIncrement,
+            isFreeSpin: false,
+            isTriggered: false,
+            substitutions: {
+                bloodSplash: [],
+                vampHuman: []
+            }
         },
         wild: {
             SymbolName: "",
@@ -49,7 +52,7 @@ function initializeGameSettings(gameData, gameInstance) {
             SymbolID: -1,
             useWild: false,
         },
-        vampireWomen: {
+        vampireWoman: {
             SymbolName: "",
             SymbolID: -1,
             useWild: false,
@@ -59,7 +62,7 @@ function initializeGameSettings(gameData, gameInstance) {
             SymbolID: -1,
             useWild: false,
         },
-        HumanWomen: {
+        HumanWoman: {
             SymbolName: "",
             SymbolID: -1,
             useWild: false,
@@ -99,7 +102,9 @@ function shuffleArray(array) {
 function makePayLines(gameInstance) {
     const { settings } = gameInstance;
     settings.currentGamedata.Symbols.forEach((element) => {
-        handleSpecialSymbols(element, gameInstance);
+        if (!element.useWildSub) {
+            handleSpecialSymbols(element, gameInstance);
+        }
     });
 }
 function handleSpecialSymbols(symbol, gameInstance) {
@@ -114,20 +119,20 @@ function handleSpecialSymbols(symbol, gameInstance) {
             gameInstance.settings.vampireMan.SymbolID = symbol.Id;
             gameInstance.settings.vampireMan.useWild = true;
             break;
-        case types_1.specialIcons.VampireWomen:
-            gameInstance.settings.vampireWomen.SymbolName = symbol.Name;
-            gameInstance.settings.vampireWomen.SymbolID = symbol.Id;
-            gameInstance.settings.vampireWomen.useWild = true;
+        case types_1.specialIcons.VampireWoman:
+            gameInstance.settings.vampireWoman.SymbolName = symbol.Name;
+            gameInstance.settings.vampireWoman.SymbolID = symbol.Id;
+            gameInstance.settings.vampireWoman.useWild = true;
             break;
         case types_1.specialIcons.HumanMan:
             gameInstance.settings.HumanMan.SymbolName = symbol.Name;
             gameInstance.settings.HumanMan.SymbolID = symbol.Id;
             gameInstance.settings.HumanMan.useWild = true;
             break;
-        case types_1.specialIcons.HumanWomen:
-            gameInstance.settings.HumanWomen.SymbolName = symbol.Name;
-            gameInstance.settings.HumanWomen.SymbolID = symbol.Id;
-            gameInstance.settings.HumanWomen.useWild = true;
+        case types_1.specialIcons.HumanWoman:
+            gameInstance.settings.HumanWoman.SymbolName = symbol.Name;
+            gameInstance.settings.HumanWoman.SymbolID = symbol.Id;
+            gameInstance.settings.HumanWoman.useWild = true;
             break;
         default:
     }
@@ -139,6 +144,9 @@ function checkForWin(gameInstance) {
         const { settings } = gameInstance;
         const winningLines = [];
         let totalPayout = 0;
+        // TODO: handle freespin . - 1. vamphumanunion should be wild (swap resmatrix)
+        //                             - 2. bloodSplash feat  (swap resmatrix)
+        //                             - 3. populate freespin.wildsubbed
         settings.lineData.forEach((line, index) => {
             const firstSymbolPositionLTR = line[0];
             const firstSymbolPositionRTL = line[line.length - 1];
@@ -168,8 +176,8 @@ function checkForWin(gameInstance) {
                         matchCount: LTRResult.matchCount,
                         direction: 'LTR'
                     });
-                    console.log(`Line ${index + 1} (LTR):`, line);
-                    console.log(`Payout for LTR Line ${index + 1}:`, "payout", payout);
+                    // console.log(`Line ${index + 1} (LTR):`, line);
+                    // console.log(`Payout for LTR Line ${index + 1}:`, "payout", payout);
                     return;
                 }
             }
@@ -189,11 +197,22 @@ function checkForWin(gameInstance) {
                         matchCount: RTLResult.matchCount,
                         direction: 'RTL'
                     });
-                    console.log(`Line ${index + 1} (RTL):`, line);
-                    console.log(`Payout for RTL Line ${index + 1}:`, "payout", payout);
+                    // console.log(`Line ${index + 1} (RTL):`, line);
+                    // console.log(`Payout for RTL Line ${index + 1}:`, "payout", payout);
                 }
             }
         });
+        checkforBats(gameInstance);
+        //TODO: check for freespin 
+        //    1. check if human vamp are adjacent 
+        //    2. append to vampHuman
+        //  3. sub blood splash back
+        const { found, positions } = checkForFreeSpin(gameInstance);
+        if (found) {
+            settings.freeSpin.isTriggered = true;
+            settings.freeSpin.isFreeSpin = true;
+            settings.freeSpin.freeSpinCount += settings.freeSpin.countIncrement;
+        }
         // Log and update game state after all lines are checked
         console.log("Total Winning", gameInstance.playerData.currentWining);
         console.log("Total Free Spins Won:", gameInstance.settings.freeSpin.freeSpinCount);
@@ -206,6 +225,34 @@ function checkForWin(gameInstance) {
         console.error("Error in checkForWin:", error);
         return [];
     }
+}
+function checkForFreeSpin(gameInstance) {
+    const manId = gameInstance.settings.HumanMan.SymbolID; // 13
+    const womanId = gameInstance.settings.HumanWoman.SymbolID; // 14
+    const VampireManId = gameInstance.settings.vampireMan.SymbolID; // 11
+    const VampireWomanId = gameInstance.settings.vampireWoman.SymbolID; // 12
+    const positions = [];
+    let found = false;
+    const matrix = gameInstance.settings.resultSymbolMatrix;
+    matrix.forEach((row, i) => {
+        row.forEach((symbol, j) => {
+            // Check VampireMan + HumanWoman combination (11,14)
+            if (symbol === VampireManId.toString()) {
+                if (j + 1 < row.length && matrix[i][j + 1] === womanId.toString()) {
+                    positions.push([`${i},${j}`, `${i},${j + 1}`]);
+                    found = true;
+                }
+            }
+            // Check HumanMan + VampireWoman combination (13,12)
+            if (symbol === manId.toString()) {
+                if (j + 1 < row.length && matrix[i][j + 1] === VampireWomanId.toString()) {
+                    positions.push([`${i},${j}`, `${i},${j + 1}`]);
+                    found = true;
+                }
+            }
+        });
+    });
+    return { found, positions };
 }
 function checkLineSymbols(firstSymbol, line, gameInstance, direction = 'LTR') {
     try {
@@ -245,6 +292,16 @@ function checkLineSymbols(firstSymbol, line, gameInstance, direction = 'LTR') {
         console.error("Error in checkLineSymbols:", error);
         return { isWinningLine: false, matchCount: 0, matchedIndices: [] };
     }
+}
+function checkforBats(gameInstance) {
+    const { settings } = gameInstance;
+    let batsCount = 0;
+    settings.resultSymbolMatrix.forEach((row) => {
+        row.forEach((symbol) => {
+            batsCount += symbol === 9 ? 1 : symbol === 10 ? 2 : 0;
+        });
+    });
+    console.log("Bats Count", batsCount);
 }
 //checking first non wild symbol in lines which start with wild symbol
 function findFirstNonWildSymbol(line, gameInstance, direction = 'LTR') {

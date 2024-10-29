@@ -77,7 +77,7 @@ class SLBB {
                 }
                 if (!freeSpin.isFreeSpin) {
                     this.decrementPlayerBalance(this.settings.currentBet);
-                    this.playerData.totalbet += this.settings.currentBet * 3;
+                    this.playerData.totalbet += this.settings.currentBet;
                 }
                 if (!heisenberg.isTriggered) {
                     this.decrementPlayerBalance(this.settings.currentBet);
@@ -88,8 +88,9 @@ class SLBB {
                 if (freeSpin.freeSpinCount === 1) {
                     freeSpin.isFreeSpin = false;
                 }
-                if (freeSpin.isFreeSpin &&
-                    freeSpin.freeSpinCount > 0 &&
+                if (
+                // freeSpin.isFreeSpin &&
+                freeSpin.freeSpinCount > 0 &&
                     !this.settings.heisenberg.isTriggered) {
                     freeSpin.freeSpinCount--;
                     this.settings.currentBet = 0;

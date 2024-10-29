@@ -37,6 +37,7 @@ function initializeGameSettings(gameData, gameInstance) {
         freeSpinMultipliers: [1, 1, 1, 1, 1],
         freeSpinSymbolId: ((_b = gameInstance.currentGameData.gameSettings.Symbols.find((sym) => sym.Name == 'FreeSpin')) === null || _b === void 0 ? void 0 : _b.Id) || "12",
         maxMultiplier: 10,
+        freeSpinIncrement: gameSettings.freeSpin.incrementCount,
         gamble: gameSettings.gamble,
         winningCombinations: []
     };
@@ -155,24 +156,6 @@ function printWinningCombinations(winningCombinations) {
     const totalPayout = winningCombinations.reduce((sum, combo) => sum + combo.payout, 0);
     console.log(`Total Payout: ${totalPayout}`);
 }
-// export function logGame(result: GameResult, payout: number, winningCombinations: WinningCombination[], getSymbol: (id: number) => SymbolType | undefined, gameInstance: SLLOL): void {
-//   console.log("Game Result:");
-//   printMatrix(result, getSymbol, gameInstance);
-//   console.log("\nTotal Payout:", payout);
-//
-//   if (winningCombinations.length > 0) {
-//     console.log("\nWinning Combinations:");
-//     winningCombinations.forEach((combo, index) => {
-//       const symbol = getSymbol(combo.symbolId);
-//       console.log(`\nCombination ${index + 1}:`);
-//       console.log(`Symbol: ${symbol?.Name}`);
-//       console.log(`Payout: ${combo.payout}`);
-//       // printWinningCombination(result, combo.positions, getSymbol, gameInstance);
-//     });
-//   } else {
-//     console.log("\nNo winning combinations.");
-//   }
-// }
 function getSymbol(id, Symbols) {
     return Symbols.find(s => s.Id == id);
 }
@@ -255,7 +238,8 @@ function checkWin(gameInstance) {
         if (col == settings.matrix.x) {
             if (path.length >= settings.minMatchCount) {
                 const symbol = getSymbol(symbolId, settings.Symbols);
-                const multiplierIndex = path.length - settings.minMatchCount;
+                let multiplierIndex = Math.abs(path.length - 5);
+                console.log("Multiplier index", multiplierIndex);
                 if (symbol && symbol.multiplier[multiplierIndex]) { // Check if multiplier exists
                     const multiplier = symbol.multiplier[multiplierIndex][0];
                     winningCombinations.push({ symbolId, positions: path, payout: multiplier * settings.BetPerLines });
@@ -272,7 +256,7 @@ function checkWin(gameInstance) {
         // End the combination if it's long enough
         if (path.length >= settings.minMatchCount) {
             const symbol = getSymbol(symbolId, settings.Symbols);
-            const multiplierIndex = path.length - settings.minMatchCount;
+            let multiplierIndex = Math.abs(path.length - 5);
             if (symbol && symbol.multiplier[multiplierIndex]) { // Check if multiplier exists
                 const multiplier = symbol.multiplier[multiplierIndex][0];
                 winningCombinations.push({ symbolId, positions: path, payout: multiplier * settings.BetPerLines });
@@ -308,27 +292,30 @@ function checkWin(gameInstance) {
     const bool = checkForFreespin(gameInstance);
     console.log("isFreespin", bool);
     //reset multiplers for freespin when its over 
-    if (settings.freeSpinCount <= 0 && settings.isFreeSpin == false) {
+    if (settings.freeSpinCount <= 0 && settings.isFreeSpin === false) {
         settings.freeSpinMultipliers = [1, 1, 1, 1, 1];
     }
-    else {
-        settings.freeSpinCount -= 1;
-    }
+    // else {
+    //   settings.freeSpinCount -= 1
+    // }
     winningCombinations.forEach(combo => {
         // alter payout . multiply betsperline with payout
         // NOTE: also check for freespin multipliers 
         if (settings.freeSpinCount > 0 && getSymbol(combo.symbolId, settings.Symbols).isFreeSpinMultiplier) {
-            combo.payout = combo.payout * settings.freeSpinMultipliers[combo.symbolId] * settings.BetPerLines;
+            combo.payout = combo.payout * settings.freeSpinMultipliers[combo.symbolId];
         }
         else {
-            combo.payout = combo.payout * settings.BetPerLines;
+            combo.payout = combo.payout;
         }
         totalPayout += combo.payout;
     });
     settings.winningCombinations = winningCombinations;
-    playerData.currentWining = totalPayout;
-    playerData.haveWon += totalPayout;
+    gameInstance.playerData.currentWining = totalPayout;
+    gameInstance.playerData.haveWon += totalPayout;
     makeResultJson(gameInstance);
+    if (settings.freeSpinCount > 0) {
+        settings.freeSpinCount -= 1;
+    }
     return { payout: totalPayout, winningCombinations };
 }
 function checkForFreespin(gameInstance) {
@@ -351,7 +338,7 @@ function checkForFreespin(gameInstance) {
             if (col1Has12 && col2Has12 && col3Has12) {
                 settings.isFreeSpinTriggered = true;
                 settings.isFreeSpin = true;
-                settings.freeSpinCount += 10;
+                settings.freeSpinCount += settings.freeSpinIncrement;
                 return true;
             }
         }
