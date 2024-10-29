@@ -64,6 +64,10 @@ export const gameData = [
       1.5,
       2
     ],
+    "bats":{
+      "isEnabled": true,
+      "multiplier":[300,150,90,45,24,15,6,3,1.2,0.6,0,0,0]
+    },
     "freeSpin": {
       "isEnabled": true,
       "countIncrement": 8,

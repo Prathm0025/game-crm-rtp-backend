@@ -27,6 +27,13 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBE) {
     BetPerLines: 0,
     reels: [],
     isLeftWinTrue: false,
+    bats: {
+      isEnabled: gameData.gameSettings.bats.isEnabled,
+      batCount: 0,
+      positions: [],
+      payout: 0,
+      multipliers: gameData.gameSettings.bats.multiplier
+    },
     freeSpin: {
       symbolID: "-1",
       freeSpinCount: 0,
@@ -258,6 +265,7 @@ export function checkForWin(gameInstance: SLBE) {
       }
     });
     checkforBats(gameInstance)
+    gameInstance.playerData.currentWining += settings.bats.payout
 
 
 
@@ -307,6 +315,8 @@ export function checkForWin(gameInstance: SLBE) {
     settings.freeSpin.substitutions.bloodSplash = []
     settings._winData.winningLines = []
     settings._winData.winningSymbols = []
+    settings.bats.positions = []
+    settings.bats.payout = 0
 
     return winningLines;
   } catch (error) {
@@ -371,16 +381,35 @@ function checkLineSymbols(
   }
 }
 function checkforBats(gameInstance: SLBE) {
-  const { settings } = gameInstance;
-  let batsCount = 0;
+  try {
 
-  settings.resultSymbolMatrix.forEach((row) => {
-    row.forEach((symbol) => {
-      batsCount += symbol === 9 ? 1 : symbol === 10 ? 2 : 0;
+    const { settings } = gameInstance;
+    let batsCount = 0;
+
+    settings.resultSymbolMatrix.forEach((row, i) => {
+      row.forEach((symbol, j) => {
+        // batsCount +=
+        //   symbol == settings.Bat.SymbolID.toString() ?
+        //     1 :
+        //     symbol == settings.BatX2.SymbolID.toString() ?
+        //       2 : 0;
+        if (symbol == settings.Bat.SymbolID.toString() || symbol == settings.BatX2.SymbolID.toString()) {
+          settings.bats.positions.push(`${i},${j}`)
+          batsCount += symbol == settings.BatX2.SymbolID.toString() ? 2 : 1
+        }
+      });
     });
-  });
-
-  console.log("Bats Count", batsCount);
+    //TODO:
+    //check for bats count
+    if (batsCount > 8) {
+      settings.bats.payout += settings.BetPerLines * settings.bats.multipliers[0]
+    } else {
+      settings.bats.payout += settings.BetPerLines * settings.bats.multipliers[batsCount]
+    }
+    console.log("Bats Count", batsCount);
+  } catch (e) {
+    console.error("Error in checkforBats:", e);
+  }
 }
 //checking first non wild symbol in lines which start with wild symbol
 function findFirstNonWildSymbol(line: number[], gameInstance: SLBE, direction: 'LTR' | 'RTL' = 'LTR') {
@@ -467,10 +496,10 @@ export function makeResultJson(gameInstance: SLBE) {
         symbolsToEmit: settings._winData.winningSymbols,
         isFreeSpin: settings.freeSpin.isTriggered,
         count: settings.freeSpin.freeSpinCount,
-        freeSpin: {
-          vampHuman: settings.freeSpin.substitutions.vampHuman.flatMap((item) => item),
-          bloodSplash: settings.freeSpin.substitutions.bloodSplash.flatMap((item) => item.index),
-        }
+        vampHuman: settings.freeSpin.substitutions.vampHuman.flatMap((item) => item),
+        bloodSplash: settings.freeSpin.substitutions.bloodSplash.flatMap((item) => item.index),
+        batPositions: settings.bats.positions,
+        batPayout: settings.bats.payout
       },
       PlayerData: {
         Balance: Balance,
@@ -481,8 +510,8 @@ export function makeResultJson(gameInstance: SLBE) {
     };
 
     console.log("sendData", sendData);
-    console.log("_winData lines", settings._winData.winningLines);
-    console.log("_winData symbols", settings._winData.winningSymbols);
+    // console.log("_winData lines", settings._winData.winningLines);
+    // console.log("_winData symbols", settings._winData.winningSymbols);
 
 
     gameInstance.sendMessage('ResultData', sendData);

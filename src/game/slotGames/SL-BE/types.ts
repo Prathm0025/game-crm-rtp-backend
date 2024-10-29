@@ -21,6 +21,13 @@ export interface SLBESETTINGS {
   reels: any[][];
   Symbols: Symbol[];
   isLeftWinTrue: boolean;
+  bats:{
+    isEnabled: boolean,
+    batCount: number,
+    positions:string[],
+    multipliers: number[],
+    payout: number
+  },
   freeSpin: {
     symbolID: string,
     isEnabled: boolean,
