@@ -69,7 +69,17 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBE) {
       SymbolName: "",
       SymbolID: -1,
       useWild: false,
-    }
+    },
+    Bat: {
+      SymbolName: "",
+      SymbolID: -1,
+      useWild: false,
+    },
+    BatX2: {
+      SymbolName: "",
+      SymbolID: -1,
+      useWild: false,
+    },
   };
 }
 /**
@@ -117,28 +127,36 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLBE) {
     case specialIcons.wild:
       gameInstance.settings.wild.SymbolName = symbol.Name;
       gameInstance.settings.wild.SymbolID = symbol.Id;
-      gameInstance.settings.wild.useWild = true;
+      gameInstance.settings.wild.useWild = false;
       break;
     case specialIcons.VampireMan:
       gameInstance.settings.vampireMan.SymbolName = symbol.Name;
       gameInstance.settings.vampireMan.SymbolID = symbol.Id;
-      gameInstance.settings.vampireMan.useWild = true;
+      gameInstance.settings.vampireMan.useWild = false;
       break;
     case specialIcons.VampireWoman:
       gameInstance.settings.vampireWoman.SymbolName = symbol.Name;
       gameInstance.settings.vampireWoman.SymbolID = symbol.Id;
-      gameInstance.settings.vampireWoman.useWild = true;
+      gameInstance.settings.vampireWoman.useWild = false;
       break;
     case specialIcons.HumanMan:
       gameInstance.settings.HumanMan.SymbolName = symbol.Name;
       gameInstance.settings.HumanMan.SymbolID = symbol.Id;
-      gameInstance.settings.HumanMan.useWild = true;
+      gameInstance.settings.HumanMan.useWild = false;
       break;
     case specialIcons.HumanWoman:
       gameInstance.settings.HumanWoman.SymbolName = symbol.Name;
       gameInstance.settings.HumanWoman.SymbolID = symbol.Id;
-      gameInstance.settings.HumanWoman.useWild = true;
+      gameInstance.settings.HumanWoman.useWild = false;
       break;
+    case specialIcons.Bat:
+      gameInstance.settings.Bat.SymbolName = symbol.Name;
+      gameInstance.settings.Bat.SymbolID = symbol.Id;
+      gameInstance.settings.Bat.useWild = false;
+    case specialIcons.BatX2:
+      gameInstance.settings.BatX2.SymbolName = symbol.Name;
+      gameInstance.settings.BatX2.SymbolID = symbol.Id;
+      gameInstance.settings.BatX2.useWild = false;
     default:
   }
 }
@@ -200,6 +218,12 @@ export function checkForWin(gameInstance: SLBE) {
             matchCount: LTRResult.matchCount,
             direction: 'LTR'
           });
+
+          const formattedIndices = LTRResult.matchedIndices.map(({ col, row }) => `${col},${row}`);
+          const validIndices = formattedIndices.filter(index => index.length > 2);
+          if (validIndices.length > 0) {
+            gameInstance.settings._winData.winningSymbols.push(validIndices);
+          }
           // console.log(`Line ${index + 1} (LTR):`, line);
           // console.log(`Payout for LTR Line ${index + 1}:`, "payout", payout);
           return;
@@ -222,6 +246,12 @@ export function checkForWin(gameInstance: SLBE) {
             matchCount: RTLResult.matchCount,
             direction: 'RTL'
           });
+
+          const formattedIndices = RTLResult.matchedIndices.map(({ col, row }) => `${col},${row}`);
+          const validIndices = formattedIndices.filter(index => index.length > 2);
+          if (validIndices.length > 0) {
+            gameInstance.settings._winData.winningSymbols.push(validIndices);
+          }
           // console.log(`Line ${index + 1} (RTL):`, line);
           // console.log(`Payout for RTL Line ${index + 1}:`, "payout", payout);
         }
@@ -275,6 +305,8 @@ export function checkForWin(gameInstance: SLBE) {
     makeResultJson(gameInstance);
     gameInstance.playerData.currentWining = 0;
     settings.freeSpin.substitutions.bloodSplash = []
+    settings._winData.winningLines = []
+    settings._winData.winningSymbols = []
 
     return winningLines;
   } catch (error) {
@@ -433,11 +465,11 @@ export function makeResultJson(gameInstance: SLBE) {
         ResultReel: settings.resultSymbolMatrix,
         linesToEmit: settings._winData.winningLines,
         symbolsToEmit: settings._winData.winningSymbols,
-        freeSpin:{
-          isFreeSpin: settings.freeSpin.isTriggered,
-          count: settings.freeSpin.freeSpinCount,
+        isFreeSpin: settings.freeSpin.isTriggered,
+        count: settings.freeSpin.freeSpinCount,
+        freeSpin: {
           vampHuman: settings.freeSpin.substitutions.vampHuman.flatMap((item) => item),
-          bloodSplash: settings.freeSpin.substitutions.bloodSplash
+          bloodSplash: settings.freeSpin.substitutions.bloodSplash.flatMap((item) => item.index),
         }
       },
       PlayerData: {
@@ -449,7 +481,10 @@ export function makeResultJson(gameInstance: SLBE) {
     };
 
     console.log("sendData", sendData);
-    
+    console.log("_winData lines", settings._winData.winningLines);
+    console.log("_winData symbols", settings._winData.winningSymbols);
+
+
     gameInstance.sendMessage('ResultData', sendData);
   } catch (error) {
     console.error("Error generating result JSON or sending message:", error);

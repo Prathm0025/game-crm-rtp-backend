@@ -66,6 +66,16 @@ export interface SLBESETTINGS {
     SymbolName: string;
     SymbolID: number;
     useWild: boolean
+  },
+  Bat:{
+    SymbolName: string;
+    SymbolID: number;
+    useWild: boolean
+  },
+  BatX2:{
+    SymbolName: string;
+    SymbolID: number;
+    useWild: boolean
   }
 }
 
