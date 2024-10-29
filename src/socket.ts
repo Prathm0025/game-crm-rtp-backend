@@ -59,7 +59,7 @@ const handlePlayerConnection = async (socket: Socket, decoded: DecodedToken, use
     const username = decoded.username;
     const origin = socket.handshake.auth.origin;
     const gameId = socket.handshake.auth.gameId;
-    const { credits, status } = await getPlayerDetails(decoded.username)
+    const { credits, status } = await getPlayerDetails(decoded.username);
 
     let existingPlayer = currentActivePlayers.get(username);
 
@@ -70,34 +70,39 @@ const handlePlayerConnection = async (socket: Socket, decoded: DecodedToken, use
             throw createHttpError(403, "Already playing on another device");
         }
 
-        // Handle platform reconnections
+        // Check for platform reconnection
         if (origin) {
             if (existingPlayer.platformData.socket && existingPlayer.platformData.socket.connected) {
                 socket.emit("alert", "Platform already connected. Please disconnect the other session.");
                 socket.disconnect(true);
                 return;
             } else {
+                console.log("Reinitializing platform connection");
                 existingPlayer.initializePlatformSocket(socket);
                 existingPlayer.sendAlert(`Platform reconnected for ${username}`, false);
                 return;
             }
         }
 
-        // Handle game connections
+        // Check for game connection, ensuring platform is ready
         if (gameId) {
-            if (!existingPlayer.platformData.socket) {
-                socket.emit(messageType.ERROR, "You need to have an active platform connection before joining a game.");
+            if (!existingPlayer.platformData.socket || !existingPlayer.platformData.socket.connected) {
+                console.log("Platform connection required before joining a game.");
+                socket.emit(messageType.ERROR, "Platform connection required before joining a game.");
                 socket.disconnect(true);
                 return;
             }
 
+            console.log("Game connection attempt detected, ensuring platform stability");
             await existingPlayer.updateGameSocket(socket);
             existingPlayer.sendAlert(`Game initialized for ${username} in game ${gameId}`);
             return;
         }
     }
-    // If no existing user, this is a new connection
+
+    // New connection handling with delay-based retry for stability
     if (origin) {
+        console.log("New platform connection detected, initializing player");
         const newUser = new Player(username, decoded.role, status, credits, userAgent, socket);
         currentActivePlayers.set(username, newUser);
         newUser.sendAlert(`Player initialized for ${newUser.playerData.username} on platform ${origin}`, false);
