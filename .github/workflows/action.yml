@@ -30,29 +30,21 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Push updated dist folder to dev-build branch
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: artifact
+          path: ./dist/**/*.js
+
+      - name: Commit and Push Build Artifacts
         env:
           GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
         run: |
-          # Fetch the dev-build branch if it exists
-          git fetch origin dev-build || true
-
-          # Create or switch to the dev-build branch
-          if git show-ref --verify --quiet refs/heads/dev-build; then
-              git checkout dev-build
-          else
-              git checkout -b dev-build
-          fi
-
-          # Configure Git user for committing
-          git config user.name "Prathm0025"
-          git config user.email "prathamesh@underpinservices.com"
-
-          # Copy the new dist folder from the dev branch's workspace
-          rm -rf dist  # Clear existing dist folder in dev-build
-          cp -r dist/* .  # Copy the dist folder from the current workspace
-
-          # Stage and commit the new dist folder in dev-build
-          git add dist
-          git commit -m "Update dist folder with new build" || echo "No changes to commit"
-          git push --force origin dev-build
+          git config advice.addIgnoredFile false
+          git rev-parse --abbrev-ref HEAD
+          git config --global user.name "TrippyRahul"
+          git config --global user.email "rahulrawat.trippybug@gmail.com"
+          git checkout -b build-artifacts
+          git add -f ./dist/*
+          git commit -m 'added: build artifacts'
+          git push --set-upstream origin build-artifacts
