@@ -2,7 +2,8 @@ import { Card } from "../BaseSlotGame/newGambleGame";
 export interface gambleResponse {
   playerWon: boolean,
   currentWinning: number,
-  Balance: number
+  cardId:number,
+  Balance: number,
 }
 
 /*
@@ -12,6 +13,7 @@ export interface gambleResponse {
  *
  *
  * */
+const CARD_ARRAY = ["HEARTS", "DIAMONDS", "CLUBS", "SPADES"];
 export function sendInitGambleData() {
   console.log("gamble init");
   let gambleData: {
@@ -43,13 +45,15 @@ export function getGambleResult(response: {
       return {
         playerWon: true,
         currentWinning: 0,
-        Balance: 0
+        cardId:result ==="RED"? (Math.random()>=0.5?0:1):( Math.random()>=0.5?2:3),
+        Balance :0
       }
     case false:
       return {
         playerWon: false,
         currentWinning: 0,
-        Balance: 0
+        cardId:result ==="RED"? (Math.random()>=0.5?0:1):( Math.random()>=0.5?2:3),
+        Balance :0,
       }
   }
 }
