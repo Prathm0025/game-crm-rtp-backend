@@ -130,6 +130,7 @@ export default class Manager {
         eventEmitter.on("updateCredits", (event) => {
             if (this.username === event.username) {
                 this.credits = event.credits
+                console.log("credits updated : ", event);
             }
         })
     }

@@ -137,15 +137,15 @@ export const updateCredits = async (
   session.startTransaction();
 
   try {
-
     const clientSocket = currentActivePlayers.get(client.username)
     if (clientSocket) {
       if (clientSocket.gameData.socket || clientSocket.currentGameData.gameId) {
         throw createHttpError(409, "Cannot recharge while in a game")
       }
     }
-    const managerSocket = currentActiveManagers.get(creator.username);
 
+    const agentSocket = currentActiveManagers.get(client.username);
+    const managerSocket = currentActiveManagers.get(creator.username);
 
     const { type, amount } = credits;
 
@@ -178,8 +178,7 @@ export const updateCredits = async (
 
     if (
       managerSocket &&
-      managerSocket.socketData.socket &&
-      managerSocket.socketData.socket.connected
+      managerSocket.socketData.socket 
     ) {
       managerSocket.sendData({
         type: "CREDITS",
@@ -188,11 +187,20 @@ export const updateCredits = async (
       eventEmitter.emit("updateCredits", { username: creator.username, credits: creator.credits });
     }
 
+    if (agentSocket && agentSocket.socketData.socket) {
+      agentSocket.sendData({
+        type: "CREDITS",
+        payload: { credits: client.credits, role: client.role }
+      });
+      eventEmitter.emit("updateCredits", { username: client.username, credits: client.credits });
+    }
+
     if (clientSocket && clientSocket.platformData.socket && clientSocket.platformData.socket.connected) {
       clientSocket.playerData.credits = client.credits;
       clientSocket.sendData({ type: playerDataType.CREDIT, data: { credits: client.credits } }, "platform");
       eventEmitter.emit("updateCredits", { username: client.username, credits: client.credits })
     }
+    
 
 
     await session.commitTransaction();
