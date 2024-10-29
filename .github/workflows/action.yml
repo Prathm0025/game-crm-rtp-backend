@@ -29,38 +29,30 @@ jobs:
 
       - name: Build
         run: npm run build
-
-      - name: Push specific files to build-artifact branch
+   
+      - name: Push updated package.json to dev-build branch
         env:
           GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
         run: |
-          # Configure Git
-          git config user.name "Prathm0025"
-          git config user.email "prathamesh@underpinservices.com"
+           git fetch origin dev-build:dev-build # Ensure you're up-to-date with dev-build
+           git stash || echo "No changes to stash" # Stash only if there are changes
+           git checkout dev-build
+           git config user.name "TrippyRahul"
+           git config user.email "rahulrawat.trippybug@gmail.com"
+           rm -f package.json
+           git checkout dev -- package.json
+           git add package.json
+           git commit -m "update package.json" || echo "No changes to commit"
+           git push --force origin dev-build
+           git stash pop || echo "No local changes to pop" # Handle no stash scenario
 
-          # Fetch the build-artifact branch if it exists
-          git fetch origin build-artifact || true
-
-          # Check out the build-artifact branch or create it if it doesn't exist
-          if git show-ref --verify --quiet refs/heads/build-artifact; then
-              git checkout build-artifact
-          else
-              git checkout -b build-artifact
-          fi
-
-          # Remove all files in the build-artifact branch
-          git rm -rf . > /dev/null 2>&1 || true
-
-          # Copy the src folder, app.js, package.json, and package-lock.json from the dist folder
-          mkdir -p src
-          cp -r ./dist/src/* src/
-          cp ./dist/app.js .
-          cp ./package.json .
-          cp ./package-lock.json .
-
-          # Stage and commit the selected files
-          git add src app.js package.json package-lock.json
-          git commit -m "Update src, app.js, package.json, and package-lock.json in build-artifact branch" || echo "No changes to commit"
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: artifact
+          path: ./dist/**/*.js
           
-          # Push to build-artifact branch
-          git push --force origin build-artifact
+      - name: Copy Src and app.js in root 
+        run: |
+          cp -r ./dist/src .
+          cp ./dist/app.js .
