@@ -245,13 +245,15 @@ export function checkWin(gameInstance: SLLOL): { payout: number; winningCombinat
   const { settings,playerData } = gameInstance;
   let totalPayout = 0;
   let winningCombinations: WinningCombination[] = [];
-
+  
   const findCombinations = (symbolId: number, col: number, path: [number, number][]): void => {
     // Stop if we've checked all columns or path is complete
     if (col == settings.matrix.x) {
       if (path.length >= settings.minMatchCount) {
         const symbol = getSymbol(symbolId, settings.Symbols);
-        const multiplierIndex = path.length - settings.minMatchCount;
+        let multiplierIndex = Math.abs(path.length-5);
+        console.log("Multiplier index",multiplierIndex);
+        
         if (symbol && symbol.multiplier[multiplierIndex]) { // Check if multiplier exists
           const multiplier = symbol.multiplier[multiplierIndex][0];
           winningCombinations.push({ symbolId, positions: path, payout: multiplier * settings.BetPerLines });
@@ -270,7 +272,7 @@ export function checkWin(gameInstance: SLLOL): { payout: number; winningCombinat
     // End the combination if it's long enough
     if (path.length >= settings.minMatchCount) {
       const symbol = getSymbol(symbolId, settings.Symbols)!;
-      const multiplierIndex = path.length - settings.minMatchCount;
+      let multiplierIndex = Math.abs(path.length-5);
       if (symbol && symbol.multiplier[multiplierIndex]) { // Check if multiplier exists
         const multiplier = symbol.multiplier[multiplierIndex][0];
         winningCombinations.push({ symbolId, positions: path, payout: multiplier * settings.BetPerLines });
@@ -327,15 +329,15 @@ export function checkWin(gameInstance: SLLOL): { payout: number; winningCombinat
     // alter payout . multiply betsperline with payout
     // NOTE: also check for freespin multipliers 
     if (settings.freeSpinCount > 0 && getSymbol(combo.symbolId, settings.Symbols).isFreeSpinMultiplier) {
-      combo.payout = combo.payout * settings.freeSpinMultipliers[combo.symbolId] * settings.BetPerLines
+      combo.payout = combo.payout * settings.freeSpinMultipliers[combo.symbolId] 
     } else {
-      combo.payout = combo.payout * settings.BetPerLines
+      combo.payout = combo.payout 
     }
     totalPayout += combo.payout;
   })
   settings.winningCombinations = winningCombinations
-  playerData.currentWining = totalPayout
-  playerData.haveWon+= totalPayout
+  gameInstance.playerData.currentWining = totalPayout
+  gameInstance.playerData.haveWon+= totalPayout
 
   makeResultJson(gameInstance)
   if(settings.freeSpinCount>0 ){
