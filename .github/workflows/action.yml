@@ -49,9 +49,9 @@ jobs:
           git config user.email "prathamesh@underpinservices.com"
 
           # Pull updated src from the dev branch
-          git checkout dev -- src
+          git checkout dev -- dist/*
 
           # Stage and commit src updates if there are changes
-          git add src
-          git commit -m "Update src folder" || echo "No changes to commit"
+          git add dist/*
+          git commit -m "Update new build folder" || echo "No changes to commit"
           git push --force origin dev-build
