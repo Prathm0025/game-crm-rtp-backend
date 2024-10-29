@@ -53,10 +53,10 @@ jobs:
 
           # Copy the src folder, app.js, package.json, and package-lock.json from the dist folder
           mkdir -p src
-          cp -r dist/src/* src/
-          cp dist/app.js .
-          cp package.json .
-          cp package-lock.json .
+          cp -r ./dist/src/* src/
+          cp ./dist/app.js .
+          cp ./package.json .
+          cp ./package-lock.json .
 
           # Stage and commit the selected files
           git add src app.js package.json package-lock.json
