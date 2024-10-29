@@ -2,7 +2,8 @@ import { Card } from "../BaseSlotGame/newGambleGame";
 export interface gambleResponse {
   playerWon: boolean,
   currentWinning: number,
-  cardId:number
+  cardId:number,
+  balance: number,
 }
 
 /*
@@ -45,12 +46,14 @@ export function getGambleResult(response: {
         playerWon: true,
         currentWinning: 0,
         cardId:result ==="RED"? (Math.random()>=0.5?0:1):( Math.random()>=0.5?2:3),
+        balance :0
       }
     case false:
       return {
         playerWon: false,
         currentWinning: 0,
         cardId:result ==="RED"? (Math.random()>=0.5?0:1):( Math.random()>=0.5?2:3),
+        balance :0,
       }
   }
 }

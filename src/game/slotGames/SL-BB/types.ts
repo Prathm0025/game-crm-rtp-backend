@@ -102,5 +102,11 @@ export interface SLBBSETTINGS {
   cashCollectPrize: {
     isTriggered: boolean,
     payout: number,
-  }
+  };
+  diamondWinnings:
+  {
+    payout: any[],
+    probability: any[],
+    selectedIndexForDiamond: number,
+  };
 }

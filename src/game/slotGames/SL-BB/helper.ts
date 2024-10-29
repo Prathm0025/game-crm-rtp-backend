@@ -2,6 +2,7 @@
 import { WinData } from "../BaseSlotGame/WinData";
 import { SLBB } from "./breakingBadBase";
 import { convertSymbols, UiInitData } from "../../Utils/gameUtils";
+import { log } from "console";
 
 export function initializeGameSettings(gameData: any, gameInstance: SLBB) {
   const getSymbolIdByName = (name: string) => {
@@ -94,7 +95,13 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBB) {
     cashCollectPrize: {
       isTriggered: false,
       payout: 0,
-    }
+    },
+    diamondWinnings:
+  {
+    payout: [],
+    probability:[],
+    selectedIndexForDiamond: -1,
+  }
 
   }
 }
@@ -673,7 +680,6 @@ function handleCashCollectandPrizeCoin(gameInstance: SLBB) {
 
 }
 //ACCESS DATA
-
 function accessData(symbol, matchCount, gameInstance: SLBB) {
   const { settings } = gameInstance;
   try {
@@ -691,6 +697,19 @@ function accessData(symbol, matchCount, gameInstance: SLBB) {
     console.error("Error in accessData:");
     return 0;
   }
+}
+function getPayoutIndexBasedOnProbability(probabilities) {
+  const randomNum = Math.random();
+  let cumulativeProbability = 0;
+
+  for (let i = 0; i < probabilities.length; i++) {
+      cumulativeProbability += probabilities[i];
+
+      if (randomNum <= cumulativeProbability) {
+          return i; 
+      }
+  }
+  return -1; 
 }
 
 //HAS SYMBOL IN MATRIX
@@ -743,8 +762,9 @@ export function checkForWin(gameInstance: SLBB) {
     const hasLosPollosSymbols = hasSymbolInMatrix(resultSymbolMatrix, losPollosId);
     const hasPrizeCoinSymbols = hasSymbolInMatrix(resultSymbolMatrix, prizeCoinId);
 
-
-
+    console.log("Result Matrix",gameInstance.settings.resultSymbolMatrix);
+    
+    
     //NOTE: freespin lp
     settings.freeSpin.isTriggered = false
     // if()
@@ -752,7 +772,10 @@ export function checkForWin(gameInstance: SLBB) {
 
     // console.log("freespin", settings.freeSpin);
 
-
+    if ( settings.heisenberg.isTriggered && hasPrizeCoinSymbols) {
+      gameInstance.currentGameData.gameSettings.diamondWinnings.selectedIndexForDiamond = 
+      getPayoutIndexBasedOnProbability(gameInstance.currentGameData.gameSettings.diamondWinnings.probability);
+  }
     if (hasCoinSymbols) {
       replaceCoinsWithValues(gameInstance, 'result');
     }
@@ -847,6 +870,7 @@ export function checkForWin(gameInstance: SLBB) {
     settings._winData.winningSymbols  = [];
     gameInstance.playerData.currentWining = 0
     settings._winData.winningLines = [];
+    gameInstance.currentGameData.gameSettings.diamondWinnings.selectedIndexForDiamond =-1;
 
     // settings.hasCascading = false;
     // settings.resultSymbolMatrix = [];
@@ -890,6 +914,7 @@ export function makeResultJson(gameInstance: SLBB) {
         },
         isCashCollect :settings.isCashCollect,
         jackpot:settings.jackpot.payout,
+        selectedDiamondIndex:gameInstance.currentGameData.gameSettings.diamondWinnings.selectedIndexForDiamond ,
          bonus:{
           isBonus:settings.heisenberg.isTriggered,
           BonusResult: settings.heisenbergSymbolMatrix.map(row => row.map(item => Number(item))), 

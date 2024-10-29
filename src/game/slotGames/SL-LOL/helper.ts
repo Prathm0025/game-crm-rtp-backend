@@ -246,7 +246,7 @@ export function checkWin(gameInstance: SLLOL): { payout: number; winningCombinat
   const { settings,playerData } = gameInstance;
   let totalPayout = 0;
   let winningCombinations: WinningCombination[] = [];
-
+  
   const findCombinations = (symbolId: number, col: number, path: [number, number][]): void => {
     // Stop if we've checked all columns or path is complete
     if (col == settings.matrix.x) {
@@ -335,8 +335,8 @@ export function checkWin(gameInstance: SLLOL): { payout: number; winningCombinat
     totalPayout += combo.payout;
   })
   settings.winningCombinations = winningCombinations
-  playerData.currentWining = totalPayout
-  playerData.haveWon+= totalPayout
+  gameInstance.playerData.currentWining = totalPayout
+  gameInstance.playerData.haveWon+= totalPayout
 
   makeResultJson(gameInstance)
   if(settings.freeSpinCount>0 ){

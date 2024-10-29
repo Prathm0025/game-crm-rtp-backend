@@ -321,7 +321,8 @@ export function checkForScatter(gameInstance: SLSR) {
 // Function to select values from an array based on probabilities
 function selectValuesFromArray(array: number[], probabilities: number[], count: number): number[] {
   const selectedValues = [];
-
+  console.log("Bonus Count",count);
+  
   for (let i = 0; i < count; i++) {
     const randomValue = Math.random();
     let cumulativeProbability = 0;
@@ -533,12 +534,14 @@ export function makeResultJson(gameInstance: SLSR) {
         isNewAdded: settings.isNewAdded,
         freeSpinCount: settings.freeSpin.freeSpinCount,
         },
+        bonusData:{
         isBonus: settings.bonus.start,
         bonusWin: gameInstance.settings.bonus.pay,
         shuffledBonusValues: settings.shuffledBonusValues,
         selectedBonusMultiplier: settings.selectedMultiplier,
-        scatterWinningSymbols: settings.scatterWinningSymbols,
         trashForCashWinningSymbols: settings.trashForCashWinningSymbols,
+        },
+        scatterWinningSymbols: settings.scatterWinningSymbols,
       },
       PlayerData: {
         Balance: Balance,
