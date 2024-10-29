@@ -8,9 +8,10 @@ import { TransactionController } from "../dashboard/transactions/transactionCont
 import { v2 as cloudinary } from "cloudinary";
 import { config } from "../config/config";
 import bcrypt from "bcrypt";
-import { currentActivePlayers } from "../socket";
+import { currentActiveManagers, currentActivePlayers } from "../socket";
 import { Player } from "../dashboard/users/userModel";
 import { Socket } from "socket.io";
+import { eventEmitter } from "./eventEmitter";
 
 
 const transactionController = new TransactionController()
@@ -143,6 +144,8 @@ export const updateCredits = async (
         throw createHttpError(409, "Cannot recharge while in a game")
       }
     }
+    const managerSocket = currentActiveManagers.get(creator.username);
+
 
     const { type, amount } = credits;
 
@@ -173,10 +176,24 @@ export const updateCredits = async (
     await client.save({ session });
     await creator.save({ session });
 
+    if (
+      managerSocket &&
+      managerSocket.socketData.socket &&
+      managerSocket.socketData.socket.connected
+    ) {
+      managerSocket.sendData({
+        type: "CREDITS",
+        payload: { credits: creator.credits, role: creator.role }
+      });
+      eventEmitter.emit("updateCredits", { username: creator.username, credits: creator.credits });
+    }
+
     if (clientSocket && clientSocket.platformData.socket && clientSocket.platformData.socket.connected) {
       clientSocket.playerData.credits = client.credits;
-      clientSocket.sendData({ type: playerDataType.CREDIT, data: { credits: client.credits } }, "platform")
+      clientSocket.sendData({ type: playerDataType.CREDIT, data: { credits: client.credits } }, "platform");
+      eventEmitter.emit("updateCredits", { username: client.username, credits: client.credits })
     }
+
 
     await session.commitTransaction();
     session.endSession();

@@ -1,6 +1,6 @@
 import { Server, Socket } from "socket.io";
 import jwt from "jsonwebtoken";
-import { Player as PlayerModel } from "./dashboard/users/userModel";
+import { Player as PlayerModel, User } from "./dashboard/users/userModel";
 import { config } from "./config/config";
 import Player from "./Player";
 import createHttpError from "http-errors";
@@ -43,8 +43,17 @@ const getPlayerDetails = async (username: string) => {
     if (player) {
         return { credits: player.credits, status: player.status };
     }
-    throw new Error("User not found");
+    throw new Error("Player not found");
 };
+
+const getManagerDetails = async (username: string) => {
+    const manager = await User.findOne({ username });
+    if (manager) {
+        return { credits: manager.credits, status: manager.status }
+    }
+    throw new Error("Manager not found");
+
+}
 
 const handlePlayerConnection = async (socket: Socket, decoded: DecodedToken, userAgent: string) => {
     const username = decoded.username;
@@ -101,6 +110,7 @@ const handlePlayerConnection = async (socket: Socket, decoded: DecodedToken, use
 const handleManagerConnection = async (socket: Socket, decoded: DecodedToken, userAgent: string) => {
     const username = decoded.username;
     const role = decoded.role
+    const { credits } = await getManagerDetails(username);
 
     let existingManager = currentActiveManagers.get(username);
 
@@ -114,7 +124,7 @@ const handleManagerConnection = async (socket: Socket, decoded: DecodedToken, us
         existingManager.initializeManager(socket);
         socket.emit(messageType.ALERT, `Manager ${username} has been reconnected.`);
     } else {
-        const newManager = new Manager(username, role, userAgent, socket);
+        const newManager = new Manager(username, credits, role, userAgent, socket);
         currentActiveManagers.set(username, newManager);
         socket.emit(messageType.ALERT, `Manager ${username} has been connected.`);
     }

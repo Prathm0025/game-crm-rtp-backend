@@ -17,12 +17,14 @@ export interface socketConnectionData {
 
 export default class Manager {
     username: string;
+    credits: number;
     role: string;
     userAgent: string;
     socketData: socketConnectionData;
 
-    constructor(username: string, role: string, userAgent: string, socket: Socket) {
+    constructor(username: string, credits: number, role: string, userAgent: string, socket: Socket) {
         this.username = username;
+        this.credits = credits;
         this.role = role;
         this.userAgent = userAgent;
         this.initializeManager(socket);
@@ -58,6 +60,7 @@ export default class Manager {
                         return platformSession?.getSummary() || {};
                     });
                     this.socketData.socket.emit("activePlayers", activeUsersData);
+                    this.sendData({ type: "CREDITS", payload: { credits: this.credits, role: this.role } })
                 }
             }, 30000), // 30 seconds interval
             reconnectionAttempts: 0,
@@ -74,6 +77,7 @@ export default class Manager {
             this.handleDisconnection();
         });
         console.log("Manager initialized with socket ID:", this.socketData.socket.id);
+        this.sendData({ type: "CREDITS", payload: { credits: this.credits, role: this.role } })
     }
 
     private handleDisconnection() {
@@ -122,6 +126,12 @@ export default class Manager {
                 this.notifyManager({ type: event.type, payload: event.payload });
             }
         });
+
+        eventEmitter.on("updateCredits", (event) => {
+            if (this.username === event.username) {
+                this.credits = event.credits
+            }
+        })
     }
 
     private notifyManager(data: { type: string, payload: any }) {

@@ -132,6 +132,11 @@ export default class PlayerSocket {
         this.handlePlatformDisconnection();
       });
 
+      eventEmitter.on("updateCredits", (event) => {
+        if (this.playerData.username === event.username) {
+          this.playerData.credits = event.credits
+        }
+      })
       this.sendData({ type: "CREDIT", data: { credits: this.playerData.credits } }, "platform")
 
     }
