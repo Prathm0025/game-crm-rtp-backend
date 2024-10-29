@@ -59,4 +59,4 @@ jobs:
           rm -rvf ./dist
           git add .
           git commit -m "add new build"
-          git push origin dev-artifacts
+          git push origin build-artifacts
