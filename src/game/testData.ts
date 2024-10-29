@@ -66,7 +66,10 @@ export const gameData = [
     ],
     "freeSpin": {
       "isEnabled": true,
-      "countIncrement": 8
+      "countIncrement": 8,
+      "bloodSplash": {
+        "countProb": [20, 10, 10, 10, 20, 25, 23, 22] // prob of 1 ,2,3,4,5,6,7 or 8 bloodsplashes
+      }
     },
     "bonus": {
       "type": "spin",
@@ -396,7 +399,7 @@ export const gameData = [
         "Id": 11,
         "reelInstance": {
           "0": 0,
-          "1": 0,
+          "1": 50,
           "2": 0,
           "3": 0,
           "4": 0,
@@ -415,7 +418,7 @@ export const gameData = [
           "1": 0,
           "2": 0,
           "3": 0,
-          "4": 0,
+          "4": 50,
           "5": 0
         },
         "useWildSub": false,
@@ -430,7 +433,7 @@ export const gameData = [
           "0": 0,
           "1": 0,
           "2": 0,
-          "3": 0,
+          "3": 50,
           "4": 0,
           "5": 0
         },
@@ -445,8 +448,8 @@ export const gameData = [
         "reelInstance": {
           "0": 0,
           "1": 0,
-          "2": 0,
-          "3": 4,
+          "2": 50,
+          "3": 0,
           "4": 0,
           "5": 0
         },

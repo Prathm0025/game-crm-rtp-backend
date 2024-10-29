@@ -28,10 +28,13 @@ export interface SLBESETTINGS {
     isFreeSpin: boolean,
     isTriggered: boolean,
     freeSpinCount: number,
+    bloodSplash:{
+      countProb:number[],
+    },
     substitutions: {
       vampHuman: [string, string][]
       bloodSplash: {
-        index: [string],
+        index: string,
         symbolId: string
       }[]
     }
