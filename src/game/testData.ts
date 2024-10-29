@@ -398,7 +398,7 @@ export const gameData = [
         "Id": 11,
         "reelInstance": {
           "0": 0,
-          "1": 50,
+          "1": 10,
           "2": 0,
           "3": 0,
           "4": 0,
@@ -417,7 +417,7 @@ export const gameData = [
           "1": 0,
           "2": 0,
           "3": 0,
-          "4": 50,
+          "4": 10,
           "5": 0
         },
         "useWildSub": false,
@@ -432,7 +432,7 @@ export const gameData = [
           "0": 0,
           "1": 0,
           "2": 0,
-          "3": 50,
+          "3": 10,
           "4": 0,
           "5": 0
         },
@@ -447,7 +447,7 @@ export const gameData = [
         "reelInstance": {
           "0": 0,
           "1": 0,
-          "2": 50,
+          "2": 10,
           "3": 0,
           "4": 0,
           "5": 0

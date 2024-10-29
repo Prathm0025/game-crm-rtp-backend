@@ -54,7 +54,8 @@ export class SLBE {
     switch (response.id) {
       case "SPIN":
         this.prepareSpin(response.data);
-        this.getRTP(response.data.spins || 1);
+        this.spinResult();
+        // this.getRTP(response.data.spins || 1);
         break;
 
       case "GAMBLEINIT":
@@ -79,7 +80,6 @@ export class SLBE {
               this.playerData.currentWining = parseFloat((this.playerData.currentWining *1.5).toFixed(2))
               result.currentWinning = this.playerData.currentWining
             }
-            // this.playerData.currentWining *= 2
             // result.Balance = this.getPlayerData().credits + this.playerData.currentWining
             break;
           case false:
@@ -125,8 +125,13 @@ export class SLBE {
         this.sendError("Low Balance");
         return;
       }
+
+      //deduct only when freespin is not triggered
+      if (this.settings.freeSpin.freeSpinCount <= 0) {
+        this.deductPlayerBalance(this.settings.currentBet);
+        this.playerData.totalbet += this.settings.currentBet;
+      }
       new RandomResultGenerator(this);
-      this.playerData.totalbet += this.settings.currentBet;
       checkForWin(this)
     } catch (error) {
       this.sendError("Spin error");
