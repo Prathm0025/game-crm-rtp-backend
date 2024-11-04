@@ -1,6 +1,6 @@
 import { currentGamedata } from "../../../Player";
 import { SLBBSETTINGS } from "./types";
-import { initializeGameSettings, generateInitialReel, checkForWin, sendInitData, generateInitialHeisenberg, } from "./helper";
+import { initializeGameSettings, generateInitialReel, checkForWin, sendInitData, generateInitialHeisenberg, makePayLines, } from "./helper";
 import { RandomResultGenerator } from "../RandomResultGenerator";
 
 export class SLBB {
@@ -14,6 +14,7 @@ export class SLBB {
 
   constructor(public currentGameData: currentGamedata) {
     this.settings = initializeGameSettings(currentGameData, this);
+    makePayLines(this)
     generateInitialReel(this.settings)
     generateInitialHeisenberg(this.settings)
     sendInitData(this)
