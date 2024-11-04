@@ -26,7 +26,7 @@ export class SLCRZ {
     this.currentGameData.gameSettings.Symbols.forEach((Element: Symbol) => {
       Symbols.push(Element);
     });
-    return Symbols;``
+    return Symbols; ``
   }
 
 
@@ -71,16 +71,16 @@ export class SLCRZ {
   private async spinResult(): Promise<void> {
     try {
       const playerData = this.getPlayerData();
-      if (!this.settings.isFreeSpin && this.settings.currentBet > playerData.credits) {
+      if (this.settings.currentBet > playerData.credits) {
         this.sendError("Low Balance");
         return;
       }
 
       if (!this.settings.isFreeSpin) {
-        await this.deductPlayerBalance(this.settings.currentBet);
-        this.playerData.totalbet += this.settings.currentBet*3 ;
+        await this.deductPlayerBalance(this.settings.currentBet * 3);
+        this.playerData.totalbet += this.settings.currentBet * 3;
       }
-      if (this.settings.freeSpinCount === 1) {
+      if (this.settings.freeSpinCount == 0) {
         this.settings.isFreeSpin = false;
 
       }
@@ -90,7 +90,7 @@ export class SLCRZ {
       ) {
         this.settings.freeSpinCount--;
 
-        this.settings.currentBet = 0;
+        // this.settings.currentBet = 0;
         console.log(
           this.settings.freeSpinCount,
           "this.settings.freeSpinCount"
@@ -120,6 +120,9 @@ export class SLCRZ {
       if (spend > 0) {
         rtp = won / spend;
       }
+      console.log("Total Spent", spend);
+      console.log("Total Won", won);
+
       console.log('RTP calculated:', rtp * 100);
       return;
     } catch (error) {
@@ -143,6 +146,7 @@ export class SLCRZ {
       if (middleRow.includes(0)) {
         this.playerData.currentWining = 0
         makeResultJson(this)
+        this.updatePlayerBalance(this.playerData.currentWining)
         console.log("No win: '0' present in the middle row.");
         return
       }
@@ -155,7 +159,6 @@ export class SLCRZ {
         case WINNINGTYPE.REGULAR:
           console.log("Regular Win! Calculating payout...");
           payout = await calculatePayout(this, middleRow, isWinning.symbolId, WINNINGTYPE.REGULAR);
-
           console.log("Payout:", payout);
           break;
 
@@ -178,6 +181,7 @@ export class SLCRZ {
         this.playerData.haveWon += this.playerData.currentWining
         this.updatePlayerBalance(this.playerData.currentWining)
         makeResultJson(this)
+        return
       }
       this.playerData.haveWon += this.playerData.currentWining
       makeResultJson(this)

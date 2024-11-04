@@ -12,8 +12,4 @@ export default class KenoGameManager {
       console.log("Special Game KNEOOOO ");
     }
   }
-
-  public updateGameSettings(newSettings: any) {
-    this.currentGameData.gameSettings = newSettings;
-  }
 }
