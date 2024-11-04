@@ -187,6 +187,7 @@ export function checkForWin(gameInstance: SLBE) {
       handleFreeSpin(gameInstance)
     } else {
       settings.freeSpin.isFreeSpin = false
+      settings.freeSpin.substitutions.vampHuman = []
     }
     //toggling here so that we can use it for blood splash 4 or 8
     settings.freeSpin.isTriggered = false
