@@ -136,6 +136,8 @@ export default class PlayerSocket {
       this.platformData.socket = socket;
       this.messageHandler(false);
       this.startPlatformHeartbeat();
+      this.onExit();
+
 
       this.managerName = await this.getManager(this.playerData.username);
       if (!this.managerName) {
@@ -144,10 +146,14 @@ export default class PlayerSocket {
 
       await sessionManager.startPlatformSession(this.playerData.username, this.playerData.status, this.managerName, this.playerData.credits);
 
-      this.platformData.socket.on("disconnect", () => {
-        console.log(`Platform connection lost for user ${this.playerData.username}`);
-        this.handlePlatformDisconnection();
-      });
+      if (this.platformData.socket) {
+        this.platformData.socket.on("disconnect", () => {
+          console.log(`Platform connection lost for user ${this.playerData.username}`);
+          this.handlePlatformDisconnection();
+        });
+      } else {
+        console.error("Socket is null during initialization of disconnect event");
+      }
 
       eventEmitter.on("updateCredits", (event) => {
         if (this.playerData.username === event.username) {
@@ -172,7 +178,7 @@ export default class PlayerSocket {
     this.gameData.socket.on("disconnect", () => this.handleGameDisconnection());
     this.initGameData();
     this.startGameHeartbeat();
-    this.onExit();
+    this.onExit(true)
     this.messageHandler(true);
     this.gameData.socket.emit("socketState", true);
 
