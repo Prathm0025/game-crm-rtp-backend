@@ -57,6 +57,9 @@ jobs:
           
           # Remove existing app.js and src directory if they exist
           rm -rf ./app.js ./src
+          git add .
+          git commit -m "remove old builds"
+          git push origin build-artifacts || echo "No changes to push"
           
           # Force copy new build files from dist to root directory
           cp -rf ./dist/src .  # -r flag for recursive copy of directories
