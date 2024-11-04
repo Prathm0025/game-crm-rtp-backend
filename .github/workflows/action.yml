@@ -54,6 +54,7 @@ jobs:
           
       - name: Copy Src and app.js in root 
         run: |
+          git checkout build-artifacts
           rm -rf ./app.js ./src
           cp -r ./dist/src .
           cp -r ./dist/app.js .
