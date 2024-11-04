@@ -31,10 +31,13 @@ export function initializeGameSettings(gameData: any, gameInstance: SLPM) {
     reels: [],
     hasCascading: false,
     cascadingNo: 0,
+    payoutAfterCascading: 0,
     cascadingResult: [],
     lastReel: [],
     tempReel: [],
+    firstReel: [],
     tempReelSym: [],
+    freeSpinData: gameData.gameSettings.freeSpinData,
     jackpot: {
       symbolName: "",
       symbolsCount: 0,
@@ -116,7 +119,7 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLPM) {
 
       break;
     default:
-      break;
+      break;``
   }
 }
 
@@ -125,6 +128,10 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLPM) {
 export function checkForWin(gameInstance: SLPM) {
   try {
     const { settings } = gameInstance;
+    if (settings.cascadingNo === 0) {
+    settings.firstReel = [...settings.resultSymbolMatrix.map(row => [...row])]; // Deep copy to preserve the original matrix
+  }
+    
     const winningLines = [];
     let totalPayout = 0;
     settings.lineData.forEach((line, index) => {
@@ -140,10 +147,7 @@ export function checkForWin(gameInstance: SLPM) {
           settings.Symbols[firstSymbol].Name as specialIcons
         )
       ) {
-        console.log(
-          "Special Icon Matched : ",
-          settings.Symbols[firstSymbol].Name
-        );
+        
         return;
       }
       const { isWinningLine, matchCount, matchedIndices } = checkLineSymbols(
@@ -159,6 +163,7 @@ export function checkForWin(gameInstance: SLPM) {
             gameInstance
           );
           settings.lastReel = settings.resultSymbolMatrix;
+          console.log(settings.lastReel, 'lastReel')
           switch (true) {
             case symbolMultiplier > 0:
               totalPayout += symbolMultiplier;
@@ -175,9 +180,7 @@ export function checkForWin(gameInstance: SLPM) {
                 "payout",
                 symbolMultiplier
               );
-              const formattedIndices = matchedIndices.map(
-                ({ col, row }) => `${row},${col}`
-              );
+              const formattedIndices = matchedIndices.map(({ col, row }) => `${col},${row}`);
               const validIndices = formattedIndices.filter(
                 (index) => index.length > 2
               );
@@ -199,7 +202,7 @@ export function checkForWin(gameInstance: SLPM) {
     });
 
     switch (true) {
-      case winningLines.length >= 1 && settings.cascadingNo < 4:
+      case winningLines.length >= 1:
         settings.cascadingNo += 1;
         settings.hasCascading = true;
         new RandomResultGenerator(gameInstance);
@@ -207,14 +210,41 @@ export function checkForWin(gameInstance: SLPM) {
         ExtractTempReelsWiningSym(gameInstance);
         break;
       default:
+        console.log("NO PAYLINE MATCH");
+        if (settings.cascadingNo >= 4 && !settings.freeSpin.useFreeSpin && !settings.freeSpin.freeSpinStarted ) {
+          console.log("Cascading Count:", settings.cascadingNo);
+          console.log("FreeSpin Data:", settings.freeSpinData);
+          const freeSpinData = settings.freeSpinData;
+          for (let i = 0; i < freeSpinData.length; i++) {
+            const [requiredCascadingCount, awardedFreeSpins] = freeSpinData[i];
+
+            if (settings.cascadingNo == requiredCascadingCount) {
+              settings.freeSpin.useFreeSpin = true;
+              settings.freeSpin.freeSpinStarted = true;
+              settings.freeSpin.freeSpinCount += awardedFreeSpins;
+              console.log(`Free spins awarded: ${awardedFreeSpins}`);
+              break;
+            }
+            if (settings.cascadingNo > 8) {
+              settings.freeSpin.useFreeSpin = true;
+              settings.freeSpin.freeSpinStarted = true;
+              settings.freeSpin.freeSpinCount = 25;
+              console.log(`Free spins awarded: ${settings.freeSpin.freeSpinCount}`);
+              break;
+            }
+          }
+        }
         makeResultJson(gameInstance)
+        gameInstance.updatePlayerBalance(settings.payoutAfterCascading)
         settings.cascadingNo = 0;
         settings.hasCascading = false;
         settings.resultSymbolMatrix = [];
         settings.tempReelSym = [];
         settings.tempReel = [];
-        settings.lastReel = [];
-        console.log("NO PAYLINE MATCH");
+        settings.payoutAfterCascading = 0;
+        settings.cascadingResult=[];
+        settings.freeSpin.useFreeSpin = false;
+        
         break;
     }
     return winningLines;
@@ -327,7 +357,7 @@ function setToMinusOne(gameInstance: SLPM) {
   const valuesWithIndices = settings._winData.winningSymbols.flatMap(
     (symbolIndices) => {
       return symbolIndices.map((indexStr) => {
-        const [row, col] = indexStr.split(",").map(Number);
+        const [col, row] = indexStr.split(",").map(Number);
         const symbolValues = (settings.lastReel[row][col] = -1);
         return {
           value: symbolValues,
@@ -349,7 +379,7 @@ function cascadeSymbols(gameInstance) {
     symbolsToFill: [],
     winingSymbols: [],
     lineToEmit: [],
-    currentWining: 0
+    currentWining: 0,
   }
   const { settings } = gameInstance;
   const rows = settings.lastReel.length;
@@ -396,17 +426,21 @@ function cascadeSymbols(gameInstance) {
   data.symbolsToFill = assignedSymbolsByCol;
   data.lineToEmit = settings._winData.winningLines;
   data.winingSymbols = settings._winData.winningSymbols;
+  data.currentWining = settings._winData.totalWinningAmount;
+  settings.payoutAfterCascading += settings._winData.totalWinningAmount;
+  gameInstance.playerData.payoutAfterCascading += settings._winData.totalWinningAmount;
+  gameInstance.playerData.haveWon += settings._winData.totalWinningAmount;
   settings.cascadingResult.push({ ...data });
-  console.log(settings.cascadingResult)
   data.symbolsToFill = [];
   data.lineToEmit = [];
   data.winingSymbols = [];
+  data.currentWining = 0;
   settings.resultSymbolMatrix = flattenedReel;
   settings._winData.winningSymbols = [];
   settings.tempReelSym = [];
   settings.tempReel = [];
-  settings._winData.winningLines = []
-  checkForWin(gameInstance);
+  settings._winData.winningLines = [];
+  checkForWin(gameInstance)
 }
 
 /**
@@ -422,7 +456,9 @@ export function sendInitData(gameInstance: SLPM) {
   const dataToSend = {
     GameData: {
       Reel: reels,
+      linesApiData: gameInstance.settings.currentGamedata.linesApiData,
       Bets: gameInstance.settings.currentGamedata.bets,
+      freeSpinData: gameInstance.settings.freeSpinData,
     },
     UIData: UiInitData,
     PlayerData: {
@@ -438,25 +474,26 @@ export function sendInitData(gameInstance: SLPM) {
 export function makeResultJson(gameInstance: SLPM) {
   try {
     const { settings, playerData } = gameInstance;
-    const credits = gameInstance.getPlayerData().credits
+    const credits = gameInstance.getPlayerData().credits + settings.payoutAfterCascading
     const Balance = credits.toFixed(2)
     const sendData = {
       GameData: {
-        resultSymbols: settings.lastReel,
+        resultSymbols: settings.firstReel,
         linesToEmit: settings._winData.winningLines,
         symbolsToEmit: settings._winData.winningSymbols,
         jackpot: settings._winData.jackpotwin,
         cascading: settings.cascadingResult,
-        isCascading: settings.hasCascading
+        isCascading: settings.hasCascading,
+        isFreeSpin: settings.freeSpin.useFreeSpin,
+        freeSpinCount: settings.freeSpin.freeSpinCount,
       },
       PlayerData: {
         Balance: Balance,
-        currentWining: settings._winData.totalWinningAmount,
+        currentWining: settings.payoutAfterCascading,
         totalbet: playerData.totalbet,
         haveWon: playerData.haveWon,
       }
     };
-
     gameInstance.sendMessage('ResultData', sendData);
   } catch (error) {
     console.error("Error generating result JSON or sending message:", error);

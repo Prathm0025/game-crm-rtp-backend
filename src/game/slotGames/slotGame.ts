@@ -3,12 +3,18 @@ import BaseSlotGame from "./BaseSlotGame/BaseSlotGame";
 import { SLCM } from "./SL-CM/cashMachineBase";
 import { SLCRZ } from "./SL-CRZ/crazy777Base";
 import { SLWOF } from "./SL-WOF/wheelOfFortuneBase";
-import { SLPM } from "./SL-PM(MOOLAH)/planetMoolahBase"
+import { SLPM } from "./SL-PM(MOOLAH)/planetMoolahBase";
+import { SLSR } from "./SL-SR/stinkinRichBase";
+import { SLONE } from "./SL-ONE/OneOfAKindBase";
+import { SLBE } from "./SL-BE/bloodEternalBase"
+import { SLBB } from "./SL-BB/breakingBadBase";
+import { SLLOL } from "./SL-LOL/LifeOfLuxury";
 export default class SlotGameManager {
   public currentGame: any;
 
   gameClassMapping: { [key: string]: any } = {
-    "SL-CM": SLCM, "SL-CRZ": SLCRZ, "SL-WOF": SLWOF, "SL-PM": SLPM
+    "SL-CM": SLCM, "SL-CRZ": SLCRZ, "SL-WOF": SLWOF, "SL-PM": SLPM, "SL-BE": SLBE,
+     "SL-ONE": SLONE, "SL-LOL": SLLOL, "SL-SR": SLSR, "SL-BB":SLBB
   };
 
   constructor(public currentGameData: currentGamedata) {
@@ -23,10 +29,6 @@ export default class SlotGameManager {
       this.currentGame = new BaseSlotGame(currentGameData);
       // throw new Error(`No game class found for id: ${currentGameData.gameSettings.id}`);
     }
-  }
-
-  public updateGameSettings(newSettings: any) {
-    this.currentGameData.gameSettings = newSettings;
   }
 }
 

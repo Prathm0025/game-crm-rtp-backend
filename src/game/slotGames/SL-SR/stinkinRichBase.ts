@@ -1,10 +1,9 @@
 import { currentGamedata } from "../../../Player";
 import { RandomResultGenerator } from "../RandomResultGenerator";
 import { initializeGameSettings, generateInitialReel, sendInitData, makePayLines, checkForWin } from "./helper";
-import { SLPMSETTINGS } from "./types";
-
-export class SLPM {
-    public settings: SLPMSETTINGS;
+import { SLSRSETTINGS } from "./types";
+export class SLSR {
+    public settings: SLSRSETTINGS;
     playerData = {
         haveWon: 0,
         currentWining: 0,
@@ -12,7 +11,6 @@ export class SLPM {
         rtpSpinCount: 0,
         totalSpin: 0,
         currentPayout: 0,
-        payoutafterCascading: 0,
     };
 
     constructor(public currentGameData: currentGamedata) {
@@ -74,27 +72,22 @@ export class SLPM {
         try {
             const playerData = this.getPlayerData();
             if (this.settings.currentBet > playerData.credits) {
-                console.log(this.settings.currentBet + playerData.credits, 'dfdsfds')
                 this.sendError("Low Balance");
                 return;
             }
-            if (!this.settings.freeSpin.useFreeSpin) {
-                await this.deductPlayerBalance(this.settings.currentBet);
+            if(this.settings.freeSpin.freeSpinCount ==0)
+                {
+                 await this.deductPlayerBalance(this.settings.currentBet);
                 this.playerData.totalbet += this.settings.currentBet;
             }
-
-
-            if (this.settings.freeSpin.freeSpinStarted) {
-                this.settings.freeSpin.freeSpinCount--;
-                console.log("Free Spin remaining count ", this.settings.freeSpin.freeSpinCount);
+        
+            if(this.settings.freeSpin.freeSpinCount>0)
+            {
+                this.settings.freeSpin.freeSpinCount --;
             }
+            
             await new RandomResultGenerator(this);
             checkForWin(this)
-            if (this.settings.freeSpin.freeSpinCount == 0) {
-                this.settings.freeSpin.freeSpinStarted = false
-                this.settings.freeSpin.freeSpinCount = 0
-            }
-
         } catch (error) {
             this.sendError("Spin error");
             console.error("Failed to generate spin results:", error);

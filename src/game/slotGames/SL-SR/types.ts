@@ -7,7 +7,7 @@ interface Symbol {
     payout: number;
     reelInstance: { [key: string]: number };
 }
-export interface SLPMSETTINGS {
+export interface SLSRSETTINGS {
     id: string;
     matrix: { x: number, y: number };
     currentGamedata: GameData;
@@ -20,23 +20,18 @@ export interface SLPMSETTINGS {
     bets: number[];
     reels: any[][];
     Symbols: Symbol[];
-    hasCascading: boolean,
-    cascadingNo: number,
-    payoutAfterCascading: number,
-    cascadingResult: any[];
-    lastReel: any[],
-    tempReel: any[],
-    firstReel: any[],
-    tempReelSym: any[],
-    freeSpinData: any[][],
-    jackpot: {
-        symbolName: string;
-        symbolsCount: number;
-        symbolId: number;
-        defaultAmount: number;
-        increaseValue: number;
-        useJackpot: boolean;
-    },
+    freeSpinValue: number;
+    bonusValuesArray: number[];
+    bonusProbabilities: number[];
+    multiplierArray: number[];
+    multiplierProbabilities: number[];
+    shuffledBonusValues: number[];
+    selectedMultiplier: number;
+    isNewAdded: boolean,
+    isFreeSpinRunning: boolean;
+    freeSpinTemp: number;
+    scatterWinningSymbols: any[];
+    trashForCashWinningSymbols: any[];
     freeSpin: {
         symbolID: string,
         freeSpinMuiltiplier: any[],
@@ -45,17 +40,36 @@ export interface SLPMSETTINGS {
         noOfFreeSpins: number,
         useFreeSpin: boolean,
         freeSpinsAdded: boolean,
-    };
+    },
     wild: {
         SymbolName: string;
         SymbolID: number;
         useWild: boolean
-    }
+    },
+    scatter: {
+        symbolID: string,
+        multiplier: number[],
+        useScatter: boolean,
+    },
+    bonus: {
+        start: boolean;
+        stopIndex: number;
+        game: any;
+        id: number;
+        symbolCount: number,
+        pay: number,
+        useBonus: boolean,
+    };
 }
 
 
 export enum specialIcons {
     jackpot = "Jackpot",
     wild = "Wild",
-    FreeSpin = "FreeSpin"
+    FreeSpin = "FreeSpin",
+    scatter = "Scatter",
+    bonus = "Bonus"
+
 }
+
+
