@@ -54,7 +54,6 @@ jobs:
           
       - name: Force Update Root with New Build Files
         run: |
-          git checkout build-artifacts
           
           # Remove existing app.js and src directory if they exist
           rm -rf ./app.js ./src
