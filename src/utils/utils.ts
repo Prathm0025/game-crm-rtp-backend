@@ -161,7 +161,7 @@ export const updateCredits = async (
 
     if (
       managerSocket &&
-      managerSocket.socketData.socket 
+      managerSocket.socketData.socket
     ) {
       managerSocket.sendData({
         type: "CREDITS",
@@ -183,7 +183,7 @@ export const updateCredits = async (
       clientSocket.sendData({ type: playerDataType.CREDIT, data: { credits: client.credits } }, "platform");
       eventEmitter.emit("updateCredits", { username: client.username, credits: client.credits })
     }
-    
+
 
 
     await session.commitTransaction();
@@ -260,4 +260,22 @@ export enum eventType {
 export enum playerDataType {
   CREDIT = "CREDIT",
   GAMES = "GAMES"
+}
+
+export function formatDate(isoString: string): string {
+  const date = new Date(isoString);
+  const formattedDate = date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  const formattedTime = date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+    hour12: true
+  });
+
+  return `${formattedDate} at ${formattedTime}`;
 }
