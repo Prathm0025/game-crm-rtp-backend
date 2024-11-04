@@ -34,17 +34,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
         run: |
-           git fetch origin build-artifacts:build-artifacts # Ensure you're up-to-date with build-artifacts
-           git stash || echo "No changes to stash" # Stash only if there are changes
+           git fetch origin build-artifacts:build-artifacts
+           git stash || echo "No changes to stash"
            git checkout build-artifacts
            git config user.name "TrippyRahul"
            git config user.email "rahulrawat.trippybug@gmail.com"
            rm -f package.json
            git checkout dev -- package.json
            git add package.json
-           git commit -m "update package.json" || echo "No changes to commit"
-           git push --force origin build-artifacts
-           git stash pop || echo "No local changes to pop" # Handle no stash scenario
+           git diff --cached --quiet || git commit -m "update package.json" # Commit only if there are changes
+           git push --force origin build-artifacts || echo "No changes to push"
+           git stash pop || echo "No local changes to pop"
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v3
@@ -52,13 +52,21 @@ jobs:
           name: artifact
           path: ./dist/**/*.js
           
-      - name: Copy Src and app.js in root 
+      - name: Force Update Root with New Build Files
         run: |
           git checkout build-artifacts
+          
+          # Remove existing app.js and src directory if they exist
           rm -rf ./app.js ./src
-          cp -r ./dist/src .
-          cp -r ./dist/app.js .
+          
+          # Force copy new build files from dist to root directory
+          cp -rf ./dist/src .  # -r flag for recursive copy of directories
+          cp -f ./dist/app.js . # -f flag to force overwrite
+
+          # Remove the dist directory after copying
           rm -rf ./dist
+          
+          # Stage changes and commit, forcing update of app.js and src
           git add .
-          git commit -m "add new build"
-          git push origin build-artifacts
+          git commit -m "add new build files"
+          git push origin build-artifacts || echo "No changes to push"
