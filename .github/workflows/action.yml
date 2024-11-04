@@ -55,8 +55,8 @@ jobs:
       - name: Copy Src and app.js in root 
         run: |
           cp -r ./dist/src .
-          cp ./dist/app.js .
-          rm -rvf ./dist
+          cp -r ./dist/app.js .
+          rm -rf ./dist
           git add .
           git commit -m "add new build"
           git push origin build-artifacts
