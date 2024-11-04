@@ -114,16 +114,7 @@ export default class PlayerSocket {
     }
   }
 
-  public updateCurrentGameSettings(newSettings: any) {
-    console.log("NEW SETTING : ", newSettings);
-
-    if (this.currentGameData.currentGameManager) {
-      this.currentGameData.currentGameManager.updateSettings(newSettings);
-      console.log(`${this.playerData.username} : Game Setting Updated`)
-    } else {
-      console.log(`No active game manager to update settings`)
-    }
-  }
+ 
 
   public async initializePlatformSocket(socket: Socket) {
     if (socket) {

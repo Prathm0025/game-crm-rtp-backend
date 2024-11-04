@@ -1,35 +1,29 @@
+import { SLBESETTINGS } from "./types";
+import { checkForWin, initializeGameSettings, makePayLines, sendInitData } from './helper'
 import { currentGamedata } from "../../../Player";
 import { RandomResultGenerator } from "../RandomResultGenerator";
-import { initializeGameSettings, generateInitialReel, sendInitData, makePayLines, checkForWin } from "./helper";
-import { SLPMSETTINGS } from "./types";
-
-export class SLPM {
-    public settings: SLPMSETTINGS;
+/**
+ * Represents the Blood Eternal Slot  Game Class for handling slot machine operations.
+ */
+export class SLBE {
+    public settings: SLBESETTINGS;
     playerData = {
         haveWon: 0,
         currentWining: 0,
         totalbet: 0,
         rtpSpinCount: 0,
-        totalSpin: 0,
-        currentPayout: 0,
-        payoutafterCascading: 0,
+        totalSpin: 0
     };
 
     constructor(public currentGameData: currentGamedata) {
         this.settings = initializeGameSettings(currentGameData, this);
-        generateInitialReel(this.settings)
-        sendInitData(this)
+        sendInitData(this);
         makePayLines(this)
     }
 
     get initSymbols() {
-        const Symbols = [];
-        this.currentGameData.gameSettings.Symbols.forEach((Element: Symbol) => {
-            Symbols.push(Element);
-        });
-        return Symbols;
+        return this.currentGameData.gameSettings.Symbols;
     }
-
 
     sendMessage(action: string, message: any) {
         this.currentGameData.sendMessage(action, message, true);
@@ -63,50 +57,33 @@ export class SLPM {
                 break;
         }
     }
+
     private prepareSpin(data: any) {
         this.settings.currentLines = data.currentLines;
         this.settings.BetPerLines = this.settings.currentGamedata.bets[data.currentBet];
         this.settings.currentBet = this.settings.BetPerLines * this.settings.currentLines;
     }
 
-
     public async spinResult(): Promise<void> {
         try {
             const playerData = this.getPlayerData();
             if (this.settings.currentBet > playerData.credits) {
-                console.log(this.settings.currentBet + playerData.credits, 'dfdsfds')
                 this.sendError("Low Balance");
                 return;
             }
-            if (!this.settings.freeSpin.useFreeSpin) {
-                await this.deductPlayerBalance(this.settings.currentBet);
-                this.playerData.totalbet += this.settings.currentBet;
-            }
-
-
-            if (this.settings.freeSpin.freeSpinStarted) {
-                this.settings.freeSpin.freeSpinCount--;
-                console.log("Free Spin remaining count ", this.settings.freeSpin.freeSpinCount);
-            }
-            await new RandomResultGenerator(this);
+            new RandomResultGenerator(this);
+            this.playerData.totalbet += this.settings.currentBet;
             checkForWin(this)
-            if (this.settings.freeSpin.freeSpinCount == 0) {
-                this.settings.freeSpin.freeSpinStarted = false
-                this.settings.freeSpin.freeSpinCount = 0
-            }
-
         } catch (error) {
             this.sendError("Spin error");
             console.error("Failed to generate spin results:", error);
         }
     }
-
     private async getRTP(spins: number): Promise<void> {
         try {
             let spend: number = 0;
             let won: number = 0;
             this.playerData.rtpSpinCount = spins;
-
             for (let i = 0; i < this.playerData.rtpSpinCount; i++) {
                 await this.spinResult();
                 spend = this.playerData.totalbet;
@@ -126,6 +103,3 @@ export class SLPM {
     }
 
 }
-
-
-
