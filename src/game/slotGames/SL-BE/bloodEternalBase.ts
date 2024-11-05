@@ -77,17 +77,17 @@ export class SLBE {
               this.playerData.currentWining = this.playerData.currentWining * 2
               result.currentWinning = this.playerData.currentWining
             } else if (gambleOption === "HALF") {
-              this.playerData.currentWining = parseFloat((this.playerData.currentWining *1.5).toFixed(2))
+              this.playerData.currentWining = parseFloat((this.playerData.currentWining * 1.5).toFixed(2))
               result.currentWinning = this.playerData.currentWining
             }
             // result.Balance = this.getPlayerData().credits + this.playerData.currentWining
             break;
           case false:
             // result.Balance = this.getPlayerData().credits;
-            if(gambleOption === "ALL"){
+            if (gambleOption === "ALL") {
               this.playerData.currentWining = 0
               result.currentWinning = 0
-            }else if(gambleOption === "HALF"){
+            } else if (gambleOption === "HALF") {
               this.playerData.currentWining = parseFloat((this.playerData.currentWining / 2).toFixed(2))
               result.currentWinning = this.playerData.currentWining
             }
@@ -161,5 +161,36 @@ export class SLBE {
     }
   }
 
-}
 
+  // private gamebleTesting() {
+  //   console.log("gamble test");
+  //
+  //   //FIX: gamebleTesting , remove later
+  //   if (this.settings.gamble.isEnabled) {
+  //
+  //     let result = getGambleResult({ selected: "TAIL" });
+  //     this.deductPlayerBalance(this.playerData.currentWining);
+  //     //calculate payout
+  //     switch (result.playerWon) {
+  //       case true:
+  //         this.playerData.currentWining *= 2
+  //         // result.Balance = this.getPlayerData().credits + this.playerData.currentWining
+  //         result.currentWinning = this.playerData.currentWining
+  //         break;
+  //       case false:
+  //         result.currentWinning = 0;
+  //         // result.Balance = this.getPlayerData().credits;
+  //         // this.settings._winData.totalWinningAmount = 0;
+  //         this.playerData.haveWon -= this.playerData.currentWining;
+  //         this.playerData.currentWining = 0;
+  //         break;
+  //     }
+  //     console.log("Gamble Result:", result);
+  //
+  //     this.playerData.haveWon = this.playerData.currentWining;
+  //     this.updatePlayerBalance(this.playerData.currentWining);
+  //     console.log("Balance:", this.getPlayerData().credits);
+  //
+  //   }
+  // }
+}

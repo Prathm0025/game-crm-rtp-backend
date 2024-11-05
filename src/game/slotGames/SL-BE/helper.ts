@@ -232,8 +232,8 @@ export function checkForWin(gameInstance: SLBE) {
           if (validIndices.length > 0) {
             gameInstance.settings._winData.winningSymbols.push(validIndices);
           }
-          // console.log(`Line ${index + 1} (LTR):`, line);
-          // console.log(`Payout for LTR Line ${index + 1}:`, "payout", payout);
+          console.log(`Line ${index + 1} (LTR):`, line);
+          console.log(`Payout for LTR Line ${index + 1}:`, "payout", payout);
           return;
         }
       }
@@ -260,8 +260,8 @@ export function checkForWin(gameInstance: SLBE) {
           if (validIndices.length > 0) {
             gameInstance.settings._winData.winningSymbols.push(validIndices);
           }
-          // console.log(`Line ${index + 1} (RTL):`, line);
-          // console.log(`Payout for RTL Line ${index + 1}:`, "payout", payout);
+          console.log(`Line ${index + 1} (RTL):`, line);
+          console.log(`Payout for RTL Line ${index + 1}:`, "payout", payout);
         }
       }
     });
@@ -311,7 +311,6 @@ export function checkForWin(gameInstance: SLBE) {
 
     // console.log("freespin", settings.freeSpin);
     gameInstance.playerData.haveWon += gameInstance.playerData.currentWining;
-    console.log(totalPayout, 'totalPayout')
     makeResultJson(gameInstance);
     gameInstance.playerData.currentWining = 0;
     settings.freeSpin.substitutions.bloodSplash = []
@@ -505,11 +504,16 @@ export function makeResultJson(gameInstance: SLBE) {
       },
       PlayerData: {
         Balance: Balance,
-        currentWining: playerData.currentWining,
+        currentWining: settings._winData.totalWinningAmount,
         totalbet: playerData.totalbet,
         haveWon: playerData.haveWon,
       }
     };
+
+    console.log("sendData", sendData);
+    // console.log("_winData lines", settings._winData.winningLines);
+    // console.log("_winData symbols", settings._winData.winningSymbols);
+
 
     gameInstance.sendMessage('ResultData', sendData);
   } catch (error) {
@@ -682,4 +686,3 @@ function getNRandomEmptyPositions(matrix: string[][], symbolId: string, count: n
   const emptyPositions = getRandomEmptyPositions(matrix, symbolId);
   return emptyPositions.slice(0, count);
 }
-

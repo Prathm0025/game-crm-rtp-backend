@@ -73,7 +73,7 @@ export const gameData = [
       "isEnabled": true,
       "countIncrement": 8,
       "bloodSplash": {
-        "countProb": [20, 10, 10, 10, 20, 25] 
+        "countProb": [20, 10, 10, 10, 20, 25] // prob of 1 ,2,3,4,5,6,7 or 8 bloodsplashes
       }
     },
     "bonus": {
@@ -370,12 +370,12 @@ export const gameData = [
         "Name": "Bat",
         "Id": 9,
         "reelInstance": {
-          "0": 2,
-          "1": 2,
-          "2": 2,
-          "3": 2,
-          "4": 2,
-          "5": 2
+          "0": 10,
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 10,
+          "5": 10
         },
         "useWildSub": false,
         "multiplier": [
@@ -386,12 +386,12 @@ export const gameData = [
         "Name": "BatX2",
         "Id": 10,
         "reelInstance": {
-          "0": 2,
-          "1": 2,
-          "2": 2,
-          "3": 2,
-          "4": 2,
-          "5": 2
+          "0": 10,
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 10,
+          "5": 10
         },
         "useWildSub": false,
         "multiplier": [
@@ -466,12 +466,12 @@ export const gameData = [
         "Name": "Wild",
         "Id": 15,
         "reelInstance": {
-          "0": 10,
-          "1": 10,
-          "2": 10,
-          "3": 10,
-          "4": 10,
-          "5": 10
+          "0": 30,
+          "1": 30,
+          "2": 30,
+          "3": 30,
+          "4": 30,
+          "5": 30
         },
         "description": "Substitutes for all symbols except Jackpot, Free Spin, Bonus, and Scatter.",
         "useWildSub": false,
