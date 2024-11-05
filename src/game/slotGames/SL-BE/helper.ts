@@ -311,6 +311,7 @@ export function checkForWin(gameInstance: SLBE) {
 
     // console.log("freespin", settings.freeSpin);
     gameInstance.playerData.haveWon += gameInstance.playerData.currentWining;
+    console.log(totalPayout, 'totalPayout')
     makeResultJson(gameInstance);
     gameInstance.playerData.currentWining = 0;
     settings.freeSpin.substitutions.bloodSplash = []
@@ -504,16 +505,11 @@ export function makeResultJson(gameInstance: SLBE) {
       },
       PlayerData: {
         Balance: Balance,
-        currentWining: settings._winData.totalWinningAmount,
+        currentWining: playerData.currentWining,
         totalbet: playerData.totalbet,
         haveWon: playerData.haveWon,
       }
     };
-
-    console.log("sendData", sendData);
-    // console.log("_winData lines", settings._winData.winningLines);
-    // console.log("_winData symbols", settings._winData.winningSymbols);
-
 
     gameInstance.sendMessage('ResultData', sendData);
   } catch (error) {
