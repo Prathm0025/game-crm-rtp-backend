@@ -2,6 +2,7 @@ import { SLLOL } from './LifeOfLuxury';
 import { SymbolType, GameResult, WinningCombination, FreeSpinResponse } from './types';
 import { WinData } from "../BaseSlotGame/WinData";
 import { convertSymbols, UiInitData } from '../../Utils/gameUtils';
+import { argv0 } from 'process';
 
 
 export function initializeGameSettings(gameData: any, gameInstance: SLLOL) {
@@ -251,9 +252,7 @@ export function checkWin(gameInstance: SLLOL): { payout: number; winningCombinat
     if (col == settings.matrix.x) {
       if (path.length >= settings.minMatchCount) {
         const symbol = getSymbol(symbolId, settings.Symbols);
-        let multiplierIndex = Math.abs(path.length-5);
-        console.log("Multiplier index",multiplierIndex);
-        
+        const multiplierIndex = Math.abs(path.length - 5);
         if (symbol && symbol.multiplier[multiplierIndex]) { // Check if multiplier exists
           const multiplier = symbol.multiplier[multiplierIndex][0];
           winningCombinations.push({ symbolId, positions: path, payout: multiplier * settings.BetPerLines });

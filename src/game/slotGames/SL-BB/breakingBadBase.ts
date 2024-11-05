@@ -1,6 +1,6 @@
 import { currentGamedata } from "../../../Player";
 import { SLBBSETTINGS } from "./types";
-import { initializeGameSettings, generateInitialReel, checkForWin, sendInitData, generateInitialHeisenberg, } from "./helper";
+import { initializeGameSettings, generateInitialReel, checkForWin, sendInitData, generateInitialHeisenberg, makePayLines, } from "./helper";
 import { RandomResultGenerator } from "../RandomResultGenerator";
 
 export class SLBB {
@@ -14,6 +14,7 @@ export class SLBB {
 
   constructor(public currentGameData: currentGamedata) {
     this.settings = initializeGameSettings(currentGameData, this);
+    makePayLines(this)
     generateInitialReel(this.settings)
     generateInitialHeisenberg(this.settings)
     sendInitData(this)
@@ -74,7 +75,7 @@ export class SLBB {
   public async spinResult(): Promise<void> {
     try {
       const playerData = this.getPlayerData();
-      const { freeSpin, heisenberg } = this.settings
+      const { freeSpin, bonus } = this.settings
       if (!freeSpin.isFreeSpin && this.settings.currentBet > playerData.credits) {
         this.sendError("Low Balance");
         return;
@@ -84,30 +85,30 @@ export class SLBB {
         this.decrementPlayerBalance(this.settings.currentBet);
         this.playerData.totalbet += this.settings.currentBet;
       }
-      if (!heisenberg.isTriggered) {
+      if (!bonus.isTriggered) {
         this.decrementPlayerBalance(this.settings.currentBet);
       }
       // if (heisenberg.freeSpin.freeSpinCount === 1) {
       //   heisenberg.isTriggered= false;
       // }
-      if (freeSpin.freeSpinCount === 1) {
+      if (freeSpin.count === 1) {
         freeSpin.isFreeSpin = false;
       }
       if (
         // freeSpin.isFreeSpin &&
-        freeSpin.freeSpinCount > 0 &&
-        !this.settings.heisenberg.isTriggered
+        freeSpin.count > 0 &&
+        !this.settings.bonus.isTriggered
       ) {
-        freeSpin.freeSpinCount--;
+        freeSpin.count--;
 
         this.settings.currentBet = 0;
         console.log(
-          freeSpin.freeSpinCount,
+          freeSpin.count,
           "this.settings.freeSpinCount"
         );
       }
       // this.incrementPlayerBalance(this.playerData.currentWining)
-      if(!this.settings.heisenberg.isTriggered){
+      if(!this.settings.bonus.isTriggered){
       new RandomResultGenerator(this);
       }
       checkForWin(this)

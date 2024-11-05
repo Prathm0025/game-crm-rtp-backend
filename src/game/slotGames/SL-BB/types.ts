@@ -22,32 +22,32 @@ export interface SLBBSETTINGS {
   matrix: { x: number, y: number };
   currentGamedata: GameData;
   resultSymbolMatrix: any[];
-  prevresultSymbolMatrix: any[];
-  heisenbergSymbolMatrix: any[];
-  heisenbergFreeze: Set<string>;
+  isCashCollect: boolean;
+  // prevresultSymbolMatrix: any[];
+  bonusResultMatrix: any[];
+  // heisenbergFreeze: Set<string>;
   lineData: any[],
   _winData: WinData | undefined;
-  matchedIndices: { col: number; row: number }[][];
+  // matchedIndices: { col: number; row: number }[][];
   currentBet: number;
   currentLines: number;
   BetPerLines: number;
   bets: number[];
   reels: any[][];
-  heisenbergReels: any[][],
+  bonusReels: any[][],
   Symbols: Symbol[];
   jackpot: {
     isTriggered: boolean;
     payout: number;
   },
-  grandPrize:{
+  grandPrize: {
     isTriggered: boolean;
     payout: number;
   },
-  isCashCollect:boolean
   freeSpin: {
     isEnabled: boolean,
     isTriggered: boolean,
-    freeSpinCount: number,
+    count: number,
     isFreeSpin: boolean,
     cashCollectValues: valueType[]
   };
@@ -89,24 +89,24 @@ export interface SLBBSETTINGS {
     useWild: boolean;
     values: valueType[]
   };
-  heisenberg: {
+  bonus: {
     isTriggered: boolean;
-    freeSpin: {
-      freeSpinStarted: boolean,
-      freeSpinsAdded: boolean,
-      noOfFreeSpins: number,
-      // useFreeSpin: false,
-    };
+    count: number,
     payout: number;
   };
   cashCollectPrize: {
     isTriggered: boolean,
     payout: number,
   };
-  diamondWinnings:
-  {
-    payout: any[],
-    probability: any[],
-    selectedIndexForDiamond: number,
-  };
+}
+
+
+export enum specialIcons {
+  wild = "Wild",
+  link = "Link",
+  megalink = "MegaLink",
+  cashCollect = "CashCollect",
+  coins = "Coins",
+  prizeCoin = "PrizeCoin",
+  losPollos = "LosPollos",
 }
