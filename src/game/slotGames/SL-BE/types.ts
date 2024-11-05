@@ -52,7 +52,7 @@ export interface SLBESETTINGS {
   wild: {
     SymbolName: string;
     SymbolID: number;
-    useWild: boolean
+    multiplier: number[]
   },
   vampireMan: {
     SymbolName: string;
