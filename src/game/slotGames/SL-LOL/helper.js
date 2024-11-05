@@ -238,8 +238,7 @@ function checkWin(gameInstance) {
         if (col == settings.matrix.x) {
             if (path.length >= settings.minMatchCount) {
                 const symbol = getSymbol(symbolId, settings.Symbols);
-                let multiplierIndex = Math.abs(path.length - 5);
-                console.log("Multiplier index", multiplierIndex);
+                const multiplierIndex = Math.abs(path.length - 5);
                 if (symbol && symbol.multiplier[multiplierIndex]) { // Check if multiplier exists
                     const multiplier = symbol.multiplier[multiplierIndex][0];
                     winningCombinations.push({ symbolId, positions: path, payout: multiplier * settings.BetPerLines });

@@ -82,7 +82,7 @@ class SLLOL {
                 // this.sendMessage("gambleInitData", sendData);
                 break;
             case "GAMBLERESULT":
-                let result = (0, gamble_1.getGambleResult)({ selected: response.data.selected });
+                let result = (0, gamble_1.getGambleResult)({ selected: response.cardType });
                 //calculate payout
                 switch (result.playerWon) {
                     case true:
