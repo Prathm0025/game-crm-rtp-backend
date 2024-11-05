@@ -11,7 +11,6 @@ import GameManager from "./game/GameManager";
 import createHttpError from "http-errors";
 import { GameSession } from "./dashboard/session/gameSession";
 import { eventType, getManagerName, socketConnectionData } from "./utils/utils";
-import { eventEmitter } from "./utils/eventEmitter";
 import { sessionManager } from "./dashboard/session/sessionManager";
 
 
@@ -155,11 +154,7 @@ export default class PlayerSocket {
         console.error("Socket is null during initialization of disconnect event");
       }
 
-      eventEmitter.on("updateCredits", (event) => {
-        if (this.playerData.username === event.username) {
-          this.playerData.credits = event.credits;
-        }
-      });
+  
 
       this.sendData({ type: "CREDIT", data: { credits: this.playerData.credits } }, "platform");
     }
@@ -182,17 +177,6 @@ export default class PlayerSocket {
     this.messageHandler(true);
     this.gameData.socket.emit("socketState", true);
 
-    const playerEnterGameEvent = {
-      type: eventType.ENTERED_GAME,
-      data: {
-        username: this.playerData.username,
-        gameId: this.currentGameData.gameId,
-        credits: this.playerData.credits,
-        userAgent: this.playerData.userAgent,
-      }
-    }
-
-    eventEmitter.emit("game", playerEnterGameEvent);
   }
 
   // Handle platform disconnection and reconnection
