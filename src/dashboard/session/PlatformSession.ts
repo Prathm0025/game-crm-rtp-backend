@@ -1,6 +1,6 @@
 import { GameSession } from "./gameSession";
-import { eventEmitter } from "../../utils/eventEmitter";
 import { eventType } from "../../utils/utils";
+import { currentActiveManagers } from "../../socket";
 
 export default class PlatformSession {
     playerId: string;
@@ -28,11 +28,17 @@ export default class PlatformSession {
 
         // Listen to events from GameSession and emit higher-level events
         gameSession.on("spinUpdated", (summary) => {
-            eventEmitter.emit("game", { to: this.managerName, type: eventType.UPDATED_SPIN, payload: summary });
+            const currentManager = currentActiveManagers.get(this.managerName);
+            if (currentManager) {
+                currentManager.notifyManager({ type: eventType.UPDATED_SPIN, payload: summary })
+            }
         });
 
         gameSession.on("sessionEnded", (summary) => {
-            eventEmitter.emit("game", { to: this.managerName, type: eventType.EXITED_GAME, payload: summary });
+            const currentManager = currentActiveManagers.get(this.managerName);
+            if (currentManager) {
+                currentManager.notifyManager({ type: eventType.EXITED_GAME, payload: summary })
+            }
         });
     }
 

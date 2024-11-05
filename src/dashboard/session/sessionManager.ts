@@ -1,4 +1,4 @@
-import { eventEmitter } from "../../utils/eventEmitter";
+import { currentActiveManagers } from "../../socket";
 import { eventType } from "../../utils/utils";
 import PlatformSession from "./PlatformSession";
 import { GameSession } from "./gameSession";
@@ -21,11 +21,12 @@ class SessionManager {
             console.error(`Failed to save platform session for player: ${playerId}`, error);
         }
 
-        eventEmitter.emit("platform", {
-            to: managerName,
-            type: eventType.ENTERED_PLATFORM,
-            payload: platformSession.getSummary()
-        });
+
+        const currentManager = currentActiveManagers.get(managerName);
+        if (currentManager) {
+            currentManager.notifyManager({ type: eventType.ENTERED_PLATFORM, payload: platformSession.getSummary() });
+        }
+
         console.log(`Platform session started for player: ${playerId}`);
     }
 
@@ -36,11 +37,11 @@ class SessionManager {
             platformSession.setExitTime(new Date());
             this.platformSessions.delete(playerId);
 
-            eventEmitter.emit("platform", {
-                to: platformSession.managerName,
-                type: eventType.EXITED_PLATFORM,
-                payload: platformSession.getSummary()
-            })
+            const currentManager = currentActiveManagers.get(platformSession.managerName);
+            if (currentManager) {
+                currentManager.notifyManager({ type: eventType.EXITED_PLATFORM, payload: platformSession.getSummary() })
+
+            }
 
             console.log(`Platform session ended for player: ${playerId}`);
 
@@ -68,11 +69,12 @@ class SessionManager {
 
 
             if (gameSummary) {
-                eventEmitter.emit("game", {
-                    to: platformSession.managerName,
-                    type: eventType.ENTERED_GAME,
-                    payload: gameSummary
-                })
+
+                const currentManager = currentActiveManagers.get(platformSession.managerName);
+                if (currentManager) {
+                    currentManager.notifyManager({ type: eventType.ENTERED_GAME, payload: gameSummary });
+                }
+
                 console.log(`Game session started for player: ${playerId}, game: ${gameId}`);
             } else {
                 console.error(`No active platform session found for player: ${playerId}`);

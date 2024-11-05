@@ -137,6 +137,10 @@ export class UserController {
         throw createHttpError(401, "Invalid username or password");
       }
 
+      if (user.status !== "active") {
+        throw createHttpError(403, "User account is not active");
+      }
+
       if (user.role === "player") {
         await PlayerModel.updateOne(
           { _id: user._id },

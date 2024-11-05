@@ -1,5 +1,4 @@
 import { Socket } from "socket.io";
-import { eventEmitter } from "./utils/eventEmitter";
 import { currentActiveManagers, currentActivePlayers } from "./socket";
 import { Player } from "./dashboard/users/userModel";
 import { sessionManager } from "./dashboard/session/sessionManager";
@@ -70,7 +69,6 @@ export default class Manager {
         }
 
         this.initializeSocketHandler();
-        this.initializeEventListeners();
 
         this.socketData.socket.on("disconnect", () => {
             console.log(`Manager ${this.username} disconnected`);
@@ -114,28 +112,9 @@ export default class Manager {
     }
 
 
-    private initializeEventListeners() {
-        eventEmitter.on("platform", (event) => {
-            if (event.to === this.username || this.role === "master") {
-                this.notifyManager({ type: event.type, payload: event.payload });
-            }
-        });
+  
 
-        eventEmitter.on("game", (event) => {
-            if (event.to === this.username || this.role === "master") {
-                this.notifyManager({ type: event.type, payload: event.payload });
-            }
-        });
-
-        eventEmitter.on("updateCredits", (event) => {
-            if (this.username === event.username) {
-                this.credits = event.credits
-                console.log("credits updated : ", event);
-            }
-        })
-    }
-
-    private notifyManager(data: { type: string, payload: any }) {
+    public notifyManager(data: { type: string, payload: any }) {
         if (this.socketData.socket) {
             this.socketData.socket.emit("PLATFORM", data);
         } else {
