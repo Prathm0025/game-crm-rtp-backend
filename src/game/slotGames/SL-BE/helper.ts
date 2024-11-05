@@ -333,6 +333,8 @@ export function sendInitData(gameInstance: SLBE) {
       Reel: reels,
       Lines: gameInstance.settings.currentGamedata.linesApiData,
       Bets: gameInstance.settings.currentGamedata.bets,
+      BatsMultiplier: gameInstance.settings.bats.multipliers,
+      wildMultiplier: gameInstance.settings.wild.multiplier
     },
     UIData: UiInitData,
     PlayerData: {
