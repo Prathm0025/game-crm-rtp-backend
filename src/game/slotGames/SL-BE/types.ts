@@ -38,6 +38,7 @@ export interface SLBESETTINGS {
     bloodSplash:{
       countProb:number[],
     },
+    newVampHumanPositions: [string,string][],
     substitutions: {
       vampHuman: [string, string][]
       bloodSplash: {

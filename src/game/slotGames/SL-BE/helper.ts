@@ -44,6 +44,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBE) {
       bloodSplash: {
         countProb: gameData.gameSettings.freeSpin.bloodSplash.countProb
       },
+      newVampHumanPositions: [],
       substitutions: {
         bloodSplash: [],
         vampHuman: []
@@ -682,6 +683,7 @@ export function checkForWin(gameInstance: SLBE) {
       settings.freeSpin.freeSpinCount += settings.freeSpin.countIncrement
       //append to vampHuman
       settings.freeSpin.substitutions.vampHuman.push(...positions)
+      settings.freeSpin.newVampHumanPositions.push(...positions)
     }
 
 
@@ -699,6 +701,7 @@ export function checkForWin(gameInstance: SLBE) {
     settings._winData.winningSymbols = []
     settings.bats.positions = []
     settings.bats.payout = 0
+    settings.freeSpin.newVampHumanPositions = []
 
     return winningLines;
   } catch (error) {
@@ -719,7 +722,7 @@ export function makeResultJson(gameInstance: SLBE) {
         symbolsToEmit: settings._winData.winningSymbols,
         isFreeSpin: settings.freeSpin.isTriggered,
         count: settings.freeSpin.freeSpinCount,
-        vampHuman: settings.freeSpin.substitutions.vampHuman.flatMap((item) => item),
+        vampHuman: settings.freeSpin.newVampHumanPositions.flatMap((item) => item),
         bloodSplash: settings.freeSpin.substitutions.bloodSplash.flatMap((item) => item.index),
         // batPositions: settings.bats.positions,
         // batPayout: settings.bats.payout
