@@ -11,7 +11,6 @@ import bcrypt from "bcrypt";
 import { currentActiveManagers, currentActivePlayers } from "../socket";
 import { Player } from "../dashboard/users/userModel";
 import { Socket } from "socket.io";
-import { eventEmitter } from "./eventEmitter";
 
 
 const transactionController = new TransactionController()
@@ -167,7 +166,7 @@ export const updateCredits = async (
         type: "CREDITS",
         payload: { credits: creator.credits, role: creator.role }
       });
-      eventEmitter.emit("updateCredits", { username: creator.username, credits: creator.credits });
+      managerSocket.credits = creator.credits;
     }
 
     if (agentSocket && agentSocket.socketData.socket) {
@@ -175,13 +174,13 @@ export const updateCredits = async (
         type: "CREDITS",
         payload: { credits: client.credits, role: client.role }
       });
-      eventEmitter.emit("updateCredits", { username: client.username, credits: client.credits });
+      agentSocket.credits = client.credits
     }
 
     if (clientSocket && clientSocket.platformData.socket && clientSocket.platformData.socket.connected) {
       clientSocket.playerData.credits = client.credits;
       clientSocket.sendData({ type: playerDataType.CREDIT, data: { credits: client.credits } }, "platform");
-      eventEmitter.emit("updateCredits", { username: client.username, credits: client.credits })
+      clientSocket.playerData.credits = client.credits;
     }
 
 
