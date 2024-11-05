@@ -77,17 +77,17 @@ export class SLBE {
               this.playerData.currentWining = this.playerData.currentWining * 2
               result.currentWinning = this.playerData.currentWining
             } else if (gambleOption === "HALF") {
-              this.playerData.currentWining = parseFloat((this.playerData.currentWining *1.5).toFixed(2))
+              this.playerData.currentWining = parseFloat((this.playerData.currentWining * 1.5).toFixed(2))
               result.currentWinning = this.playerData.currentWining
             }
             // result.Balance = this.getPlayerData().credits + this.playerData.currentWining
             break;
           case false:
             // result.Balance = this.getPlayerData().credits;
-            if(gambleOption === "ALL"){
+            if (gambleOption === "ALL") {
               this.playerData.currentWining = 0
               result.currentWinning = 0
-            }else if(gambleOption === "HALF"){
+            } else if (gambleOption === "HALF") {
               this.playerData.currentWining = parseFloat((this.playerData.currentWining / 2).toFixed(2))
               result.currentWinning = this.playerData.currentWining
             }
@@ -194,4 +194,3 @@ export class SLBE {
   //   }
   // }
 }
-

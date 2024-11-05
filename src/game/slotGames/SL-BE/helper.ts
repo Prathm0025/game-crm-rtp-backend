@@ -232,8 +232,8 @@ export function checkForWin(gameInstance: SLBE) {
           if (validIndices.length > 0) {
             gameInstance.settings._winData.winningSymbols.push(validIndices);
           }
-          // console.log(`Line ${index + 1} (LTR):`, line);
-          // console.log(`Payout for LTR Line ${index + 1}:`, "payout", payout);
+          console.log(`Line ${index + 1} (LTR):`, line);
+          console.log(`Payout for LTR Line ${index + 1}:`, "payout", payout);
           return;
         }
       }
@@ -260,8 +260,8 @@ export function checkForWin(gameInstance: SLBE) {
           if (validIndices.length > 0) {
             gameInstance.settings._winData.winningSymbols.push(validIndices);
           }
-          // console.log(`Line ${index + 1} (RTL):`, line);
-          // console.log(`Payout for RTL Line ${index + 1}:`, "payout", payout);
+          console.log(`Line ${index + 1} (RTL):`, line);
+          console.log(`Payout for RTL Line ${index + 1}:`, "payout", payout);
         }
       }
     });
@@ -686,4 +686,3 @@ function getNRandomEmptyPositions(matrix: string[][], symbolId: string, count: n
   const emptyPositions = getRandomEmptyPositions(matrix, symbolId);
   return emptyPositions.slice(0, count);
 }
-
