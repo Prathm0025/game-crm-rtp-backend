@@ -370,12 +370,12 @@ export const gameData = [
         "Name": "Bat",
         "Id": 9,
         "reelInstance": {
-          "0": 10,
-          "1": 10,
-          "2": 10,
-          "3": 10,
-          "4": 10,
-          "5": 10
+          "0": 0,
+          "1": 0,
+          "2": 0,
+          "3": 0,
+          "4": 0,
+          "5": 0
         },
         "useWildSub": false,
         "multiplier": [
@@ -386,12 +386,12 @@ export const gameData = [
         "Name": "BatX2",
         "Id": 10,
         "reelInstance": {
-          "0": 10,
-          "1": 10,
-          "2": 10,
-          "3": 10,
-          "4": 10,
-          "5": 10
+          "0": 0,
+          "1": 0,
+          "2": 0,
+          "3": 0,
+          "4": 0,
+          "5": 0
         },
         "useWildSub": false,
         "multiplier": [
@@ -403,7 +403,7 @@ export const gameData = [
         "Id": 11,
         "reelInstance": {
           "0": 0,
-          "1": 10,
+          "1": 0,
           "2": 0,
           "3": 0,
           "4": 0,
@@ -422,7 +422,7 @@ export const gameData = [
           "1": 0,
           "2": 0,
           "3": 0,
-          "4": 10,
+          "4": 0,
           "5": 0
         },
         "useWildSub": false,
@@ -437,7 +437,7 @@ export const gameData = [
           "0": 0,
           "1": 0,
           "2": 0,
-          "3": 10,
+          "3": 0,
           "4": 0,
           "5": 0
         },
@@ -452,7 +452,7 @@ export const gameData = [
         "reelInstance": {
           "0": 0,
           "1": 0,
-          "2": 10,
+          "2": 0,
           "3": 0,
           "4": 0,
           "5": 0

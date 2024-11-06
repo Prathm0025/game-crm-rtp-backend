@@ -134,7 +134,7 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLBE) {
     case specialIcons.wild:
       gameInstance.settings.wild.SymbolName = symbol.Name;
       gameInstance.settings.wild.SymbolID = symbol.Id;
-      gameInstance.settings.wild.useWild = false;
+      gameInstance.settings.wild.useWild = true;
       break;
     case specialIcons.VampireMan:
       gameInstance.settings.vampireMan.SymbolName = symbol.Name;
@@ -191,9 +191,6 @@ export function checkForWin(gameInstance: SLBE) {
     }
     //toggling here so that we can use it for blood splash 4 or 8
     settings.freeSpin.isTriggered = false
-
-
-
     settings.lineData.forEach((line, index) => {
       const firstSymbolPositionLTR = line[0];
       const firstSymbolPositionRTL = line[line.length - 1];
@@ -203,11 +200,11 @@ export function checkForWin(gameInstance: SLBE) {
       let firstSymbolRTL = settings.resultSymbolMatrix[firstSymbolPositionRTL][line.length - 1];
 
       // Handle wild symbols for both directions
-      if (settings.wild.useWild && firstSymbolLTR === settings.wild.SymbolID) {
+      if (firstSymbolLTR === settings.wild.SymbolID) {
         firstSymbolLTR = findFirstNonWildSymbol(line, gameInstance);
       }
-      if (settings.wild.useWild && firstSymbolRTL === settings.wild.SymbolID) {
-        firstSymbolRTL = findFirstNonWildSymbol(line, gameInstance);
+      if (firstSymbolRTL === settings.wild.SymbolID) {
+        firstSymbolRTL = findFirstNonWildSymbol(line, gameInstance, 'RTL');
       }
 
       // Left-to-right check
@@ -226,12 +223,6 @@ export function checkForWin(gameInstance: SLBE) {
             matchCount: LTRResult.matchCount,
             direction: 'LTR'
           });
-
-          const formattedIndices = LTRResult.matchedIndices.map(({ col, row }) => `${col},${row}`);
-          const validIndices = formattedIndices.filter(index => index.length > 2);
-          if (validIndices.length > 0) {
-            gameInstance.settings._winData.winningSymbols.push(validIndices);
-          }
           console.log(`Line ${index + 1} (LTR):`, line);
           console.log(`Payout for LTR Line ${index + 1}:`, "payout", payout);
           return;
@@ -254,12 +245,6 @@ export function checkForWin(gameInstance: SLBE) {
             matchCount: RTLResult.matchCount,
             direction: 'RTL'
           });
-
-          const formattedIndices = RTLResult.matchedIndices.map(({ col, row }) => `${col},${row}`);
-          const validIndices = formattedIndices.filter(index => index.length > 2);
-          if (validIndices.length > 0) {
-            gameInstance.settings._winData.winningSymbols.push(validIndices);
-          }
           console.log(`Line ${index + 1} (RTL):`, line);
           console.log(`Payout for RTL Line ${index + 1}:`, "payout", payout);
         }
@@ -302,8 +287,6 @@ export function checkForWin(gameInstance: SLBE) {
       //append to vampHuman
       settings.freeSpin.substitutions.vampHuman.push(...positions)
     }
-
-
 
     // Log and update game state after all lines are checked
     console.log("Total Winning", gameInstance.playerData.currentWining);
@@ -381,6 +364,50 @@ function checkLineSymbols(
     return { isWinningLine: false, matchCount: 0, matchedIndices: [] };
   }
 }
+
+
+//checking first non wild symbol in lines which start with wild symbol
+function findFirstNonWildSymbol(line: number[], gameInstance: SLBE, direction: 'LTR' | 'RTL' = 'LTR') {
+  const { settings } = gameInstance;
+  const wildSymbol = settings.wild.SymbolID;
+  const start = direction === 'LTR' ? 0 : line.length - 1;
+  const end = direction === 'LTR' ? line.length : -1;
+  const step = direction === 'LTR' ? 1 : -1;
+
+  for (let i = start; i !== end; i += step) {
+    const rowIndex = line[i];
+    const symbol = settings.resultSymbolMatrix[rowIndex][i];
+    if (symbol !== wildSymbol) {
+      return symbol;
+    }
+  }
+  return wildSymbol; 
+}
+
+
+
+//payouts to user according to symbols count in matched lines
+function accessData(symbol, matchCount, gameInstance: SLBE) {
+  const { settings } = gameInstance;
+
+  try {
+    const symbolData = settings.currentGamedata.Symbols.find(
+      (s) => s.Id.toString() === symbol.toString()
+    );
+    if (symbolData) {
+      const multiplierArray = symbolData.multiplier;
+
+      if (multiplierArray && multiplierArray[settings.matrix.x - matchCount]) {
+        return multiplierArray[settings.matrix.x - matchCount][0];
+
+      }
+    }
+    return 0;
+  } catch (error) {
+    // console.error("Error in accessData:");
+    return 0;
+  }
+}
 function checkforBats(gameInstance: SLBE) {
   try {
 
@@ -412,52 +439,6 @@ function checkforBats(gameInstance: SLBE) {
     console.error("Error in checkforBats:", e);
   }
 }
-//checking first non wild symbol in lines which start with wild symbol
-function findFirstNonWildSymbol(line: number[], gameInstance: SLBE, direction: 'LTR' | 'RTL' = 'LTR') {
-  try {
-    const { settings } = gameInstance;
-    const wildSymbol = settings.wild.SymbolID;
-    const start = direction === 'LTR' ? 0 : line.length - 1;
-    const end = direction === 'LTR' ? line.length : -1;
-    const step = direction === 'LTR' ? 1 : -1;
-    for (let i = start; i !== end; i += step) {
-      const rowIndex = line[i];
-      const symbol = settings.resultSymbolMatrix[rowIndex][i];
-      if (symbol !== wildSymbol) {
-        return symbol;
-      }
-    }
-    return wildSymbol;
-  } catch (error) {
-    console.error("Error in findFirstNonWildSymbol:", error);
-    return null;
-  }
-}
-
-
-//payouts to user according to symbols count in matched lines
-function accessData(symbol, matchCount, gameInstance: SLBE) {
-  const { settings } = gameInstance;
-
-  try {
-    const symbolData = settings.currentGamedata.Symbols.find(
-      (s) => s.Id.toString() === symbol.toString()
-    );
-    if (symbolData) {
-      const multiplierArray = symbolData.multiplier;
-
-      if (multiplierArray && multiplierArray[settings.matrix.x - matchCount]) {
-        return multiplierArray[settings.matrix.x - matchCount][0];
-
-      }
-    }
-    return 0;
-  } catch (error) {
-    // console.error("Error in accessData:");
-    return 0;
-  }
-}
-
 /**
  * Sends the initial game and player data to the client.
  * @param gameInstance - The instance of the SLCM class containing the game settings and player data.
