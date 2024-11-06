@@ -49,7 +49,9 @@ export interface SLBBSETTINGS {
     isTriggered: boolean,
     count: number,
     isFreeSpin: boolean,
-    cashCollectValues: valueType[]
+    cashCollectValues: valueType[],
+    LPValues:number[],
+    LPProbs:number[]
   };
   wild: {
     SymbolName: string;
@@ -90,6 +92,7 @@ export interface SLBBSETTINGS {
     values: valueType[]
   };
   bonus: {
+    isBonus:boolean;
     isTriggered: boolean;
     count: number,
     payout: number;
