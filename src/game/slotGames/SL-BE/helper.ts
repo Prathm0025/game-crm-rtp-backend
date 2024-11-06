@@ -27,17 +27,30 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBE) {
     BetPerLines: 0,
     reels: [],
     isLeftWinTrue: false,
+    bats: {
+      isEnabled: gameData.gameSettings.bats.isEnabled,
+      batCount: 0,
+      positions: [],
+      payout: 0,
+      multipliers: gameData.gameSettings.bats.multiplier
+    },
     freeSpin: {
       symbolID: "-1",
       freeSpinCount: 0,
-      isEnabled:gameData.gameSettings.freeSpin.isEnabled,
-      countIncrement:gameData.gameSettings.freeSpin.countIncrement,
+      isEnabled: gameData.gameSettings.freeSpin.isEnabled,
+      countIncrement: gameData.gameSettings.freeSpin.countIncrement,
       isFreeSpin: false,
       isTriggered: false,
+      bloodSplash: {
+        countProb: gameData.gameSettings.freeSpin.bloodSplash.countProb
+      },
       substitutions: {
         bloodSplash: [],
         vampHuman: []
       }
+    },
+    gamble: {
+      isEnabled: gameData.gameSettings.gamble.isEnabled
     },
     wild: {
       SymbolName: "",
@@ -63,7 +76,17 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBE) {
       SymbolName: "",
       SymbolID: -1,
       useWild: false,
-    }
+    },
+    Bat: {
+      SymbolName: "",
+      SymbolID: -1,
+      useWild: false,
+    },
+    BatX2: {
+      SymbolName: "",
+      SymbolID: -1,
+      useWild: false,
+    },
   };
 }
 /**
@@ -111,28 +134,36 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLBE) {
     case specialIcons.wild:
       gameInstance.settings.wild.SymbolName = symbol.Name;
       gameInstance.settings.wild.SymbolID = symbol.Id;
-      gameInstance.settings.wild.useWild = true;
+      gameInstance.settings.wild.useWild = false;
       break;
     case specialIcons.VampireMan:
       gameInstance.settings.vampireMan.SymbolName = symbol.Name;
       gameInstance.settings.vampireMan.SymbolID = symbol.Id;
-      gameInstance.settings.vampireMan.useWild = true;
+      gameInstance.settings.vampireMan.useWild = false;
       break;
     case specialIcons.VampireWoman:
       gameInstance.settings.vampireWoman.SymbolName = symbol.Name;
       gameInstance.settings.vampireWoman.SymbolID = symbol.Id;
-      gameInstance.settings.vampireWoman.useWild = true;
+      gameInstance.settings.vampireWoman.useWild = false;
       break;
     case specialIcons.HumanMan:
       gameInstance.settings.HumanMan.SymbolName = symbol.Name;
       gameInstance.settings.HumanMan.SymbolID = symbol.Id;
-      gameInstance.settings.HumanMan.useWild = true;
+      gameInstance.settings.HumanMan.useWild = false;
       break;
     case specialIcons.HumanWoman:
       gameInstance.settings.HumanWoman.SymbolName = symbol.Name;
       gameInstance.settings.HumanWoman.SymbolID = symbol.Id;
-      gameInstance.settings.HumanWoman.useWild = true;
+      gameInstance.settings.HumanWoman.useWild = false;
       break;
+    case specialIcons.Bat:
+      gameInstance.settings.Bat.SymbolName = symbol.Name;
+      gameInstance.settings.Bat.SymbolID = symbol.Id;
+      gameInstance.settings.Bat.useWild = false;
+    case specialIcons.BatX2:
+      gameInstance.settings.BatX2.SymbolName = symbol.Name;
+      gameInstance.settings.BatX2.SymbolID = symbol.Id;
+      gameInstance.settings.BatX2.useWild = false;
     default:
   }
 }
@@ -146,9 +177,22 @@ export function checkForWin(gameInstance: SLBE) {
     const winningLines = [];
     let totalPayout = 0;
 
-    // TODO: handle freespin . - 1. vamphumanunion should be wild (swap resmatrix)
+
+    // TODO: handle freespin . -     1. vamphumanunion should be wild (swap resmatrix)
     //                             - 2. bloodSplash feat  (swap resmatrix)
     //                             - 3. populate freespin.wildsubbed
+    if (settings.freeSpin.isFreeSpin &&
+      settings.freeSpin.freeSpinCount > 0
+    ) {
+      handleFreeSpin(gameInstance)
+    } else {
+      settings.freeSpin.isFreeSpin = false
+      settings.freeSpin.substitutions.vampHuman = []
+    }
+    //toggling here so that we can use it for blood splash 4 or 8
+    settings.freeSpin.isTriggered = false
+
+
 
     settings.lineData.forEach((line, index) => {
       const firstSymbolPositionLTR = line[0];
@@ -182,8 +226,14 @@ export function checkForWin(gameInstance: SLBE) {
             matchCount: LTRResult.matchCount,
             direction: 'LTR'
           });
-          // console.log(`Line ${index + 1} (LTR):`, line);
-          // console.log(`Payout for LTR Line ${index + 1}:`, "payout", payout);
+
+          const formattedIndices = LTRResult.matchedIndices.map(({ col, row }) => `${col},${row}`);
+          const validIndices = formattedIndices.filter(index => index.length > 2);
+          if (validIndices.length > 0) {
+            gameInstance.settings._winData.winningSymbols.push(validIndices);
+          }
+          console.log(`Line ${index + 1} (LTR):`, line);
+          console.log(`Payout for LTR Line ${index + 1}:`, "payout", payout);
           return;
         }
       }
@@ -204,32 +254,70 @@ export function checkForWin(gameInstance: SLBE) {
             matchCount: RTLResult.matchCount,
             direction: 'RTL'
           });
-          // console.log(`Line ${index + 1} (RTL):`, line);
-          // console.log(`Payout for RTL Line ${index + 1}:`, "payout", payout);
+
+          const formattedIndices = RTLResult.matchedIndices.map(({ col, row }) => `${col},${row}`);
+          const validIndices = formattedIndices.filter(index => index.length > 2);
+          if (validIndices.length > 0) {
+            gameInstance.settings._winData.winningSymbols.push(validIndices);
+          }
+          console.log(`Line ${index + 1} (RTL):`, line);
+          console.log(`Payout for RTL Line ${index + 1}:`, "payout", payout);
         }
       }
     });
     checkforBats(gameInstance)
+    gameInstance.playerData.currentWining += settings.bats.payout
+
+
+
+    //decrement freespin count 
+    if (settings.freeSpin.freeSpinCount > 0) {
+      settings.freeSpin.freeSpinCount -= 1
+    }
+
 
     //TODO: check for freespin 
-    //    1. check if human vamp are adjacent 
-    //    2. append to vampHuman
-    //  3. sub blood splash back
-    const {found, positions} = checkForFreeSpin(gameInstance)
-    if(found){
+    //  1. sub blood splash back
+    //    2. check if human vamp are adjacent 
+    //    3. append to vampHuman
+
+    //swap back blood splash
+
+    if (settings.freeSpin.freeSpinCount > 0) {
+
+      for (let i = 0; i < settings.freeSpin.substitutions.bloodSplash.length; i++) {
+        const positions = settings.freeSpin.substitutions.bloodSplash[i].index
+        const symId = settings.freeSpin.substitutions.bloodSplash[i].symbolId
+        const tempId = swapPositions(settings.resultSymbolMatrix, positions, symId)
+        settings.freeSpin.substitutions.bloodSplash[i].symbolId = tempId
+      }
+      console.log("after blood splash swapback", settings.resultSymbolMatrix);
+    }
+    const { found, positions } = checkForFreeSpin(gameInstance)
+    if (found) {
+
       settings.freeSpin.isTriggered = true
       settings.freeSpin.isFreeSpin = true
       settings.freeSpin.freeSpinCount += settings.freeSpin.countIncrement
+      //append to vampHuman
+      settings.freeSpin.substitutions.vampHuman.push(...positions)
     }
+
 
 
     // Log and update game state after all lines are checked
     console.log("Total Winning", gameInstance.playerData.currentWining);
-    console.log("Total Free Spins Won:", gameInstance.settings.freeSpin.freeSpinCount);
+    // console.log("Total Free Spins Won:", gameInstance.settings.freeSpin.freeSpinCount);
 
+    // console.log("freespin", settings.freeSpin);
     gameInstance.playerData.haveWon += gameInstance.playerData.currentWining;
     makeResultJson(gameInstance);
     gameInstance.playerData.currentWining = 0;
+    settings.freeSpin.substitutions.bloodSplash = []
+    settings._winData.winningLines = []
+    settings._winData.winningSymbols = []
+    settings.bats.positions = []
+    settings.bats.payout = 0
 
     return winningLines;
   } catch (error) {
@@ -239,38 +327,6 @@ export function checkForWin(gameInstance: SLBE) {
 }
 
 
-function checkForFreeSpin(gameInstance: SLBE): { found: boolean; positions: [string, string][] } {
-  const manId = gameInstance.settings.HumanMan.SymbolID // 13
-  const womanId = gameInstance.settings.HumanWoman.SymbolID // 14
-  const VampireManId = gameInstance.settings.vampireMan.SymbolID // 11
-  const VampireWomanId = gameInstance.settings.vampireWoman.SymbolID // 12
-
-  const positions: [string, string][] = []
-  let found = false
-  const matrix = gameInstance.settings.resultSymbolMatrix
-
-  matrix.forEach((row, i) => {
-    row.forEach((symbol, j) => {
-      // Check VampireMan + HumanWoman combination (11,14)
-      if (symbol === VampireManId.toString()) {
-        if (j + 1 < row.length && matrix[i][j + 1] === womanId.toString()) {
-          positions.push([`${i},${j}`, `${i},${j + 1}`])
-          found = true
-        }
-      }
-      
-      // Check HumanMan + VampireWoman combination (13,12)
-      if (symbol === manId.toString()) {
-        if (j + 1 < row.length && matrix[i][j + 1] === VampireWomanId.toString()) {
-          positions.push([`${i},${j}`, `${i},${j + 1}`])
-          found = true
-        }
-      }
-    })
-  })
-
-  return { found, positions }
-}
 
 
 type MatchedIndex = { col: number; row: number };
@@ -326,16 +382,35 @@ function checkLineSymbols(
   }
 }
 function checkforBats(gameInstance: SLBE) {
-  const { settings } = gameInstance;
-  let batsCount = 0;
+  try {
 
-  settings.resultSymbolMatrix.forEach((row) => {
-    row.forEach((symbol) => {
-      batsCount += symbol === 9 ? 1 : symbol === 10 ? 2 : 0;
+    const { settings } = gameInstance;
+    let batsCount = 0;
+
+    settings.resultSymbolMatrix.forEach((row, i) => {
+      row.forEach((symbol, j) => {
+        // batsCount +=
+        //   symbol == settings.Bat.SymbolID.toString() ?
+        //     1 :
+        //     symbol == settings.BatX2.SymbolID.toString() ?
+        //       2 : 0;
+        if (symbol == settings.Bat.SymbolID.toString() || symbol == settings.BatX2.SymbolID.toString()) {
+          settings.bats.positions.push(`${i},${j}`)
+          batsCount += symbol == settings.BatX2.SymbolID.toString() ? 2 : 1
+        }
+      });
     });
-  });
-
-  console.log("Bats Count", batsCount);
+    //TODO:
+    //check for bats count
+    if (batsCount > 8) {
+      settings.bats.payout += settings.BetPerLines * settings.bats.multipliers[0]
+    } else {
+      settings.bats.payout += settings.BetPerLines * settings.bats.multipliers[batsCount]
+    }
+    console.log("Bats Count", batsCount);
+  } catch (e) {
+    console.error("Error in checkforBats:", e);
+  }
 }
 //checking first non wild symbol in lines which start with wild symbol
 function findFirstNonWildSymbol(line: number[], gameInstance: SLBE, direction: 'LTR' | 'RTL' = 'LTR') {
@@ -396,6 +471,7 @@ export function sendInitData(gameInstance: SLBE) {
   const dataToSend = {
     GameData: {
       Reel: reels,
+      Lines: gameInstance.settings.currentGamedata.linesApiData,
       Bets: gameInstance.settings.currentGamedata.bets,
     },
     UIData: UiInitData,
@@ -416,9 +492,15 @@ export function makeResultJson(gameInstance: SLBE) {
     const Balance = credits.toFixed(2)
     const sendData = {
       GameData: {
+        ResultReel: settings.resultSymbolMatrix,
         linesToEmit: settings._winData.winningLines,
         symbolsToEmit: settings._winData.winningSymbols,
-        jackpot: settings._winData.jackpotwin,
+        isFreeSpin: settings.freeSpin.isTriggered,
+        count: settings.freeSpin.freeSpinCount,
+        vampHuman: settings.freeSpin.substitutions.vampHuman.flatMap((item) => item),
+        bloodSplash: settings.freeSpin.substitutions.bloodSplash.flatMap((item) => item.index),
+        batPositions: settings.bats.positions,
+        batPayout: settings.bats.payout
       },
       PlayerData: {
         Balance: Balance,
@@ -428,8 +510,179 @@ export function makeResultJson(gameInstance: SLBE) {
       }
     };
 
+    console.log("sendData", sendData);
+    // console.log("_winData lines", settings._winData.winningLines);
+    // console.log("_winData symbols", settings._winData.winningSymbols);
+
+
     gameInstance.sendMessage('ResultData', sendData);
   } catch (error) {
     console.error("Error generating result JSON or sending message:", error);
   }
+}
+
+// for swapping vampHuman and bloodSplash
+function swapPositions(matrix: any[][], position: string, swapValue: string): string {
+  try {
+
+    const [row, col] = position.split(',').map(Number);
+    // Swap the value at the position with the provided swapValue
+    const temp = matrix[row][col];
+    matrix[row][col] = Number(swapValue);
+    return temp;
+  } catch (e) {
+    console.log("error in swapPositions", e)
+  }
+}
+//for blood splash countProb
+function getRandomFromProbability(probArray: number[]): number {
+  try {
+
+    const totalProb = probArray.reduce((sum, p) => sum + p, 0);
+    const randValue = Math.random() * totalProb;
+
+    let cumulativeProb = 0;
+    for (let i = 0; i < probArray.length; i++) {
+      cumulativeProb += probArray[i];
+      if (randValue <= cumulativeProb) {
+        return i + 1;
+      }
+    }
+
+    return probArray.length;
+  } catch (e) {
+    console.log("error in getRandomFromProbability", e)
+  }
+}
+
+function checkForFreeSpin(gameInstance: SLBE): { found: boolean; positions: [string, string][] } {
+  try {
+
+    const manId = gameInstance.settings.HumanMan.SymbolID // 13
+    const womanId = gameInstance.settings.HumanWoman.SymbolID // 14
+    const VampireManId = gameInstance.settings.vampireMan.SymbolID // 11
+    const VampireWomanId = gameInstance.settings.vampireWoman.SymbolID // 12
+
+    const positions: [string, string][] = []
+    let found = false
+    const matrix = gameInstance.settings.resultSymbolMatrix
+
+    matrix.forEach((row, i) => {
+      row.forEach((symbol, j) => {
+        // Check VampireMan + HumanWoman combination (11,14)
+        if (symbol == VampireManId.toString()) {
+          if (j + 1 < row.length && matrix[i][j + 1] == womanId.toString()) {
+            positions.push([`${i},${j}`, `${i},${j + 1}`])
+            found = true
+          }
+        }
+
+        // Check HumanMan + VampireWoman combination (13,12)
+        if (symbol == manId.toString()) {
+          if (j + 1 < row.length && matrix[i][j + 1] == VampireWomanId.toString()) {
+            positions.push([`${i},${j}`, `${i},${j + 1}`])
+            found = true
+          }
+        }
+      })
+    })
+
+    return { found, positions }
+  } catch (e) {
+    console.log("error in checkForFreeSpin", e)
+  }
+}
+
+
+function handleFreeSpin(gameInstance: SLBE) {
+  try {
+
+    const { settings } = gameInstance;
+    // vampHuman positions 
+    const vampireHumanPositions = settings.freeSpin.substitutions.vampHuman.flatMap((item) => item);
+    // console.log("vampireHumanPositions", vampireHumanPositions);
+
+    //swap positions in vampHuman with wild 
+    vampireHumanPositions.forEach((position) => {
+      swapPositions(settings.resultSymbolMatrix, position, settings.wild.SymbolID.toString())
+    })
+    // console.log("after vh swap", settings.resultSymbolMatrix);
+
+    //bloodSplash swap , if vamp human union found can get upto 8 slpashes or 4 splashes if not
+    const splashes: number = getRandomFromProbability(
+      settings.freeSpin.isTriggered ?
+        settings.freeSpin.bloodSplash.countProb :
+        settings.freeSpin.bloodSplash.countProb.slice(0, 2),
+    )
+    // console.log("bloodSplash", splashes);
+    //now we need to swap random positions in matrix with wild other than the ones that are already wild 
+    const positions = getNRandomEmptyPositions(
+      settings.resultSymbolMatrix,
+      settings.wild.SymbolID.toString(),
+      splashes + 1
+    )
+
+    for (let i = 0; i < splashes; i++) {
+      const symId = swapPositions(settings.resultSymbolMatrix, `${positions[i].row},${positions[i].col}`, settings.wild.SymbolID.toString())
+      settings.freeSpin.substitutions.bloodSplash.push({
+        index: `${positions[i].row},${positions[i].col}`,
+        symbolId: symId
+      })
+    }
+    // console.log("after bs swap", settings.resultSymbolMatrix);
+    // console.log("splash ", settings.freeSpin.substitutions.bloodSplash);
+  } catch (e) {
+    console.log("Error in handleFreeSpin", e)
+  }
+}
+
+function getRandomEmptyPositions(matrix: string[][], symbolId: string): {
+  row: number;
+  col: number;
+}[] {
+  try {
+
+    // Get all empty positions
+    const emptyPositions: {
+      row: number;
+      col: number;
+    }[] = [];
+
+    // Collect all positions that don't have the symbolId
+    for (let row = 0; row < matrix.length; row++) {
+      for (let col = 0; col < matrix[row].length; col++) {
+        if (matrix[row][col] != symbolId) {
+          emptyPositions.push({ row, col });
+        }
+      }
+    }
+
+    // Shuffle the empty positions array using Fisher-Yates algorithm
+    for (let i = emptyPositions.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [emptyPositions[i], emptyPositions[j]] = [emptyPositions[j], emptyPositions[i]];
+    }
+
+    return emptyPositions;
+  } catch (e) {
+    console.log("error in getRandomEmptyPositions", e)
+  }
+}
+
+// Helper function to get a single random empty position
+function getRandomEmptyPosition(matrix: string[][], symbolId: string): {
+  row: number;
+  col: number;
+} | null {
+  const emptyPositions = getRandomEmptyPositions(matrix, symbolId);
+  return emptyPositions.length > 0 ? emptyPositions[0] : null;
+}
+
+// Helper function to get N random empty positions
+function getNRandomEmptyPositions(matrix: string[][], symbolId: string, count: number): {
+  row: number;
+  col: number;
+}[] {
+  const emptyPositions = getRandomEmptyPositions(matrix, symbolId);
+  return emptyPositions.slice(0, count);
 }
