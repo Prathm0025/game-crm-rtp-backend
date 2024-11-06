@@ -30,14 +30,30 @@ function initializeGameSettings(gameData, gameInstance) {
         BetPerLines: 0,
         reels: [],
         isLeftWinTrue: false,
+        bats: {
+            isEnabled: gameData.gameSettings.bats.isEnabled,
+            batCount: 0,
+            positions: [],
+            payout: 0,
+            multipliers: gameData.gameSettings.bats.multiplier
+        },
         freeSpin: {
             symbolID: "-1",
-            freeSpinMuiltiplier: [],
-            freeSpinStarted: false,
-            freeSpinsAdded: false,
             freeSpinCount: 0,
-            noOfFreeSpins: 0,
-            useFreeSpin: false,
+            isEnabled: gameData.gameSettings.freeSpin.isEnabled,
+            countIncrement: gameData.gameSettings.freeSpin.countIncrement,
+            isFreeSpin: false,
+            isTriggered: false,
+            bloodSplash: {
+                countProb: gameData.gameSettings.freeSpin.bloodSplash.countProb
+            },
+            substitutions: {
+                bloodSplash: [],
+                vampHuman: []
+            }
+        },
+        gamble: {
+            isEnabled: gameData.gameSettings.gamble.isEnabled
         },
         wild: {
             SymbolName: "",
@@ -49,7 +65,7 @@ function initializeGameSettings(gameData, gameInstance) {
             SymbolID: -1,
             useWild: false,
         },
-        vampireWomen: {
+        vampireWoman: {
             SymbolName: "",
             SymbolID: -1,
             useWild: false,
@@ -59,11 +75,21 @@ function initializeGameSettings(gameData, gameInstance) {
             SymbolID: -1,
             useWild: false,
         },
-        HumanWomen: {
+        HumanWoman: {
             SymbolName: "",
             SymbolID: -1,
             useWild: false,
-        }
+        },
+        Bat: {
+            SymbolName: "",
+            SymbolID: -1,
+            useWild: false,
+        },
+        BatX2: {
+            SymbolName: "",
+            SymbolID: -1,
+            useWild: false,
+        },
     };
 }
 /**
@@ -99,7 +125,9 @@ function shuffleArray(array) {
 function makePayLines(gameInstance) {
     const { settings } = gameInstance;
     settings.currentGamedata.Symbols.forEach((element) => {
-        handleSpecialSymbols(element, gameInstance);
+        if (!element.useWildSub) {
+            handleSpecialSymbols(element, gameInstance);
+        }
     });
 }
 function handleSpecialSymbols(symbol, gameInstance) {
@@ -107,28 +135,36 @@ function handleSpecialSymbols(symbol, gameInstance) {
         case types_1.specialIcons.wild:
             gameInstance.settings.wild.SymbolName = symbol.Name;
             gameInstance.settings.wild.SymbolID = symbol.Id;
-            gameInstance.settings.wild.useWild = true;
+            gameInstance.settings.wild.useWild = false;
             break;
         case types_1.specialIcons.VampireMan:
             gameInstance.settings.vampireMan.SymbolName = symbol.Name;
             gameInstance.settings.vampireMan.SymbolID = symbol.Id;
-            gameInstance.settings.vampireMan.useWild = true;
+            gameInstance.settings.vampireMan.useWild = false;
             break;
-        case types_1.specialIcons.VampireWomen:
-            gameInstance.settings.vampireWomen.SymbolName = symbol.Name;
-            gameInstance.settings.vampireWomen.SymbolID = symbol.Id;
-            gameInstance.settings.vampireWomen.useWild = true;
+        case types_1.specialIcons.VampireWoman:
+            gameInstance.settings.vampireWoman.SymbolName = symbol.Name;
+            gameInstance.settings.vampireWoman.SymbolID = symbol.Id;
+            gameInstance.settings.vampireWoman.useWild = false;
             break;
         case types_1.specialIcons.HumanMan:
             gameInstance.settings.HumanMan.SymbolName = symbol.Name;
             gameInstance.settings.HumanMan.SymbolID = symbol.Id;
-            gameInstance.settings.HumanMan.useWild = true;
+            gameInstance.settings.HumanMan.useWild = false;
             break;
-        case types_1.specialIcons.HumanWomen:
-            gameInstance.settings.HumanWomen.SymbolName = symbol.Name;
-            gameInstance.settings.HumanWomen.SymbolID = symbol.Id;
-            gameInstance.settings.HumanWomen.useWild = true;
+        case types_1.specialIcons.HumanWoman:
+            gameInstance.settings.HumanWoman.SymbolName = symbol.Name;
+            gameInstance.settings.HumanWoman.SymbolID = symbol.Id;
+            gameInstance.settings.HumanWoman.useWild = false;
             break;
+        case types_1.specialIcons.Bat:
+            gameInstance.settings.Bat.SymbolName = symbol.Name;
+            gameInstance.settings.Bat.SymbolID = symbol.Id;
+            gameInstance.settings.Bat.useWild = false;
+        case types_1.specialIcons.BatX2:
+            gameInstance.settings.BatX2.SymbolName = symbol.Name;
+            gameInstance.settings.BatX2.SymbolID = symbol.Id;
+            gameInstance.settings.BatX2.useWild = false;
         default:
     }
 }
@@ -139,84 +175,143 @@ function checkForWin(gameInstance) {
         const { settings } = gameInstance;
         const winningLines = [];
         let totalPayout = 0;
+        // TODO: handle freespin . -     1. vamphumanunion should be wild (swap resmatrix)
+        //                             - 2. bloodSplash feat  (swap resmatrix)
+        //                             - 3. populate freespin.wildsubbed
+        if (settings.freeSpin.isFreeSpin &&
+            settings.freeSpin.freeSpinCount > 0) {
+            handleFreeSpin(gameInstance);
+        }
+        else {
+            settings.freeSpin.isFreeSpin = false;
+            settings.freeSpin.substitutions.vampHuman = [];
+        }
+        //toggling here so that we can use it for blood splash 4 or 8
+        settings.freeSpin.isTriggered = false;
         settings.lineData.forEach((line, index) => {
-            const firstSymbolPosition = line[0];
-            const firstSymbolRightPosition = line[line.length - 1];
-            let firstSymbol = settings.resultSymbolMatrix[firstSymbolPosition][0];
-            let firstSymbolRight = settings.resultSymbolMatrix[firstSymbolRightPosition][line.length - 1];
-            // Handle wild symbols
-            if (settings.wild.useWild && firstSymbol === settings.wild.SymbolID) {
-                firstSymbol = findFirstNonWildSymbol(line, gameInstance);
+            const firstSymbolPositionLTR = line[0];
+            const firstSymbolPositionRTL = line[line.length - 1];
+            // Get first symbols for both directions
+            let firstSymbolLTR = settings.resultSymbolMatrix[firstSymbolPositionLTR][0];
+            let firstSymbolRTL = settings.resultSymbolMatrix[firstSymbolPositionRTL][line.length - 1];
+            // Handle wild symbols for both directions
+            if (settings.wild.useWild && firstSymbolLTR === settings.wild.SymbolID) {
+                firstSymbolLTR = findFirstNonWildSymbol(line, gameInstance);
             }
-            if (settings.wild.useWild && firstSymbolRight === settings.wild.SymbolID) {
-                firstSymbolRight = findFirstNonWildSymbol(line, gameInstance);
+            if (settings.wild.useWild && firstSymbolRTL === settings.wild.SymbolID) {
+                firstSymbolRTL = findFirstNonWildSymbol(line, gameInstance);
             }
-            // Handle special icons
-            if (Object.values(types_1.specialIcons).includes(settings.Symbols[firstSymbol].Name)) {
-                // Special icon logic can be handled here if needed
-            }
-            // Check for matching symbols on the line (left to right)
-            const { isWinningLine, matchCount } = checkLineSymbols(firstSymbol, line, gameInstance);
-            // Only check right side if left side win is zero or doesn't exist
-            if (isWinningLine && matchCount >= 3) {
-                const symbolMultiplier = accessData(firstSymbol, matchCount, gameInstance);
-                if (symbolMultiplier > 0) {
-                    totalPayout = symbolMultiplier * gameInstance.settings.BetPerLines;
-                    gameInstance.playerData.currentWining += totalPayout;
+            // Left-to-right check
+            const LTRResult = checkLineSymbols(firstSymbolLTR, line, gameInstance, 'LTR');
+            if (LTRResult.isWinningLine && LTRResult.matchCount >= 3) {
+                const symbolMultiplierLTR = accessData(firstSymbolLTR, LTRResult.matchCount, gameInstance);
+                if (symbolMultiplierLTR > 0) {
+                    const payout = symbolMultiplierLTR * gameInstance.settings.BetPerLines;
+                    totalPayout += payout;
+                    gameInstance.playerData.currentWining += payout;
                     settings._winData.winningLines.push(index + 1);
                     winningLines.push({
                         line,
-                        symbol: firstSymbol,
-                        multiplier: symbolMultiplier,
-                        matchCount,
+                        symbol: firstSymbolLTR,
+                        multiplier: symbolMultiplierLTR,
+                        matchCount: LTRResult.matchCount,
+                        direction: 'LTR'
                     });
-                    console.log(`Line ${index + 1}:`, line);
-                    console.log(`Payout for Left Line ${index}:`, "payout", totalPayout);
+                    const formattedIndices = LTRResult.matchedIndices.map(({ col, row }) => `${col},${row}`);
+                    const validIndices = formattedIndices.filter(index => index.length > 2);
+                    if (validIndices.length > 0) {
+                        gameInstance.settings._winData.winningSymbols.push(validIndices);
+                    }
+                    console.log(`Line ${index + 1} (LTR):`, line);
+                    console.log(`Payout for LTR Line ${index + 1}:`, "payout", payout);
                     return;
                 }
             }
-            const { isWinningRight, matchCountRight } = checkLineSymbolsRight(firstSymbolRight, line, gameInstance);
-            if (isWinningRight && matchCountRight >= 3) {
-                const symbolMultiplierRight = accessData(firstSymbolRight, matchCountRight, gameInstance);
-                if (symbolMultiplierRight > 0) {
-                    totalPayout = symbolMultiplierRight * gameInstance.settings.BetPerLines;
-                    gameInstance.playerData.currentWining += totalPayout;
+            // Right-to-left check
+            const RTLResult = checkLineSymbols(firstSymbolRTL, line, gameInstance, 'RTL');
+            if (RTLResult.isWinningLine && RTLResult.matchCount >= 3) {
+                const symbolMultiplierRTL = accessData(firstSymbolRTL, RTLResult.matchCount, gameInstance);
+                if (symbolMultiplierRTL > 0) {
+                    const payout = symbolMultiplierRTL * gameInstance.settings.BetPerLines;
+                    totalPayout += payout;
+                    gameInstance.playerData.currentWining += payout;
                     settings._winData.winningLines.push(index + 1);
                     winningLines.push({
                         line,
-                        symbol: firstSymbolRight,
-                        multiplier: symbolMultiplierRight,
-                        matchCountRight,
+                        symbol: firstSymbolRTL,
+                        multiplier: symbolMultiplierRTL,
+                        matchCount: RTLResult.matchCount,
+                        direction: 'RTL'
                     });
-                    console.log(`Line ${index}:`, line);
-                    console.log(`Payout for Right Line ${index}:`, "payout", totalPayout);
+                    const formattedIndices = RTLResult.matchedIndices.map(({ col, row }) => `${col},${row}`);
+                    const validIndices = formattedIndices.filter(index => index.length > 2);
+                    if (validIndices.length > 0) {
+                        gameInstance.settings._winData.winningSymbols.push(validIndices);
+                    }
+                    console.log(`Line ${index + 1} (RTL):`, line);
+                    console.log(`Payout for RTL Line ${index + 1}:`, "payout", payout);
                 }
             }
         });
-        // Calculate total Free Spins won (5 free spins per line with Free Spin win)
+        checkforBats(gameInstance);
+        gameInstance.playerData.currentWining += settings.bats.payout;
+        //decrement freespin count 
+        if (settings.freeSpin.freeSpinCount > 0) {
+            settings.freeSpin.freeSpinCount -= 1;
+        }
+        //TODO: check for freespin 
+        //  1. sub blood splash back
+        //    2. check if human vamp are adjacent 
+        //    3. append to vampHuman
+        //swap back blood splash
+        if (settings.freeSpin.freeSpinCount > 0) {
+            for (let i = 0; i < settings.freeSpin.substitutions.bloodSplash.length; i++) {
+                const positions = settings.freeSpin.substitutions.bloodSplash[i].index;
+                const symId = settings.freeSpin.substitutions.bloodSplash[i].symbolId;
+                const tempId = swapPositions(settings.resultSymbolMatrix, positions, symId);
+                settings.freeSpin.substitutions.bloodSplash[i].symbolId = tempId;
+            }
+            console.log("after blood splash swapback", settings.resultSymbolMatrix);
+        }
+        const { found, positions } = checkForFreeSpin(gameInstance);
+        if (found) {
+            settings.freeSpin.isTriggered = true;
+            settings.freeSpin.isFreeSpin = true;
+            settings.freeSpin.freeSpinCount += settings.freeSpin.countIncrement;
+            //append to vampHuman
+            settings.freeSpin.substitutions.vampHuman.push(...positions);
+        }
+        // Log and update game state after all lines are checked
         console.log("Total Winning", gameInstance.playerData.currentWining);
-        console.log("Total Free Spins Won: ", gameInstance.settings.freeSpin.freeSpinCount);
+        // console.log("Total Free Spins Won:", gameInstance.settings.freeSpin.freeSpinCount);
+        // console.log("freespin", settings.freeSpin);
         gameInstance.playerData.haveWon += gameInstance.playerData.currentWining;
         makeResultJson(gameInstance);
         gameInstance.playerData.currentWining = 0;
+        settings.freeSpin.substitutions.bloodSplash = [];
+        settings._winData.winningLines = [];
+        settings._winData.winningSymbols = [];
+        settings.bats.positions = [];
+        settings.bats.payout = 0;
         return winningLines;
     }
     catch (error) {
-        console.error("Error in checkForWin", error);
+        console.error("Error in checkForWin:", error);
         return [];
     }
 }
-//checking matching lines with first symbol and wild subs
-function checkLineSymbols(firstSymbol, line, gameInstance) {
+function checkLineSymbols(firstSymbol, line, gameInstance, direction = 'LTR') {
     try {
         const { settings } = gameInstance;
         const wildSymbol = settings.wild.SymbolID || "";
         let matchCount = 1;
         let currentSymbol = firstSymbol;
-        const matchedIndices = [
-            { col: 0, row: line[0] },
-        ];
-        for (let i = 1; i < line.length; i++) {
+        const matchedIndices = [];
+        const start = direction === 'LTR' ? 0 : line.length - 1;
+        const end = direction === 'LTR' ? line.length : -1;
+        const step = direction === 'LTR' ? 1 : -1;
+        matchedIndices.push({ col: start, row: line[start] });
+        for (let i = start + step; i !== end; i += step) {
             const rowIndex = line[i];
             const symbol = settings.resultSymbolMatrix[rowIndex][i];
             if (symbol === undefined) {
@@ -224,7 +319,7 @@ function checkLineSymbols(firstSymbol, line, gameInstance) {
                 return { isWinningLine: false, matchCount: 0, matchedIndices: [] };
             }
             switch (true) {
-                case symbol == currentSymbol || symbol === wildSymbol:
+                case symbol === currentSymbol || symbol === wildSymbol:
                     matchCount++;
                     matchedIndices.push({ col: i, row: rowIndex });
                     break;
@@ -244,51 +339,46 @@ function checkLineSymbols(firstSymbol, line, gameInstance) {
         return { isWinningLine: false, matchCount: 0, matchedIndices: [] };
     }
 }
-function checkLineSymbolsRight(firstSymbol, line, gameInstance) {
+function checkforBats(gameInstance) {
     try {
         const { settings } = gameInstance;
-        const wildSymbol = settings.wild.SymbolID || "";
-        let matchCountRight = 1;
-        let currentSymbol = firstSymbol;
-        // Start at the right-most column for right-to-left check
-        const matchedIndices = [
-            { col: line.length - 1, row: line[line.length - 1] },
-        ];
-        for (let i = 1; i < line.length; i++) {
-            // Reverse both row and column for right-to-left check
-            const rowIndex = line[line.length - 1 - i]; // Reverse row traversal
-            const colIndex = line.length - 1 - i; // Reverse column traversal
-            const symbol = settings.resultSymbolMatrix[rowIndex][colIndex];
-            if (symbol === undefined) {
-                console.error(`Symbol at position [${rowIndex}, ${colIndex}] is undefined.`);
-                return { isWinningRight: false, matchCountRight: 0, matchedIndices: [] };
-            }
-            if (symbol === currentSymbol || symbol === wildSymbol) {
-                matchCountRight++;
-                matchedIndices.push({ col: colIndex, row: rowIndex });
-            }
-            else if (currentSymbol === wildSymbol) {
-                currentSymbol = symbol;
-                matchCountRight++;
-                matchedIndices.push({ col: colIndex, row: rowIndex });
-            }
-            else {
-                return { isWinningRight: matchCountRight >= 3, matchCountRight, matchedIndices };
-            }
+        let batsCount = 0;
+        settings.resultSymbolMatrix.forEach((row, i) => {
+            row.forEach((symbol, j) => {
+                // batsCount +=
+                //   symbol == settings.Bat.SymbolID.toString() ?
+                //     1 :
+                //     symbol == settings.BatX2.SymbolID.toString() ?
+                //       2 : 0;
+                if (symbol == settings.Bat.SymbolID.toString() || symbol == settings.BatX2.SymbolID.toString()) {
+                    settings.bats.positions.push(`${i},${j}`);
+                    batsCount += symbol == settings.BatX2.SymbolID.toString() ? 2 : 1;
+                }
+            });
+        });
+        //TODO:
+        //check for bats count
+        if (batsCount > 8) {
+            settings.bats.payout += settings.BetPerLines * settings.bats.multipliers[0];
         }
-        return { isWinningRight: matchCountRight >= 3, matchCountRight, matchedIndices };
+        else {
+            settings.bats.payout += settings.BetPerLines * settings.bats.multipliers[batsCount];
+        }
+        console.log("Bats Count", batsCount);
     }
-    catch (error) {
-        console.error("Error in checkLineSymbolsRight:", error);
-        return { isWinningRight: false, matchCountRight: 0, matchedIndices: [] };
+    catch (e) {
+        console.error("Error in checkforBats:", e);
     }
 }
 //checking first non wild symbol in lines which start with wild symbol
-function findFirstNonWildSymbol(line, gameInstance) {
+function findFirstNonWildSymbol(line, gameInstance, direction = 'LTR') {
     try {
         const { settings } = gameInstance;
         const wildSymbol = settings.wild.SymbolID;
-        for (let i = 0; i < line.length; i++) {
+        const start = direction === 'LTR' ? 0 : line.length - 1;
+        const end = direction === 'LTR' ? line.length : -1;
+        const step = direction === 'LTR' ? 1 : -1;
+        for (let i = start; i !== end; i += step) {
             const rowIndex = line[i];
             const symbol = settings.resultSymbolMatrix[rowIndex][i];
             if (symbol !== wildSymbol) {
@@ -298,7 +388,7 @@ function findFirstNonWildSymbol(line, gameInstance) {
         return wildSymbol;
     }
     catch (error) {
-        // console.error("Error in findFirstNonWildSymbol:");
+        console.error("Error in findFirstNonWildSymbol:", error);
         return null;
     }
 }
@@ -333,6 +423,7 @@ function sendInitData(gameInstance) {
     const dataToSend = {
         GameData: {
             Reel: reels,
+            Lines: gameInstance.settings.currentGamedata.linesApiData,
             Bets: gameInstance.settings.currentGamedata.bets,
         },
         UIData: gameUtils_1.UiInitData,
@@ -352,9 +443,15 @@ function makeResultJson(gameInstance) {
         const Balance = credits.toFixed(2);
         const sendData = {
             GameData: {
+                ResultReel: settings.resultSymbolMatrix,
                 linesToEmit: settings._winData.winningLines,
                 symbolsToEmit: settings._winData.winningSymbols,
-                jackpot: settings._winData.jackpotwin,
+                isFreeSpin: settings.freeSpin.isTriggered,
+                count: settings.freeSpin.freeSpinCount,
+                vampHuman: settings.freeSpin.substitutions.vampHuman.flatMap((item) => item),
+                bloodSplash: settings.freeSpin.substitutions.bloodSplash.flatMap((item) => item.index),
+                batPositions: settings.bats.positions,
+                batPayout: settings.bats.payout
             },
             PlayerData: {
                 Balance: Balance,
@@ -363,9 +460,141 @@ function makeResultJson(gameInstance) {
                 haveWon: playerData.haveWon,
             }
         };
+        console.log("sendData", sendData);
+        // console.log("_winData lines", settings._winData.winningLines);
+        // console.log("_winData symbols", settings._winData.winningSymbols);
         gameInstance.sendMessage('ResultData', sendData);
     }
     catch (error) {
         console.error("Error generating result JSON or sending message:", error);
     }
+}
+// for swapping vampHuman and bloodSplash
+function swapPositions(matrix, position, swapValue) {
+    try {
+        const [row, col] = position.split(',').map(Number);
+        // Swap the value at the position with the provided swapValue
+        const temp = matrix[row][col];
+        matrix[row][col] = Number(swapValue);
+        return temp;
+    }
+    catch (e) {
+        console.log("error in swapPositions", e);
+    }
+}
+//for blood splash countProb
+function getRandomFromProbability(probArray) {
+    try {
+        const totalProb = probArray.reduce((sum, p) => sum + p, 0);
+        const randValue = Math.random() * totalProb;
+        let cumulativeProb = 0;
+        for (let i = 0; i < probArray.length; i++) {
+            cumulativeProb += probArray[i];
+            if (randValue <= cumulativeProb) {
+                return i + 1;
+            }
+        }
+        return probArray.length;
+    }
+    catch (e) {
+        console.log("error in getRandomFromProbability", e);
+    }
+}
+function checkForFreeSpin(gameInstance) {
+    try {
+        const manId = gameInstance.settings.HumanMan.SymbolID; // 13
+        const womanId = gameInstance.settings.HumanWoman.SymbolID; // 14
+        const VampireManId = gameInstance.settings.vampireMan.SymbolID; // 11
+        const VampireWomanId = gameInstance.settings.vampireWoman.SymbolID; // 12
+        const positions = [];
+        let found = false;
+        const matrix = gameInstance.settings.resultSymbolMatrix;
+        matrix.forEach((row, i) => {
+            row.forEach((symbol, j) => {
+                // Check VampireMan + HumanWoman combination (11,14)
+                if (symbol == VampireManId.toString()) {
+                    if (j + 1 < row.length && matrix[i][j + 1] == womanId.toString()) {
+                        positions.push([`${i},${j}`, `${i},${j + 1}`]);
+                        found = true;
+                    }
+                }
+                // Check HumanMan + VampireWoman combination (13,12)
+                if (symbol == manId.toString()) {
+                    if (j + 1 < row.length && matrix[i][j + 1] == VampireWomanId.toString()) {
+                        positions.push([`${i},${j}`, `${i},${j + 1}`]);
+                        found = true;
+                    }
+                }
+            });
+        });
+        return { found, positions };
+    }
+    catch (e) {
+        console.log("error in checkForFreeSpin", e);
+    }
+}
+function handleFreeSpin(gameInstance) {
+    try {
+        const { settings } = gameInstance;
+        // vampHuman positions 
+        const vampireHumanPositions = settings.freeSpin.substitutions.vampHuman.flatMap((item) => item);
+        // console.log("vampireHumanPositions", vampireHumanPositions);
+        //swap positions in vampHuman with wild 
+        vampireHumanPositions.forEach((position) => {
+            swapPositions(settings.resultSymbolMatrix, position, settings.wild.SymbolID.toString());
+        });
+        // console.log("after vh swap", settings.resultSymbolMatrix);
+        //bloodSplash swap , if vamp human union found can get upto 8 slpashes or 4 splashes if not
+        const splashes = getRandomFromProbability(settings.freeSpin.isTriggered ?
+            settings.freeSpin.bloodSplash.countProb :
+            settings.freeSpin.bloodSplash.countProb.slice(0, 2));
+        // console.log("bloodSplash", splashes);
+        //now we need to swap random positions in matrix with wild other than the ones that are already wild 
+        const positions = getNRandomEmptyPositions(settings.resultSymbolMatrix, settings.wild.SymbolID.toString(), splashes + 1);
+        for (let i = 0; i < splashes; i++) {
+            const symId = swapPositions(settings.resultSymbolMatrix, `${positions[i].row},${positions[i].col}`, settings.wild.SymbolID.toString());
+            settings.freeSpin.substitutions.bloodSplash.push({
+                index: `${positions[i].row},${positions[i].col}`,
+                symbolId: symId
+            });
+        }
+        // console.log("after bs swap", settings.resultSymbolMatrix);
+        // console.log("splash ", settings.freeSpin.substitutions.bloodSplash);
+    }
+    catch (e) {
+        console.log("Error in handleFreeSpin", e);
+    }
+}
+function getRandomEmptyPositions(matrix, symbolId) {
+    try {
+        // Get all empty positions
+        const emptyPositions = [];
+        // Collect all positions that don't have the symbolId
+        for (let row = 0; row < matrix.length; row++) {
+            for (let col = 0; col < matrix[row].length; col++) {
+                if (matrix[row][col] != symbolId) {
+                    emptyPositions.push({ row, col });
+                }
+            }
+        }
+        // Shuffle the empty positions array using Fisher-Yates algorithm
+        for (let i = emptyPositions.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [emptyPositions[i], emptyPositions[j]] = [emptyPositions[j], emptyPositions[i]];
+        }
+        return emptyPositions;
+    }
+    catch (e) {
+        console.log("error in getRandomEmptyPositions", e);
+    }
+}
+// Helper function to get a single random empty position
+function getRandomEmptyPosition(matrix, symbolId) {
+    const emptyPositions = getRandomEmptyPositions(matrix, symbolId);
+    return emptyPositions.length > 0 ? emptyPositions[0] : null;
+}
+// Helper function to get N random empty positions
+function getNRandomEmptyPositions(matrix, symbolId, count) {
+    const emptyPositions = getRandomEmptyPositions(matrix, symbolId);
+    return emptyPositions.slice(0, count);
 }

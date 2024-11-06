@@ -22,6 +22,7 @@ class SLBB {
             rtpSpinCount: 0,
         };
         this.settings = (0, helper_1.initializeGameSettings)(currentGameData, this);
+        (0, helper_1.makePayLines)(this);
         (0, helper_1.generateInitialReel)(this.settings);
         (0, helper_1.generateInitialHeisenberg)(this.settings);
         (0, helper_1.sendInitData)(this);
@@ -70,26 +71,36 @@ class SLBB {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const playerData = this.getPlayerData();
-                const { freeSpin } = this.settings;
+                const { freeSpin, bonus } = this.settings;
                 if (!freeSpin.isFreeSpin && this.settings.currentBet > playerData.credits) {
                     this.sendError("Low Balance");
                     return;
                 }
                 if (!freeSpin.isFreeSpin) {
                     this.decrementPlayerBalance(this.settings.currentBet);
-                    this.playerData.totalbet += this.settings.currentBet * 3;
+                    this.playerData.totalbet += this.settings.currentBet;
                 }
-                if (freeSpin.freeSpinCount === 1) {
+                if (!bonus.isTriggered) {
+                    this.decrementPlayerBalance(this.settings.currentBet);
+                }
+                // if (heisenberg.freeSpin.freeSpinCount === 1) {
+                //   heisenberg.isTriggered= false;
+                // }
+                if (freeSpin.count === 1) {
                     freeSpin.isFreeSpin = false;
                 }
-                if (freeSpin.isFreeSpin &&
-                    freeSpin.freeSpinCount > 0) {
-                    freeSpin.freeSpinCount--;
+                if (
+                // freeSpin.isFreeSpin &&
+                freeSpin.count > 0 &&
+                    !this.settings.bonus.isTriggered) {
+                    freeSpin.count--;
                     this.settings.currentBet = 0;
-                    console.log(freeSpin.freeSpinCount, "this.settings.freeSpinCount");
+                    console.log(freeSpin.count, "this.settings.freeSpinCount");
                 }
-                this.incrementPlayerBalance(this.playerData.currentWining);
-                new RandomResultGenerator_1.RandomResultGenerator(this);
+                // this.incrementPlayerBalance(this.playerData.currentWining)
+                if (!this.settings.bonus.isTriggered) {
+                    new RandomResultGenerator_1.RandomResultGenerator(this);
+                }
                 (0, helper_1.checkForWin)(this);
             }
             catch (error) {

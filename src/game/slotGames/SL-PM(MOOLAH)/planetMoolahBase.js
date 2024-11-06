@@ -71,13 +71,14 @@ class SLPM {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const playerData = this.getPlayerData();
+                if (this.settings.currentBet > playerData.credits) {
+                    console.log(this.settings.currentBet + playerData.credits, 'dfdsfds');
+                    this.sendError("Low Balance");
+                    return;
+                }
                 if (!this.settings.freeSpin.useFreeSpin) {
                     yield this.deductPlayerBalance(this.settings.currentBet);
                     this.playerData.totalbet += this.settings.currentBet;
-                }
-                if (this.settings.currentBet > playerData.credits) {
-                    this.sendError("Low Balance");
-                    return;
                 }
                 if (this.settings.freeSpin.freeSpinStarted) {
                     this.settings.freeSpin.freeSpinCount--;

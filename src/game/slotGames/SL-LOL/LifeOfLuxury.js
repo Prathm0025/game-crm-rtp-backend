@@ -79,29 +79,32 @@ class SLLOL {
                 const sendData = (0, gamble_1.sendInitGambleData)();
                 this.decrementPlayerBalance(this.playerData.currentWining);
                 this.playerData.haveWon -= this.playerData.currentWining;
-                this.sendMessage("gambleInitData", sendData);
+                // this.sendMessage("gambleInitData", sendData);
                 break;
             case "GAMBLERESULT":
-                let result = (0, gamble_1.getGambleResult)({ selected: response.data.selected });
+                let result = (0, gamble_1.getGambleResult)({ selected: response.cardType });
                 //calculate payout
                 switch (result.playerWon) {
                     case true:
                         this.playerData.currentWining *= 2;
-                        result.Balance = this.getPlayerData().credits + this.playerData.currentWining;
+                        result.balance = this.getPlayerData().credits + this.playerData.currentWining;
                         result.currentWinning = this.playerData.currentWining;
                         break;
                     case false:
                         result.currentWinning = 0;
-                        result.Balance = this.getPlayerData().credits;
+                        result.balance = this.getPlayerData().credits;
                         this.playerData.currentWining = 0;
                         break;
                 }
-                this.sendMessage("GambleResult", result);
+                this.sendMessage("GambleResult", result); // result card 
                 break;
             case "GAMBLECOLLECT":
                 this.playerData.haveWon += this.playerData.currentWining;
-                this.sendMessage("GambleCollect", this.playerData.currentWining);
                 this.incrementPlayerBalance(this.playerData.currentWining);
+                this.sendMessage("GambleCollect", {
+                    currentWinning: this.playerData.currentWining,
+                    balance: this.getPlayerData().credits
+                }); // balance , currentWinning
                 break;
             default:
                 console.warn(`Unhandled message ID: ${response.id}`);
@@ -167,13 +170,13 @@ class SLLOL {
             try {
                 this.playerData.currentWining = 0;
                 const { payout, winningCombinations } = (0, helper_1.checkWin)(this);
-                (0, helper_1.printWinningCombinations)(winningCombinations);
-                console.log("balance:", this.getPlayerData().credits);
-                console.log("freespin:", {
-                    count: this.settings.freeSpinCount,
-                    isFreespin: this.settings.isFreeSpin,
-                    multipliers: this.settings.freeSpinMultipliers
-                });
+                // printWinningCombinations(winningCombinations)
+                // console.log("balance:", this.getPlayerData().credits)
+                // console.log("freespin:", {
+                //   count: this.settings.freeSpinCount,
+                //   isFreespin: this.settings.isFreeSpin,
+                //   multipliers: this.settings.freeSpinMultipliers
+                // })
                 if (payout > 0) {
                     this.playerData.currentWining = payout;
                     this.playerData.haveWon += payout;
@@ -182,12 +185,11 @@ class SLLOL {
                 else {
                     this.playerData.currentWining = 0;
                 }
-                console.log("Payout checkwin: ", payout);
+                // console.log("Payout checkwin: ", payout);
                 //
                 // this.gamebleTesting()
-                (0, helper_1.makeResultJson)(this);
-                console.log("playerData :", this.playerData);
-                console.log("windata :", this.settings._winData.totalWinningAmount);
+                // console.log("playerData :", this.playerData);
+                // console.log("windata :", this.settings._winData.totalWinningAmount);
             }
             catch (error) {
                 console.error("Error in checkResult:", error);
