@@ -132,11 +132,6 @@ export function makePayLines(gameInstance: SLBE) {
 
 function handleSpecialSymbols(symbol: any, gameInstance: SLBE) {
   switch (symbol.Name) {
-    // case specialIcons.wild:
-    //   gameInstance.settings.wild.SymbolName = symbol.Name;
-    //   gameInstance.settings.wild.SymbolID = symbol.Id;
-    //   gameInstance.settings.wild.useWild = false;
-    //   break;
     case specialIcons.VampireMan:
       gameInstance.settings.vampireMan.SymbolName = symbol.Name;
       gameInstance.settings.vampireMan.SymbolID = symbol.Id;
@@ -177,8 +172,9 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLBE) {
 
 
 type MatchedIndex = { col: number; row: number };
-type CheckLineResult = { isWinningLine: boolean; matchCount: number; matchedIndices: MatchedIndex[]; 
-isWild:boolean
+type CheckLineResult = {
+  isWinningLine: boolean; matchCount: number; matchedIndices: MatchedIndex[];
+  isWild: boolean
 };
 type WinningLineDetail = { direction: 'LTR' | 'RTL'; lineIndex: number; details: CheckLineResult };
 
@@ -192,7 +188,7 @@ function checkLineSymbols(
     const { settings } = gameInstance;
     const wildSymbol = settings.wild.SymbolID || "";
     let matchCount = 1;
-    let isWild:boolean = false
+    let isWild: boolean = false
     let currentSymbol = firstSymbol;
 
     const matchedIndices: MatchedIndex[] = [];
@@ -208,9 +204,9 @@ function checkLineSymbols(
 
       if (symbol == undefined) {
         console.error(`Symbol at position [${rowIndex}, ${i}] is undefined.`);
-        return { isWinningLine: false, matchCount: 0, matchedIndices: [],isWild:false };
+        return { isWinningLine: false, matchCount: 0, matchedIndices: [], isWild: false };
       }
-      if(symbol == wildSymbol){
+      if (symbol == wildSymbol || firstSymbol == wildSymbol) {
         isWild = true
       }
 
@@ -225,42 +221,41 @@ function checkLineSymbols(
           matchedIndices.push({ col: i, row: rowIndex });
           break;
         default:
-          return { isWinningLine: matchCount >= 3, matchCount, matchedIndices,isWild};
+          return { isWinningLine: matchCount >= 3, matchCount, matchedIndices, isWild };
       }
     }
-    return { isWinningLine: matchCount >= 3, matchCount, matchedIndices,isWild};
+    return { isWinningLine: matchCount >= 3, matchCount, matchedIndices, isWild };
   } catch (error) {
     console.error("Error in checkLineSymbols:", error);
-    return { isWinningLine: false, matchCount: 0, matchedIndices: [] ,isWild:false };
+    return { isWinningLine: false, matchCount: 0, matchedIndices: [], isWild: false };
   }
 }
 function checkforBats(gameInstance: SLBE) {
   try {
-
     const { settings } = gameInstance;
     let batsCount = 0;
 
+    // Count bats and store positions
     settings.resultSymbolMatrix.forEach((row, i) => {
       row.forEach((symbol, j) => {
-        // batsCount +=
-        //   symbol == settings.Bat.SymbolID.toString() ?
-        //     1 :
-        //     symbol == settings.BatX2.SymbolID.toString() ?
-        //       2 : 0;
         if (symbol == settings.Bat.SymbolID.toString() || symbol == settings.BatX2.SymbolID.toString()) {
-          settings.bats.positions.push(`${j},${i}`)
-          batsCount += symbol == settings.BatX2.SymbolID.toString() ? 2 : 1
+          settings.bats.positions.push(`${j},${i}`);
+          batsCount += symbol == settings.BatX2.SymbolID.toString() ? 2 : 1;
         }
       });
     });
-    //TODO:
-    //check for bats count
-    if (batsCount > 8) {
-      settings.bats.payout += settings.BetPerLines * settings.bats.multipliers[0]
-    } else {
-      settings.bats.payout += settings.BetPerLines * settings.bats.multipliers[batsCount]
+
+    // Apply multiplier based on bat count
+    // If batsCount is 1, use multiplier[12]
+    // If batsCount is 13, use multiplier[0]
+    let multiplierIndex = Math.max(0, settings.bats.multipliers.length - batsCount);
+    if(batsCount === 0){
+      multiplierIndex = settings.bats.multipliers.length - 1
     }
-    console.log("Bats Count", batsCount);
+    settings.bats.payout += settings.BetPerLines * settings.bats.multipliers[multiplierIndex];
+
+    console.log("Bats Count:", batsCount);
+    console.log("Applied Multiplier:", settings.bats.multipliers[multiplierIndex]);
   } catch (e) {
     console.error("Error in checkforBats:", e);
   }
@@ -289,16 +284,16 @@ function findFirstNonWildSymbol(line: number[], gameInstance: SLBE, direction: '
 
 
 //payouts to user according to symbols count in matched lines
-function accessData(symbol, matchCount,isWild:boolean, gameInstance: SLBE) {
+function accessData(symbol, matchCount, isWild: boolean, gameInstance: SLBE) {
   const { settings } = gameInstance;
 
   try {
-    if(isWild){
-      
+    if (isWild) {
+
       const multiplier = settings.wild.multiplier
       // console.log("wild in accessdata", multiplier[matchCount-3]);
       // console.log("matchcount in accessdata", matchCount);
-      return multiplier[matchCount-3]
+      return multiplier[matchCount - 3]
     }
     const symbolData = settings.currentGamedata.Symbols.find(
       (s) => s.Id.toString() == symbol.toString()
@@ -397,7 +392,7 @@ function checkForFreeSpin(gameInstance: SLBE): { found: boolean; positions: [str
     };
 
     const matrix = gameInstance.settings.resultSymbolMatrix;
-    
+
     const positions: [string, string][] = [];
 
     // Check horizontal and vertical combinations
@@ -589,13 +584,13 @@ export function checkForWin(gameInstance: SLBE) {
       // Left-to-right check
       const LTRResult = checkLineSymbols(firstSymbolLTR, line, gameInstance, 'LTR');
       // console.log("LTRResult", LTRResult);
-      
+
       if (LTRResult.isWinningLine && LTRResult.matchCount >= 3) {
-        const symbolMultiplierLTR = accessData(firstSymbolLTR, LTRResult.matchCount,LTRResult.isWild, gameInstance);
+        const symbolMultiplierLTR = accessData(firstSymbolLTR, LTRResult.matchCount, LTRResult.isWild, gameInstance);
         if (symbolMultiplierLTR > 0) {
           const payout = symbolMultiplierLTR * gameInstance.settings.BetPerLines;
           totalPayout += payout;
-          gameInstance.playerData.currentWining += payout;
+          // gameInstance.playerData.currentWining += payout;
           settings._winData.winningLines.push(index + 1);
           winningLines.push({
             line,
@@ -619,13 +614,13 @@ export function checkForWin(gameInstance: SLBE) {
       // Right-to-left check
       const RTLResult = checkLineSymbols(firstSymbolRTL, line, gameInstance, 'RTL');
       // console.log("RTLResult", RTLResult);
-      
+
       if (RTLResult.isWinningLine && RTLResult.matchCount >= 3) {
-        const symbolMultiplierRTL = accessData(firstSymbolRTL, RTLResult.matchCount,RTLResult.isWild, gameInstance);
+        const symbolMultiplierRTL = accessData(firstSymbolRTL, RTLResult.matchCount, RTLResult.isWild, gameInstance);
         if (symbolMultiplierRTL > 0) {
           const payout = symbolMultiplierRTL * gameInstance.settings.BetPerLines;
           totalPayout += payout;
-          gameInstance.playerData.currentWining += payout;
+          // gameInstance.playerData.currentWining += payout;
           settings._winData.winningLines.push(index + 1);
           winningLines.push({
             line,
@@ -644,13 +639,20 @@ export function checkForWin(gameInstance: SLBE) {
           // console.log(`Payout for RTL Line ${index + 1}:`, "payout", payout);
         }
       }
+
     });
+
+    gameInstance.playerData.currentWining += totalPayout;
+
+    console.log("Winnings with lines ", gameInstance.playerData.currentWining);
     checkforBats(gameInstance)
     gameInstance.playerData.currentWining += settings.bats.payout
-    if(settings.bats.positions.length > 0){
 
-    settings._winData.winningSymbols.push(settings.bats.positions)
-    }
+    console.log("Winnings after bats ", gameInstance.playerData.currentWining);
+    // if (settings.bats.positions.length > 0) {
+    //
+    //   settings._winData.winningSymbols.push(settings.bats.positions)
+    // }
 
 
 
@@ -726,8 +728,8 @@ export function makeResultJson(gameInstance: SLBE) {
         count: settings.freeSpin.freeSpinCount,
         vampHuman: settings.freeSpin.newVampHumanPositions.flatMap((item) => item),
         bloodSplash: settings.freeSpin.substitutions.bloodSplash.flatMap((item) => item.index),
-        // batPositions: settings.bats.positions,
-        // batPayout: settings.bats.payout
+        batPositions: settings.bats.positions,
+        batPayout: settings.bats.payout
       },
       PlayerData: {
         Balance: Balance,
