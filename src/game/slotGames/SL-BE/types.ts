@@ -21,6 +21,13 @@ export interface SLBESETTINGS {
   reels: any[][];
   Symbols: Symbol[];
   isLeftWinTrue: boolean;
+  bats:{
+    isEnabled: boolean,
+    batCount: number,
+    positions:string[],
+    multipliers: number[],
+    payout: number
+  },
   freeSpin: {
     symbolID: string,
     isEnabled: boolean,
@@ -28,14 +35,20 @@ export interface SLBESETTINGS {
     isFreeSpin: boolean,
     isTriggered: boolean,
     freeSpinCount: number,
+    bloodSplash:{
+      countProb:number[],
+    },
     substitutions: {
       vampHuman: [string, string][]
       bloodSplash: {
-        index: [string],
+        index: string,
         symbolId: string
       }[]
     }
   };
+  gamble: {
+    isEnabled: boolean,
+  }
   wild: {
     SymbolName: string;
     SymbolID: number;
@@ -57,6 +70,16 @@ export interface SLBESETTINGS {
     useWild: boolean
   },
   HumanWoman: {
+    SymbolName: string;
+    SymbolID: number;
+    useWild: boolean
+  },
+  Bat:{
+    SymbolName: string;
+    SymbolID: number;
+    useWild: boolean
+  },
+  BatX2:{
     SymbolName: string;
     SymbolID: number;
     useWild: boolean

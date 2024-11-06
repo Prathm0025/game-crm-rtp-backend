@@ -90,7 +90,7 @@ export class SLLOL {
         break;
 
       case "GAMBLERESULT":
-        let result = getGambleResult({ selected: response.data.selected });
+        let result = getGambleResult({ selected: response.cardType });
         //calculate payout
         switch (result.playerWon) {
           case true:
