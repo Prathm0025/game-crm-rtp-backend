@@ -644,7 +644,7 @@ export function checkForWin(gameInstance: SLBE) {
 
     });
 
-    gameInstance.playerData.currentWining += totalPayout;
+    gameInstance.playerData.currentWining = totalPayout;
 
     // console.log("Winnings with lines ", gameInstance.playerData.currentWining);
     checkforBats(gameInstance)
@@ -701,7 +701,7 @@ export function checkForWin(gameInstance: SLBE) {
     // console.log("freespin", settings.freeSpin);
     gameInstance.playerData.haveWon += gameInstance.playerData.currentWining;
     makeResultJson(gameInstance);
-    gameInstance.playerData.currentWining = 0;
+    // gameInstance.playerData.currentWining = 0;
     settings.freeSpin.substitutions.bloodSplash = []
     settings._winData.winningLines = []
     settings._winData.winningSymbols = []
@@ -720,7 +720,8 @@ export function makeResultJson(gameInstance: SLBE) {
   try {
     const { settings, playerData } = gameInstance;
     const credits = gameInstance.getPlayerData().credits
-    const Balance = credits.toFixed(2)
+    // const Balance = credits.toFixed(2)
+    const Balance = credits
     const sendData = {
       GameData: {
         ResultReel: settings.resultSymbolMatrix,
