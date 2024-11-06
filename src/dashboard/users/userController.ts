@@ -14,7 +14,7 @@ import { User, Player as PlayerModel, Player } from "./userModel";
 import UserService from "./userService";
 import Transaction from "../transactions/transactionModel";
 import { QueryParams } from "../../utils/globalTypes";
-import { users } from "../../socket";
+import { currentActivePlayers } from "../../socket";
 import { IPlayer, IUser } from "./userType";
 import { playerData } from "../../Player";
 
@@ -137,6 +137,10 @@ export class UserController {
         throw createHttpError(401, "Invalid username or password");
       }
 
+      if (user.status !== "active") {
+        throw createHttpError(403, "User account is not active");
+      }
+
       if (user.role === "player") {
         await PlayerModel.updateOne(
           { _id: user._id },
@@ -163,8 +167,8 @@ export class UserController {
         sameSite: "none",
       });
 
-      const socketUser = users.get(username);
-      if (socketUser?.socketData.gameSocket) {
+      const socketUser = currentActivePlayers.get(username);
+      if (socketUser?.gameData.socket) {
         throw createHttpError(403, "You Are Already Playing on another browser or tab");
       }
 
@@ -189,12 +193,12 @@ export class UserController {
         throw createHttpError(400, "Username is required");
       }
 
-      if (!users.has(username)) {
+      if (!currentActivePlayers.has(username)) {
         throw createHttpError(404, "User not logged in");
       }
 
       // Remove the user from the logged-in users map
-      users.delete(username);
+      currentActivePlayers.delete(username);
       console.log("User logged out : ", username);
 
 
@@ -462,8 +466,8 @@ export class UserController {
   async getAllPlayers(req: Request, res: Response, next: NextFunction) {
     try {
       const activePlayers = new Set();
-      users.forEach((value, key) => {
-        activePlayers.add({ username: key, currentGame: value.gameId });
+      currentActivePlayers.forEach((value, key) => {
+        activePlayers.add({ username: key, currentGame: value.currentGameData.gameId });
       });
 
       const _req = req as AuthRequest;
@@ -592,8 +596,6 @@ export class UserController {
       next(error);
     }
   }
-
-
 
 
   async getCurrentUserSubordinates(
@@ -832,7 +834,7 @@ export class UserController {
       const _req = req as AuthRequest;
       const { username, role } = _req.user;
       const { clientId } = req.params;
-      const { status, credits, password, existingPassword } = req.body;
+      const { status, credits, password } = req.body;
 
       if (!clientId) {
         throw createHttpError(400, "Client Id is required");
@@ -868,12 +870,13 @@ export class UserController {
       }
 
       if (password) {
-        await updatePassword(client, password, existingPassword);
+        await updatePassword(client, password);
       }
 
       if (credits) {
         credits.amount = Number(credits.amount);
         await updateCredits(client, admin, credits);
+
       }
 
       await admin.save();

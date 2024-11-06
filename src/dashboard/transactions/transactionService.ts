@@ -5,7 +5,7 @@ import createHttpError from "http-errors";
 import Transaction from "./transactionModel";
 import { Player, User } from "../users/userModel";
 import { QueryParams } from "../../utils/globalTypes";
-import { users } from "../../socket";
+import { currentActivePlayers } from "../../socket";
 import { messageType } from "../../game/Utils/gameUtils";
 
 export class TransactionService {
@@ -19,8 +19,8 @@ export class TransactionService {
   ): Promise<ITransaction> {
 
     // Check if the client is currently in a game via socket connection
-    const socketUser = users.get(client.username);
-    if (socketUser?.socketData.gameSocket) {
+    const socketUser = currentActivePlayers.get(client.username);
+    if (socketUser?.gameData.socket) {
       throw createHttpError(403, "Please tell the user to exit from your current game before performing transactions");
     }
 

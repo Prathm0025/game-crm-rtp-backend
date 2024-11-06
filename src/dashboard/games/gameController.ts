@@ -6,7 +6,7 @@ import { AuthRequest } from "../../utils/utils";
 import { Player } from "../users/userModel";
 import cloudinary from "cloudinary";
 import { config } from "../../config/config";
-import { users } from "../../socket";
+import { currentActivePlayers } from "../../socket";
 import Payouts from "../payouts/payoutModel";
 import path from "path";
 
@@ -164,8 +164,8 @@ export class GameController {
         throw createHttpError(400, "Slug parameter is required");
       }
 
-      const existingUser = users.get(username);
-      if (existingUser && existingUser.socketData.gameSocket) {
+      const existingUser = currentActivePlayers.get(username);
+      if (existingUser && existingUser.gameData.socket) {
         throw createHttpError(403, "You already have an active game session. Please wait for a while before disconnecting")
       }
 

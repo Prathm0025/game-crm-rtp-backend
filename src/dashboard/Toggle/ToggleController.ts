@@ -13,14 +13,14 @@ export class ToggleController {
   async getToggle(req: Request, res: Response, next: NextFunction) {
     try {
       const toggle = await Toggle.findOne({});
-      if(!toggle) throw createHttpError(404, "Toggle not found");
-      if(toggle.availableAt === null) {
+      if (!toggle) throw createHttpError(404, "Toggle not found");
+      if (toggle.availableAt === null) {
         res.status(200).json({ underMaintenance: false });
         return
       }
 
       const now = new Date();
-      if(new Date(toggle.availableAt) < now) {
+      if (new Date(toggle.availableAt) < now) {
         await Toggle.findOneAndUpdate(
           {},
           { availableAt: null },
@@ -28,8 +28,8 @@ export class ToggleController {
         )
         res.status(200).json({ underMaintenance: false });
         return
-      }else{
-        res.status(200).json({ underMaintenance: true,availableAt: toggle.availableAt });
+      } else {
+        res.status(200).json({ underMaintenance: true, availableAt: toggle.availableAt });
       }
     } catch (error) {
       next(error);
@@ -44,7 +44,7 @@ export class ToggleController {
       const _req = req as AuthRequest;
       const { availableAt } = _req.body;
       if (!availableAt) throw createHttpError(404, "availableAt is required");
-      if(availableAt === "null") {
+      if (availableAt === "null") {
         const toggle = await Toggle.findOneAndUpdate(
           {},
           { availableAt: null },

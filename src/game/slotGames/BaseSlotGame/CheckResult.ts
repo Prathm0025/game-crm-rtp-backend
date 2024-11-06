@@ -35,6 +35,8 @@ export class CheckResult {
         this.bonusResult = [];
         this.bonusGame = this.bonusGame
         this.searchWinSymbols();
+
+        // this.currentGame.gameSession.rec
     }
 
 
@@ -57,10 +59,13 @@ export class CheckResult {
             this.startFreeSpin();
         const winRate: number =
             (this.currentGame.playerData.haveWon / this.currentGame.playerData.totalbet) * 100;
+
+        this.currentGame.session.rtp = winRate;
         console.log(
             `Total Spend : ${this.currentGame.playerData.totalbet}  Total Won : ${this.currentGame.playerData.haveWon
             } 
         Current RTP for ${this.currentGame.currentGameData.username}: ${winRate.toFixed(2)}% `
+            //TODO: CURRENT RTP
         );
         // console.log(this.currentGame.player.playerData.rtpSpinCount, 'this.currentGame.player.playerData.rtpSpinCount');
         // console.log("Free spin Count", this.currentGame.player.playerData.totalSpin)
@@ -123,7 +128,6 @@ export class CheckResult {
             this.currentGame.settings._winData.winningSymbols.push(temp);
         }
     }
-    
 
     //check for win function
     private checkForWin() {

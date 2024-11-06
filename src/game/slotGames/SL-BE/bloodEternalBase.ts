@@ -34,6 +34,7 @@ export class SLBE {
     this.currentGameData.sendError(message);
   }
 
+
   sendAlert(message: string) {
     this.currentGameData.sendAlert(message);
   }
