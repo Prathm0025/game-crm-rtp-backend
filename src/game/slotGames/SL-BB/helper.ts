@@ -168,7 +168,7 @@ export function generateInitialBonusReel(gameSettings: any): string[][] {
   const reels = [[], [], [], [], []];
 
   const bonusSymbols = gameSettings.Symbols.filter(symbol => symbol.useHeisenberg);
-  
+
   bonusSymbols.forEach(symbol => {
     for (let i = 0; i < 5; i++) {
       const count = symbol.reelInstance[i] || 0;
@@ -434,51 +434,58 @@ export function checkForWin(gameInstance: SLBB) {
     settings.freeSpin.isTriggered = false
     // if()
 
-    if (hasCoinSymbols) {
-      getCoinsValues(gameInstance, 'result');
-    }
-
-    settings.lineData.forEach((line, index) => {
-
-      const firstSymbolPosition = line[0];
-      let firstSymbol = settings.resultSymbolMatrix[firstSymbolPosition][0];
-
-      if (settings.wild.useWild && firstSymbol == settings.wild.SymbolID.toString()) {
-        firstSymbol = findFirstNonWildSymbol(line, gameInstance);
+    if (settings.bonus.count > 0) {
+      // handleBonusSpin(gameInstance)
+    } else {
+      if (hasCoinSymbols) {
+        getCoinsValues(gameInstance, 'result');
       }
 
-      const { isWinningLine, matchCount, matchedIndices } = checkLineSymbols(firstSymbol, line, gameInstance);
-      if (isWinningLine && matchCount >= 3) {
-        const symbolMultiplier = accessData(firstSymbol, matchCount, gameInstance);
-        console.log(matchedIndices)
-        if (symbolMultiplier > 0) {
-          totalWin += symbolMultiplier * settings.BetPerLines;
-          settings._winData.winningLines.push(index);
-          console.log(`Line ${index + 1}:`, line);
-          console.log(`Payout multiplier for Line ${index + 1}:`, 'payout', symbolMultiplier);
-          const formattedIndices = matchedIndices.map(({ col, row }) => `${col},${row}`);
-          const validIndices = formattedIndices.filter(index => index.length > 2);
-          if (validIndices.length > 0) {
-            settings._winData.winningSymbols.push(validIndices);
+      settings.lineData.forEach((line, index) => {
+
+        const firstSymbolPosition = line[0];
+        let firstSymbol = settings.resultSymbolMatrix[firstSymbolPosition][0];
+
+        if (settings.wild.useWild && firstSymbol == settings.wild.SymbolID.toString()) {
+          firstSymbol = findFirstNonWildSymbol(line, gameInstance);
+        }
+
+        const { isWinningLine, matchCount, matchedIndices } = checkLineSymbols(firstSymbol, line, gameInstance);
+        if (isWinningLine && matchCount >= 3) {
+          const symbolMultiplier = accessData(firstSymbol, matchCount, gameInstance);
+          console.log(matchedIndices)
+          if (symbolMultiplier > 0) {
+            totalWin += symbolMultiplier * settings.BetPerLines;
+            settings._winData.winningLines.push(index);
+            console.log(`Line ${index + 1}:`, line);
+            console.log(`Payout multiplier for Line ${index + 1}:`, 'payout', symbolMultiplier);
+            const formattedIndices = matchedIndices.map(({ col, row }) => `${col},${row}`);
+            const validIndices = formattedIndices.filter(index => index.length > 2);
+            if (validIndices.length > 0) {
+              settings._winData.winningSymbols.push(validIndices);
+            }
           }
         }
+      });
+
+      console.log(totalWin, "Total win before coins ");
+      if (hasCoinSymbols && hasCashCollect && !settings.bonus.isTriggered) {
+        coinWins = handleCoinsAndCashCollect(gameInstance, "result");
+        console.log(coinWins, "coin collected");
+        totalWin += coinWins;
       }
-    });
 
-    console.log(totalWin, "Total win before coins ");
-    if (hasCoinSymbols && hasCashCollect && !settings.bonus.isTriggered) {
-      coinWins = handleCoinsAndCashCollect(gameInstance, "result");
-      console.log(coinWins, "coin collected");
-      totalWin += coinWins;
+      if (settings.bonus.isTriggered) {
+        totalWin += settings.bonus.payout;
+        settings.bonus.payout = 0;
+      }
     }
 
-    if (settings.bonus.isTriggered) {
-      totalWin += settings.bonus.payout;
-      settings.bonus.payout = 0;
-    }
+
+
 
     //TODO: bonus check
-    checkForBonus(gameInstance ,hasCashCollect,hasLinkSymbols,hasMegaLinkSymbols);
+    checkForBonus(gameInstance, hasCashCollect, hasLinkSymbols, hasMegaLinkSymbols);
 
 
     //TODO: freespin check 

@@ -41,3 +41,11 @@ export function checkForBonus(gameInstance: SLBB,hasCC:boolean,hasL:boolean,hasM
   }
   return false
 }
+export function handleBonusSpin(gameInstance: SLBB) {
+  const { settings } = gameInstance
+  //TODO: 1. freeze cc and link from res matrix
+  //      2. generate bonus matrix 
+  //      3. put frozen cc and link(to be swapped with coin) in bonus matrix
+  //      4. decrement count if there are no new coins 
+  //      5. 
+}
