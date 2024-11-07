@@ -1,7 +1,4 @@
-
-
-export const gameData = [
-  {
+ {
     "id": "SL-BE",
     "matrix": {
       "x": 6,
@@ -468,6 +465,3 @@ export const gameData = [
       }
     ]
   }
-
-
-]
