@@ -1,13 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.EXTRASYMBOL = void 0;
-exports.initializeGameSettings = initializeGameSettings;
-exports.generateInitialReel = generateInitialReel;
-exports.sendInitData = sendInitData;
-exports.calculatePayout = calculatePayout;
-exports.applyExtraSymbolEffect = applyExtraSymbolEffect;
-exports.checkWinningCondition = checkWinningCondition;
-exports.makeResultJson = makeResultJson;
+exports.makeResultJson = exports.checkWinningCondition = exports.applyExtraSymbolEffect = exports.EXTRASYMBOL = exports.calculatePayout = exports.sendInitData = exports.generateInitialReel = exports.initializeGameSettings = void 0;
 const WinData_1 = require("../BaseSlotGame/WinData");
 const gameUtils_1 = require("../../Utils/gameUtils");
 const types_1 = require("./types");
@@ -34,6 +27,7 @@ function initializeGameSettings(gameData, gameInstance) {
         isFreeSpin: false,
     };
 }
+exports.initializeGameSettings = initializeGameSettings;
 function generateInitialReel(gameSettings) {
     const reels = [[], [], [], []];
     gameSettings.Symbols.forEach(symbol => {
@@ -49,6 +43,7 @@ function generateInitialReel(gameSettings) {
     });
     return reels;
 }
+exports.generateInitialReel = generateInitialReel;
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -76,6 +71,7 @@ function sendInitData(gameInstance) {
     };
     gameInstance.sendMessage("InitData", dataToSend);
 }
+exports.sendInitData = sendInitData;
 function calculatePayout(gameInstance, symbols, symbolId, winType) {
     try {
         const symbol = gameInstance.settings.Symbols.find(sym => sym.Id === symbolId);
@@ -102,6 +98,7 @@ function calculatePayout(gameInstance, symbols, symbolId, winType) {
         return 0;
     }
 }
+exports.calculatePayout = calculatePayout;
 var EXTRASYMBOL;
 (function (EXTRASYMBOL) {
     EXTRASYMBOL["MULTIPLY"] = "MULTIPLY";
@@ -140,6 +137,7 @@ function applyExtraSymbolEffect(gameInstance, payout, extraSymbolId) {
         return payout;
     }
 }
+exports.applyExtraSymbolEffect = applyExtraSymbolEffect;
 function checkWinningCondition(gameInstance, row) {
     try {
         if (row.length === 0) {
@@ -168,6 +166,7 @@ function checkWinningCondition(gameInstance, row) {
         return { winType: 'error' };
     }
 }
+exports.checkWinningCondition = checkWinningCondition;
 function makeResultJson(gameInstance) {
     try {
         const { settings, playerData } = gameInstance;
@@ -192,3 +191,4 @@ function makeResultJson(gameInstance) {
         console.error("Error generating result JSON or sending message:", error);
     }
 }
+exports.makeResultJson = makeResultJson;

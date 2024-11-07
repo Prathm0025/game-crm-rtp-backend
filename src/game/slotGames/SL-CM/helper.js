@@ -1,11 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.initializeGameSettings = initializeGameSettings;
-exports.sendInitData = sendInitData;
-exports.freezeIndex = freezeIndex;
-exports.checkSameMatrix = checkSameMatrix;
-exports.checkPayout = checkPayout;
-exports.makeResultJson = makeResultJson;
+exports.makeResultJson = exports.checkPayout = exports.checkSameMatrix = exports.freezeIndex = exports.sendInitData = exports.initializeGameSettings = void 0;
 const WinData_1 = require("../BaseSlotGame/WinData");
 const gameUtils_1 = require("../../Utils/gameUtils");
 const types_1 = require("./types");
@@ -40,6 +35,7 @@ function initializeGameSettings(gameData, gameInstance) {
         redspinprobability: gameData.gameSettings.redspinprobability,
     };
 }
+exports.initializeGameSettings = initializeGameSettings;
 /**
  * Shuffles the elements of an array in place using the Fisher-Yates algorithm.
  * @param array - The array to be shuffled.
@@ -70,6 +66,7 @@ function sendInitData(gameInstance) {
     };
     gameInstance.sendMessage("InitData", dataToSend);
 }
+exports.sendInitData = sendInitData;
 /**
  * Updates the result matrix based on the type of spin and the frozen indices in the game settings.
  * This function modifies the matrix to retain frozen indices from previous spins or specific re-spin settings.
@@ -120,6 +117,7 @@ function freezeIndex(gameInstance, type, matrix) {
         console.log(`ERROR IN FREEZE INDEX CHECK ${error}`);
     }
 }
+exports.freezeIndex = freezeIndex;
 /**
  * Compares two matrices to determine if they are identical.
  * This function checks if each element in the first matrix matches the corresponding element in the second matrix.
@@ -148,6 +146,7 @@ function checkSameMatrix(matrix1, matrix2) {
         return false;
     }
 }
+exports.checkSameMatrix = checkSameMatrix;
 /**
  * Calculates the total payout based on the pre-processed result array.
  * This function constructs a payout string from the `payout` values of each symbol in the result array and converts it to an integer.
@@ -183,6 +182,7 @@ function checkPayout(preProcessedResult) {
         return 0;
     }
 }
+exports.checkPayout = checkPayout;
 //
 function makeResultJson(gameInstance) {
     try {
@@ -206,3 +206,4 @@ function makeResultJson(gameInstance) {
         console.error("Error generating result JSON or sending message:", error);
     }
 }
+exports.makeResultJson = makeResultJson;

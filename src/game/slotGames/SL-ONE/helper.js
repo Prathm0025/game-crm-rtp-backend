@@ -1,12 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.initializeGameSettings = initializeGameSettings;
-exports.generateInitialReel = generateInitialReel;
-exports.sendInitData = sendInitData;
-exports.makeResultJson = makeResultJson;
-exports.calculatePayout = calculatePayout;
-exports.checkForBooster = checkForBooster;
-exports.checkForLevelUp = checkForLevelUp;
+exports.checkForLevelUp = exports.checkForBooster = exports.calculatePayout = exports.makeResultJson = exports.sendInitData = exports.generateInitialReel = exports.initializeGameSettings = void 0;
 const gameUtils_1 = require("../../Utils/gameUtils");
 const WinData_1 = require("../BaseSlotGame/WinData");
 function initializeGameSettings(gameData, gameInstance) {
@@ -35,6 +29,7 @@ function initializeGameSettings(gameData, gameInstance) {
         multiplierType: "NONE",
     };
 }
+exports.initializeGameSettings = initializeGameSettings;
 function generateInitialReel(gameSettings) {
     const reel = [];
     gameSettings.Symbols.forEach(symbol => {
@@ -46,6 +41,7 @@ function generateInitialReel(gameSettings) {
     shuffleArray(reel);
     return reel;
 }
+exports.generateInitialReel = generateInitialReel;
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -73,6 +69,7 @@ function sendInitData(gameInstance) {
     };
     gameInstance.sendMessage("InitData", dataToSend);
 }
+exports.sendInitData = sendInitData;
 function makeResultJson(gameInstance) {
     try {
         const { settings, playerData } = gameInstance;
@@ -97,6 +94,7 @@ function makeResultJson(gameInstance) {
         console.error("Error generating result JSON or sending message:", error);
     }
 }
+exports.makeResultJson = makeResultJson;
 function calculatePayout(gameInstance) {
     const outerSymbol = gameInstance.settings.Symbols.find(sym => sym.Id === gameInstance.settings.resultSymbolMatrix[0]);
     if (!outerSymbol)
@@ -122,6 +120,7 @@ function calculatePayout(gameInstance) {
     makeResultJson(gameInstance);
     console.log("________________x_______x___________________");
 }
+exports.calculatePayout = calculatePayout;
 function handleJoker(gameInstance) {
     let payout = 0;
     const jokerResponse = {
@@ -452,6 +451,7 @@ function checkForBooster(gameInstance, trigger) {
         console.log("Error in checkForBooster");
     }
 }
+exports.checkForBooster = checkForBooster;
 function forceBoosterActivation(typeProbs) {
     let boosterType;
     do {
@@ -559,6 +559,7 @@ function checkForLevelUp(gameInstance, trigger) {
         return { level: 0, isLevelUp: false };
     }
 }
+exports.checkForLevelUp = checkForLevelUp;
 //NOTE: Reservoir Sampling or Monte Carlo Sampling is helpful if probabilities are dynamic and you need a different approach for randomness.
 function getRandomIndex(probArray) {
     try {
