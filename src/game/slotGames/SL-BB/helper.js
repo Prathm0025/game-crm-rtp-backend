@@ -1,6 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.makeResultJson = exports.checkForWin = exports.getCoinsValues = exports.sendInitData = exports.generateInitialBonusReel = exports.generateInitialReel = exports.makePayLines = exports.initializeGameSettings = void 0;
+exports.initializeGameSettings = initializeGameSettings;
+exports.makePayLines = makePayLines;
+exports.generateInitialReel = generateInitialReel;
+exports.generateInitialBonusReel = generateInitialBonusReel;
+exports.sendInitData = sendInitData;
+exports.getCoinsValues = getCoinsValues;
+exports.checkForWin = checkForWin;
+exports.makeResultJson = makeResultJson;
 const WinData_1 = require("../BaseSlotGame/WinData");
 const gameUtils_1 = require("../../Utils/gameUtils");
 const types_1 = require("./types");
@@ -92,7 +99,6 @@ function initializeGameSettings(gameData, gameInstance) {
         }
     };
 }
-exports.initializeGameSettings = initializeGameSettings;
 function makePayLines(gameInstance) {
     const { settings } = gameInstance;
     settings.currentGamedata.Symbols.forEach((element) => {
@@ -101,7 +107,6 @@ function makePayLines(gameInstance) {
         }
     });
 }
-exports.makePayLines = makePayLines;
 function handleSpecialSymbols(symbol, gameInstance) {
     switch (symbol.Name) {
         case types_1.specialIcons.wild:
@@ -160,7 +165,6 @@ function generateInitialReel(gameSettings) {
     gameSettings.reels = reels;
     return reels;
 }
-exports.generateInitialReel = generateInitialReel;
 //GENERATE INITIAL HEISENBERG REEL
 function generateInitialBonusReel(gameSettings) {
     const reels = [[], [], [], [], []];
@@ -179,7 +183,6 @@ function generateInitialBonusReel(gameSettings) {
     gameSettings.bonusReels = reels;
     return reels;
 }
-exports.generateInitialBonusReel = generateInitialBonusReel;
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -211,7 +214,6 @@ function sendInitData(gameInstance) {
     };
     gameInstance.sendMessage("InitData", dataToSend);
 }
-exports.sendInitData = sendInitData;
 function getRandomValue(gameInstance, type) {
     const { currentGameData } = gameInstance;
     let values;
@@ -263,7 +265,6 @@ function getCoinsValues(gameInstance, matrixType) {
         }
     }
 }
-exports.getCoinsValues = getCoinsValues;
 //COINS +CASH COLLECT ON 0 OR 4 -> triggers coin collection with cash collect
 function handleCoinsAndCashCollect(gameInstance, matrixType) {
     const { settings } = gameInstance;
@@ -467,7 +468,6 @@ function checkForWin(gameInstance) {
         };
     }
 }
-exports.checkForWin = checkForWin;
 //checking matching lines with first symbol and wild subs
 function checkLineSymbols(firstSymbol, line, gameInstance) {
     try {
@@ -566,4 +566,3 @@ function makeResultJson(gameInstance) {
         console.error("Error generating result JSON or sending message:", error);
     }
 }
-exports.makeResultJson = makeResultJson;

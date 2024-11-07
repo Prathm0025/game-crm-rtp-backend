@@ -9,7 +9,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getPlayerCredits = exports.shuffleArray = exports.convertSymbols = exports.UiInitData = exports.betMultiplier = exports.ResultType = exports.gameCategory = exports.getCurrentRTP = exports.PlayerData = exports.bonusGameType = exports.specialIcons = void 0;
+exports.UiInitData = exports.betMultiplier = exports.ResultType = exports.gameCategory = exports.getCurrentRTP = exports.PlayerData = exports.bonusGameType = exports.specialIcons = void 0;
+exports.convertSymbols = convertSymbols;
+exports.shuffleArray = shuffleArray;
+exports.getPlayerCredits = getPlayerCredits;
 const userModel_1 = require("../../dashboard/users/userModel");
 var specialIcons;
 (function (specialIcons) {
@@ -91,7 +94,6 @@ function convertSymbols(data) {
     });
     return uiData;
 }
-exports.convertSymbols = convertSymbols;
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         let j = Math.floor(Math.random() * (i + 1));
@@ -100,7 +102,6 @@ function shuffleArray(array) {
         array[j] = k;
     }
 }
-exports.shuffleArray = shuffleArray;
 function getPlayerCredits(playerName) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -116,4 +117,3 @@ function getPlayerCredits(playerName) {
         }
     });
 }
-exports.getPlayerCredits = getPlayerCredits;

@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkAdmin = void 0;
+exports.checkAdmin = checkAdmin;
 const http_errors_1 = __importDefault(require("http-errors"));
 function checkAdmin(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -31,4 +31,3 @@ function checkAdmin(req, res, next) {
         }
     });
 }
-exports.checkAdmin = checkAdmin;
