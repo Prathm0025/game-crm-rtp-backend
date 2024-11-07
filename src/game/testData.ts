@@ -1,7 +1,9 @@
+
+
 export const gameData = [
-  //SL-BB
-  {
-    "id": "SL-BB",
+//SL-BE
+{
+    "id": "SL-BE",
     "matrix": {
       "x": 5,
       "y": 3
@@ -715,7 +717,9 @@ export const gameData = [
         "multiplier": [
 
         ]
-      },
+      }
     ]
   }
+
+
 ]

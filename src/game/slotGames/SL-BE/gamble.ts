@@ -1,7 +1,7 @@
 export interface gambleResponse {
   playerWon: boolean,
   currentWinning: number,
-  coin:"HEAD" | "TAIL"
+  coin: "HEAD" | "TAIL"
 }
 
 /*
@@ -28,18 +28,18 @@ export function getGambleResult(response: {
       return {
         playerWon: true,
         currentWinning: 0,
-        coin:result
+        coin: result
       }
     case false:
       return {
         playerWon: false,
         currentWinning: 0,
-        coin:result 
+        coin: result
       }
   }
 }
 // function to get random card
-export function getRandomFlip():"HEAD" | "TAIL" {
+export function getRandomFlip(): "HEAD" | "TAIL" {
   //FIX: later
   return Math.random() >= 0.5 ? "HEAD" : "TAIL";
 }
