@@ -148,7 +148,9 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLBB) {
 export function generateInitialReel(gameSettings: any): string[][] {
   const reels = [[], [], [], [], []];
   const validSymbols = gameSettings.Symbols.filter(symbol =>
-    !symbol.useHeisenberg || symbol.Name === gameSettings.cashCollect.SymbolName || symbol.Name === gameSettings.coins.SymbolName
+    !symbol.useHeisenberg || 
+      // symbol.Name === gameSettings.cashCollect.SymbolName ||
+      symbol.Name === gameSettings.coins.SymbolName
   );
   validSymbols.forEach(symbol => {
     for (let i = 0; i < 5; i++) {
