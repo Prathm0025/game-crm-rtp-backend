@@ -12,7 +12,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getSubordinateModel = exports.uploadImage = exports.updateCredits = exports.updatePassword = exports.updateStatus = exports.MESSAGEID = exports.rolesHierarchy = exports.formatDate = exports.clients = void 0;
+exports.getSubordinateModel = exports.uploadImage = exports.updateCredits = exports.updatePassword = exports.updateStatus = exports.MESSAGEID = exports.rolesHierarchy = exports.clients = void 0;
+exports.formatDate = formatDate;
 const http_errors_1 = __importDefault(require("http-errors"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const transactionController_1 = require("../dashboard/transactions/transactionController");
@@ -37,7 +38,6 @@ function formatDate(isoString) {
     });
     return `${formattedDate} at ${formattedTime}`;
 }
-exports.formatDate = formatDate;
 exports.rolesHierarchy = {
     company: ["master", "distributor", "subdistributor", "store", "player"],
     master: ["distributor"],

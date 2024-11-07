@@ -1,6 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.combineUniqueSymbols = exports.transposeMatrix = exports.cascadeMoveTowardsNull = exports.removeRecurringIndexSymbols = void 0;
+exports.removeRecurringIndexSymbols = removeRecurringIndexSymbols;
+exports.cascadeMoveTowardsNull = cascadeMoveTowardsNull;
+exports.transposeMatrix = transposeMatrix;
+exports.combineUniqueSymbols = combineUniqueSymbols;
 function removeRecurringIndexSymbols(symbolsToEmit) {
     const seen = new Set();
     const result = [];
@@ -22,7 +25,6 @@ function removeRecurringIndexSymbols(symbolsToEmit) {
     });
     return result;
 }
-exports.removeRecurringIndexSymbols = removeRecurringIndexSymbols;
 function cascadeMoveTowardsNull(arr) {
     if (arr.length === 0 || arr[0].length === 0)
         return arr;
@@ -45,7 +47,6 @@ function cascadeMoveTowardsNull(arr) {
     }
     return result;
 }
-exports.cascadeMoveTowardsNull = cascadeMoveTowardsNull;
 function transposeMatrix(matrix) {
     let transposed = [];
     for (let i = 0; i < matrix[0].length; i++) {
@@ -57,7 +58,6 @@ function transposeMatrix(matrix) {
     }
     return transposed;
 }
-exports.transposeMatrix = transposeMatrix;
 function combineUniqueSymbols(symbolsToEmit) {
     const seen = new Set();
     const result = [];
@@ -71,4 +71,3 @@ function combineUniqueSymbols(symbolsToEmit) {
     });
     return result;
 }
-exports.combineUniqueSymbols = combineUniqueSymbols;

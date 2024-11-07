@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkPermission = void 0;
+exports.checkPermission = checkPermission;
 function checkPermission(req, res, next) {
     try {
         const _req = req;
@@ -16,4 +16,3 @@ function checkPermission(req, res, next) {
         next(error);
     }
 }
-exports.checkPermission = checkPermission;

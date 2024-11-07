@@ -9,7 +9,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.makeResultJson = exports.calculatePayout = exports.checkWinningCondition = exports.sendInitData = exports.triggerBonusGame = exports.generateInitialReel = exports.initializeGameSettings = void 0;
+exports.initializeGameSettings = initializeGameSettings;
+exports.generateInitialReel = generateInitialReel;
+exports.triggerBonusGame = triggerBonusGame;
+exports.sendInitData = sendInitData;
+exports.checkWinningCondition = checkWinningCondition;
+exports.calculatePayout = calculatePayout;
+exports.makeResultJson = makeResultJson;
 const WinData_1 = require("../BaseSlotGame/WinData");
 const gameUtils_1 = require("../../Utils/gameUtils");
 const types_1 = require("./types");
@@ -41,7 +47,6 @@ function initializeGameSettings(gameData, gameInstance) {
         }
     };
 }
-exports.initializeGameSettings = initializeGameSettings;
 function generateInitialReel(gameSettings) {
     const reels = [[], [], [], []];
     gameSettings.Symbols.forEach(symbol => {
@@ -57,7 +62,6 @@ function generateInitialReel(gameSettings) {
     });
     return reels;
 }
-exports.generateInitialReel = generateInitialReel;
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -81,7 +85,6 @@ function triggerBonusGame(gameInstance) {
     gameInstance.settings.bonusStopIndex = SelectedBonusIndex;
     return payOut[payOut.length - 1];
 }
-exports.triggerBonusGame = triggerBonusGame;
 function sendInitData(gameInstance) {
     gameUtils_1.UiInitData.paylines = (0, gameUtils_1.convertSymbols)(gameInstance.settings.Symbols);
     const credits = gameInstance.getPlayerData().credits;
@@ -105,7 +108,6 @@ function sendInitData(gameInstance) {
     };
     gameInstance.sendMessage("InitData", dataToSend);
 }
-exports.sendInitData = sendInitData;
 function checkWinningCondition(gameInstance, row) {
     try {
         if (row.length === 0) {
@@ -134,7 +136,6 @@ function checkWinningCondition(gameInstance, row) {
         return { winType: 'error' };
     }
 }
-exports.checkWinningCondition = checkWinningCondition;
 function calculatePayout(gameInstance, symbols, symbolId, winType) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -161,7 +162,6 @@ function calculatePayout(gameInstance, symbols, symbolId, winType) {
         }
     });
 }
-exports.calculatePayout = calculatePayout;
 function makeResultJson(gameInstance, winningRows) {
     try {
         const { settings, playerData } = gameInstance;
@@ -187,4 +187,3 @@ function makeResultJson(gameInstance, winningRows) {
         console.error("Error generating result JSON or sending message:", error);
     }
 }
-exports.makeResultJson = makeResultJson;

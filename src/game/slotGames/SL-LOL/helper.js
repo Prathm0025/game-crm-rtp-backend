@@ -1,6 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkForFreespin = exports.checkWin = exports.isWild = exports.getSymbol = exports.printWinningCombinations = exports.printMatrix = exports.makeResultJson = exports.sendInitData = exports.generateInitialReel = exports.initializeGameSettings = void 0;
+exports.initializeGameSettings = initializeGameSettings;
+exports.generateInitialReel = generateInitialReel;
+exports.sendInitData = sendInitData;
+exports.makeResultJson = makeResultJson;
+exports.printMatrix = printMatrix;
+exports.printWinningCombinations = printWinningCombinations;
+exports.getSymbol = getSymbol;
+exports.isWild = isWild;
+exports.checkWin = checkWin;
+exports.checkForFreespin = checkForFreespin;
 const WinData_1 = require("../BaseSlotGame/WinData");
 const gameUtils_1 = require("../../Utils/gameUtils");
 function initializeGameSettings(gameData, gameInstance) {
@@ -36,7 +45,6 @@ function initializeGameSettings(gameData, gameInstance) {
     settings._winData = new WinData_1.WinData(gameInstance);
     return settings;
 }
-exports.initializeGameSettings = initializeGameSettings;
 function generateInitialReel(gameSettings) {
     try {
         if (!gameSettings || !gameSettings.matrix || !gameSettings.Symbols) {
@@ -70,7 +78,6 @@ function generateInitialReel(gameSettings) {
         return [];
     }
 }
-exports.generateInitialReel = generateInitialReel;
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -98,7 +105,6 @@ function sendInitData(gameInstance) {
     };
     gameInstance.sendMessage("InitData", dataToSend);
 }
-exports.sendInitData = sendInitData;
 function makeResultJson(gameInstance) {
     try {
         const { settings, playerData } = gameInstance;
@@ -128,14 +134,12 @@ function makeResultJson(gameInstance) {
         console.error("Error generating result JSON or sending message:", error);
     }
 }
-exports.makeResultJson = makeResultJson;
 function printMatrix(matrix, getSymbol, gameInstance) {
     const symbolNames = matrix.map(col => col.map(symbolId => { var _a; return ((_a = getSymbol(symbolId)) === null || _a === void 0 ? void 0 : _a.Name.substring(0, 4)) || 'Unkn'; }));
     for (let row = 0; row < gameInstance.settings.matrix.y; row++) {
         console.log(symbolNames.map(col => col[row].padEnd(4)).join(' | '));
     }
 }
-exports.printMatrix = printMatrix;
 function printWinningCombinations(winningCombinations) {
     if (winningCombinations.length == 0) {
         console.log("No winning combinations.");
@@ -152,17 +156,14 @@ function printWinningCombinations(winningCombinations) {
     const totalPayout = winningCombinations.reduce((sum, combo) => sum + combo.payout, 0);
     console.log(`Total Payout: ${totalPayout}`);
 }
-exports.printWinningCombinations = printWinningCombinations;
 function getSymbol(id, Symbols) {
     return Symbols.find(s => s.Id == id);
 }
-exports.getSymbol = getSymbol;
 function isWild(symbolId) {
     // const symbol = this.getSymbol(symbolId);
     // return symbol ? symbol.Name === "Wild" : false;
     return symbolId == 11;
 }
-exports.isWild = isWild;
 // export function simulateFreespin(gameInstance: SLLOL): FreeSpinResponse {
 //   const { settings } = gameInstance;
 //   settings.isFreeSpin = true;
@@ -316,7 +317,6 @@ function checkWin(gameInstance) {
     }
     return { payout: totalPayout, winningCombinations };
 }
-exports.checkWin = checkWin;
 function checkForFreespin(gameInstance) {
     try {
         const { settings } = gameInstance;
@@ -350,4 +350,3 @@ function checkForFreespin(gameInstance) {
         return false; // Handle error by returning false in case of failure
     }
 }
-exports.checkForFreespin = checkForFreespin;

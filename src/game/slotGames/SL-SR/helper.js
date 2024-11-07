@@ -1,6 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.makeResultJson = exports.sendInitData = exports.checkForScatter = exports.checkForBonus = exports.checkForWin = exports.makePayLines = exports.generateInitialReel = exports.initializeGameSettings = void 0;
+exports.initializeGameSettings = initializeGameSettings;
+exports.generateInitialReel = generateInitialReel;
+exports.makePayLines = makePayLines;
+exports.checkForWin = checkForWin;
+exports.checkForBonus = checkForBonus;
+exports.checkForScatter = checkForScatter;
+exports.sendInitData = sendInitData;
+exports.makeResultJson = makeResultJson;
 const WinData_1 = require("../BaseSlotGame/WinData");
 const gameUtils_1 = require("../../Utils/gameUtils");
 const types_1 = require("./types");
@@ -66,7 +73,6 @@ function initializeGameSettings(gameData, gameInstance) {
         },
     };
 }
-exports.initializeGameSettings = initializeGameSettings;
 /**
  * Generates the initial reel setup based on the game settings.
  * @param gameSettings - The settings used to generate the reel setup.
@@ -87,7 +93,6 @@ function generateInitialReel(gameSettings) {
     });
     return reels;
 }
-exports.generateInitialReel = generateInitialReel;
 /**
  * Shuffles the elements of an array in place using the Fisher-Yates algorithm.
  * @param array - The array to be shuffled.
@@ -108,7 +113,6 @@ function makePayLines(gameInstance) {
         }
     });
 }
-exports.makePayLines = makePayLines;
 function handleSpecialSymbols(symbol, gameInstance) {
     switch (symbol.Name) {
         case types_1.specialIcons.FreeSpin:
@@ -209,7 +213,6 @@ function checkForWin(gameInstance) {
         return [];
     }
 }
-exports.checkForWin = checkForWin;
 function checkForBonus(gameInstance) {
     try {
         const { settings } = gameInstance;
@@ -240,7 +243,6 @@ function checkForBonus(gameInstance) {
         console.error("Error in checkForBonus", error);
     }
 }
-exports.checkForBonus = checkForBonus;
 // Function to run the Bonus game
 function runBonusGame(bonusSymbolCount, gameInstance) {
     try {
@@ -293,7 +295,6 @@ function checkForScatter(gameInstance) {
         console.error("Error in checkForScatter", error);
     }
 }
-exports.checkForScatter = checkForScatter;
 // Function to select values from an array based on probabilities
 function selectValuesFromArray(array, probabilities, count) {
     const selectedValues = [];
@@ -463,7 +464,6 @@ function sendInitData(gameInstance) {
     };
     gameInstance.sendMessage("InitData", dataToSend);
 }
-exports.sendInitData = sendInitData;
 function makeResultJson(gameInstance) {
     try {
         const { settings, playerData } = gameInstance;
@@ -500,4 +500,3 @@ function makeResultJson(gameInstance) {
         console.error("Error generating result JSON or sending message:", error);
     }
 }
-exports.makeResultJson = makeResultJson;

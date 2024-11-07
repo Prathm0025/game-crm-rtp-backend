@@ -1,6 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.makeResultJson = exports.sendInitData = exports.checkForWin = exports.makePayLines = exports.generateInitialReel = exports.initializeGameSettings = void 0;
+exports.initializeGameSettings = initializeGameSettings;
+exports.generateInitialReel = generateInitialReel;
+exports.makePayLines = makePayLines;
+exports.checkForWin = checkForWin;
+exports.sendInitData = sendInitData;
+exports.makeResultJson = makeResultJson;
 const WinData_1 = require("../BaseSlotGame/WinData");
 const gameUtils_1 = require("../../Utils/gameUtils");
 const types_1 = require("./types");
@@ -58,7 +63,6 @@ function initializeGameSettings(gameData, gameInstance) {
         },
     };
 }
-exports.initializeGameSettings = initializeGameSettings;
 /**
  * Generates the initial reel setup based on the game settings.
  * @param gameSettings - The settings used to generate the reel setup.
@@ -79,7 +83,6 @@ function generateInitialReel(gameSettings) {
     });
     return reels;
 }
-exports.generateInitialReel = generateInitialReel;
 /**
  * Shuffles the elements of an array in place using the Fisher-Yates algorithm.
  * @param array - The array to be shuffled.
@@ -98,7 +101,6 @@ function makePayLines(gameInstance) {
         }
     });
 }
-exports.makePayLines = makePayLines;
 function handleSpecialSymbols(symbol, gameInstance) {
     switch (symbol.Name) {
         case types_1.specialIcons.jackpot:
@@ -227,7 +229,6 @@ function checkForWin(gameInstance) {
         return [];
     }
 }
-exports.checkForWin = checkForWin;
 //checking matching lines with first symbol and wild subs
 function checkLineSymbols(firstSymbol, line, gameInstance) {
     try {
@@ -428,7 +429,6 @@ function sendInitData(gameInstance) {
     };
     gameInstance.sendMessage("InitData", dataToSend);
 }
-exports.sendInitData = sendInitData;
 function makeResultJson(gameInstance) {
     try {
         const { settings, playerData } = gameInstance;
@@ -458,4 +458,3 @@ function makeResultJson(gameInstance) {
         console.error("Error generating result JSON or sending message:", error);
     }
 }
-exports.makeResultJson = makeResultJson;

@@ -1,6 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.handleBonusSpin = exports.checkForBonus = exports.RandomBonusGenerator = void 0;
+exports.RandomBonusGenerator = void 0;
+exports.checkForBonus = checkForBonus;
+exports.handleBonusSpin = handleBonusSpin;
 class RandomBonusGenerator {
     constructor(current) {
         let matrix = [];
@@ -37,7 +39,6 @@ function checkForBonus(gameInstance, hasCC, hasL, hasML) {
     }
     return false;
 }
-exports.checkForBonus = checkForBonus;
 function handleBonusSpin(gameInstance) {
     const { settings } = gameInstance;
     //TODO: 1. freeze cc and link from res matrix
@@ -46,4 +47,3 @@ function handleBonusSpin(gameInstance) {
     //      4. decrement count if there are no new coins 
     //      5. 
 }
-exports.handleBonusSpin = handleBonusSpin;

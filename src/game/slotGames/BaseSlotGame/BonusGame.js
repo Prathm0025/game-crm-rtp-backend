@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.runMiniSpin = exports.BonusGame = void 0;
+exports.BonusGame = void 0;
+exports.runMiniSpin = runMiniSpin;
 const gameUtils_1 = require("../../Utils/gameUtils");
 class BonusGame {
     constructor(nosOfItem, parent) {
@@ -186,4 +187,3 @@ function runMiniSpin(bonus, betPerLines) {
         console.error(error);
     }
 }
-exports.runMiniSpin = runMiniSpin;
