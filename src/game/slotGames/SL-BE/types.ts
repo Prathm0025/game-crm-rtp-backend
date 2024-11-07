@@ -38,6 +38,7 @@ export interface SLBESETTINGS {
     bloodSplash:{
       countProb:number[],
     },
+    newVampHumanPositions: [string,string][],
     substitutions: {
       vampHuman: [string, string][]
       bloodSplash: {
@@ -52,7 +53,7 @@ export interface SLBESETTINGS {
   wild: {
     SymbolName: string;
     SymbolID: number;
-    useWild: boolean
+    multiplier: number[]
   },
   vampireMan: {
     SymbolName: string;

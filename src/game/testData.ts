@@ -83,6 +83,10 @@ export const gameData = [
       "payOut": [200, 100, 70, 50, 30, 20, 10, 5],
       "payOutProb": [0.05, 0.5, 1, 3, 10, 20, 25, 39.4]
     },
+    "wild": {
+      "isEnabled": true,
+      "multiplier": [10, 20, 30, 40]
+    },
     "gamble": {
       "isEnabled": true
     },
@@ -370,12 +374,12 @@ export const gameData = [
         "Name": "Bat",
         "Id": 9,
         "reelInstance": {
-          "0": 10,
-          "1": 10,
-          "2": 10,
-          "3": 10,
-          "4": 10,
-          "5": 10
+          "0": 0,
+          "1": 0,
+          "2": 0,
+          "3": 0,
+          "4": 0,
+          "5": 0
         },
         "useWildSub": false,
         "multiplier": [
@@ -386,12 +390,12 @@ export const gameData = [
         "Name": "BatX2",
         "Id": 10,
         "reelInstance": {
-          "0": 10,
-          "1": 10,
-          "2": 10,
-          "3": 10,
-          "4": 10,
-          "5": 10
+          "0": 0,
+          "1": 0,
+          "2": 0,
+          "3": 0,
+          "4": 0,
+          "5": 0
         },
         "useWildSub": false,
         "multiplier": [
@@ -462,23 +466,6 @@ export const gameData = [
 
         ]
       },
-      {
-        "Name": "Wild",
-        "Id": 15,
-        "reelInstance": {
-          "0": 30,
-          "1": 30,
-          "2": 30,
-          "3": 30,
-          "4": 30,
-          "5": 30
-        },
-        "description": "Substitutes for all symbols except Jackpot, Free Spin, Bonus, and Scatter.",
-        "useWildSub": false,
-        "multiplier": [
-
-        ]
-      }
     ]
   }
 

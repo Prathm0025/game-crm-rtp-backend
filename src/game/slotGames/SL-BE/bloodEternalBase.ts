@@ -77,7 +77,7 @@ export class SLBE {
               this.playerData.currentWining = this.playerData.currentWining * 2
               result.currentWinning = this.playerData.currentWining
             } else if (gambleOption === "HALF") {
-              this.playerData.currentWining = parseFloat((this.playerData.currentWining * 1.5).toFixed(2))
+              this.playerData.currentWining = (this.playerData.currentWining * 1.5)
               result.currentWinning = this.playerData.currentWining
             }
             // result.Balance = this.getPlayerData().credits + this.playerData.currentWining
@@ -88,7 +88,7 @@ export class SLBE {
               this.playerData.currentWining = 0
               result.currentWinning = 0
             } else if (gambleOption === "HALF") {
-              this.playerData.currentWining = parseFloat((this.playerData.currentWining / 2).toFixed(2))
+              this.playerData.currentWining = (this.playerData.currentWining / 2)
               result.currentWinning = this.playerData.currentWining
             }
             break;
@@ -133,6 +133,7 @@ export class SLBE {
       }
       new RandomResultGenerator(this);
       checkForWin(this)
+      // this.gamebleTesting()
     } catch (error) {
       this.sendError("Spin error");
       console.error("Failed to generate spin results:", error);
@@ -168,21 +169,33 @@ export class SLBE {
   //   //FIX: gamebleTesting , remove later
   //   if (this.settings.gamble.isEnabled) {
   //
-  //     let result = getGambleResult({ selected: "TAIL" });
+  //     let result = getGambleResult({ selected: "TAIL", });
   //     this.deductPlayerBalance(this.playerData.currentWining);
+  //     this.playerData.haveWon -= this.playerData.currentWining;
   //     //calculate payout
+  //
+  //     let gambleOption = "HALF"
   //     switch (result.playerWon) {
   //       case true:
-  //         this.playerData.currentWining *= 2
+  //
+  //         if (gambleOption === "ALL") {
+  //           this.playerData.currentWining = this.playerData.currentWining * 2
+  //           result.currentWinning = this.playerData.currentWining
+  //         } else if (gambleOption === "HALF") {
+  //           this.playerData.currentWining = (this.playerData.currentWining * 1.5)
+  //           result.currentWinning = this.playerData.currentWining
+  //         }
   //         // result.Balance = this.getPlayerData().credits + this.playerData.currentWining
-  //         result.currentWinning = this.playerData.currentWining
   //         break;
   //       case false:
-  //         result.currentWinning = 0;
   //         // result.Balance = this.getPlayerData().credits;
-  //         // this.settings._winData.totalWinningAmount = 0;
-  //         this.playerData.haveWon -= this.playerData.currentWining;
-  //         this.playerData.currentWining = 0;
+  //         if (gambleOption === "ALL") {
+  //           this.playerData.currentWining = 0
+  //           result.currentWinning = 0
+  //         } else if (gambleOption === "HALF") {
+  //           this.playerData.currentWining = (this.playerData.currentWining / 2)
+  //           result.currentWinning = this.playerData.currentWining
+  //         }
   //         break;
   //     }
   //     console.log("Gamble Result:", result);
