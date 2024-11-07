@@ -205,6 +205,7 @@ export function checkForWin(gameInstance: SLBE) {
 
       // Left-to-right check
       const LTRResult = checkLineSymbols(firstSymbolLTR, line, gameInstance, 'LTR');
+
       if (LTRResult.isWinningLine && LTRResult.matchCount >= 3) {
         const symbolMultiplierLTR = accessData(firstSymbolLTR, LTRResult.matchCount, gameInstance);
         if (symbolMultiplierLTR > 0) {
@@ -219,6 +220,16 @@ export function checkForWin(gameInstance: SLBE) {
             matchCount: LTRResult.matchCount,
             direction: 'LTR'
           });
+          const formattedIndices = LTRResult.matchedIndices.map(({ col, row }) => `${col},${row}`);
+          const validIndices = formattedIndices.filter(
+            (index) => index.length > 2
+          );
+          if (validIndices.length > 0) {
+            console.log(validIndices);
+            settings._winData.winningSymbols.push(validIndices);
+            settings._winData.totalWinningAmount = totalPayout * settings.BetPerLines;
+            console.log(settings._winData.totalWinningAmount)
+          }
           console.log(`Line ${index + 1} (LTR):`, line);
           console.log(`Payout for LTR Line ${index + 1}:`, "payout", payout);
           return;
@@ -241,6 +252,16 @@ export function checkForWin(gameInstance: SLBE) {
             matchCount: RTLResult.matchCount,
             direction: 'RTL'
           });
+          const formattedIndices = RTLResult.matchedIndices.map(({ col, row }) => `${col},${row}`);
+          const validIndices = formattedIndices.filter(
+            (index) => index.length > 2
+          );
+          if (validIndices.length > 0) {
+            console.log(validIndices);
+            settings._winData.winningSymbols.push(validIndices);
+            settings._winData.totalWinningAmount = totalPayout * settings.BetPerLines;
+            console.log(settings._winData.totalWinningAmount)
+          }
           console.log(`Line ${index + 1} (RTL):`, line);
           console.log(`Payout for RTL Line ${index + 1}:`, "payout", payout);
         }
