@@ -73,12 +73,14 @@ export interface SLBBSETTINGS {
     SymbolName: string;
     SymbolID: string;
     useWild: boolean;
+    values: valueType[]
   };
   coins: {
     SymbolName: string;
     SymbolID: string;
     useWild: boolean;
     values: valueType[]
+    bonusValues: valueType[]
   };
   prizeCoin: {
     SymbolName: string;
