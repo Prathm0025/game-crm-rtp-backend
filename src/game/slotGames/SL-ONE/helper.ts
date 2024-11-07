@@ -21,9 +21,37 @@ export function initializeGameSettings(gameData: any, gameInstance: SLONE) {
     reels: [],
     scatterBlue: gameData.gameSettings.scatterBlue,
     scatterPurple: gameData.gameSettings.scatterPurple,
-    joker: gameData.gameSettings.joker,
-    booster: gameData.gameSettings.booster,
-    levelUp: gameData.gameSettings.levelUp,
+    joker: {
+      isEnabled: gameData.gameSettings.joker.isEnabled,
+      featureProbs: gameData.gameSettings.joker.featureProbs,
+      symbolsProbs: gameData.gameSettings.joker.symbolsProbs,
+      isJoker: false,
+      payout:[],
+      blueRound: [],
+      greenRound: [],
+      redRound: []
+    },
+    booster: {
+      isEnabledSimple:false,
+      isEnabledExhaustive:false,
+      typeProbs: [],
+      multiplier: [],
+      multiplierProbs: [],
+      response:{
+        type: "NONE" as "NONE" | "SIMPLE" | "EXHAUSTIVE",
+        multipliers: []
+      }
+    },
+    levelUp: {
+      isEnabled: gameData.gameSettings.levelUp.isEnabled,
+      level: gameData.gameSettings.levelUp.level,
+      levelProbs: gameData.gameSettings.levelUp.levelProbs,
+      isLevelUp: false,
+      response: {
+        level: 0,
+        isLevelUp: false
+      }
+    },
     defaultPayout: gameData.gameSettings.defaultPayout,
     SpecialType: gameData.gameSettings.SpecialType,
     freeSpinCount: 0,
@@ -73,62 +101,6 @@ export function sendInitData(gameInstance: SLONE) {
     },
   };
   gameInstance.sendMessage("InitData", dataToSend);
-}
-export function makeResultJson(gameInstance: SLONE) {
-  try {
-    const { settings, playerData } = gameInstance;
-    const credits = gameInstance.getPlayerData().credits
-    const Balance = credits.toFixed(2)
-    const sendData = {
-      gameData: {
-        resultSymbols: settings.resultSymbolMatrix,
-        // isFreeSpin: settings.isFreeSpin,
-        freeSpinCount: settings.freeSpinCount
-      },
-      PlayerData: {
-        Balance: Balance,
-        currentWining: playerData.currentWining,
-        totalbet: playerData.totalbet,
-        haveWon: playerData.haveWon,
-      }
-    };
-
-    gameInstance.sendMessage('ResultData', sendData);
-  } catch (error) {
-    console.error("Error generating result JSON or sending message:", error);
-  }
-}
-
-export function calculatePayout(gameInstance: SLONE) {
-
-  const outerSymbol = gameInstance.settings.Symbols.find(sym => sym.Id === gameInstance.settings.resultSymbolMatrix[0]);
-  if (!outerSymbol) throw new Error(`Symbol with Id ${gameInstance.settings.resultSymbolMatrix[0]} not found.`);
-
-  console.log("freespin" , gameInstance.settings.freeSpinCount, gameInstance.settings.freeSpinType);
-  
-
-  switch (outerSymbol.Name) {
-    case "ScatterBlue":
-      console.log("Scatter Blue feature triggered");
-      handleScatterBlue(gameInstance);
-      break;
-
-    case "ScatterPurple":
-      console.log("Scatter Purple feature triggered");
-      handleScatterPurple(gameInstance);
-      break;
-    case "Joker":
-      console.log("Joker feature triggered");
-      handleJoker(gameInstance);
-      break;
-    default:
-      handleNonSpecialSymbol(gameInstance)
-  }
-
-  gameInstance.updatePlayerBalance(gameInstance.playerData.currentWining)
-  makeResultJson(gameInstance)
-
-  console.log("________________x_______x___________________");
 }
 
 function handleJoker(gameInstance: SLONE) {
@@ -261,6 +233,8 @@ function handleNonSpecialSymbol(gameInstance: SLONE) {
     console.log("No special symbol found. Proceeding with normal payout calculation.");
     let symbol = gameInstance.settings.Symbols[gameInstance.settings.resultSymbolMatrix[0]];
     const levelUpResult = checkForLevelUp(gameInstance, false);
+    console.log("levelUpResult:", levelUpResult);
+    
     if (levelUpResult.isLevelUp) {
       symbol = gameInstance.settings.Symbols[levelUpResult.level];
     }
@@ -562,10 +536,15 @@ function findNextSymbol(currentSymbol: Symbol, levelUp: number, nonSpecialSymbol
 //NOTE: level up feature
 export function checkForLevelUp(gameInstance: SLONE, trigger: boolean): LevelUpResult {
   try {
-
     const { resultSymbolMatrix, Symbols, levelUp } = gameInstance.settings;
-    const resultSymbolIndex = resultSymbolMatrix[0]
+    const resultSymbolIndex = resultSymbolMatrix[0];
     const resultSymbol = Symbols[resultSymbolIndex];
+
+    // Ensure resultSymbol is defined
+    if (!resultSymbol) {
+      console.error(`Symbol with index ${resultSymbolIndex} not found.`);
+      return { level: 0, isLevelUp: false };
+    }
 
     // Check if the result symbol is eligible for level up
     if (resultSymbol.isSpecial || resultSymbol.Id === 0) {
@@ -575,6 +554,10 @@ export function checkForLevelUp(gameInstance: SLONE, trigger: boolean): LevelUpR
     const nonSpecialSymbols = getNonSpecialSymbols(Symbols);
     const { levelProbs, level } = levelUp;
 
+    // Log the levelProbs and level arrays
+    // console.log("levelProbs:", levelProbs);
+    // console.log("level array:", level);
+
     let levelUpAmount: number;
 
     if (trigger) {
@@ -582,20 +565,23 @@ export function checkForLevelUp(gameInstance: SLONE, trigger: boolean): LevelUpR
       do {
         const idx = getRandomIndex(levelProbs);
         levelUpAmount = level[idx];
+        // console.log("Selected index (trigger):", idx, "LevelUpAmount:", levelUpAmount);
       } while (levelUpAmount === 0);
     } else {
       // When trigger is false, behave as before
       const idx = getRandomIndex(levelProbs);
       levelUpAmount = level[idx];
+      // console.log("Selected index:", idx, "LevelUpAmount:", levelUpAmount);
     }
 
-    if (levelUpAmount === 0) {
+    if (levelUpAmount === 0 || levelUpAmount === undefined) {
+      // console.error("LevelUpAmount is undefined or zero.");
       return { level: 0, isLevelUp: false };
     }
 
     const newSymbol = findNextSymbol(resultSymbol, levelUpAmount, nonSpecialSymbols);
 
-    console.log("levelUp", newSymbol.Id, newSymbol.payout);
+    // console.log("levelUp", newSymbol.Id, newSymbol.payout);
     return {
       isLevelUp: newSymbol.Id !== resultSymbol.Id,
       level: newSymbol.Id
@@ -644,5 +630,66 @@ function getTopSymbols(gameInstance: SLONE): number[] {
   } catch (err) {
     console.log(err)
     console.log("Error in getTopSymbols")
+  }
+}
+
+
+export function checkForWin(gameInstance: SLONE) {
+
+  const outerSymbol = gameInstance.settings.Symbols.find(sym => sym.Id === gameInstance.settings.resultSymbolMatrix[0]);
+  if (!outerSymbol) throw new Error(`Symbol with Id ${gameInstance.settings.resultSymbolMatrix[0]} not found.`);
+
+  console.log("freespin" , gameInstance.settings.freeSpinCount, gameInstance.settings.freeSpinType);
+  
+
+  switch (outerSymbol.Name) {
+    case "ScatterBlue":
+      console.log("Scatter Blue feature triggered");
+      handleScatterBlue(gameInstance);
+      break;
+
+    case "ScatterPurple":
+      console.log("Scatter Purple feature triggered");
+      handleScatterPurple(gameInstance);
+      break;
+    case "Joker":
+      console.log("Joker feature triggered");
+      handleJoker(gameInstance);
+      break;
+    default:
+      handleNonSpecialSymbol(gameInstance)
+  }
+
+  gameInstance.updatePlayerBalance(gameInstance.playerData.currentWining)
+  makeResultJson(gameInstance)
+
+  console.log("________________x_______x___________________");
+}
+
+export function makeResultJson(gameInstance: SLONE) {
+  try {
+    const { settings, playerData } = gameInstance;
+    const credits = gameInstance.getPlayerData().credits
+    const Balance = credits.toFixed(2)
+    const sendData = {
+      gameData: {
+        resultSymbols: settings.resultSymbolMatrix,
+        // isFreeSpin: settings.isFreeSpin,
+        freeSpinCount: settings.freeSpinCount
+      },
+      PlayerData: {
+        Balance: Balance,
+        currentWining: playerData.currentWining,
+        totalbet: playerData.totalbet,
+        haveWon: playerData.haveWon,
+      }
+    };
+
+    gameInstance.sendMessage('ResultData', sendData);
+    console.log("ResultData sent");
+    console.log(sendData);
+    
+  } catch (error) {
+    console.error("Error generating result JSON or sending message:", error);
   }
 }

@@ -1,5 +1,5 @@
 import { currentGamedata } from "../../../Player";
-import { calculatePayout, generateInitialReel, initializeGameSettings, sendInitData } from "./helper";
+import {  checkForWin, generateInitialReel, initializeGameSettings, sendInitData } from "./helper";
 import { SLONESETTINGS } from "./types";
 
 export class SLONE {
@@ -120,7 +120,7 @@ export class SLONE {
       const resultmatrix = this.settings.resultSymbolMatrix
       console.log("Result Matrix:", resultmatrix);
       console.log("base Pay", this.settings.Symbols[resultmatrix[0]].payout);
-      calculatePayout(this)
+      checkForWin(this)
       const playerData = this.settings._winData.slotGame.getPlayerData()
       console.log('playerCredits', playerData.credits);
     } catch (error) {

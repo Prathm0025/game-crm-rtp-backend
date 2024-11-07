@@ -41,6 +41,7 @@ export interface SLONESETTINGS {
   multiplierType:  'NONE' | 'SIMPLE' | 'EXHAUSTIVE';
   joker: {
     isEnabled: boolean;
+    isJoker:boolean;
     payout: number[];
     blueRound: number[];
     greenRound: number[];
@@ -49,15 +50,17 @@ export interface SLONESETTINGS {
   booster: {
     isEnabledSimple: boolean;
     isEnabledExhaustive: boolean;
-    type: string;
     typeProbs: number[];
     multiplier: number[];
     multiplierProbs: number[];
+    response : BoosterResult
   };
   levelUp:{
     isEnabled: boolean;
+    isLevelUp:boolean;
     level: number[];
     levelProbs: number[];
+    response: LevelUpResult
   }
 }
 
