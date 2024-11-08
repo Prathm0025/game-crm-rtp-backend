@@ -33,9 +33,9 @@ export const gameData = [
       "isEnabledSimple": true,
       "isEnabledExhaustive": true,
       "type": "",
-      "typeProbs": [10, 15, 15], // index : 0 - no booster, 1 - simple booster, 2 - exhaustive booster
+      "typeProbs": [1, 15, 15], // index : 0 - no booster, 1 - simple booster, 2 - exhaustive booster
       "multiplier": [1, 2, 3, 5, 10, 15, 20, 25],// multiplier amt
-      "multiplierProbs": [90, 70, 40, 20, 10, 4, 3, 1], // multiplier probability
+      "multiplierProbs": [9, 70, 40, 20, 10, 4, 3, 1], // multiplier probability
     },
     "levelUp": {
       "isEnabled": true,

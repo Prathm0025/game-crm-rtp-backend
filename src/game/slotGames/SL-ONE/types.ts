@@ -23,12 +23,14 @@ export interface SLONESETTINGS {
     isEnabled: boolean;
     topSymbolProbs: number[];
     symbolsProbs: number[];
-    featureProbs: number[]
+    featureProbs: number[],
+    response: ScatterPurpleResult
   };
   scatterBlue: {
     isEnabled: boolean;
     symbolsProbs: number[];
-    featureProbs: number[]
+    featureProbs: number[],
+    response: ScatterBlueResult
   };
   currentBet: number;
   currentLines: number;
@@ -61,7 +63,7 @@ export interface SLONESETTINGS {
     level: number[];
     levelProbs: number[];
     response: LevelUpResult
-  }
+  },
 }
 
 export interface BoosterResult {
