@@ -45,21 +45,19 @@ export function initializeGameSettings(gameData: any, gameInstance: SLONE) {
     },
     joker: {
       isEnabled: gameData.gameSettings.joker.isEnabled,
-      featureProbs: gameData.gameSettings.joker.featureProbs,
-      symbolsProbs: gameData.gameSettings.joker.symbolsProbs,
       isJoker: false,
-      payout:[],
+      payout: [],
       blueRound: [],
       greenRound: [],
       redRound: []
     },
     booster: {
-      isEnabledSimple:false,
-      isEnabledExhaustive:false,
+      isEnabledSimple: false,
+      isEnabledExhaustive: false,
       typeProbs: gameData.gameSettings.booster.typeProbs,
-      multiplier:gameData.gameSettings.booster.multiplier,
+      multiplier: gameData.gameSettings.booster.multiplier,
       multiplierProbs: gameData.gameSettings.booster.multiplierProbs,
-      response:{
+      response: {
         type: "NONE" as "NONE" | "SIMPLE" | "EXHAUSTIVE",
         multipliers: []
       }
@@ -170,6 +168,10 @@ function handleJoker(gameInstance: SLONE) {
   }
 
   console.log("jokerResponse", jokerResponse);
+  gameInstance.settings.joker = {
+    ...gameInstance.settings.joker,
+
+  }
   return jokerResponse.payout.reduce((a, b) => a + b, 0)
   // gameInstance.playerData.currentWining = jokerResponse.payout.reduce((a, b) => a + b, 0)
   // gameInstance.playerData.haveWon += gameInstance.playerData.currentWining
@@ -253,23 +255,23 @@ function handleScatterPurple(gameInstance: SLONE) {
   }
 }
 
-function handleNonSpecialSymbol(gameInstance: SLONE) :number {
+function handleNonSpecialSymbol(gameInstance: SLONE): number {
   try {
     let totalPayout = 0;
     console.log("No special symbol found. Proceeding with normal payout calculation.");
     let symbol = gameInstance.settings.Symbols[gameInstance.settings.resultSymbolMatrix[0]];
     const levelUpResult = checkForLevelUp(gameInstance, false);
     console.log("levelUpResult:", levelUpResult);
-    if(levelUpResult.isLevelUp){
+    if (levelUpResult.isLevelUp) {
       gameInstance.settings.levelUp.response = levelUpResult
     }
-    
+
     if (levelUpResult.isLevelUp) {
       symbol = gameInstance.settings.Symbols[levelUpResult.level];
     }
     const boosterResult = checkForBooster(gameInstance, false);
     console.log("boosterResult:", boosterResult);
-    if(boosterResult.type !== 'NONE'){
+    if (boosterResult.type !== 'NONE') {
       gameInstance.settings.booster.response = boosterResult
     }
 
@@ -292,7 +294,7 @@ function handleNonSpecialSymbol(gameInstance: SLONE) :number {
   }
 }
 
-function handleScatterBlue(gameInstance: SLONE):number {
+function handleScatterBlue(gameInstance: SLONE): number {
   try {
     let lives = 5;
     let totalPayout: number = 0
@@ -619,11 +621,14 @@ export function checkForLevelUp(gameInstance: SLONE, trigger: boolean): LevelUpR
     }
 
     //check if levelup is possible 
-    if(( levelUpAmount + resultSymbol.Id > Symbols.length-1 ) || (Symbols[levelUpAmount + resultSymbol.Id].isSpecial)){
+    if ((levelUpAmount + resultSymbol.Id > Symbols.length - 1) || (Symbols[levelUpAmount + resultSymbol.Id].isSpecial)) {
       return { level: 0, isLevelUp: false };
     }
-    const newSymbol = findNextSymbol(resultSymbol, levelUpAmount, nonSpecialSymbols);
 
+    const newSymbol = findNextSymbol(resultSymbol, levelUpAmount, nonSpecialSymbols);
+    if (newSymbol.Id <= resultSymbol.Id) {
+      return { level: 0, isLevelUp: false }
+    }
     // console.log("levelUp", newSymbol.Id, newSymbol.payout);
     return {
       isLevelUp: newSymbol.Id !== resultSymbol.Id,
@@ -682,23 +687,23 @@ export function checkForWin(gameInstance: SLONE) {
   const outerSymbol = gameInstance.settings.Symbols.find(sym => sym.Id === gameInstance.settings.resultSymbolMatrix[0]);
   if (!outerSymbol) throw new Error(`Symbol with Id ${gameInstance.settings.resultSymbolMatrix[0]} not found.`);
 
-  console.log("freespin" , gameInstance.settings.freeSpinCount, gameInstance.settings.freeSpinType);
+  console.log("freespin", gameInstance.settings.freeSpinCount, gameInstance.settings.freeSpinType);
   let payout = 0
-  
+
 
   switch (outerSymbol.Name) {
     case "ScatterBlue":
       console.log("Scatter Blue feature triggered");
-      payout =handleScatterBlue(gameInstance);
+      payout = handleScatterBlue(gameInstance);
       break;
 
     case "ScatterPurple":
       console.log("Scatter Purple feature triggered");
-      payout= handleScatterPurple(gameInstance);
+      payout = handleScatterPurple(gameInstance);
       break;
     case "Joker":
       console.log("Joker feature triggered");
-      payout=handleJoker(gameInstance);
+      payout = handleJoker(gameInstance);
       break;
     default:
       payout = handleNonSpecialSymbol(gameInstance)
@@ -722,12 +727,19 @@ export function makeResultJson(gameInstance: SLONE) {
     const sendData = {
       gameData: {
         resultSymbols: settings.resultSymbolMatrix,
-        levelup:settings.levelUp.response,
+        joker: {
+          isJoker: settings.joker.isJoker,
+          blueRound: settings.joker.blueRound,
+          greenRound: settings.joker.greenRound,
+          redRound: settings.joker.redRound,
+          payout: settings.joker.payout
+        },
+        levelup: settings.levelUp.response,
         booster: settings.booster.response,
-        freespinType:settings.freeSpinType,
-        freeSpinResponse : settings.freeSpinType=="NONE" ?
-          {}:
-          settings.freeSpinType=="BLUE" ?
+        freespinType: settings.freeSpinType,
+        freeSpinResponse: settings.freeSpinType == "NONE" ?
+          {} :
+          settings.freeSpinType == "BLUE" ?
             settings.scatterBlue.response :
             settings.scatterPurple.response
         // freeSpinCount:settings.freeSpinCount,
@@ -745,10 +757,10 @@ export function makeResultJson(gameInstance: SLONE) {
     gameInstance.sendMessage('ResultData', sendData);
     console.log("ResultData sent");
     console.log(sendData);
-    console.log("levlup resp",sendData.gameData.levelup);
-    console.log("booster resp",sendData.gameData.booster);
-    console.log("scatter resp",sendData.gameData.freeSpinResponse);
-    
+    console.log("levlup resp", sendData.gameData.levelup);
+    console.log("booster resp", sendData.gameData.booster);
+    console.log("scatter resp", sendData.gameData.freeSpinResponse);
+
   } catch (error) {
     console.error("Error generating result JSON or sending message:", error);
   }
