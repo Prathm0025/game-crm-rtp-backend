@@ -2,6 +2,9 @@ import { currentGamedata } from "../../../Player";
 import { SLBBSETTINGS } from "./types";
 import { initializeGameSettings, generateInitialReel, checkForWin, sendInitData, generateInitialBonusReel, makePayLines, } from "./helper";
 import { RandomResultGenerator } from "../RandomResultGenerator";
+import PlatformSession from "../../../dashboard/session/PlatformSession";
+import { GameSession } from "../../../dashboard/session/gameSession";
+import { sessionManager } from "../../../dashboard/session/sessionManager";
 
 export class SLBB {
   public settings: SLBBSETTINGS;
@@ -11,13 +14,16 @@ export class SLBB {
     totalbet: 0,
     rtpSpinCount: 0,
   };
+  session: PlatformSession;
+  gameSession: GameSession;
 
   constructor(public currentGameData: currentGamedata) {
     this.settings = initializeGameSettings(currentGameData, this);
     makePayLines(this)
     generateInitialReel(this.settings)
     generateInitialBonusReel(this.settings)
-    sendInitData(this)
+    sendInitData(this);
+    this.session = sessionManager.getPlatformSession(this.getPlayerData().username)
   }
 
   get initSymbols() {
@@ -108,8 +114,8 @@ export class SLBB {
         );
       }
       // this.incrementPlayerBalance(this.playerData.currentWining)
-      if(!this.settings.bonus.isTriggered){
-      new RandomResultGenerator(this);
+      if (!this.settings.bonus.isTriggered) {
+        new RandomResultGenerator(this);
 
       }
       checkForWin(this)
