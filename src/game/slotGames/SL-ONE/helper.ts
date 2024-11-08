@@ -784,7 +784,7 @@ export function makeResultJson(gameInstance: SLONE) {
     const Balance = credits.toFixed(2)
     const sendData = {
       GameData: {
-        resultSymbols: settings.resultSymbolMatrix,
+        resultSymbols: settings.resultSymbolMatrix[0],
         jokerResponse: settings.joker.response,
         levelup: settings.levelUp.response,
         booster: settings.booster.response,
