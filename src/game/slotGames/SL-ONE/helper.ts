@@ -783,7 +783,7 @@ export function makeResultJson(gameInstance: SLONE) {
     const credits = gameInstance.getPlayerData().credits
     const Balance = credits.toFixed(2)
     const sendData = {
-      gameData: {
+      GameData: {
         resultSymbols: settings.resultSymbolMatrix,
         jokerResponse: settings.joker.response,
         levelup: settings.levelUp.response,
@@ -809,10 +809,10 @@ export function makeResultJson(gameInstance: SLONE) {
     gameInstance.sendMessage('ResultData', sendData);
     console.log("ResultData sent");
     console.log(sendData);
-    console.log("levlup resp", sendData.gameData.levelup);
-    console.log("booster resp", sendData.gameData.booster);
-    console.log("scatter resp", sendData.gameData.freeSpinResponse);
-    console.log("joker resp", sendData.gameData.jokerResponse);
+    console.log("levlup resp", sendData.GameData.levelup);
+    console.log("booster resp", sendData.GameData.booster);
+    console.log("scatter resp", sendData.GameData.freeSpinResponse);
+    console.log("joker resp", sendData.GameData.jokerResponse);
 
   } catch (error) {
     console.error("Error generating result JSON or sending message:", error);
