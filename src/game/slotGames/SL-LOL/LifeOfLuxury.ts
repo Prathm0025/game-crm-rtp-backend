@@ -4,6 +4,9 @@ import { SLLOLSETTINGS } from "./types";
 import { RandomResultGenerator } from "../RandomResultGenerator";
 import { GAMBLETYPE } from "../BaseSlotGame/newGambleGame";
 import { getGambleResult, sendInitGambleData } from "./gamble";
+import PlatformSession from "../../../dashboard/session/PlatformSession";
+import { GameSession } from "../../../dashboard/session/gameSession";
+import { sessionManager } from "../../../dashboard/session/sessionManager";
 
 export class SLLOL {
   public settings: SLLOLSETTINGS;
@@ -15,6 +18,8 @@ export class SLLOL {
     totalSpin: 0,
     currentPayout: 0
   }
+  session: PlatformSession;
+  gameSession: GameSession;
 
   constructor(public currentGameData: currentGamedata) {
     console.log("Initializing SLLOL game");
@@ -29,6 +34,9 @@ export class SLLOL {
 
       sendInitData(this);
       console.log("credits : ", this.getPlayerData().credits);
+
+      this.session = sessionManager.getPlatformSession(this.getPlayerData().username);
+      this.gameSession = this.session.currentGameSession;
 
     } catch (error) {
       console.error("Error initializing SLLOL game:", error);
@@ -95,12 +103,12 @@ export class SLLOL {
         switch (result.playerWon) {
           case true:
             this.playerData.currentWining *= 2
-             result.balance = this.getPlayerData().credits + this.playerData.currentWining
+            result.balance = this.getPlayerData().credits + this.playerData.currentWining
             result.currentWinning = this.playerData.currentWining
             break;
           case false:
             result.currentWinning = 0;
-             result.balance = this.getPlayerData().credits;
+            result.balance = this.getPlayerData().credits;
             this.playerData.currentWining = 0;
             break;
         }
@@ -143,8 +151,18 @@ export class SLLOL {
         this.playerData.totalbet += this.settings.currentBet;
       }
 
+      const spinId = this.gameSession.createSpin();
+      this.gameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet * 3)
+
       new RandomResultGenerator(this);
       this.checkResult();
+
+      const winAmount = this.playerData.currentWining;
+      this.gameSession.updateSpinField(spinId, 'winAmount', winAmount)
+
+      const updateCredits = playerData.credits - this.settings.currentBet * 3 + winAmount;
+      this.session.updateCredits(updateCredits);
+
     } catch (error) {
       this.sendError("Spin error");
       console.error("Failed to generate spin results:", error);
