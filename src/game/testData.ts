@@ -22,7 +22,7 @@ export const gameData = [
       //make sure special symbols and empty have 0
       "symbolsProbs": [5, 140, 130, 120, 120, 110, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0], // probability of each symbol
       //make sure special symbols have 0
-      "featureProbs": [0, 40, 40, 40] // probability of each feature . index : 0 - no feature, 1 - level up, 2 - booster ,3 - both levelup and booster
+      "featureProbs": [0, 60, 40, 80] // probability of each feature . index : 0 - no feature, 1 - level up, 2 - booster ,3 - both levelup and booster
     },
     "scatterBlue": {
       "isEnabled": true,
@@ -288,11 +288,11 @@ export const gameData = [
         "Id": 15,
         "isSpecial": true,
         "reelInstance": {
-          "0": 3,
-          "1": 3,
-          "2": 3,
-          "3": 3,
-          "4": 3
+          "0": 30,
+          "1": 30,
+          "2": 30,
+          "3": 30,
+          "4": 30,
         },
         "description": "Scatter: fruit free games",
         "freeSpinCount": 0,

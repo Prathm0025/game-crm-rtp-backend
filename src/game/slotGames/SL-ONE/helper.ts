@@ -179,83 +179,6 @@ function handleJoker(gameInstance: SLONE) {
   // gameInstance.playerData.haveWon += gameInstance.playerData.currentWining
 }
 
-function handleScatterPurple(gameInstance: SLONE) {
-  try {
-    let lives: number = 10;
-    let totalPayout: number = 0;
-
-    let topSymbols: number[] = getTopSymbols(gameInstance);
-    console.log("init topSym", topSymbols);
-
-    let purpleResponse: ScatterPurpleResult = {
-      isTriggered: true,
-      topSymbols: [],
-      symbols: [],
-      payout: 0,
-      levelUp: [],
-      booster: [],
-      reTriggered: [],
-    };
-
-    gameInstance.settings.freeSpinType = "PURPLE";
-
-    while (lives > 0) {
-      const index = getRandomIndex(gameInstance.settings.scatterPurple.symbolsProbs);
-      let symbol = gameInstance.settings.Symbols[index];
-
-      console.log("TOPSYM", topSymbols);
-
-      purpleResponse.symbols.push(index);
-      purpleResponse.topSymbols.push([...topSymbols]); // Create a copy of topSymbols
-
-      console.log("Symbol", symbol.Id, "Payout:", symbol.payout);
-
-      --lives;
-      console.log("Remaining lives:", lives);
-
-      gameInstance.settings.freeSpinCount = lives;
-
-      let payout = 0;
-      if (index !== 0) {
-        payout = applyScatterPurple(gameInstance, symbol, purpleResponse, topSymbols);
-      } else {
-        // Handle symbol 0 (empty symbol)
-        purpleResponse.levelUp.push({ level: 0, isLevelUp: false });
-        purpleResponse.booster.push({ type: 'NONE', multipliers: [] });
-        // Update topSymbols for symbol 0 as well
-        if (topSymbols.includes(0)) {
-          const zeroIndex = topSymbols.indexOf(0);
-          topSymbols[zeroIndex] = -1; // Mark as processed
-        }
-      }
-
-      console.log("payout:", payout);
-      totalPayout += payout;
-
-      // Check if all the top symbols are empty (processed)
-      if (topSymbols.every(symbol => symbol === -1)) {
-        console.log("All top symbols are empty. Re-triggering scatter purple feature.");
-        lives = 10;
-        topSymbols = getTopSymbols(gameInstance);
-        purpleResponse.reTriggered.push(1);
-      } else {
-        purpleResponse.reTriggered.push(0);
-      }
-      purpleResponse.payout = totalPayout;
-    }
-    gameInstance.settings.scatterPurple.response = purpleResponse;
-    console.log("Scatter Purple response:", purpleResponse);
-    // gameInstance.playerData.currentWining = totalPayout;
-    // console.log("totalPayout:", totalPayout);
-    // gameInstance.playerData.haveWon += totalPayout;
-    // gameInstance.settings.freeSpinType = "NONE" as "NONE" | "BLUE" | "PURPLE";
-
-    return totalPayout;
-  } catch (err) {
-    console.log(err);
-    console.log("Error in handleScatterPurple");
-  }
-}
 
 function handleNonSpecialSymbol(gameInstance: SLONE): number {
   try {
@@ -352,6 +275,84 @@ function handleScatterBlue(gameInstance: SLONE): number {
   }
 }
 
+function handleScatterPurple(gameInstance: SLONE) {
+  try {
+    let lives: number = 10;
+    let totalPayout: number = 0;
+
+    let topSymbols: number[] = getTopSymbols(gameInstance);
+    console.log("init topSym", topSymbols);
+
+    let purpleResponse: ScatterPurpleResult = {
+      isTriggered: true,
+      topSymbols: [],
+      symbols: [],
+      payout: 0,
+      levelUp: [],
+      booster: [],
+      reTriggered: [],
+    };
+
+    gameInstance.settings.freeSpinType = "PURPLE";
+
+    while (lives > 0) {
+      const index = getRandomIndex(gameInstance.settings.scatterPurple.symbolsProbs);
+      let symbol = gameInstance.settings.Symbols[index];
+
+      console.log("TOPSYM", topSymbols);
+
+      purpleResponse.symbols.push(index);
+      purpleResponse.topSymbols.push([...topSymbols]); // Create a copy of topSymbols
+
+      console.log("Symbol", symbol.Id, "Payout:", symbol.payout);
+
+      --lives;
+      console.log("Remaining lives:", lives);
+
+      gameInstance.settings.freeSpinCount = lives;
+
+      let payout = 0;
+      if (index !== 0) {
+        payout = applyScatterPurple(gameInstance, symbol, purpleResponse, topSymbols);
+      } else {
+        // Handle symbol 0 (empty symbol)
+        purpleResponse.levelUp.push({ level: 0, isLevelUp: false });
+        purpleResponse.booster.push({ type: 'NONE', multipliers: [] });
+        // Update topSymbols for symbol 0 as well
+        // if (topSymbols.includes(0)) {
+        //   const zeroIndex = topSymbols.indexOf(0);
+        //   topSymbols[zeroIndex] = -1; // Mark as processed
+        // }
+      }
+
+      console.log("payout:", payout);
+      totalPayout += payout;
+
+      // Check if all the top symbols are empty (processed)
+      if (topSymbols.every(symbol => symbol === -1)) {
+        console.log("All top symbols are empty. Re-triggering scatter purple feature.");
+        lives = 10;
+        topSymbols = getTopSymbols(gameInstance);
+        purpleResponse.reTriggered.push(1);
+      } else {
+        purpleResponse.reTriggered.push(0);
+      }
+      purpleResponse.payout = totalPayout;
+    }
+    gameInstance.settings.scatterPurple.response = purpleResponse;
+    console.log("Scatter Purple response:", purpleResponse);
+    // gameInstance.playerData.currentWining = totalPayout;
+    // console.log("totalPayout:", totalPayout);
+    // gameInstance.playerData.haveWon += totalPayout;
+    // gameInstance.settings.freeSpinType = "NONE" as "NONE" | "BLUE" | "PURPLE";
+
+    return totalPayout;
+  } catch (err) {
+    console.log(err);
+    console.log("Error in handleScatterPurple");
+  }
+}
+
 function applyScatterBlue(gameInstance: SLONE, symbol: Symbol, response: ScatterBlueResult): number {
   try {
     const feature = getRandomIndex(gameInstance.settings.scatterBlue.featureProbs);
@@ -412,6 +413,7 @@ function applyScatterBlue(gameInstance: SLONE, symbol: Symbol, response: Scatter
   }
 
 }
+
 function applyScatterPurple(gameInstance: SLONE, symbol: Symbol, response: ScatterPurpleResult, topSymbols: number[]): number {
   try {
     const feature = getRandomIndex(gameInstance.settings.scatterPurple.featureProbs);
@@ -715,8 +717,46 @@ export function checkForWin(gameInstance: SLONE) {
   gameInstance.playerData.currentWining = payout
   gameInstance.playerData.haveWon += payout
   gameInstance.updatePlayerBalance(gameInstance.playerData.currentWining)
+
+  //TODO: if there is scatterPurple replace -1 with 0 in topSymbols 
+  // if (gameInstance.settings.freeSpinType == "PURPLE") {
+  //   gameInstance.settings.scatterPurple.response.topSymbols.map((round) => {
+  //     round.map((symbol) => {
+  //       if (symbol == -1) {
+  //         return 0
+  //       }return symbol
+  //     })
+  //   })
+  // }
+
   makeResultJson(gameInstance)
 
+  gameInstance.settings.booster.response = {
+    type: 'NONE',
+    multipliers: []
+  }
+  gameInstance.settings.levelUp.response = {
+    isLevelUp: false,
+    level: 0
+  }
+  gameInstance.settings.freeSpinType = "NONE"
+  gameInstance.settings.scatterBlue.response = {
+    isTriggered: false,
+    symbols: [],
+    payout: 0,
+    levelUp: [],
+    booster: [],
+  }
+
+  gameInstance.settings.scatterPurple.response = {
+    isTriggered: false,
+    topSymbols: [],
+    symbols: [],
+    payout: 0,
+    levelUp: [],
+    booster: [],
+    reTriggered: [],
+  }
 
   console.log("________________x_______x___________________");
 }
