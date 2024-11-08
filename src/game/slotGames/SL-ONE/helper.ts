@@ -46,10 +46,17 @@ export function initializeGameSettings(gameData: any, gameInstance: SLONE) {
     joker: {
       isEnabled: gameData.gameSettings.joker.isEnabled,
       isJoker: false,
-      payout: [],
-      blueRound: [],
-      greenRound: [],
-      redRound: []
+      payout: gameData.gameSettings.joker.payout,
+      blueRound: gameData.gameSettings.joker.blueRound,
+      greenRound: gameData.gameSettings.joker.greenRound,
+      redRound: gameData.gameSettings.joker.redRound,
+      response: {
+        isTriggered: false,
+        payout: [],
+        blueRound: 0,
+        greenRound: 0,
+        redRound: 0
+      }
     },
     booster: {
       isEnabledSimple: false,
@@ -112,7 +119,8 @@ export function sendInitData(gameInstance: SLONE) {
       // Reel: reels,
       Bets: gameInstance.settings.currentGamedata.bets,
       LevelUp: gameInstance.settings.levelUp.level,
-      Booster: gameInstance.settings.booster.multiplier
+      Booster: gameInstance.settings.booster.multiplier,
+      Joker: gameInstance.settings.joker.payout,
     },
     UIData: UiInitData,
     PlayerData: {
@@ -172,7 +180,7 @@ function handleJoker(gameInstance: SLONE) {
   console.log("jokerResponse", jokerResponse);
   gameInstance.settings.joker = {
     ...gameInstance.settings.joker,
-
+    response: jokerResponse
   }
   return jokerResponse.payout.reduce((a, b) => a + b, 0)
   // gameInstance.playerData.currentWining = jokerResponse.payout.reduce((a, b) => a + b, 0)
@@ -540,6 +548,7 @@ function getExhaustiveMultipliers(multipliers: number[], multiplierProb: number[
     console.log("Error in getExhaustiveMultipliers")
   }
 }
+
 //NOTE: for booster
 function handleSimpleBooster(gameInstance: SLONE): BoosterResult {
   try {
@@ -739,6 +748,13 @@ export function checkForWin(gameInstance: SLONE) {
     isLevelUp: false,
     level: 0
   }
+  gameInstance.settings.joker.response = {
+    isTriggered: false,
+    payout: [],
+    blueRound: 0,
+    greenRound: 0,
+    redRound: 0
+  }
   gameInstance.settings.freeSpinType = "NONE"
   gameInstance.settings.scatterBlue.response = {
     isTriggered: false,
@@ -769,13 +785,7 @@ export function makeResultJson(gameInstance: SLONE) {
     const sendData = {
       gameData: {
         resultSymbols: settings.resultSymbolMatrix,
-        joker: {
-          isJoker: settings.joker.isJoker,
-          blueRound: settings.joker.blueRound,
-          greenRound: settings.joker.greenRound,
-          redRound: settings.joker.redRound,
-          payout: settings.joker.payout
-        },
+        jokerResponse: settings.joker.response,
         levelup: settings.levelUp.response,
         booster: settings.booster.response,
         freespinType: settings.freeSpinType,
@@ -802,6 +812,7 @@ export function makeResultJson(gameInstance: SLONE) {
     console.log("levlup resp", sendData.gameData.levelup);
     console.log("booster resp", sendData.gameData.booster);
     console.log("scatter resp", sendData.gameData.freeSpinResponse);
+    console.log("joker resp", sendData.gameData.jokerResponse);
 
   } catch (error) {
     console.error("Error generating result JSON or sending message:", error);

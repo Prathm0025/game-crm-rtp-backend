@@ -48,6 +48,7 @@ export interface SLONESETTINGS {
     blueRound: number[];
     greenRound: number[];
     redRound: number[];
+    response: JokerResponse
   },
   booster: {
     isEnabledSimple: boolean;
