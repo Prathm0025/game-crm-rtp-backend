@@ -1,6 +1,7 @@
 import Payouts from "../../../dashboard/payouts/payoutModel";
 import { convertSymbols, UiInitData } from "../../Utils/gameUtils";
 import { WinData } from "../BaseSlotGame/WinData";
+import { RandomResultGenerator } from "../RandomResultGenerator";
 import { SLONE } from "./OneOfAKindBase";
 import { BoosterResult, LevelUpResult, ScatterBlueResult, ScatterPurpleResult, Symbol, JokerResponse } from "./types";
 
@@ -247,13 +248,14 @@ function handleScatterBlue(gameInstance: SLONE): number {
 
       blueResponse.symbols.push(index)
 
-      console.log("Symbol", symbol.Id, "Payout:", symbol.payout);
+      // console.log("Symbol", symbol.Id, "Payout:", symbol.payout);
 
       lives += symbol.freeSpinCount;
       --lives;
-      console.log("Remaining lives:", lives);
+      // console.log("Remaining lives:", lives);
 
       gameInstance.settings.freeSpinCount = lives;
+      gameInstance.settings.resultSymbolMatrix = [symbol.Id]
 
       if (index !== 0) {
         const payout = applyScatterBlue(gameInstance, symbol, blueResponse);
@@ -275,6 +277,7 @@ function handleScatterBlue(gameInstance: SLONE): number {
     gameInstance.settings.scatterBlue.response = blueResponse;
     // gameInstance.settings.freeSpinType = "NONE" as "NONE" | "BLUE" | "PURPLE";
     gameInstance.settings.freeSpinCount = 0;
+    gameInstance.settings.resultSymbolMatrix = [14]
 
     return totalPayout
   } catch (err) {
@@ -309,7 +312,7 @@ function handleScatterPurple(gameInstance: SLONE) {
 
       console.log("TOPSYM", topSymbols);
 
-      purpleResponse.symbols.push(index);
+      // purpleResponse.symbols.push(index);
       purpleResponse.topSymbols.push([...topSymbols]); // Create a copy of topSymbols
 
       console.log("Symbol", symbol.Id, "Payout:", symbol.payout);
@@ -318,6 +321,7 @@ function handleScatterPurple(gameInstance: SLONE) {
       console.log("Remaining lives:", lives);
 
       gameInstance.settings.freeSpinCount = lives;
+      gameInstance.settings.resultSymbolMatrix = [symbol.Id]
 
       let payout = 0;
       if (index !== 0) {
@@ -326,6 +330,7 @@ function handleScatterPurple(gameInstance: SLONE) {
         // Handle symbol 0 (empty symbol)
         purpleResponse.levelUp.push({ level: 0, isLevelUp: false });
         purpleResponse.booster.push({ type: 'NONE', multipliers: [] });
+        purpleResponse.symbols.push(0);
         // Update topSymbols for symbol 0 as well
         // if (topSymbols.includes(0)) {
         //   const zeroIndex = topSymbols.indexOf(0);
@@ -337,7 +342,7 @@ function handleScatterPurple(gameInstance: SLONE) {
       totalPayout += payout;
 
       // Check if all the top symbols are empty (processed)
-      if (topSymbols.every(symbol => symbol === -1)) {
+      if (topSymbols.every(symbol => symbol === 0)) {
         console.log("All top symbols are empty. Re-triggering scatter purple feature.");
         lives = 10;
         topSymbols = getTopSymbols(gameInstance);
@@ -353,6 +358,7 @@ function handleScatterPurple(gameInstance: SLONE) {
     // console.log("totalPayout:", totalPayout);
     // gameInstance.playerData.haveWon += totalPayout;
     // gameInstance.settings.freeSpinType = "NONE" as "NONE" | "BLUE" | "PURPLE";
+    gameInstance.settings.resultSymbolMatrix = [15]
 
     return totalPayout;
   } catch (err) {
@@ -364,15 +370,17 @@ function handleScatterPurple(gameInstance: SLONE) {
 function applyScatterBlue(gameInstance: SLONE, symbol: Symbol, response: ScatterBlueResult): number {
   try {
     const feature = getRandomIndex(gameInstance.settings.scatterBlue.featureProbs);
+
     let sym = symbol
     let multiplier = 0
     let levelUpResult: LevelUpResult = { level: 0, isLevelUp: false };
     let boosterResult: BoosterResult = { type: 'NONE', multipliers: [] };
 
+
     switch (feature) {
       case 1:
         console.log("Level-up feature triggered");
-        levelUpResult = checkForLevelUp(gameInstance, true);
+        levelUpResult = checkForLevelUp(gameInstance, false);
         console.log("lvlUp", levelUpResult);
         if (levelUpResult.isLevelUp) {
           console.log(`Leveled up to symbol: ${levelUpResult.level}`);
@@ -381,7 +389,7 @@ function applyScatterBlue(gameInstance: SLONE, symbol: Symbol, response: Scatter
         break;
       case 2:
         console.log("Booster feature triggered");
-        boosterResult = checkForBooster(gameInstance, true);
+        boosterResult = checkForBooster(gameInstance, false);
         if (boosterResult.type !== 'NONE') {
           console.log(`Booster applied with multipliers: ${boosterResult.multipliers}`);
           multiplier = boosterResult.multipliers.reduce((a, b) => a + b, 0);
@@ -390,13 +398,13 @@ function applyScatterBlue(gameInstance: SLONE, symbol: Symbol, response: Scatter
         break;
       case 3:
         console.log("Level-up and booster both triggered");
-        levelUpResult = checkForLevelUp(gameInstance, true);
+        levelUpResult = checkForLevelUp(gameInstance, false);
         console.log("lvlUp", levelUpResult);
 
         if (levelUpResult.isLevelUp) {
           sym = gameInstance.settings.Symbols[levelUpResult.level];
         }
-        boosterResult = checkForBooster(gameInstance, true);
+        boosterResult = checkForBooster(gameInstance, false);
         if (boosterResult.type !== 'NONE') {
           multiplier = boosterResult.multipliers.reduce((a, b) => a + b, 0);
         }
@@ -437,7 +445,9 @@ function applyScatterPurple(gameInstance: SLONE, symbol: Symbol, response: Scatt
         console.log("lvlUp", levelUpResult);
         if (levelUpResult.isLevelUp) {
           console.log(`Leveled up to symbol: ${levelUpResult.level}`);
-          sym = gameInstance.settings.Symbols[levelUpResult.level];
+          if ((levelUpResult.level < gameInstance.settings.Symbols.length - 4)) {
+            sym = gameInstance.settings.Symbols[levelUpResult.level];
+          }
         }
         break;
       case 2:
@@ -453,9 +463,10 @@ function applyScatterPurple(gameInstance: SLONE, symbol: Symbol, response: Scatt
         console.log("Level-up and booster both triggered");
         levelUpResult = checkForLevelUp(gameInstance, true);
         console.log("lvlUp", levelUpResult);
-
         if (levelUpResult.isLevelUp) {
-          sym = gameInstance.settings.Symbols[levelUpResult.level];
+          if ((levelUpResult.level < gameInstance.settings.Symbols.length - 4)) {
+            sym = gameInstance.settings.Symbols[levelUpResult.level];
+          }
         }
         boosterResult = checkForBooster(gameInstance, true);
         if (boosterResult.type !== 'NONE') {
@@ -467,6 +478,7 @@ function applyScatterPurple(gameInstance: SLONE, symbol: Symbol, response: Scatt
         console.log("No feature triggered.");
     }
 
+    response.symbols.push(sym.Id)
 
     //NOTE: match with topSymbols
     if (topSymbols.includes(sym.Id)) {
@@ -602,6 +614,7 @@ export function checkForLevelUp(gameInstance: SLONE, trigger: boolean): LevelUpR
 
     // Check if the result symbol is eligible for level up
     if (resultSymbol.isSpecial || resultSymbol.Id === 0) {
+      console.error(`Symbol with index ${resultSymbolIndex} is not eligible for level up.`);
       return { level: 0, isLevelUp: false };
     }
 
@@ -629,17 +642,19 @@ export function checkForLevelUp(gameInstance: SLONE, trigger: boolean): LevelUpR
     }
 
     if (levelUpAmount === 0 || levelUpAmount === undefined) {
-      // console.error("LevelUpAmount is undefined or zero.");
+      console.error("LevelUpAmount is undefined or zero.");
       return { level: 0, isLevelUp: false };
     }
 
     //check if levelup is possible 
     if ((levelUpAmount + resultSymbol.Id > Symbols.length - 1) || (Symbols[levelUpAmount + resultSymbol.Id].isSpecial)) {
+      console.error("Level up is not possible.");
       return { level: 0, isLevelUp: false };
     }
 
     const newSymbol = findNextSymbol(resultSymbol, levelUpAmount, nonSpecialSymbols);
     if (newSymbol.Id <= resultSymbol.Id) {
+      console.error("Level up is not possible.");
       return { level: 0, isLevelUp: false }
     }
     // console.log("levelUp", newSymbol.Id, newSymbol.payout);
