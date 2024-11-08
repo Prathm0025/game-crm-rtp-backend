@@ -38,7 +38,7 @@ exports.gameData = [
             [1, 2, 0, 0, 2, 1],
             [2, 0, 1, 1, 0, 2],
             [2, 1, 0, 0, 1, 2],
-            [0, 1, 2, 1, 0, 1],
+            [0, 1, 2, 1, 0, 1]
         ],
         "linesCount": [
             1,
@@ -74,7 +74,7 @@ exports.gameData = [
             "isEnabled": true,
             "countIncrement": 8,
             "bloodSplash": {
-                "countProb": [20, 10, 10, 10, 20, 25] // prob of 1 ,2,3,4,5,6,7 or 8 bloodsplashes
+                "countProb": [20, 10, 10, 10, 20, 25]
             }
         },
         "bonus": {
@@ -86,6 +86,10 @@ exports.gameData = [
         },
         "gamble": {
             "isEnabled": true
+        },
+        "wild": {
+            "isEnabled": true,
+            "multiplier": [10, 20, 30, 40]
         },
         "Symbols": [
             {
@@ -371,12 +375,12 @@ exports.gameData = [
                 "Name": "Bat",
                 "Id": 9,
                 "reelInstance": {
-                    "0": 10,
-                    "1": 10,
-                    "2": 10,
-                    "3": 10,
-                    "4": 10,
-                    "5": 10
+                    "0": 0,
+                    "1": 0,
+                    "2": 0,
+                    "3": 0,
+                    "4": 0,
+                    "5": 0
                 },
                 "useWildSub": false,
                 "multiplier": []
@@ -385,12 +389,12 @@ exports.gameData = [
                 "Name": "BatX2",
                 "Id": 10,
                 "reelInstance": {
-                    "0": 10,
-                    "1": 10,
-                    "2": 10,
-                    "3": 10,
-                    "4": 10,
-                    "5": 10
+                    "0": 0,
+                    "1": 0,
+                    "2": 0,
+                    "3": 0,
+                    "4": 0,
+                    "5": 0
                 },
                 "useWildSub": false,
                 "multiplier": []
@@ -400,7 +404,7 @@ exports.gameData = [
                 "Id": 11,
                 "reelInstance": {
                     "0": 0,
-                    "1": 10,
+                    "1": 0,
                     "2": 0,
                     "3": 0,
                     "4": 0,
@@ -417,7 +421,7 @@ exports.gameData = [
                     "1": 0,
                     "2": 0,
                     "3": 0,
-                    "4": 10,
+                    "4": 0,
                     "5": 0
                 },
                 "useWildSub": false,
@@ -430,7 +434,7 @@ exports.gameData = [
                     "0": 0,
                     "1": 0,
                     "2": 0,
-                    "3": 10,
+                    "3": 0,
                     "4": 0,
                     "5": 0
                 },
@@ -443,26 +447,11 @@ exports.gameData = [
                 "reelInstance": {
                     "0": 0,
                     "1": 0,
-                    "2": 10,
+                    "2": 0,
                     "3": 0,
                     "4": 0,
                     "5": 0
                 },
-                "useWildSub": false,
-                "multiplier": []
-            },
-            {
-                "Name": "Wild",
-                "Id": 15,
-                "reelInstance": {
-                    "0": 30,
-                    "1": 30,
-                    "2": 30,
-                    "3": 30,
-                    "4": 30,
-                    "5": 30
-                },
-                "description": "Substitutes for all symbols except Jackpot, Free Spin, Bonus, and Scatter.",
                 "useWildSub": false,
                 "multiplier": []
             }
