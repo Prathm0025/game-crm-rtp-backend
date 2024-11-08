@@ -802,7 +802,10 @@ export function makeResultJson(gameInstance: SLONE) {
         resultSymbols: settings.resultSymbolMatrix[0],
         jokerResponse: settings.joker.response,
         levelup: settings.levelUp.response,
-        booster: settings.booster.response,
+        booster: settings.resultSymbolMatrix[0] == 0 ? {
+          type: 'NONE',
+          multipliers: []
+        } : settings.booster.response,
         freespinType: settings.freeSpinType,
         freeSpinResponse: settings.freeSpinType == "NONE" ?
           {} :
