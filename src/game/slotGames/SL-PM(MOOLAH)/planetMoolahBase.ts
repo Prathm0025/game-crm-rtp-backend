@@ -1,4 +1,7 @@
 import { currentGamedata } from "../../../Player";
+import PlatformSession from "../../../dashboard/session/PlatformSession";
+import { GameSession } from "../../../dashboard/session/gameSession";
+import { sessionManager } from "../../../dashboard/session/sessionManager";
 import { RandomResultGenerator } from "../RandomResultGenerator";
 import { initializeGameSettings, generateInitialReel, sendInitData, makePayLines, checkForWin } from "./helper";
 import { SLPMSETTINGS } from "./types";
@@ -14,12 +17,16 @@ export class SLPM {
         currentPayout: 0,
         payoutafterCascading: 0,
     };
+    session: PlatformSession;
+    gameSession: GameSession;
 
     constructor(public currentGameData: currentGamedata) {
         this.settings = initializeGameSettings(currentGameData, this);
         generateInitialReel(this.settings)
         sendInitData(this)
-        makePayLines(this)
+        makePayLines(this);
+        this.session = sessionManager.getPlatformSession(this.getPlayerData().username);
+        this.gameSession = this.session.currentGameSession;
     }
 
     get initSymbols() {
@@ -88,12 +95,23 @@ export class SLPM {
                 this.settings.freeSpin.freeSpinCount--;
                 console.log("Free Spin remaining count ", this.settings.freeSpin.freeSpinCount);
             }
+
+            const spinId = this.gameSession.createSpin();
+            this.gameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
+
             await new RandomResultGenerator(this);
             checkForWin(this)
             if (this.settings.freeSpin.freeSpinCount == 0) {
                 this.settings.freeSpin.freeSpinStarted = false
                 this.settings.freeSpin.freeSpinCount = 0
             }
+
+
+            const winAmount = this.playerData.currentWining;
+            this.gameSession.updateSpinField(spinId, 'winAmount', winAmount);
+
+            const updateCredits = playerData.credits - this.settings.currentBet + winAmount;
+            this.session.updateCredits(updateCredits);
 
         } catch (error) {
             this.sendError("Spin error");
