@@ -29,30 +29,30 @@ jobs:
 
       - name: Build
         run: npm run build
-   
+
       - name: Push updated package.json to dev-build branch
         env:
           GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
         run: |
-           git fetch origin dev-build:dev-build # Ensure you're up-to-date with dev-build
-           git stash || echo "No changes to stash" # Stash only if there are changes
-           git checkout dev-build
-           git config user.name "TrippyRahul"
-           git config user.email "rahulrawat.trippybug@gmail.com"
-           rm -f package.json
-           git checkout dev -- package.json
-           git add package.json
-           git commit -m "update package.json" || echo "No changes to commit"
-           git push --force origin dev-build
-           git stash pop || echo "No local changes to pop" # Handle no stash scenario
+          git fetch origin dev-build:dev-build # Ensure you're up-to-date with dev-build
+          git stash || echo "No changes to stash" # Stash only if there are changes
+          git checkout dev-build
+          git config user.name "TrippyRahul"
+          git config user.email "rahulrawat.trippybug@gmail.com"
+          rm -f package.json
+          git checkout dev -- package.json
+          git add package.json
+          git commit -m "update package.json" || echo "No changes to commit"
+          git push --force origin dev-build
+          git stash pop || echo "No local changes to pop" # Handle no stash scenario
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v3
         with:
           name: artifact
           path: ./dist/**/*.js
-          
-      - name: Copy Src and app.js in root 
+
+      - name: Copy Src and app.js in root
         run: |
           cp -r ./dist/src .
           cp ./dist/app.js .
