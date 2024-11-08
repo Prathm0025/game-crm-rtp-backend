@@ -111,6 +111,8 @@ export function sendInitData(gameInstance: SLONE) {
     GameData: {
       // Reel: reels,
       Bets: gameInstance.settings.currentGamedata.bets,
+      LevelUp: gameInstance.settings.levelUp.level,
+      Booster: gameInstance.settings.booster.multiplier
     },
     UIData: UiInitData,
     PlayerData: {
