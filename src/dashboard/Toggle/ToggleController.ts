@@ -13,8 +13,16 @@ export class ToggleController {
   async getToggle(req: Request, res: Response, next: NextFunction) {
     try {
       const toggle = await Toggle.findOne({});
-      if (!toggle) throw createHttpError(404, "Toggle not found");
+      if (!toggle) {
+        await Toggle.findOneAndUpdate(
+          {},
+          { availableAt: null },
+          { new: true, upsert: true }
+        );
+      };
+
       if (toggle.availableAt === null) {
+
         res.status(200).json({ underMaintenance: false });
         return
       }

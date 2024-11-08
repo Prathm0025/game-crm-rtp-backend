@@ -48,7 +48,13 @@ export const checkGamesToggle = async (req: Request, res: Response, next: NextFu
 
 async function isAvaiable() {
   const toggle = await Toggle.findOne();
-  if (!toggle) throw createHttpError(404, "Toggle not found");
+  if (!toggle) {
+    await Toggle.findOneAndUpdate(
+      {},
+      { availableAt: null },
+      { new: true, upsert: true }
+    );
+  };
   if (toggle.availableAt === null) {
     return { underMaintenance: false, availableAt: null }
   }
