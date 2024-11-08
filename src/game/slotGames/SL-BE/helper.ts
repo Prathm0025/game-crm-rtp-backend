@@ -478,7 +478,8 @@ export function sendInitData(gameInstance: SLBE) {
       Lines: gameInstance.settings.currentGamedata.linesApiData,
       Bets: gameInstance.settings.currentGamedata.bets,
       BatsMultiplier: gameInstance.settings.bats.multipliers,
-      wildMultiplier: gameInstance.settings.wild.multiplier
+      wildMultiplier: gameInstance.settings.wild.multiplier,
+      freeSpinIncrementCount: gameInstance.settings.freeSpin.freeSpinCount
     },
     UIData: UiInitData,
     PlayerData: {
