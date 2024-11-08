@@ -2,6 +2,9 @@ import { WinData } from "../BaseSlotGame/WinData";
 import { CMSettings, SPECIALSYMBOLS, SPINTYPES } from "./types";
 import { initializeGameSettings, sendInitData, freezeIndex, checkSameMatrix, checkPayout, makeResultJson } from "./helper";
 import { currentGamedata } from "../../../Player";
+import PlatformSession from "../../../dashboard/session/PlatformSession";
+import { GameSession } from "../../../dashboard/session/gameSession";
+import { sessionManager } from "../../../dashboard/session/sessionManager";
 
 
 /**
@@ -16,10 +19,14 @@ export class SLCM {
         rtpSpinCount: 0,
         totalSpin: 0
     };
+    session: PlatformSession;
+    gameSession: GameSession;
 
     constructor(public currentGameData: currentGamedata) {
         this.settings = initializeGameSettings(currentGameData, this);
         sendInitData(this);
+        this.session = sessionManager.getPlatformSession(this.getPlayerData().username);
+        this.gameSession = this.session.currentGameSession;
     }
 
     get initSymbols() {
@@ -75,7 +82,18 @@ export class SLCM {
             }
             this.playerData.totalbet += this.settings.currentBet;
             this.settings.resultSymbolMatrix[0] = this.selectResultBasedOnProbability(this.settings.matrix.x);
+
+            const spinId = this.gameSession.createSpin();
+            this.gameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
+
+
             this.checkResult();
+
+            const winAmount = this.playerData.currentWining;
+            this.gameSession.updateSpinField(spinId, 'winAmount', winAmount)
+
+            const updateCredits = playerData.credits - this.settings.currentBet + winAmount;
+            this.session.updateCredits(updateCredits);
         } catch (error) {
             this.sendError("Spin error");
             console.error("Failed to generate spin results:", error);

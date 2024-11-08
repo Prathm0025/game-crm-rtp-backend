@@ -1,4 +1,7 @@
 import { currentGamedata } from "../../../Player";
+import PlatformSession from "../../../dashboard/session/PlatformSession";
+import { GameSession } from "../../../dashboard/session/gameSession";
+import { sessionManager } from "../../../dashboard/session/sessionManager";
 import { calculatePayout, generateInitialReel, initializeGameSettings, sendInitData } from "./helper";
 import { SLONESETTINGS } from "./types";
 
@@ -12,11 +15,15 @@ export class SLONE {
     totalSpin: 0,
     currentPayout: 0
   };
+  session: PlatformSession;
+  gameSession: GameSession;
 
   constructor(public currentGameData: currentGamedata) {
     this.settings = initializeGameSettings(currentGameData, this);
     generateInitialReel(this.settings)
-    sendInitData(this)
+    sendInitData(this);
+    this.session = sessionManager.getPlatformSession(this.getPlayerData().username);
+    this.gameSession = this.session.currentGameSession;
   }
 
   get initSymbols() {
@@ -123,6 +130,16 @@ export class SLONE {
       calculatePayout(this)
       const playerData = this.settings._winData.slotGame.getPlayerData()
       console.log('playerCredits', playerData.credits);
+
+      const spinId = this.gameSession.createSpin();
+      this.gameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
+
+      const winAmount = this.playerData.currentWining;
+      this.gameSession.updateSpinField(spinId, 'winAmount', winAmount)
+
+      const updateCredits = playerData.credits - this.settings.currentBet + winAmount;
+      this.session.updateCredits(updateCredits);
+
     } catch (error) {
       console.error("Error in checkResult:", error);
     }
