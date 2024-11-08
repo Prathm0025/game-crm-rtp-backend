@@ -3,6 +3,9 @@ import { RandomResultGenerator } from "../RandomResultGenerator";
 import { CRZSETTINGS, WINNINGTYPE } from "./types";
 import { initializeGameSettings, generateInitialReel, sendInitData, calculatePayout, applyExtraSymbolEffect, checkWinningCondition, makeResultJson } from "./helper";
 import { log } from "console";
+import PlatformSession from "../../../dashboard/session/PlatformSession";
+import { GameSession } from "../../../dashboard/session/gameSession";
+import { sessionManager } from "../../../dashboard/session/sessionManager";
 
 export class SLCRZ {
   public settings: CRZSETTINGS;
@@ -14,11 +17,15 @@ export class SLCRZ {
     totalSpin: 0,
     currentPayout: 0
   };
+  session: PlatformSession;
+  gameSession: GameSession;
 
   constructor(public currentGameData: currentGamedata) {
     this.settings = initializeGameSettings(currentGameData, this);
     generateInitialReel(this.settings)
     sendInitData(this)
+    this.session = sessionManager.getPlatformSession(this.getPlayerData().username);
+    this.gameSession = this.session.currentGameSession;
   }
 
   get initSymbols() {
@@ -98,8 +105,20 @@ export class SLCRZ {
         this.updatePlayerBalance(this.playerData.currentWining)
         // makeResultJson(this)
       }
+
+      const spinId = this.gameSession.createSpin();
+      this.gameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet * 3);
+
+
       new RandomResultGenerator(this);
       this.checkResult();
+
+      const winAmount = this.playerData.currentWining;
+      this.gameSession.updateSpinField(spinId, 'winAmount', winAmount);
+
+      const updateCredits = playerData.credits - this.settings.currentBet * 3 + winAmount;
+      this.session.updateCredits(updateCredits);
+
     } catch (error) {
       this.sendError("Spin error");
       console.error("Failed to generate spin results:", error);
