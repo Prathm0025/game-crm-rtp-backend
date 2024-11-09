@@ -12,6 +12,7 @@ exports.checkWin = checkWin;
 exports.checkForFreespin = checkForFreespin;
 const WinData_1 = require("../BaseSlotGame/WinData");
 const gameUtils_1 = require("../../Utils/gameUtils");
+const utils_1 = require("../../../utils/utils");
 function initializeGameSettings(gameData, gameInstance) {
     var _a, _b;
     const gameSettings = gameData.gameSettings || gameData; // Handle both possible structures
@@ -309,8 +310,10 @@ function checkWin(gameInstance) {
         totalPayout += combo.payout;
     });
     settings.winningCombinations = winningCombinations;
-    gameInstance.playerData.currentWining = totalPayout;
-    gameInstance.playerData.haveWon += totalPayout;
+    gameInstance.playerData.currentWining = (0, utils_1.precisionRound)(totalPayout, 3);
+    gameInstance.playerData.haveWon += gameInstance.playerData.currentWining;
+    gameInstance.playerData.haveWon = (0, utils_1.precisionRound)(gameInstance.playerData.haveWon, 3);
+    gameInstance.incrementPlayerBalance(gameInstance.playerData.currentWining);
     makeResultJson(gameInstance);
     if (settings.freeSpinCount > 0) {
         settings.freeSpinCount -= 1;
