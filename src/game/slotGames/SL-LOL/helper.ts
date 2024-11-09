@@ -112,7 +112,7 @@ export function makeResultJson(gameInstance: SLLOL) {
   try {
     const { settings, playerData } = gameInstance;
     const credits = gameInstance.getPlayerData().credits;
-    const Balance = credits.toFixed(2);
+    const Balance = credits.toFixed(3);
     const sendData = {
       gameData: {
         resultSymbols: settings.resultSymbolMatrix,
