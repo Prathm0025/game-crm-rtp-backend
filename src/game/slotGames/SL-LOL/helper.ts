@@ -3,6 +3,7 @@ import { SymbolType, GameResult, WinningCombination, FreeSpinResponse } from './
 import { WinData } from "../BaseSlotGame/WinData";
 import { convertSymbols, UiInitData } from '../../Utils/gameUtils';
 import { argv0 } from 'process';
+import { precisionRound } from '../../../utils/utils';
 
 
 export function initializeGameSettings(gameData: any, gameInstance: SLLOL) {
@@ -335,8 +336,10 @@ export function checkWin(gameInstance: SLLOL): { payout: number; winningCombinat
     totalPayout += combo.payout;
   })
   settings.winningCombinations = winningCombinations
-  gameInstance.playerData.currentWining = totalPayout
-  gameInstance.playerData.haveWon += totalPayout
+  gameInstance.playerData.currentWining = precisionRound(totalPayout, 3)
+  gameInstance.playerData.haveWon += gameInstance.playerData.currentWining
+  gameInstance.playerData.haveWon = precisionRound(gameInstance.playerData.haveWon, 3)
+
   gameInstance.incrementPlayerBalance(gameInstance.playerData.currentWining);
   makeResultJson(gameInstance)
   if (settings.freeSpinCount > 0) {
