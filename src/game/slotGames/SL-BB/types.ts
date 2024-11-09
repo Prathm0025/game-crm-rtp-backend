@@ -38,11 +38,9 @@ export interface SLBBSETTINGS {
   Symbols: Symbol[];
   jackpot: {
     isTriggered: boolean;
-    payout: number;
-  },
-  grandPrize: {
-    isTriggered: boolean;
-    payout: number;
+    payout: number[];
+    payoutProbs: number[];
+    win: number
   },
   freeSpin: {
     isEnabled: boolean,
