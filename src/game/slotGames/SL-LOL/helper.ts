@@ -26,14 +26,14 @@ export function initializeGameSettings(gameData: any, gameInstance: SLLOL) {
     defaultPayout: gameSettings.defaultPayout || 0,
     minMatchCount: gameSettings.minMatchCount || 3,
     isFreeSpin: false,
-    isFreeSpinTriggered:false,
+    isFreeSpinTriggered: false,
     freeSpinCount: 0,
     freeSpinMultipliers: [1, 1, 1, 1, 1],
-    freeSpinSymbolId:gameInstance.currentGameData.gameSettings.Symbols.find((sym:SymbolType)=>sym.Name=='FreeSpin')?.Id || "12",
+    freeSpinSymbolId: gameInstance.currentGameData.gameSettings.Symbols.find((sym: SymbolType) => sym.Name == 'FreeSpin')?.Id || "12",
     maxMultiplier: 10,
-    freeSpinIncrement:gameSettings.freeSpin.incrementCount,
+    freeSpinIncrement: gameSettings.freeSpin.incrementCount,
     gamble: gameSettings.gamble,
-    winningCombinations:[]
+    winningCombinations: []
   };
 
   // Add WinData separately to avoid circular reference in logging
@@ -243,10 +243,10 @@ export function isWild(symbolId: number): boolean {
 
 
 export function checkWin(gameInstance: SLLOL): { payout: number; winningCombinations: WinningCombination[] } {
-  const { settings,playerData } = gameInstance;
+  const { settings, playerData } = gameInstance;
   let totalPayout = 0;
   let winningCombinations: WinningCombination[] = [];
-  
+
   const findCombinations = (symbolId: number, col: number, path: [number, number][]): void => {
     // Stop if we've checked all columns or path is complete
     if (col == settings.matrix.x) {
@@ -271,7 +271,7 @@ export function checkWin(gameInstance: SLLOL): { payout: number; winningCombinat
     // End the combination if it's long enough
     if (path.length >= settings.minMatchCount) {
       const symbol = getSymbol(symbolId, settings.Symbols)!;
-      let multiplierIndex = Math.abs(path.length-5);
+      let multiplierIndex = Math.abs(path.length - 5);
       if (symbol && symbol.multiplier[multiplierIndex]) { // Check if multiplier exists
         const multiplier = symbol.multiplier[multiplierIndex][0];
         winningCombinations.push({ symbolId, positions: path, payout: multiplier * settings.BetPerLines });
@@ -316,11 +316,11 @@ export function checkWin(gameInstance: SLLOL): { payout: number; winningCombinat
 
   const bool = checkForFreespin(gameInstance)
   console.log("isFreespin", bool);
-  
+
   //reset multiplers for freespin when its over 
   if (settings.freeSpinCount <= 0 && settings.isFreeSpin === false) {
     settings.freeSpinMultipliers = [1, 1, 1, 1, 1]
-  } 
+  }
   // else {
   //   settings.freeSpinCount -= 1
   // }
@@ -328,18 +328,18 @@ export function checkWin(gameInstance: SLLOL): { payout: number; winningCombinat
     // alter payout . multiply betsperline with payout
     // NOTE: also check for freespin multipliers 
     if (settings.freeSpinCount > 0 && getSymbol(combo.symbolId, settings.Symbols).isFreeSpinMultiplier) {
-      combo.payout = combo.payout * settings.freeSpinMultipliers[combo.symbolId] 
+      combo.payout = combo.payout * settings.freeSpinMultipliers[combo.symbolId]
     } else {
-      combo.payout = combo.payout 
+      combo.payout = combo.payout
     }
     totalPayout += combo.payout;
   })
   settings.winningCombinations = winningCombinations
   gameInstance.playerData.currentWining = totalPayout
-  gameInstance.playerData.haveWon+= totalPayout
-
+  gameInstance.playerData.haveWon += totalPayout
+  gameInstance.incrementPlayerBalance(gameInstance.playerData.currentWining);
   makeResultJson(gameInstance)
-  if(settings.freeSpinCount>0 ){
+  if (settings.freeSpinCount > 0) {
     settings.freeSpinCount -= 1
   }
 
@@ -357,16 +357,16 @@ export function checkForFreespin(gameInstance: SLLOL): boolean {
     let col2Has12 = false;
     let col3Has12 = false;
 
-    
+
     for (let j = 0; j < rows; j++) { // Loop through rows
       if (resultMatrix[j][0] == settings.freeSpinSymbolId) col1Has12 = true; // Check 1st column
       if (resultMatrix[j][1] == settings.freeSpinSymbolId) col2Has12 = true; // Check 2nd column
       if (resultMatrix[j][2] == settings.freeSpinSymbolId) col3Has12 = true; // Check 3rd column
-    
+
 
       // If all three columns have the symbol, return true
       if (col1Has12 && col2Has12 && col3Has12) {
-        settings.isFreeSpinTriggered=true
+        settings.isFreeSpinTriggered = true
         settings.isFreeSpin = true;
         settings.freeSpinCount += settings.freeSpinIncrement;
         return true;
