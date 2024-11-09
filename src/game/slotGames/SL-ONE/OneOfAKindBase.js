@@ -123,7 +123,7 @@ class SLONE {
                 const resultmatrix = this.settings.resultSymbolMatrix;
                 console.log("Result Matrix:", resultmatrix);
                 console.log("base Pay", this.settings.Symbols[resultmatrix[0]].payout);
-                (0, helper_1.calculatePayout)(this);
+                (0, helper_1.checkForWin)(this);
                 const playerData = this.settings._winData.slotGame.getPlayerData();
                 console.log('playerCredits', playerData.credits);
             }

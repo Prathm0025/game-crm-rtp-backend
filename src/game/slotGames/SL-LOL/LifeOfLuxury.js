@@ -13,6 +13,7 @@ exports.SLLOL = void 0;
 const helper_1 = require("./helper");
 const RandomResultGenerator_1 = require("../RandomResultGenerator");
 const gamble_1 = require("./gamble");
+const utils_1 = require("../../../utils/utils");
 class SLLOL {
     constructor(currentGameData) {
         this.currentGameData = currentGameData;
@@ -127,9 +128,10 @@ class SLLOL {
                 }
                 //deduct only when freespin is not triggered
                 if (this.settings.freeSpinCount <= 0) {
-                    this.decrementPlayerBalance(this.settings.currentBet);
-                    this.playerData.totalbet += this.settings.currentBet;
+                    this.decrementPlayerBalance((0, utils_1.precisionRound)(this.settings.currentBet, 3));
+                    this.playerData.totalbet += Number(this.settings.currentBet.toFixed(3));
                 }
+                this.playerData.totalbet = (0, utils_1.precisionRound)(this.playerData.totalbet, 3);
                 new RandomResultGenerator_1.RandomResultGenerator(this);
                 this.checkResult();
             }
@@ -169,27 +171,7 @@ class SLLOL {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 this.playerData.currentWining = 0;
-                const { payout, winningCombinations } = (0, helper_1.checkWin)(this);
-                // printWinningCombinations(winningCombinations)
-                // console.log("balance:", this.getPlayerData().credits)
-                // console.log("freespin:", {
-                //   count: this.settings.freeSpinCount,
-                //   isFreespin: this.settings.isFreeSpin,
-                //   multipliers: this.settings.freeSpinMultipliers
-                // })
-                if (payout > 0) {
-                    this.playerData.currentWining = payout;
-                    this.playerData.haveWon += payout;
-                    this.incrementPlayerBalance(this.playerData.currentWining);
-                }
-                else {
-                    this.playerData.currentWining = 0;
-                }
-                // console.log("Payout checkwin: ", payout);
-                //
-                // this.gamebleTesting()
-                // console.log("playerData :", this.playerData);
-                // console.log("windata :", this.settings._winData.totalWinningAmount);
+                (0, helper_1.checkWin)(this);
             }
             catch (error) {
                 console.error("Error in checkResult:", error);
