@@ -207,7 +207,7 @@ export function checkForWin(gameInstance: SLBE) {
       const LTRResult = checkLineSymbols(firstSymbolLTR, line, gameInstance, 'LTR');
 
       if (LTRResult.isWinningLine && LTRResult.matchCount >= 3) {
-        const symbolMultiplierLTR = accessData(firstSymbolLTR, LTRResult.matchCount, gameInstance);
+        const symbolMultiplierLTR = accessData(firstSymbolLTR, LTRResult.matchCount, gameInstance,LTRResult.isWild);
         if (symbolMultiplierLTR > 0) {
           const payout = symbolMultiplierLTR * gameInstance.settings.BetPerLines;
           totalPayout += payout;
@@ -239,7 +239,7 @@ export function checkForWin(gameInstance: SLBE) {
       // Right-to-left check
       const RTLResult = checkLineSymbols(firstSymbolRTL, line, gameInstance, 'RTL');
       if (RTLResult.isWinningLine && RTLResult.matchCount >= 3) {
-        const symbolMultiplierRTL = accessData(firstSymbolRTL, RTLResult.matchCount, gameInstance);
+        const symbolMultiplierRTL = accessData(firstSymbolRTL, RTLResult.matchCount, gameInstance,RTLResult.isWild);
         if (symbolMultiplierRTL > 0) {
           const payout = symbolMultiplierRTL * gameInstance.settings.BetPerLines;
           totalPayout += payout;
@@ -328,7 +328,7 @@ export function checkForWin(gameInstance: SLBE) {
 
 
 type MatchedIndex = { col: number; row: number };
-type CheckLineResult = { isWinningLine: boolean; matchCount: number; matchedIndices: MatchedIndex[] };
+type CheckLineResult = { isWinningLine: boolean; matchCount: number; matchedIndices: MatchedIndex[],isWild:boolean };
 type WinningLineDetail = { direction: 'LTR' | 'RTL'; lineIndex: number; details: CheckLineResult };
 
 function checkLineSymbols(
@@ -343,6 +343,8 @@ function checkLineSymbols(
     let matchCount = 1;
     let currentSymbol = firstSymbol;
 
+    let isWild = firstSymbol === wildSymbol
+
     const matchedIndices: MatchedIndex[] = [];
     const start = direction === 'LTR' ? 0 : line.length - 1;
     const end = direction === 'LTR' ? line.length : -1;
@@ -354,9 +356,13 @@ function checkLineSymbols(
       const rowIndex = line[i];
       const symbol = settings.resultSymbolMatrix[rowIndex][i];
 
+      if (symbol === wildSymbol) {
+        isWild = true
+      }
+
       if (symbol === undefined) {
         console.error(`Symbol at position [${rowIndex}, ${i}] is undefined.`);
-        return { isWinningLine: false, matchCount: 0, matchedIndices: [] };
+        return { isWinningLine: false, matchCount: 0, matchedIndices: [],isWild };
       }
 
       switch (true) {
@@ -370,13 +376,13 @@ function checkLineSymbols(
           matchedIndices.push({ col: i, row: rowIndex });
           break;
         default:
-          return { isWinningLine: matchCount >= 3, matchCount, matchedIndices };
+          return { isWinningLine: matchCount >= 3, matchCount, matchedIndices,isWild };
       }
     }
-    return { isWinningLine: matchCount >= 3, matchCount, matchedIndices };
+    return { isWinningLine: matchCount >= 3, matchCount, matchedIndices ,isWild};
   } catch (error) {
     console.error("Error in checkLineSymbols:", error);
-    return { isWinningLine: false, matchCount: 0, matchedIndices: [] };
+    return { isWinningLine: false, matchCount: 0, matchedIndices: [] ,isWild:false};
   }
 }
 
@@ -431,10 +437,14 @@ function findFirstNonWildSymbol(line: number[], gameInstance: SLBE, direction: '
 
 
 //payouts to user according to symbols count in matched lines
-function accessData(symbol, matchCount, gameInstance: SLBE) {
+function accessData(symbol, matchCount, gameInstance: SLBE,isWild:boolean) {
   const { settings } = gameInstance;
 
   try {
+    if(isWild){
+      
+      return settings.wild.multiplier[matchCount- 3]
+    }
     const symbolData = settings.currentGamedata.Symbols.find(
       (s) => s.Id.toString() === symbol.toString()
     );
@@ -443,7 +453,6 @@ function accessData(symbol, matchCount, gameInstance: SLBE) {
 
       if (multiplierArray && multiplierArray[settings.matrix.x - matchCount]) {
         return multiplierArray[settings.matrix.x - matchCount][0];
-
       }
     }
     return 0;
@@ -469,7 +478,8 @@ export function sendInitData(gameInstance: SLBE) {
       Lines: gameInstance.settings.currentGamedata.linesApiData,
       Bets: gameInstance.settings.currentGamedata.bets,
       BatsMultiplier: gameInstance.settings.bats.multipliers,
-      wildMultiplier: gameInstance.settings.wild.multiplier
+      wildMultiplier: gameInstance.settings.wild.multiplier,
+      freeSpinIncrementCount: gameInstance.settings.freeSpin.freeSpinCount
     },
     UIData: UiInitData,
     PlayerData: {
