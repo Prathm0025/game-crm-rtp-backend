@@ -832,7 +832,7 @@ export class UserController {
       const _req = req as AuthRequest;
       const { username, role } = _req.user;
       const { clientId } = req.params;
-      const { status, credits, password, existingPassword } = req.body;
+      const { status, credits, password } = req.body;
 
       if (!clientId) {
         throw createHttpError(400, "Client Id is required");
@@ -868,7 +868,7 @@ export class UserController {
       }
 
       if (password) {
-        await updatePassword(client, password, existingPassword);
+        await updatePassword(client, password);
       }
 
       if (credits) {

@@ -16,21 +16,21 @@ const transactionController = new TransactionController()
 export const clients: Map<string, WebSocket> = new Map();
 
 export function formatDate(isoString: string): string {
-    const date = new Date(isoString);
-    const formattedDate = date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-    });
+  const date = new Date(isoString);
+  const formattedDate = date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 
-    const formattedTime = date.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: 'numeric',
-        second: 'numeric',
-        hour12: true
-    });
+  const formattedTime = date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+    hour12: true
+  });
 
-    return `${formattedDate} at ${formattedTime}`;
+  return `${formattedDate} at ${formattedTime}`;
 }
 
 export const rolesHierarchy = {
@@ -106,26 +106,9 @@ export const updateStatus = (client: IUser | IPlayer, status: string) => {
 export const updatePassword = async (
   client: IUser | IPlayer,
   password: string,
-  existingPassword: string
 ) => {
   try {
-    if (!existingPassword) {
-      throw createHttpError(
-        400,
-        "Existing password is required to update the password"
-      );
-    }
 
-    // Check if existingPassword matches client's current password
-    const isPasswordValid = await bcrypt.compare(
-      existingPassword,
-      client.password
-    );
-    if (!isPasswordValid) {
-      throw createHttpError(400, "Existing password is incorrect");
-    }
-
-    // Update password
     client.password = await bcrypt.hash(password, 10);
   } catch (error) {
     console.log(error);
@@ -210,7 +193,7 @@ export const getSubordinateModel = (role: string) => {
 
 
 export function precisionRound(number, precision) {
-    var factor = Math.pow(10, precision);
-    return Math.round(number * factor) / factor;
+  var factor = Math.pow(10, precision);
+  return Math.round(number * factor) / factor;
 }
 
