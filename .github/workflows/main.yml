@@ -33,10 +33,10 @@ jobs:
           git checkout dev-build
           git config user.name "TrippyRahul"
           git config user.email "rahulrawat.trippybug@gmail.com"
-          rm -rf ./package.json ./dist ./src ./app.js
+          rm -rf ./package*.json ./dist ./src ./app.js
           git add .
           git commit -m "remove old artifacts" || echo "No changes to commit"
-          git checkout dev -- ./package.json
+          git checkout dev -- ./package*.json
           git add ./package.json 
           git commit -m "update package.json" || echo "No changes to commit"
           git push --force origin dev-build
