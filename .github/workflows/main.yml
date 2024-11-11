@@ -57,6 +57,7 @@ jobs:
 
       - name: Copy Src and app.js in root
         run: |
+          git stash -u
           git checkout dev-build
           cp -r ./dist/src .
           cp -r ./dist/app.js .
