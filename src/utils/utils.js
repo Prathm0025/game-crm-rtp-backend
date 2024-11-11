@@ -80,17 +80,8 @@ const updateStatus = (client, status) => {
     }
 };
 exports.updateStatus = updateStatus;
-const updatePassword = (client, password, existingPassword) => __awaiter(void 0, void 0, void 0, function* () {
+const updatePassword = (client, password) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        if (!existingPassword) {
-            throw (0, http_errors_1.default)(400, "Existing password is required to update the password");
-        }
-        // Check if existingPassword matches client's current password
-        const isPasswordValid = yield bcrypt_1.default.compare(existingPassword, client.password);
-        if (!isPasswordValid) {
-            throw (0, http_errors_1.default)(400, "Existing password is incorrect");
-        }
-        // Update password
         client.password = yield bcrypt_1.default.hash(password, 10);
     }
     catch (error) {
