@@ -381,36 +381,7 @@ function checkLineSymbols(
 }
 
 
-function checkforBats(gameInstance: SLBE) {
-  try {
-    const { settings } = gameInstance;
-    let batsCount = 0;
 
-    // Count bats and store positions
-    settings.resultSymbolMatrix.forEach((row, i) => {
-      row.forEach((symbol, j) => {
-        if (symbol == settings.Bat.SymbolID.toString() || symbol == settings.BatX2.SymbolID.toString()) {
-          settings.bats.positions.push(`${j},${i}`);
-          batsCount += symbol == settings.BatX2.SymbolID.toString() ? 2 : 1;
-        }
-      });
-    });
-
-    // Apply multiplier based on bat count
-    // If batsCount is 1, use multiplier[12]
-    // If batsCount is 13, use multiplier[0]
-    let multiplierIndex = Math.max(0, settings.bats.multipliers.length - batsCount);
-    if (batsCount === 0) {
-      multiplierIndex = settings.bats.multipliers.length - 1
-    }
-    settings.bats.payout += settings.BetPerLines * settings.bats.multipliers[multiplierIndex];
-
-    // console.log("Bats Count:", batsCount);
-    // console.log("Applied Multiplier:", settings.bats.multipliers[multiplierIndex]);
-  } catch (e) {
-    console.error("Error in checkforBats:", e);
-  }
-}
 //checking first non wild symbol in lines which start with wild symbol
 function findFirstNonWildSymbol(line: number[], gameInstance: SLBE, direction: 'LTR' | 'RTL' = 'LTR') {
   const { settings } = gameInstance;
@@ -452,7 +423,36 @@ function accessData(symbol, matchCount, gameInstance: SLBE) {
     return 0;
   }
 }
+function checkforBats(gameInstance: SLBE) {
+  try {
+    const { settings } = gameInstance;
+    let batsCount = 0;
 
+    // Count bats and store positions
+    settings.resultSymbolMatrix.forEach((row, i) => {
+      row.forEach((symbol, j) => {
+        if (symbol == settings.Bat.SymbolID.toString() || symbol == settings.BatX2.SymbolID.toString()) {
+          settings.bats.positions.push(`${j},${i}`);
+          batsCount += symbol == settings.BatX2.SymbolID.toString() ? 2 : 1;
+        }
+      });
+    });
+
+    // Apply multiplier based on bat count
+    // If batsCount is 1, use multiplier[12]
+    // If batsCount is 13, use multiplier[0]
+    let multiplierIndex = Math.max(0, settings.bats.multipliers.length - batsCount);
+    if (batsCount === 0) {
+      multiplierIndex = settings.bats.multipliers.length - 1
+    }
+    settings.bats.payout += settings.BetPerLines * settings.bats.multipliers[multiplierIndex];
+
+    // console.log("Bats Count:", batsCount);
+    // console.log("Applied Multiplier:", settings.bats.multipliers[multiplierIndex]);
+  } catch (e) {
+    console.error("Error in checkforBats:", e);
+  }
+}
 /**
  * Sends the initial game and player data to the client.
  * @param gameInstance - The instance of the SLCM class containing the game settings and player data.
