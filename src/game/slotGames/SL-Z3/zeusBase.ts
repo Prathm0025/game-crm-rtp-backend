@@ -74,7 +74,7 @@ export class SLZEUS {
         try {
             const playerData = this.getPlayerData();
             if (this.settings.currentBet > playerData.credits) {
-                console.log(this.settings.currentBet + playerData.credits, 'dfdsfds')
+                console.log(this.settings.currentBet + playerData.credits)
                 this.sendError("Low Balance");
                 return;
             }

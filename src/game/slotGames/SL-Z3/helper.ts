@@ -26,23 +26,11 @@ export function initializeGameSettings(gameData: any, gameInstance: SLZEUS) {
         currentLines: 0,
         BetPerLines: 0,
         reels: [],
-        hasCascading: false,
-        cascadingNo: 0,
-        payoutAfterCascading: 0,
-        cascadingResult: [],
         lastReel: [],
         tempReel: [],
         firstReel: [],
         tempReelSym: [],
         freeSpinData: gameData.gameSettings.freeSpinData,
-        jackpot: {
-            symbolName: "",
-            symbolsCount: 0,
-            symbolId: 0,
-            defaultAmount: 0,
-            increaseValue: 0,
-            useJackpot: false,
-        },
         freeSpin: {
             symbolID: "-1",
             freeSpinMuiltiplier: [],
@@ -52,11 +40,16 @@ export function initializeGameSettings(gameData: any, gameInstance: SLZEUS) {
             noOfFreeSpins: 0,
             useFreeSpin: false,
         },
+        replacedToWildIndices:[],
         wild: {
             SymbolName: "",
             SymbolID: -1,
             useWild: false,
         },
+        scatter:{
+            symbolID:11,
+           useScatter:false,
+        }
     };
 }
 /**
@@ -104,42 +97,19 @@ export function makePayLines(gameInstance: SLZEUS) {
     });
 }
 
-function handleSpecialSymbols(symbol: any, gameInstance: SLZEUS) {
-    switch (symbol.Name) {
-        case specialIcons.jackpot:
-            gameInstance.settings.jackpot.symbolName;
-            gameInstance.settings.jackpot.symbolId = symbol.Id;
-            gameInstance.settings.jackpot.symbolsCount = symbol.symbolsCount;
-            gameInstance.settings.jackpot.defaultAmount = symbol.defaultAmount;
-            gameInstance.settings.jackpot.increaseValue = symbol.increaseValue;
-            gameInstance.settings.jackpot.useJackpot = true;
-            break;
-        case specialIcons.wild:
-            gameInstance.settings.wild.SymbolName = symbol.Name;
-            gameInstance.settings.wild.SymbolID = symbol.Id;
-            gameInstance.settings.wild.useWild = true;
 
-            break;
-        default:
-            break; ``
-    }
-}
 
 //CHECK WINS ON PAYLINES WITH OR WITHOUT WILD
 //check for win function
 export function checkForWin(gameInstance: SLZEUS) {
     try {
         const { settings } = gameInstance;
-        if (settings.cascadingNo === 0) {
-            settings.firstReel = [...settings.resultSymbolMatrix.map(row => [...row])]; // Deep copy to preserve the original matrix
-        }
-
+        handleFullReelOfZeus(gameInstance);        
         const winningLines = [];
         let totalPayout = 0;
         settings.lineData.forEach((line, index) => {
             const firstSymbolPosition = line[0];
             let firstSymbol = settings.resultSymbolMatrix[firstSymbolPosition][0];
-            // Handle wild symbols
             if (settings.wild.useWild && firstSymbol === settings.wild.SymbolID) {
                 firstSymbol = findFirstNonWildSymbol(line, gameInstance);
             }
@@ -157,6 +127,8 @@ export function checkForWin(gameInstance: SLZEUS) {
                 line,
                 gameInstance
             );
+
+            
             switch (true) {
                 case isWinningLine && matchCount >= 3:
                     const symbolMultiplier = accessData(
@@ -165,7 +137,7 @@ export function checkForWin(gameInstance: SLZEUS) {
                         gameInstance
                     );
                     settings.lastReel = settings.resultSymbolMatrix;
-                    console.log(settings.lastReel, 'lastReel')
+                    // console.log(settings.lastReel, 'lastReel')
                     switch (true) {
                         case symbolMultiplier > 0:
                             totalPayout += symbolMultiplier;
@@ -202,6 +174,19 @@ export function checkForWin(gameInstance: SLZEUS) {
                     break;
             }
         });
+
+       const {isFreeSpin, scatterCount} = checkForFreeSpin(gameInstance);
+       if(isFreeSpin){
+        handleFreeSpins(scatterCount);
+       }
+
+        console.log(totalPayout, "totalPayout");
+        
+        gameInstance.playerData.currentWining = totalPayout;
+        gameInstance.playerData.haveWon += totalPayout;
+
+        
+        makeResultJson(gameInstance)
 
         return winningLines;
     } catch (error) {
@@ -325,28 +310,113 @@ export function sendInitData(gameInstance: SLZEUS) {
 export function makeResultJson(gameInstance: SLZEUS) {
     try {
         const { settings, playerData } = gameInstance;
-        const credits = gameInstance.getPlayerData().credits + settings.payoutAfterCascading
+        const credits = gameInstance.getPlayerData().credits + playerData.currentWining
         const Balance = credits.toFixed(2)
         const sendData = {
             GameData: {
                 resultSymbols: settings.firstReel,
                 linesToEmit: settings._winData.winningLines,
                 symbolsToEmit: settings._winData.winningSymbols,
-                jackpot: settings._winData.jackpotwin,
-                cascading: settings.cascadingResult,
-                isCascading: settings.hasCascading,
+                wildSymbolIndices: settings.replacedToWildIndices,               
                 isFreeSpin: settings.freeSpin.useFreeSpin,
                 freeSpinCount: settings.freeSpin.freeSpinCount,
+
             },
             PlayerData: {
                 Balance: Balance,
-                currentWining: settings.payoutAfterCascading,
+                currentWining: playerData.currentWining,
                 totalbet: playerData.totalbet,
                 haveWon: playerData.haveWon,
             }
         };
         gameInstance.sendMessage('ResultData', sendData);
+
+        console.log(sendData, "send Data");
+        
     } catch (error) {
         console.error("Error generating result JSON or sending message:", error);
+    }
+}
+
+function handleSpecialSymbols(symbol: any, gameInstance: SLZEUS) {
+    switch (symbol.Name) {
+        case specialIcons.wild:
+            gameInstance.settings.wild.SymbolName = symbol.Name;
+            gameInstance.settings.wild.SymbolID = symbol.Id;
+            gameInstance.settings.wild.useWild = true;
+
+            break;
+        case specialIcons.FreeSpin:
+            gameInstance.settings.freeSpin.symbolID = symbol.Id;
+            gameInstance.settings.freeSpin.freeSpinMuiltiplier = symbol.multiplier;
+            gameInstance.settings.freeSpin.useFreeSpin = true;
+            break;
+        case specialIcons.scatter:
+        (gameInstance.settings.scatter.symbolID = symbol.Id),
+        //   (gameInstance.settings.scatter.multiplier = symbol.multiplier);
+          gameInstance.settings.scatter.useScatter = true;
+
+        break;    
+        default:
+            break; ``
+    }
+}
+
+function handleFullReelOfZeus(gameInstance: SLZEUS, symbolIdToCheck = 0){
+    try {        
+        const { settings } = gameInstance;
+        const resultSymbolMatrix = settings.resultSymbolMatrix;
+        for (let i = 0; i < resultSymbolMatrix.length; i++) {
+            const reel = resultSymbolMatrix[i];        
+            const isFullReel = reel.every(symbol => symbol === symbolIdToCheck);
+            if (isFullReel) {
+              for (let j = 0; j < reel.length; j++) {
+                reel[j] = settings.wild.SymbolID; 
+              }
+              settings.replacedToWildIndices.push(i);
+            }
+          }
+    } catch (error) {
+        console.log(error);
+        
+    }
+}
+
+function checkForFreeSpin(gameInstance: SLZEUS) {
+    const { resultSymbolMatrix, scatter } = gameInstance.settings;
+    
+    let scatterCount = 0;
+    
+    for (let i = 1; i < 6; i++) {
+        const reel = resultSymbolMatrix[i];        
+        scatterCount += reel.filter(symbol => symbol === scatter.symbolID).length;
+    }
+    const isFreeSpin = scatterCount >= 3;
+    
+    console.log(`Scatter Count: ${scatterCount}`);
+    console.log(`Free Spin Triggered: ${isFreeSpin}`);
+    return {isFreeSpin, scatterCount};
+}
+
+function handleFreeSpins(scatterCount: number) {
+    switch (scatterCount) {
+        case 5:
+            console.log("Awarded: 50 Free Spins + 50x Total Bet");
+            // Add logic to award 50 free spins and 50x total bet
+            break;
+
+        case 4:
+            console.log("Awarded: 25 Free Spins + 10x Total Bet");
+            // Add logic to award 25 free spins and 10x total bet
+            break;
+
+        case 3:
+            console.log("Awarded: 10 Free Spins");
+            // Add logic to award 10 free spins
+            break;
+
+        default:
+            console.log("No Free Spins awarded");
+            break;
     }
 }
