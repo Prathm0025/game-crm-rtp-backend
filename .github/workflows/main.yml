@@ -57,6 +57,7 @@ jobs:
           cp -r ./dist/src .
           cp ./dist/app.js .
           rm -rvf ./dist
+          rm -rf ./dist
           git add .
           git commit -m "add new build"
           git push origin dev-build
