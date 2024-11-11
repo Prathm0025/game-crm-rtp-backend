@@ -667,7 +667,7 @@ class UserController {
                 const _req = req;
                 const { username, role } = _req.user;
                 const { clientId } = req.params;
-                const { status, credits, password, existingPassword } = req.body;
+                const { status, credits, password } = req.body;
                 if (!clientId) {
                     throw (0, http_errors_1.default)(400, "Client Id is required");
                 }
@@ -692,7 +692,7 @@ class UserController {
                     (0, utils_1.updateStatus)(client, status);
                 }
                 if (password) {
-                    yield (0, utils_1.updatePassword)(client, password, existingPassword);
+                    yield (0, utils_1.updatePassword)(client, password);
                 }
                 if (credits) {
                     credits.amount = Number(credits.amount);
