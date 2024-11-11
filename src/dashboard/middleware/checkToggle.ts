@@ -16,11 +16,13 @@ export const checkLoginToggle = async (req: Request, res: Response, next: NextFu
       if (underMaintenance === true) {
         res.status(200).json({ message: `underMaintenance till ${formatDate(availableAt.toISOString())}`, isUnderMaintenance: underMaintenance });
         return
-      } else {
+      }
+      else {
         next()
       }
     }
   } catch (error) {
+    console.log("ERROR : ", error);
     next(error);
   }
 };
@@ -47,15 +49,22 @@ export const checkGamesToggle = async (req: Request, res: Response, next: NextFu
 }
 
 async function isAvaiable() {
-  const toggle = await Toggle.findOne();
+  let toggle = await Toggle.findOne();
   if (!toggle) {
-    await Toggle.findOneAndUpdate(
+    console.log("Toggle not found");
+    console.log("Created a new Toggle ");
+
+
+    toggle = await Toggle.findOneAndUpdate(
       {},
       { availableAt: null },
       { new: true, upsert: true }
     );
   };
-  if (toggle.availableAt === null) {
+
+  console.log("toggle : ", toggle);
+
+  if (!toggle.availableAt === null) {
     return { underMaintenance: false, availableAt: null }
   }
   const now = new Date();
