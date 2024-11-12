@@ -12,7 +12,6 @@ export class SLZEUS {
         rtpSpinCount: 0,
         totalSpin: 0,
         currentPayout: 0,
-        payoutafterCascading: 0,
     };
 
     constructor(public currentGameData: currentGamedata) {

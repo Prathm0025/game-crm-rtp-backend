@@ -567,11 +567,11 @@ export const gameData = [
           "Id":11,
           "reelInstance":{
               "0":0,
-              "1":50,
-              "2":50,
-              "3":50,
-              "4":50,
-              "5":50
+              "1":5,
+              "2":5,
+              "3":5,
+              "4":5,
+              "5":5
           },
           "description":"Scatter: Offers higher pay outs when 3 or more symbols appear anywhere on the result matrix. Payout: 5x - 1000, 4x - 700, 3x - 500",
           "useWildSub":false,

@@ -104,56 +104,114 @@ export function makePayLines(gameInstance: SLZEUS) {
 export function checkForWin(gameInstance: SLZEUS) {
     try {
         const { settings } = gameInstance;
-        handleFullReelOfZeus(gameInstance);        
+
+       // Remove elements from each reel in the specified sequence: 5, 4, 3, 2, 1, 0
+         settings.resultSymbolMatrix = reduceMatrix(settings.resultSymbolMatrix);
+        console.log(settings.resultSymbolMatrix, "result symbol matrix");       
+       // Subsitute full reel of zeus with wild
+        handleFullReelOfZeus(gameInstance); 
+
         const winningLines = [];
         let totalPayout = 0;
-        settings.lineData.forEach((line, index) => {
-            const firstSymbolPosition = line[0];
-            let firstSymbol = settings.resultSymbolMatrix[firstSymbolPosition][0];
-            if (settings.wild.useWild && firstSymbol === settings.wild.SymbolID) {
-                firstSymbol = findFirstNonWildSymbol(line, gameInstance);
-            }
-            // Handle special icons
-            if (
-                Object.values(specialIcons).includes(
-                    settings.Symbols[firstSymbol].Name as specialIcons
-                )
-            ) {
 
-                return;
+        const {isFreeSpin, scatterCount} = checkForFreeSpin(gameInstance);
+       if(isFreeSpin){
+        handleFreeSpins(scatterCount, gameInstance);
+       }
+
+        settings.lineData.forEach((line, index) => {
+            //RTL for free spins
+            const direction = isFreeSpin ? 'RTL' : 'LTR'; 
+
+            const firstSymbolPositionLTR = line[0];
+            const firstSymbolPositionRTL = line[line.length - 1];
+
+            let firstSymbolLTR = settings.resultSymbolMatrix[firstSymbolPositionLTR][0];
+            let firstSymbolRTL = settings.resultSymbolMatrix[firstSymbolPositionRTL][line.length - 1];
+          const firstSymbol = isFreeSpin ? firstSymbolRTL:firstSymbolLTR;
+            if (settings.wild.useWild && firstSymbolLTR === settings.wild.SymbolID) {
+                firstSymbolLTR = findFirstNonWildSymbol(line, gameInstance);
             }
+
+            if (settings.wild.useWild && firstSymbolRTL === settings.wild.SymbolID) {
+                firstSymbolRTL = findFirstNonWildSymbol(line, gameInstance, 'RTL');
+              }
+          
             const { isWinningLine, matchCount, matchedIndices } = checkLineSymbols(
                 firstSymbol,
                 line,
-                gameInstance
-            );
-
-            
+                gameInstance,
+                direction
+            );            
             switch (true) {
-                case isWinningLine && matchCount >= 3:
-                    const symbolMultiplier = accessData(
-                        firstSymbol,
+                case isWinningLine && matchCount >= 3 && !settings.freeSpin.useFreeSpin:
+                    console.log("NOT FREE SPIN");
+                    
+                    const symbolMultiplierLTR = accessData(
+                        firstSymbolLTR,
                         matchCount,
                         gameInstance
                     );
                     settings.lastReel = settings.resultSymbolMatrix;
                     // console.log(settings.lastReel, 'lastReel')
                     switch (true) {
-                        case symbolMultiplier > 0:
-                            totalPayout += symbolMultiplier;
+                        case symbolMultiplierLTR > 0:
+                            totalPayout += symbolMultiplierLTR;
                             settings._winData.winningLines.push(index + 1);
                             winningLines.push({
                                 line,
-                                symbol: firstSymbol,
-                                multiplier: symbolMultiplier,
+                                symbol: firstSymbolLTR,
+                                multiplier: symbolMultiplierLTR,
                                 matchCount,
                             });
-                            console.log(`Line ${index + 1}:`, line);
-                            console.log(
-                                `Payout for Line ${index + 1}:`,
-                                "payout",
-                                symbolMultiplier
+                            // console.log(`Line ${index + 1}:`, line);
+                            // console.log(
+                            //     `Payout for Line ${index + 1}:`,
+                            //     "payout",
+                            //     symbolMultiplierLTR
+                            // );
+                            const formattedIndices = matchedIndices.map(({ col, row }) => `${col},${row}`);
+                            const validIndices = formattedIndices.filter(
+                                (index) => index.length > 2
                             );
+                            if (validIndices.length > 0) {
+                                // console.log(settings.lastReel, 'settings.lastReel')
+                                console.log(validIndices);
+                                settings._winData.winningSymbols.push(validIndices);
+                                settings._winData.totalWinningAmount = totalPayout * settings.BetPerLines;
+                                console.log(settings._winData.totalWinningAmount)
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case isWinningLine && matchCount >= 3 && settings.freeSpin.useFreeSpin:
+                    console.log("FREE SPIN");
+                    
+                    const symbolMultiplierRTL = accessData(
+                        firstSymbolRTL,
+                        matchCount,
+                        gameInstance
+                    );
+                    settings.lastReel = settings.resultSymbolMatrix;
+                    // console.log(settings.lastReel, 'lastReel')
+                    switch (true) {
+                        case symbolMultiplierRTL > 0:
+                            totalPayout += symbolMultiplierRTL;
+                            settings._winData.winningLines.push(index + 1);
+                            winningLines.push({
+                                line,
+                                symbol: firstSymbolLTR,
+                                multiplier: symbolMultiplierRTL,
+                                matchCount,
+                            });
+                            // console.log(`Line ${index + 1}:`, line);
+                            // console.log(
+                            //     `Payout for Line ${index + 1}:`,
+                            //     "payout",
+                            //     symbolMultiplierRTL
+                            // );
                             const formattedIndices = matchedIndices.map(({ col, row }) => `${col},${row}`);
                             const validIndices = formattedIndices.filter(
                                 (index) => index.length > 2
@@ -175,14 +233,20 @@ export function checkForWin(gameInstance: SLZEUS) {
             }
         });
 
-       const {isFreeSpin, scatterCount} = checkForFreeSpin(gameInstance);
-       if(isFreeSpin){
-        handleFreeSpins(scatterCount);
-       }
+    
+        if (settings.freeSpin.useFreeSpin && settings.freeSpin.freeSpinCount>0) {
+            settings.freeSpin.freeSpinCount -= 1;
+            if (settings.freeSpin.freeSpinCount <= 0) {
+                settings.freeSpin.useFreeSpin = false;
+            }
+        }
+        if(isFreeSpin){
+            settings.freeSpin.useFreeSpin = true;
 
+        }
         console.log(totalPayout, "totalPayout");
         
-        gameInstance.playerData.currentWining = totalPayout;
+        gameInstance.playerData.currentWining += totalPayout;
         gameInstance.playerData.haveWon += totalPayout;
 
         
@@ -195,69 +259,76 @@ export function checkForWin(gameInstance: SLZEUS) {
     }
 }
 //checking matching lines with first symbol and wild subs
+type MatchedIndex = { col: number; row: number };
+type CheckLineResult = { isWinningLine: boolean; matchCount: number; matchedIndices: MatchedIndex[] };
+
 function checkLineSymbols(
-    firstSymbol: string,
-    line: number[],
-    gameInstance: SLZEUS
-): {
-    isWinningLine: boolean;
-    matchCount: number;
-    matchedIndices: { col: number; row: number }[];
-} {
-    try {
-        const { settings } = gameInstance;
-        const wildSymbol = settings.wild.SymbolID || "";
-        let matchCount = 1;
-        let currentSymbol = firstSymbol;
-        const matchedIndices: { col: number; row: number }[] = [
-            { col: 0, row: line[0] },
-        ];
-        for (let i = 1; i < line.length; i++) {
-            const rowIndex = line[i];
-            const symbol = settings.resultSymbolMatrix[rowIndex][i];
-            if (symbol === undefined) {
-                console.error(`Symbol at position [${rowIndex}, ${i}] is undefined.`);
-                return { isWinningLine: false, matchCount: 0, matchedIndices: [] };
-            }
-            switch (true) {
-                case symbol == currentSymbol || symbol === wildSymbol:
-                    matchCount++;
-                    matchedIndices.push({ col: i, row: rowIndex });
-                    break;
-                case currentSymbol === wildSymbol:
-                    currentSymbol = symbol;
-                    matchCount++;
-                    matchedIndices.push({ col: i, row: rowIndex });
-                    break;
-                default:
-                    return { isWinningLine: matchCount >= 3, matchCount, matchedIndices };
-            }
-        }
-        return { isWinningLine: matchCount >= 3, matchCount, matchedIndices };
-    } catch (error) {
-        console.error("Error in checkLineSymbols:", error);
+  firstSymbol: string,
+  line: number[],
+  gameInstance: SLZEUS,
+  direction: 'LTR' | 'RTL' = 'LTR'
+): CheckLineResult {
+  try {
+    const { settings } = gameInstance;
+    const wildSymbol = settings.wild.SymbolID || "";
+    let matchCount = 1;
+    let currentSymbol = firstSymbol;
+
+    const matchedIndices: MatchedIndex[] = [];
+    const start = direction === 'LTR' ? 0 : line.length - 1;
+    const end = direction === 'LTR' ? line.length : -1;
+    const step = direction === 'LTR' ? 1 : -1;
+
+    matchedIndices.push({ col: start, row: line[start] });
+
+    for (let i = start + step; i !== end; i += step) {
+      const rowIndex = line[i];
+      const symbol = settings.resultSymbolMatrix[rowIndex][i];
+
+      if (symbol === undefined) {
+        console.error(`Symbol at position [${rowIndex}, ${i}] is undefined.`);
         return { isWinningLine: false, matchCount: 0, matchedIndices: [] };
+      }
+
+      switch (true) {
+        case symbol === currentSymbol || symbol === wildSymbol:
+          matchCount++;
+          matchedIndices.push({ col: i, row: rowIndex });
+          break;
+        case currentSymbol === wildSymbol:
+          currentSymbol = symbol;
+          matchCount++;
+          matchedIndices.push({ col: i, row: rowIndex });
+          break;
+        default:
+          return { isWinningLine: matchCount >= 3, matchCount, matchedIndices };
+      }
     }
+    return { isWinningLine: matchCount >= 3, matchCount, matchedIndices };
+  } catch (error) {
+    console.error("Error in checkLineSymbols:", error);
+    return { isWinningLine: false, matchCount: 0, matchedIndices: [] };
+  }
 }
 
+
 //checking first non wild symbol in lines which start with wild symbol
-function findFirstNonWildSymbol(line, gameInstance: SLZEUS) {
-    try {
-        const { settings } = gameInstance;
-        const wildSymbol = settings.wild.SymbolID;
-        for (let i = 0; i < line.length; i++) {
-            const rowIndex = line[i];
-            const symbol = settings.resultSymbolMatrix[rowIndex][i];
-            if (symbol !== wildSymbol) {
-                return symbol;
-            }
-        }
-        return wildSymbol;
-    } catch (error) {
-        // console.error("Error in findFirstNonWildSymbol:");
-        return null;
+function findFirstNonWildSymbol(line: number[], gameInstance: SLZEUS, direction: 'LTR' | 'RTL' = 'LTR') {
+    const { settings } = gameInstance;
+    const wildSymbol = settings.wild.SymbolID;
+    const start = direction === 'LTR' ? 0 : line.length - 1;
+    const end = direction === 'LTR' ? line.length : -1;
+    const step = direction === 'LTR' ? 1 : -1;
+  
+    for (let i = start; i !== end; i += step) {
+      const rowIndex = line[i];
+      const symbol = settings.resultSymbolMatrix[rowIndex][i];
+      if (symbol !== wildSymbol) {
+        return symbol;
+      }
     }
-}
+    return wildSymbol;
+  }
 
 //payouts to user according to symbols count in matched lines
 function accessData(symbol, matchCount, gameInstance: SLZEUS) {
@@ -392,31 +463,51 @@ function checkForFreeSpin(gameInstance: SLZEUS) {
         scatterCount += reel.filter(symbol => symbol === scatter.symbolID).length;
     }
     const isFreeSpin = scatterCount >= 3;
-    
     console.log(`Scatter Count: ${scatterCount}`);
     console.log(`Free Spin Triggered: ${isFreeSpin}`);
     return {isFreeSpin, scatterCount};
 }
 
-function handleFreeSpins(scatterCount: number) {
+function handleFreeSpins(scatterCount: number, gameInstance:SLZEUS) {
+    const { settings,playerData } = gameInstance;
     switch (scatterCount) {
         case 5:
             console.log("Awarded: 50 Free Spins + 50x Total Bet");
-            // Add logic to award 50 free spins and 50x total bet
-            break;
+             settings.freeSpin.freeSpinCount += 50;
+             playerData.currentWining += settings.currentBet *50;
+             break;
 
         case 4:
             console.log("Awarded: 25 Free Spins + 10x Total Bet");
-            // Add logic to award 25 free spins and 10x total bet
+            settings.freeSpin.freeSpinCount += 25;
+            playerData.currentWining += settings.currentBet *10;
             break;
 
         case 3:
             console.log("Awarded: 10 Free Spins");
-            // Add logic to award 10 free spins
+            settings.freeSpin.freeSpinCount += 10;
             break;
 
         default:
-            console.log("No Free Spins awarded");
+            console.log("No Free Spins awarded or case not handled");
             break;
     }
+
+
+}
+function reduceMatrix(matrix) {
+    const removeCounts = [5, 4, 3, 2, 1]; 
+
+    for (let col = 0; col < removeCounts.length && col < matrix[0].length; col++) {
+        let countToRemove = removeCounts[col];
+        let rows = matrix.length;
+
+        for (let row = rows - 1; row >= 0 && countToRemove > 0; row--) {
+            matrix[row][col] = null;  
+            countToRemove--;
+        }
+    }
+
+    // matrix = matrix.map(row => row.filter(element => element !== null));
+    return matrix;
 }
