@@ -30,18 +30,23 @@ export interface SLTMSETTINGS {
   currentLines: number;
   BetPerLines: number;
   reels: number[][];
+  freeSpinReels:number[][];
   minMatchCount: number;
   level:0|1|2|3|4;
   isLevelUp:boolean;
-  // isFreeSpin: boolean;
-  // isFreeSpinTriggered:boolean;
-  // freeSpinCount: number;
+  isFreeSpin: boolean;
+  isFreeSpinTriggered:boolean;
+  freeSpinCount: number;
   // freeSpinSymbolId: number;
   // freeSpinMultipliers: number[];
   // freeSpinIncrement: number;
   // maxMultiplier: number;
   winningCombinations: WinningCombination[]
   wild:{
+    SymbolId:  string;
+    SymbolName: string
+  },
+  freeSpin:{
     SymbolId:  string;
     SymbolName: string
   }
