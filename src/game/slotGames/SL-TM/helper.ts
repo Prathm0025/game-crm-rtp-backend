@@ -1,11 +1,11 @@
-import { SLLOL } from './LifeOfLuxury';
-import { SymbolType, GameResult, WinningCombination, FreeSpinResponse } from './types';
+import { SymbolType, GameResult, WinningCombination, SpecialSymbols } from './types';
 import { WinData } from "../BaseSlotGame/WinData";
 import { convertSymbols, UiInitData } from '../../Utils/gameUtils';
 import { precisionRound } from '../../../utils/utils';
+import { SLTM } from './TimeMachineBase';
 
 
-export function initializeGameSettings(gameData: any, gameInstance: SLLOL) {
+export function initializeGameSettings(gameData: any, gameInstance: SLTM) {
 
   const gameSettings = gameData.gameSettings || gameData; // Handle both possible structures
 
@@ -23,17 +23,23 @@ export function initializeGameSettings(gameData: any, gameInstance: SLLOL) {
     currentLines: 0,
     BetPerLines: 0,
     reels: [],
-    defaultPayout: gameSettings.defaultPayout || 0,
+    level:0 as 0|1|2|3|4,
+    isLevelUp: false,
     minMatchCount: gameSettings.minMatchCount || 3,
-    isFreeSpin: false,
-    isFreeSpinTriggered: false,
-    freeSpinCount: 0,
-    freeSpinMultipliers: [1, 1, 1, 1, 1],
-    freeSpinSymbolId: gameInstance.currentGameData.gameSettings.Symbols.find((sym: SymbolType) => sym.Name == 'FreeSpin')?.Id || "12",
-    maxMultiplier: 10,
-    freeSpinIncrement: gameSettings.freeSpin.incrementCount,
-    gamble: gameSettings.gamble,
-    winningCombinations: []
+    // isFreeSpin: false,
+    // isFreeSpinTriggered: false,
+    // freeSpinCount: 0,
+    // freeSpinMultipliers: [1, 1, 1, 1, 1],
+    // freeSpinSymbolId: gameInstance.currentGameData.gameSettings.Symbols.find((sym: SymbolType) => sym.Name == 'FreeSpin')?.Id || "12",
+    // maxMultiplier: 10,
+    // freeSpinIncrement: gameSettings.freeSpin.incrementCount,
+    // gamble: gameSettings.gamble,
+    winningCombinations: [],
+    wild: {
+      SymbolId: gameInstance.currentGameData.gameSettings.Symbols.find((sym: SymbolType) => sym.Name == SpecialSymbols.WILD).Id
+      ,
+      SymbolName: SpecialSymbols.WILD,
+    }
   };
 
   // Add WinData separately to avoid circular reference in logging
@@ -85,7 +91,7 @@ function shuffleArray(array: any[]) {
   }
 }
 
-export function sendInitData(gameInstance: SLLOL) {
+export function sendInitData(gameInstance: SLTM) {
   UiInitData.paylines = convertSymbols(gameInstance.settings.Symbols);
   const credits = gameInstance.getPlayerData().credits
   const Balance = credits.toFixed(2)
@@ -107,7 +113,7 @@ export function sendInitData(gameInstance: SLLOL) {
   gameInstance.sendMessage("InitData", dataToSend);
 }
 
-export function makeResultJson(gameInstance: SLLOL) {
+export function makeResultJson(gameInstance: SLTM) {
   try {
     const { settings, playerData } = gameInstance;
     const credits = gameInstance.getPlayerData().credits;
@@ -115,11 +121,11 @@ export function makeResultJson(gameInstance: SLLOL) {
     const sendData = {
       gameData: {
         resultSymbols: settings.resultSymbolMatrix,
-        freeSpin: {
-          isFreeSpin: settings.isFreeSpin,
-          freeSpinCount: settings.freeSpinCount,
-          freeSpinMultipliers: settings.freeSpinMultipliers
-        },
+        // freeSpin: {
+        //   isFreeSpin: settings.isFreeSpin,
+        //   freeSpinCount: settings.freeSpinCount,
+        //   freeSpinMultipliers: settings.freeSpinMultipliers
+        // },
         winningCombinations: settings.winningCombinations,
       },
       PlayerData: {
@@ -131,48 +137,21 @@ export function makeResultJson(gameInstance: SLLOL) {
     };
 
     console.log("Sending result JSON:", sendData);
+    console.log("winCom",sendData.gameData.winningCombinations);
+    
     gameInstance.sendMessage('ResultData', sendData);
   } catch (error) {
     console.error("Error generating result JSON or sending message:", error);
   }
 }
 
-export function printMatrix(matrix: GameResult, getSymbol: (id: number) => SymbolType | undefined, gameInstance: SLLOL): void {
-  const symbolNames = matrix.map(col =>
-    col.map(symbolId => getSymbol(symbolId)?.Name.substring(0, 4) || 'Unkn')
-  );
-
-  for (let row = 0; row < gameInstance.settings.matrix.y; row++) {
-    console.log(symbolNames.map(col => col[row].padEnd(4)).join(' | '));
-  }
-}
-export function printWinningCombinations(winningCombinations: WinningCombination[]): void {
-  if (winningCombinations.length == 0) {
-    console.log("No winning combinations.");
-    return;
-  }
-
-  console.log("Winning Combinations:");
-  winningCombinations.forEach((combo, index) => {
-    console.log(`Combination ${index + 1}:`);
-    console.log(`  Symbol ID: ${combo.symbolId}`);
-    console.log(`  Positions: ${combo.positions.map(pos => `(${pos[0]},${pos[1]})`).join(', ')}`);
-    console.log(`  Payout: ${combo.payout}`);
-    console.log(); // Empty line for separation
-  });
-
-  const totalPayout = winningCombinations.reduce((sum, combo) => sum + combo.payout, 0);
-  console.log(`Total Payout: ${totalPayout}`);
-}
 
 
 export function getSymbol(id: number, Symbols: SymbolType[]): SymbolType | undefined {
   return Symbols.find(s => s.Id == id);
 }
-export function isWild(symbolId: number): boolean {
-  // const symbol = this.getSymbol(symbolId);
-  // return symbol ? symbol.Name === "Wild" : false;
-  return symbolId == 11
+export function isWild(symbolId: number, wildId:string): boolean {
+  return symbolId.toString() == wildId
 }
 
 // export function simulateFreespin(gameInstance: SLLOL): FreeSpinResponse {
@@ -242,7 +221,7 @@ export function isWild(symbolId: number): boolean {
 // }
 
 
-export function checkWin(gameInstance: SLLOL): { payout: number; winningCombinations: WinningCombination[] } {
+export function checkWin(gameInstance: SLTM): { payout: number; winningCombinations: WinningCombination[] } {
   const { settings, playerData } = gameInstance;
   let totalPayout = 0;
   let winningCombinations: WinningCombination[] = [];
@@ -263,7 +242,7 @@ export function checkWin(gameInstance: SLLOL): { payout: number; winningCombinat
 
     for (let row = 0; row < settings.resultSymbolMatrix.length; row++) {
       const currentSymbolId = settings.resultSymbolMatrix[row][col];
-      if (currentSymbolId == symbolId || isWild(currentSymbolId)) {
+      if (currentSymbolId == symbolId || isWild(currentSymbolId, settings.wild.SymbolId)) {
         findCombinations(symbolId, col + 1, [...path, [row, col]]);
       }
     }
@@ -284,7 +263,7 @@ export function checkWin(gameInstance: SLLOL): { payout: number; winningCombinat
     if (symbol.Name !== "Wild") {
       for (let row = 0; row < settings.matrix.y; row++) {
         const startSymbolId = settings.resultSymbolMatrix[row][0]; // Start in the leftmost column (0)
-        if (startSymbolId == symbol.Id || isWild(startSymbolId)) {
+        if (startSymbolId == symbol.Id || isWild(startSymbolId,settings.wild.SymbolId)) {
           findCombinations(symbol.Id, 1, [[row, 0]]);
         }
       }
@@ -305,33 +284,33 @@ export function checkWin(gameInstance: SLLOL): { payout: number; winningCombinat
 
   //NOTE: check and increment freespinmultipliers 
   // Update multipliers based on symbol occurrences, capped at MAX_MULTIPLIER
-  if (settings.freeSpinCount > 0) {
+  // if (settings.freeSpinCount > 0) {
+  //
+  //   settings.resultSymbolMatrix.flat().forEach((symbolId) => {
+  //     if (settings.freeSpinMultipliers.hasOwnProperty(symbolId)) {
+  //       settings.freeSpinMultipliers[symbolId] = Math.min(settings.freeSpinMultipliers[symbolId] + 1, settings.maxMultiplier);
+  //     }
+  //   });
+  // }
 
-    settings.resultSymbolMatrix.flat().forEach((symbolId) => {
-      if (settings.freeSpinMultipliers.hasOwnProperty(symbolId)) {
-        settings.freeSpinMultipliers[symbolId] = Math.min(settings.freeSpinMultipliers[symbolId] + 1, settings.maxMultiplier);
-      }
-    });
-  }
-
-  const bool = checkForFreespin(gameInstance)
-  console.log("isFreespin", bool);
+  // const bool = checkForFreespin(gameInstance)
+  // console.log("isFreespin", bool);
 
   //reset multiplers for freespin when its over 
-  if (settings.freeSpinCount <= 0 && settings.isFreeSpin === false) {
-    settings.freeSpinMultipliers = [1, 1, 1, 1, 1]
-  }
+  // if (settings.freeSpinCount <= 0 && settings.isFreeSpin === false) {
+  //   settings.freeSpinMultipliers = [1, 1, 1, 1, 1]
+  // }
   // else {
   //   settings.freeSpinCount -= 1
   // }
   winningCombinations.forEach(combo => {
     // alter payout . multiply betsperline with payout
     // NOTE: also check for freespin multipliers 
-    if (settings.freeSpinCount > 0 && getSymbol(combo.symbolId, settings.Symbols).isFreeSpinMultiplier) {
-      combo.payout = combo.payout * settings.freeSpinMultipliers[combo.symbolId]
-    } else {
-      combo.payout = combo.payout
-    }
+    // if (settings.freeSpinCount > 0 && getSymbol(combo.symbolId, settings.Symbols).isFreeSpinMultiplier) {
+    //   combo.payout = combo.payout * settings.freeSpinMultipliers[combo.symbolId]
+    // } else {
+    combo.payout = combo.payout
+    // }
     totalPayout += combo.payout;
   })
   settings.winningCombinations = winningCombinations
@@ -341,47 +320,47 @@ export function checkWin(gameInstance: SLLOL): { payout: number; winningCombinat
 
   gameInstance.incrementPlayerBalance(gameInstance.playerData.currentWining);
   makeResultJson(gameInstance)
-  if (settings.freeSpinCount > 0) {
-    settings.freeSpinCount -= 1
-  }
+  // if (settings.freeSpinCount > 0) {
+  //   settings.freeSpinCount -= 1
+  // }
 
   return { payout: totalPayout, winningCombinations };
 }
 
-export function checkForFreespin(gameInstance: SLLOL): boolean {
-  try {
-    const { settings } = gameInstance;
-    const resultMatrix = settings.resultSymbolMatrix;
-    const rows = resultMatrix.length;
-
-    // Check if 1st, 2nd, and 3rd columns have symbol with ID 12 regardless of row
-    let col1Has12 = false;
-    let col2Has12 = false;
-    let col3Has12 = false;
-
-
-    for (let j = 0; j < rows; j++) { // Loop through rows
-      if (resultMatrix[j][0] == settings.freeSpinSymbolId) col1Has12 = true; // Check 1st column
-      if (resultMatrix[j][1] == settings.freeSpinSymbolId) col2Has12 = true; // Check 2nd column
-      if (resultMatrix[j][2] == settings.freeSpinSymbolId) col3Has12 = true; // Check 3rd column
-
-
-      // If all three columns have the symbol, return true
-      if (col1Has12 && col2Has12 && col3Has12) {
-        settings.isFreeSpinTriggered = true
-        settings.isFreeSpin = true;
-        settings.freeSpinCount += settings.freeSpinIncrement;
-        return true;
-      }
-    }
-
-    settings.isFreeSpin = false;
-    // If one of the columns doesn't have the symbol, return false
-    return false;
-
-
-  } catch (e) {
-    console.error("Error in checkForFreespin:", e);
-    return false; // Handle error by returning false in case of failure
-  }
-}
+// export function checkForFreespin(gameInstance: SLTM): boolean {
+//   try {
+//     const { settings } = gameInstance;
+//     const resultMatrix = settings.resultSymbolMatrix;
+//     const rows = resultMatrix.length;
+//
+//     // Check if 1st, 2nd, and 3rd columns have symbol with ID 12 regardless of row
+//     let col1Has12 = false;
+//     let col2Has12 = false;
+//     let col3Has12 = false;
+//
+//
+//     for (let j = 0; j < rows; j++) { // Loop through rows
+//       if (resultMatrix[j][0] == settings.freeSpinSymbolId) col1Has12 = true; // Check 1st column
+//       if (resultMatrix[j][1] == settings.freeSpinSymbolId) col2Has12 = true; // Check 2nd column
+//       if (resultMatrix[j][2] == settings.freeSpinSymbolId) col3Has12 = true; // Check 3rd column
+//
+//
+//       // If all three columns have the symbol, return true
+//       if (col1Has12 && col2Has12 && col3Has12) {
+//         settings.isFreeSpinTriggered = true
+//         settings.isFreeSpin = true;
+//         settings.freeSpinCount += settings.freeSpinIncrement;
+//         return true;
+//       }
+//     }
+//
+//     settings.isFreeSpin = false;
+//     // If one of the columns doesn't have the symbol, return false
+//     return false;
+//
+//
+//   } catch (e) {
+//     console.error("Error in checkForFreespin:", e);
+//     return false; // Handle error by returning false in case of failure
+//   }
+// }
