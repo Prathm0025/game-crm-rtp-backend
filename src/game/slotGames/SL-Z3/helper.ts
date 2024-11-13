@@ -1,5 +1,6 @@
 import { WinData } from "../BaseSlotGame/WinData";
 import {
+    betMultiplier,
     convertSymbols,
     UiInitData,
 } from "../../Utils/gameUtils";
@@ -17,12 +18,15 @@ export function initializeGameSettings(gameData: any, gameInstance: SLZEUS) {
         id: gameData.gameSettings.id,
         matrix: gameData.gameSettings.matrix,
         bets: gameData.gameSettings.bets,
+        baseBet:gameData.gameSettings.baseBet, 
+        BetMultiplier: gameData.gameSettings.betMultiplier,
         Symbols: gameInstance.initSymbols,
         resultSymbolMatrix: [],
         currentGamedata: gameData.gameSettings,
         lineData: [],
         _winData: new WinData(gameInstance),
         currentBet: 0,
+        baseBetAmount:gameData.gameSettings.baseBet,
         currentLines: 0,
         BetPerLines: 0,
         reels: [],
@@ -98,6 +102,32 @@ export function makePayLines(gameInstance: SLZEUS) {
 }
 
 
+export function sendInitData(gameInstance: SLZEUS) {
+    gameInstance.settings.lineData =
+        gameInstance.settings.currentGamedata.linesApiData;
+    UiInitData.paylines = convertSymbols(gameInstance.settings.Symbols);
+    const reels = generateInitialReel(gameInstance.settings);
+    gameInstance.settings.reels = reels;
+    const dataToSend = {
+        GameData: {
+            Reel: reels,
+            linesApiData: gameInstance.settings.currentGamedata.linesApiData,
+            Bets: gameInstance.settings.currentGamedata.bets,
+            freeSpinData: gameInstance.settings.freeSpinData,
+            baseBet:gameInstance.settings.baseBetAmount,
+            betMultiplier: gameInstance.settings.currentGamedata.betMultiplier
+        },
+        UIData: UiInitData,
+        PlayerData: {
+            Balance: gameInstance.getPlayerData().credits,
+            haveWon: gameInstance.playerData.haveWon,
+            currentWining: gameInstance.playerData.currentWining,
+            totalbet: gameInstance.playerData.totalbet,
+        },
+    };
+    gameInstance.sendMessage("InitData", dataToSend);
+}
+
 
 //CHECK WINS ON PAYLINES WITH OR WITHOUT WILD
 //check for win function
@@ -156,7 +186,9 @@ export function checkForWin(gameInstance: SLZEUS) {
                     // console.log(settings.lastReel, 'lastReel')
                     switch (true) {
                         case symbolMultiplierLTR > 0:
-                            totalPayout += symbolMultiplierLTR;
+                            const payout =symbolMultiplierLTR * settings.BetPerLines;
+                            totalPayout += payout;
+
                             settings._winData.winningLines.push(index + 1);
                             winningLines.push({
                                 line,
@@ -164,12 +196,12 @@ export function checkForWin(gameInstance: SLZEUS) {
                                 multiplier: symbolMultiplierLTR,
                                 matchCount,
                             });
-                            // console.log(`Line ${index + 1}:`, line);
-                            // console.log(
-                            //     `Payout for Line ${index + 1}:`,
-                            //     "payout",
-                            //     symbolMultiplierLTR
-                            // );
+                            console.log(`Line ${index + 1}:`, line);
+                            console.log(
+                                `Payout for Line ${index + 1}:`,
+                                "payout",
+                                symbolMultiplierLTR
+                            );
                             const formattedIndices = matchedIndices.map(({ col, row }) => `${col},${row}`);
                             const validIndices = formattedIndices.filter(
                                 (index) => index.length > 2
@@ -178,7 +210,8 @@ export function checkForWin(gameInstance: SLZEUS) {
                                 // console.log(settings.lastReel, 'settings.lastReel')
                                 console.log(validIndices);
                                 settings._winData.winningSymbols.push(validIndices);
-                                settings._winData.totalWinningAmount = totalPayout * settings.BetPerLines;
+                                settings._winData.totalWinningAmount = totalPayout;
+
                                 console.log(settings._winData.totalWinningAmount)
                             }
                             break;
@@ -198,7 +231,8 @@ export function checkForWin(gameInstance: SLZEUS) {
                     // console.log(settings.lastReel, 'lastReel')
                     switch (true) {
                         case symbolMultiplierRTL > 0:
-                            totalPayout += symbolMultiplierRTL;
+                            const payout =symbolMultiplierRTL * settings.BetPerLines;
+                            totalPayout += payout;
                             settings._winData.winningLines.push(index + 1);
                             winningLines.push({
                                 line,
@@ -220,7 +254,7 @@ export function checkForWin(gameInstance: SLZEUS) {
                                 // console.log(settings.lastReel, 'settings.lastReel')
                                 console.log(validIndices);
                                 settings._winData.winningSymbols.push(validIndices);
-                                settings._winData.totalWinningAmount = totalPayout * settings.BetPerLines;
+                                settings._winData.totalWinningAmount = totalPayout;
                                 console.log(settings._winData.totalWinningAmount)
                             }
                             break;
@@ -244,13 +278,17 @@ export function checkForWin(gameInstance: SLZEUS) {
             settings.freeSpin.useFreeSpin = true;
 
         }
-        console.log(totalPayout, "totalPayout");
         
         gameInstance.playerData.currentWining += totalPayout;
-        gameInstance.playerData.haveWon += totalPayout;
-
+        gameInstance.playerData.haveWon += gameInstance.playerData.currentWining;
+        gameInstance.updatePlayerBalance(gameInstance.playerData.currentWining);
         
         makeResultJson(gameInstance)
+        settings._winData.totalWinningAmount =0;
+        gameInstance.playerData.currentWining = 0;
+        settings._winData.winningLines = []
+        settings._winData.winningSymbols = []
+
 
         return winningLines;
     } catch (error) {
@@ -354,60 +392,9 @@ function accessData(symbol, matchCount, gameInstance: SLZEUS) {
  * Sends the initial game and player data to the client.
  * @param gameInstance - The instance of the SLCM class containing the game settings and player data.
  */
-export function sendInitData(gameInstance: SLZEUS) {
-    gameInstance.settings.lineData =
-        gameInstance.settings.currentGamedata.linesApiData;
-    UiInitData.paylines = convertSymbols(gameInstance.settings.Symbols);
-    const reels = generateInitialReel(gameInstance.settings);
-    gameInstance.settings.reels = reels;
-    const dataToSend = {
-        GameData: {
-            Reel: reels,
-            linesApiData: gameInstance.settings.currentGamedata.linesApiData,
-            Bets: gameInstance.settings.currentGamedata.bets,
-            freeSpinData: gameInstance.settings.freeSpinData,
-        },
-        UIData: UiInitData,
-        PlayerData: {
-            Balance: gameInstance.getPlayerData().credits,
-            haveWon: gameInstance.playerData.haveWon,
-            currentWining: gameInstance.playerData.currentWining,
-            totalbet: gameInstance.playerData.totalbet,
-        },
-    };
-    gameInstance.sendMessage("InitData", dataToSend);
-}
 
-export function makeResultJson(gameInstance: SLZEUS) {
-    try {
-        const { settings, playerData } = gameInstance;
-        const credits = gameInstance.getPlayerData().credits + playerData.currentWining
-        const Balance = credits.toFixed(2)
-        const sendData = {
-            GameData: {
-                resultSymbols: settings.firstReel,
-                linesToEmit: settings._winData.winningLines,
-                symbolsToEmit: settings._winData.winningSymbols,
-                wildSymbolIndices: settings.replacedToWildIndices,               
-                isFreeSpin: settings.freeSpin.useFreeSpin,
-                freeSpinCount: settings.freeSpin.freeSpinCount,
 
-            },
-            PlayerData: {
-                Balance: Balance,
-                currentWining: playerData.currentWining,
-                totalbet: playerData.totalbet,
-                haveWon: playerData.haveWon,
-            }
-        };
-        gameInstance.sendMessage('ResultData', sendData);
 
-        console.log(sendData, "send Data");
-        
-    } catch (error) {
-        console.error("Error generating result JSON or sending message:", error);
-    }
-}
 
 function handleSpecialSymbols(symbol: any, gameInstance: SLZEUS) {
     switch (symbol.Name) {
@@ -510,4 +497,34 @@ function reduceMatrix(matrix) {
 
     // matrix = matrix.map(row => row.filter(element => element !== null));
     return matrix;
+}
+export function makeResultJson(gameInstance: SLZEUS) {
+    try {
+        const { settings, playerData } = gameInstance;
+        const credits = gameInstance.getPlayerData().credits + playerData.currentWining
+        const Balance = credits.toFixed(2)
+        const sendData = {
+            GameData: {
+                resultSymbols: settings.firstReel,
+                linesToEmit: settings._winData.winningLines,
+                symbolsToEmit: settings._winData.winningSymbols,
+                wildSymbolIndices: settings.replacedToWildIndices,               
+                isFreeSpin: settings.freeSpin.useFreeSpin,
+                freeSpinCount: settings.freeSpin.freeSpinCount,
+
+            },
+            PlayerData: {
+                Balance: Balance,
+                currentWining: playerData.currentWining,
+                totalbet: playerData.totalbet,
+                haveWon: playerData.haveWon,
+            }
+        };
+        gameInstance.sendMessage('ResultData', sendData);
+
+        console.log(sendData, "send Data");
+        
+    } catch (error) {
+        console.error("Error generating result JSON or sending message:", error);
+    }
 }
