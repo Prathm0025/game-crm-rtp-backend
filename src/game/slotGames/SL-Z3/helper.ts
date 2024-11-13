@@ -134,12 +134,12 @@ export function sendInitData(gameInstance: SLZEUS) {
 export function checkForWin(gameInstance: SLZEUS) {
     try {
         const { settings } = gameInstance;
+        handleFullReelOfZeus(gameInstance); 
 
        // Remove elements from each reel in the specified sequence: 5, 4, 3, 2, 1, 0
          settings.resultSymbolMatrix = reduceMatrix(settings.resultSymbolMatrix);
         console.log(settings.resultSymbolMatrix, "result symbol matrix");       
        // Subsitute full reel of zeus with wild
-        handleFullReelOfZeus(gameInstance); 
 
         const winningLines = [];
         let totalPayout = 0;
@@ -420,25 +420,27 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLZEUS) {
     }
 }
 
-function handleFullReelOfZeus(gameInstance: SLZEUS, symbolIdToCheck = 0){
+function handleFullReelOfZeus(gameInstance: SLZEUS, symbolIdToCheck = 0) {
     try {        
         const { settings } = gameInstance;
         const resultSymbolMatrix = settings.resultSymbolMatrix;
-        for (let i = 0; i < resultSymbolMatrix.length; i++) {
-            const reel = resultSymbolMatrix[i];        
-            const isFullReel = reel.every(symbol => symbol === symbolIdToCheck);
-            if (isFullReel) {
-              for (let j = 0; j < reel.length; j++) {
-                reel[j] = settings.wild.SymbolID; 
-              }
-              settings.replacedToWildIndices.push(i);
+
+        for (let col = 0; col < resultSymbolMatrix[0].length; col++) {
+            const isFullColumn = resultSymbolMatrix.every(row => row[col] === symbolIdToCheck || row[col] === null);
+
+            if (isFullColumn) {
+                for (let row = 0; row < resultSymbolMatrix.length; row++) {
+                    resultSymbolMatrix[row][col] = settings.wild.SymbolID;
+                }
+
+                settings.replacedToWildIndices.push(col);
             }
-          }
+        }
     } catch (error) {
-        console.log(error);
-        
+        console.error("Error handling full reel of Zeus:", error);
     }
 }
+
 
 function checkForFreeSpin(gameInstance: SLZEUS) {
     const { resultSymbolMatrix, scatter } = gameInstance.settings;
