@@ -9,7 +9,7 @@ import { SLONE } from "./SL-ONE/OneOfAKindBase";
 import { SLBE } from "./SL-BE/bloodEternalBase"
 import { SLBB } from "./SL-BB/breakingBadBase";
 import { SLLOL } from "./SL-LOL/LifeOfLuxury";
-import { SLZEUS } from "./zeus3/zeusBase";
+import { SLZEUS } from "./SL-Z3/zeusBase";
 import { SLTM } from "./SL-TM/TimeMachineBase";
 export default class SlotGameManager {
   public currentGame: any;
