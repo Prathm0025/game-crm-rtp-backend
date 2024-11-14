@@ -138,7 +138,7 @@ export function checkForWin(gameInstance: SLZEUS) {
 
        // Remove elements from each reel in the specified sequence: 5, 4, 3, 2, 1, 0
          settings.resultSymbolMatrix = reduceMatrix(settings.resultSymbolMatrix);
-        console.log(settings.resultSymbolMatrix, "result symbol matrix");       
+        console.log(settings.resultSymbolMatrix, "result symbol matrix column replace to wild(10)");       
        // Subsitute full reel of zeus with wild
 
         const winningLines = [];
@@ -175,7 +175,7 @@ export function checkForWin(gameInstance: SLZEUS) {
             );            
             switch (true) {
                 case isWinningLine && matchCount >= 3 && !settings.freeSpin.useFreeSpin:
-                    console.log("NOT FREE SPIN");
+                    // console.log("NOT FREE SPIN");
                     
                     const symbolMultiplierLTR = accessData(
                         firstSymbolLTR,
@@ -196,12 +196,12 @@ export function checkForWin(gameInstance: SLZEUS) {
                                 multiplier: symbolMultiplierLTR,
                                 matchCount,
                             });
-                            console.log(`Line ${index + 1}:`, line);
-                            console.log(
-                                `Payout for Line ${index + 1}:`,
-                                "payout",
-                                symbolMultiplierLTR
-                            );
+                            // console.log(`Line ${index + 1}:`, line);
+                            // console.log(
+                            //     `Payout for Line ${index + 1}:`,
+                            //     "payout",
+                            //     symbolMultiplierLTR
+                            // );
                             const formattedIndices = matchedIndices.map(({ col, row }) => `${col},${row}`);
                             const validIndices = formattedIndices.filter(
                                 (index) => index.length > 2
@@ -220,7 +220,7 @@ export function checkForWin(gameInstance: SLZEUS) {
                     }
                     break;
                 case isWinningLine && matchCount >= 3 && settings.freeSpin.useFreeSpin:
-                    console.log("FREE SPIN");
+                    // console.log("FREE SPIN");
                     
                     const symbolMultiplierRTL = accessData(
                         firstSymbolRTL,
@@ -240,12 +240,12 @@ export function checkForWin(gameInstance: SLZEUS) {
                                 multiplier: symbolMultiplierRTL,
                                 matchCount,
                             });
-                            // console.log(`Line ${index + 1}:`, line);
-                            // console.log(
-                            //     `Payout for Line ${index + 1}:`,
-                            //     "payout",
-                            //     symbolMultiplierRTL
-                            // );
+                            console.log(`Line ${index + 1}:`, line);
+                            console.log(
+                                `Payout for Line ${index + 1}:`,
+                                "payout",
+                                symbolMultiplierRTL
+                            );
                             const formattedIndices = matchedIndices.map(({ col, row }) => `${col},${row}`);
                             const validIndices = formattedIndices.filter(
                                 (index) => index.length > 2
@@ -288,6 +288,8 @@ export function checkForWin(gameInstance: SLZEUS) {
         gameInstance.playerData.currentWining = 0;
         settings._winData.winningLines = []
         settings._winData.winningSymbols = []
+        settings.replacedToWildIndices=[];
+
 
 
         return winningLines;
@@ -461,24 +463,21 @@ function handleFreeSpins(scatterCount: number, gameInstance:SLZEUS) {
     const { settings,playerData } = gameInstance;
     switch (scatterCount) {
         case 5:
-            console.log("Awarded: 50 Free Spins + 50x Total Bet");
              settings.freeSpin.freeSpinCount += 50;
              playerData.currentWining += settings.currentBet *50;
              break;
 
         case 4:
-            console.log("Awarded: 25 Free Spins + 10x Total Bet");
             settings.freeSpin.freeSpinCount += 25;
             playerData.currentWining += settings.currentBet *10;
             break;
 
         case 3:
-            console.log("Awarded: 10 Free Spins");
             settings.freeSpin.freeSpinCount += 10;
             break;
 
         default:
-            console.log("No Free Spins awarded or case not handled");
+            // console.log("No Free Spins awarded or case not handled");
             break;
     }
 
