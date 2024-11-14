@@ -60,6 +60,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBT) {
       SymbolID: -1,
       useWild: false,
     },
+    
   };
 }
 /**
@@ -104,87 +105,123 @@ export function makePayLines(gameInstance: SLBT) {
 
 function handleSpecialSymbols(symbol: any, gameInstance: SLBT) {
   switch (symbol.Name) {
-    case specialIcons.jackpot:
-      gameInstance.settings.jackpot.symbolName;
-      gameInstance.settings.jackpot.symbolId = symbol.Id;
-      gameInstance.settings.jackpot.symbolsCount = symbol.symbolsCount;
-      gameInstance.settings.jackpot.defaultAmount = symbol.defaultAmount;
-      gameInstance.settings.jackpot.increaseValue = symbol.increaseValue;
-      gameInstance.settings.jackpot.useJackpot = true;
-      break;
     case specialIcons.wild:
       gameInstance.settings.wild.SymbolName = symbol.Name;
       gameInstance.settings.wild.SymbolID = symbol.Id;
       gameInstance.settings.wild.useWild = true;
 
       break;
+    case specialIcons.FreeSpin:
+        gameInstance.settings.freeSpin.symbolID = symbol.Id;
+        gameInstance.settings.freeSpin.freeSpinMuiltiplier = symbol.multiplier;
+        gameInstance.settings.freeSpin.useFreeSpin = false;
+      break;
+  
     default:
-      break;``
+      break;
   }
 }
 
 //CHECK WINS ON PAYLINES WITH OR WITHOUT WILD
 //check for win function
+
+
 export function checkForWin(gameInstance: SLBT) {
-  const { resultSymbolMatrix, Symbols, _winData } = gameInstance.settings;
+  const { settings } = gameInstance;
+  const wildSymbolId = settings.wild.SymbolID; // Access the wild symbol ID separately
   const winningLines = [];
+  let totalPayout =0;
+  // Loop through each row in the first column to start potential winning lines
+  for (let row = 0; row < settings.resultSymbolMatrix.length; row++) {
+    const symbolId = settings.resultSymbolMatrix[row][0]; // Symbol in the first column
+    if (!symbolId || symbolId === wildSymbolId) continue; // Skip if no symbol or if it's a wild (wilds don't start lines)
 
-  // Loop through each symbol in the first column only
-  for (let row = 0; row < resultSymbolMatrix.length; row++) {
-    const symbolId = resultSymbolMatrix[row][0]; // Symbol in the first column
-    if (!symbolId) continue; // Skip empty or null entries if any
-
-    // Find the symbol's data to access the multiplier
-    const symbolData = Symbols.find((s) => s.Id === symbolId);
+    // Find the symbol data to access the multiplier
+    const symbolData = settings.Symbols.find((s) => s.Id === symbolId);
     if (!symbolData) continue;
 
-    // Loop through subsequent columns to check for matches for this symbol
-    let consecutiveCount = 1; // Start with the symbol in the first column
+    // Initialize an array to store separate winning lines for each match
+    let consecutiveLines = [{ count: 1, positions: [{ row, col: 0 }] }];
 
-    // Track winning lines starting from this symbol in the first column
-    for (let col = 1; col < resultSymbolMatrix[0].length; col++) {
-      let matchCountInColumn = 0; // Count matches in the current column
+    // Loop through each subsequent column
+    for (let col = 1; col < settings.resultSymbolMatrix[0].length; col++) {
+      let foundMatches = [];
 
-      // Check if this symbol is present in the current column
-      for (let checkRow = 0; checkRow < resultSymbolMatrix.length; checkRow++) {
-        if (resultSymbolMatrix[checkRow][col] === symbolId) {
-          matchCountInColumn++;
-          
-          // If we find a match, consider it a new winning line starting from this first-column symbol
-          if (consecutiveCount + 1 >= 2) { // Minimum of 2 matches required
-            console.log(`Winning line found starting from row ${row + 1} in the first column. Symbol ID: ${symbolId}, Match at column ${col + 1}, row ${checkRow + 1}`);
+      // Check for matches or wilds in the current column
+      for (let checkRow = 0; checkRow < settings.resultSymbolMatrix.length; checkRow++) {
+        const currentSymbol = settings.resultSymbolMatrix[checkRow][col];
 
-            // Store the winning line details
-            winningLines.push({
-              symbol: symbolId,
-              count: consecutiveCount + 1,
-              startColumn: 0,
-              startRow: row,
-              matchedColumn: col,
-              matchedRow: checkRow,
-            });
-
-            // Add payout for this individual line
-            // const payout = (consecutiveCount + 1) * (symbolData.multiplier || 1);
-            // _winData.addPayout(symbolId, payout);
-          }
+        // If symbol matches or is a wild, it's considered a match
+        if (currentSymbol === symbolId || currentSymbol === wildSymbolId) {
+          foundMatches.push({ row: checkRow, isWild: currentSymbol === wildSymbolId });
         }
       }
 
-      // If there were no matches in this column, reset the consecutive count
-      if (matchCountInColumn === 0) {
-        break; // Stop checking if no further matches are found
-      }
-    }
-  }
+      // If no matches in this column, break out of the loop for all current lines
+      if (foundMatches.length === 0) break;
 
+      // Update each current winning line or start a new one for each match
+      let newConsecutiveLines = [];
+      consecutiveLines.forEach(line => {
+        foundMatches.forEach(({ row: matchRow, isWild }) => {
+          newConsecutiveLines.push({
+            count: line.count + 1,
+            positions: [...line.positions, { row: matchRow, col }],
+          });
+        });
+      });
+
+      consecutiveLines = newConsecutiveLines;
+    }
+
+    // After processing all columns, record winning lines with count >= 2
+    consecutiveLines.forEach(line => {
+      if (line.count >= 2) {
+        console.log(`Winning line found starting from row ${row + 1} in the first column. Symbol ID: ${symbolId}, Consecutive count: ${line.count},`);
+
+        // Store the winning line details
+        winningLines.push({
+          symbol: symbolId,
+          count: line.count,
+          positions: line.positions,
+        });
+        const symbolMultiplier = accessData(symbolId, line.count, gameInstance);
+        totalPayout += symbolMultiplier * gameInstance.settings.currentBet;
+        gameInstance.playerData.currentWining += totalPayout;
+        console.log("Symbol multiplier",symbolMultiplier);
+        console.log("totalPayout",totalPayout);
+        
+        // Add payout for each winning line based on the consecutive count and multiplier
+        // const payout = line.count * (symbolData.multiplier || 1);
+        // _winData.addPayout(symbolId, payout);
+      }
+    });
+  }
+  console.log("Total winnings",gameInstance.playerData.currentWining);
+  
   // Update game settings with winning data
   gameInstance.settings._winData.winningLines = winningLines;
-  console.log("Winning lines",gameInstance.settings._winData.winningLines);
-  
-  // gameInstance.settings.payoutAfterCascading += _winData.calculateTotalPayout();
+  console.log("Winning Lines",gameInstance.settings._winData.winningLines)
 }
 
+function accessData(symbol, matchCount, gameInstance: SLBT) {
+  const { settings } = gameInstance;
+  try {
+    const symbolData = settings.currentGamedata.Symbols.find(
+      (s) => s.Id.toString() === symbol.toString()
+    );
+    if (symbolData) {
+      const multiplierArray = symbolData.multiplier;
+      if (multiplierArray && multiplierArray[5 - matchCount]) {
+        return multiplierArray[5 - matchCount][0];
+      }
+    }
+    return 0;
+  } catch (error) {
+    // console.error("Error in accessData:");
+    return 0;
+  }
+}
 
 
 

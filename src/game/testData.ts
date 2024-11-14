@@ -477,11 +477,11 @@ export const gameData = [
        "useWildSub": true,
        "isFreeSpinMultiplier": true,
        "reelInstance": {
-         "0": 15,
-         "1": 15,
-         "2": 15,
-         "3": 15,
-         "4": 15
+         "0": 45,
+         "1": 55,
+         "2": 55,
+         "3": 55,
+         "4": 55
        },
        "multiplier": [
          [
@@ -714,7 +714,7 @@ export const gameData = [
        "useWildSub": false,
        "isFreeSpinMultiplier": false,
        "reelInstance": {
-         "0": 5,
+         "0": 0,
          "1": 5,
          "2": 5,
          "3": 5,
