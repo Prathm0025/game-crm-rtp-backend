@@ -255,8 +255,8 @@ function handleScatterBlue(gameInstance: SLONE): number {
       // console.log("Symbol", symbol.Id, "Payout:", symbol.payout);
 
       lives += symbol.freeSpinCount;
-      blueResponse.count.push(lives)
       --lives;
+      blueResponse.count.push(lives)
       // console.log("Remaining lives:", lives);
 
       gameInstance.settings.freeSpinCount = lives;
