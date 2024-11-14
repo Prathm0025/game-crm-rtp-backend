@@ -238,7 +238,8 @@ function handleScatterBlue(gameInstance: SLONE): number {
       symbols: [],
       payout: 0,
       levelUp: [],
-      booster: []
+      booster: [],
+      count: []
     }
     gameInstance.settings.freeSpinType = "BLUE"
 
@@ -251,6 +252,7 @@ function handleScatterBlue(gameInstance: SLONE): number {
       // console.log("Symbol", symbol.Id, "Payout:", symbol.payout);
 
       lives += symbol.freeSpinCount;
+      blueResponse.count.push(lives)
       --lives;
       // console.log("Remaining lives:", lives);
 
@@ -302,6 +304,7 @@ function handleScatterPurple(gameInstance: SLONE) {
       levelUp: [],
       booster: [],
       reTriggered: [],
+      count: []
     };
 
     gameInstance.settings.freeSpinType = "PURPLE";
@@ -317,6 +320,7 @@ function handleScatterPurple(gameInstance: SLONE) {
 
       console.log("Symbol", symbol.Id, "Payout:", symbol.payout);
 
+      purpleResponse.count.push(lives)
       --lives;
       console.log("Remaining lives:", lives);
 
@@ -777,6 +781,7 @@ export function checkForWin(gameInstance: SLONE) {
     payout: 0,
     levelUp: [],
     booster: [],
+    count: []
   }
 
   gameInstance.settings.scatterPurple.response = {
@@ -787,6 +792,7 @@ export function checkForWin(gameInstance: SLONE) {
     levelUp: [],
     booster: [],
     reTriggered: [],
+    count: []
   }
 
   console.log("________________x_______x___________________");
