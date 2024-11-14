@@ -81,23 +81,23 @@ export class SLBB {
         return;
       }
 
-      if (!freeSpin.isFreeSpin) {
+      if (!(this.settings.bonus.count > 0) && !(this.settings.freeSpin.count > 0)) {
         this.decrementPlayerBalance(this.settings.currentBet);
         this.playerData.totalbet += this.settings.currentBet;
       }
-      if (!bonus.isTriggered) {
-        this.decrementPlayerBalance(this.settings.currentBet);
-      }
+      // if (!bonus.isTriggered) {
+      //   this.decrementPlayerBalance(this.settings.currentBet);
+      // }
       // if (heisenberg.freeSpin.freeSpinCount === 1) {
       //   heisenberg.isTriggered= false;
       // }
-      if (freeSpin.count === 1) {
-        freeSpin.isFreeSpin = false;
-      }
+      // if (freeSpin.count === 1) {
+      //   freeSpin.isFreeSpin = false;
+      // }
       if (
         // freeSpin.isFreeSpin &&
         freeSpin.count > 0 &&
-        !this.settings.bonus.isTriggered
+        !this.settings.bonus.isBonus
       ) {
         freeSpin.count--;
 
@@ -107,8 +107,13 @@ export class SLBB {
           "this.settings.freeSpinCount"
         );
       }
+      // !( this.settings.bonus.count>0 ) || !( this.settings.freeSpin.count>0 )
       // this.incrementPlayerBalance(this.playerData.currentWining)
-      if(!this.settings.bonus.isTriggered){
+      // console.log("bonus", this.settings.bonus.count);
+      // console.log("free", this.settings.freeSpin.count);
+      // console.log("bool", !( this.settings.bonus.count>0 ) || !( this.settings.freeSpin.count>0 ));
+      //
+      if( !( this.settings.bonus.count>0 ) ) {
       new RandomResultGenerator(this);
       }
       checkForWin(this)

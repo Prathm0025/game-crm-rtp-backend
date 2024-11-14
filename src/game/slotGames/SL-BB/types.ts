@@ -38,11 +38,9 @@ export interface SLBBSETTINGS {
   Symbols: Symbol[];
   jackpot: {
     isTriggered: boolean;
-    payout: number;
-  },
-  grandPrize: {
-    isTriggered: boolean;
-    payout: number;
+    payout: number[];
+    payoutProbs: number[];
+    win: number
   },
   freeSpin: {
     isEnabled: boolean,
@@ -73,12 +71,14 @@ export interface SLBBSETTINGS {
     SymbolName: string;
     SymbolID: string;
     useWild: boolean;
+    values: valueType[]
   };
   coins: {
     SymbolName: string;
     SymbolID: string;
     useWild: boolean;
     values: valueType[]
+    bonusValues: valueType[]
   };
   prizeCoin: {
     SymbolName: string;
@@ -94,9 +94,11 @@ export interface SLBBSETTINGS {
   bonus: {
     isBonus:boolean;
     isTriggered: boolean;
+    isWalterStash:boolean;
     count: number,
     payout: number;
   };
+  blanks:string[],
   cashCollectPrize: {
     isTriggered: boolean,
     payout: number,
