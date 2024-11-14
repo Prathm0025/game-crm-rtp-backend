@@ -29,7 +29,9 @@ export function initializeGameSettings(gameData: any, gameInstance: SLONE) {
         symbols: [],
         payout: 0,
         levelUp: [],
-        booster: []
+        booster: [],
+        count: []
+
       }
     },
     scatterPurple: {
@@ -41,7 +43,8 @@ export function initializeGameSettings(gameData: any, gameInstance: SLONE) {
         levelUp: [],
         booster: [],
         topSymbols: [],
-        reTriggered: []
+        reTriggered: [],
+        count: []
       }
     },
     joker: {
