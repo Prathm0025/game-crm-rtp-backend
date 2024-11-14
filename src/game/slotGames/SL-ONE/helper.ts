@@ -29,7 +29,9 @@ export function initializeGameSettings(gameData: any, gameInstance: SLONE) {
         symbols: [],
         payout: 0,
         levelUp: [],
-        booster: []
+        booster: [],
+        count: []
+
       }
     },
     scatterPurple: {
@@ -41,7 +43,8 @@ export function initializeGameSettings(gameData: any, gameInstance: SLONE) {
         levelUp: [],
         booster: [],
         topSymbols: [],
-        reTriggered: []
+        reTriggered: [],
+        count: []
       }
     },
     joker: {
@@ -148,37 +151,37 @@ function handleJoker(gameInstance: SLONE) {
   jokerResponse.blueRound = matchesInBlue
 
   if (matchesInBlue === 3) {
-    console.log("blueRound cleared");
+    // console.log("blueRound cleared");
     payout = gameInstance.settings.joker.payout[0] * gameInstance.settings.BetPerLines
     //move to green greenRound
     const matchesInGreen = getRandomIndex(gameInstance.settings.joker.greenRound);
     jokerResponse.greenRound = matchesInGreen
     jokerResponse.payout.push(payout)
     if (matchesInGreen === 3) {
-      console.log("greenRound cleared");
+      // console.log("greenRound cleared");
       payout = gameInstance.settings.joker.payout[1] * gameInstance.settings.BetPerLines
       //move to red redRound
       const matchesInRed = getRandomIndex(gameInstance.settings.joker.redRound);
       jokerResponse.redRound = matchesInRed
       jokerResponse.payout.push(payout)
       if (matchesInRed === 3) {
-        console.log("redRound cleared");
+        // console.log("redRound cleared");
         payout = gameInstance.settings.joker.payout[2] * gameInstance.settings.BetPerLines
         jokerResponse.payout.push(payout)
       } else {
-        console.log("redRound not cleared");
+        // console.log("redRound not cleared");
         jokerResponse.payout.push(0)
       }
     } else {
-      console.log("greenRound not cleared");
+      // console.log("greenRound not cleared");
       jokerResponse.payout.push(0)
     }
   } else {
-    console.log("blueRound not cleared");
+    // console.log("blueRound not cleared");
     jokerResponse.payout.push(0)
   }
 
-  console.log("jokerResponse", jokerResponse);
+  // console.log("jokerResponse", jokerResponse);
   gameInstance.settings.joker = {
     ...gameInstance.settings.joker,
     response: jokerResponse
@@ -192,10 +195,10 @@ function handleJoker(gameInstance: SLONE) {
 function handleNonSpecialSymbol(gameInstance: SLONE): number {
   try {
     let totalPayout = 0;
-    console.log("No special symbol found. Proceeding with normal payout calculation.");
+    // console.log("No special symbol found. Proceeding with normal payout calculation.");
     let symbol = gameInstance.settings.Symbols[gameInstance.settings.resultSymbolMatrix[0]];
     const levelUpResult = checkForLevelUp(gameInstance, false);
-    console.log("levelUpResult:", levelUpResult);
+    // console.log("levelUpResult:", levelUpResult);
     if (levelUpResult.isLevelUp) {
       gameInstance.settings.levelUp.response = levelUpResult
     }
@@ -204,7 +207,7 @@ function handleNonSpecialSymbol(gameInstance: SLONE): number {
       symbol = gameInstance.settings.Symbols[levelUpResult.level];
     }
     const boosterResult = checkForBooster(gameInstance, false);
-    console.log("boosterResult:", boosterResult);
+    // console.log("boosterResult:", boosterResult);
     if (boosterResult.type !== 'NONE') {
       gameInstance.settings.booster.response = boosterResult
     }
@@ -223,8 +226,8 @@ function handleNonSpecialSymbol(gameInstance: SLONE): number {
     // console.log("currWin:", gameInstance.playerData.currentWining);
     return totalPayout
   } catch (err) {
-    console.log(err)
-    console.log("Error in handleNonSpecialSymbol")
+    // console.log(err)
+    // console.log("Error in handleNonSpecialSymbol")
   }
 }
 
@@ -238,7 +241,8 @@ function handleScatterBlue(gameInstance: SLONE): number {
       symbols: [],
       payout: 0,
       levelUp: [],
-      booster: []
+      booster: [],
+      count: []
     }
     gameInstance.settings.freeSpinType = "BLUE"
 
@@ -252,6 +256,7 @@ function handleScatterBlue(gameInstance: SLONE): number {
 
       lives += symbol.freeSpinCount;
       --lives;
+      blueResponse.count.push(lives)
       // console.log("Remaining lives:", lives);
 
       gameInstance.settings.freeSpinCount = lives;
@@ -259,7 +264,7 @@ function handleScatterBlue(gameInstance: SLONE): number {
 
       if (index !== 0) {
         const payout = applyScatterBlue(gameInstance, symbol, blueResponse);
-        console.log("payout:", payout);
+        // console.log("payout:", payout);
 
         totalPayout += payout;
       } else if (index === 0) {
@@ -273,7 +278,7 @@ function handleScatterBlue(gameInstance: SLONE): number {
     // gameInstance.playerData.haveWon += gameInstance.playerData.currentWining;
 
     // console.log("currWin:", gameInstance.playerData.currentWining);
-    console.log("scatterBlueResponse:", blueResponse);
+    // console.log("scatterBlueResponse:", blueResponse);
     gameInstance.settings.scatterBlue.response = blueResponse;
     // gameInstance.settings.freeSpinType = "NONE" as "NONE" | "BLUE" | "PURPLE";
     gameInstance.settings.freeSpinCount = 0;
@@ -281,8 +286,8 @@ function handleScatterBlue(gameInstance: SLONE): number {
 
     return totalPayout
   } catch (err) {
-    console.log(err)
-    console.log("Error in handleScatterBlue")
+    // console.log(err)
+    // console.log("Error in handleScatterBlue")
   }
 }
 
@@ -292,7 +297,7 @@ function handleScatterPurple(gameInstance: SLONE) {
     let totalPayout: number = 0;
 
     let topSymbols: number[] = getTopSymbols(gameInstance);
-    console.log("init topSym", topSymbols);
+    // console.log("init topSym", topSymbols);
 
     let purpleResponse: ScatterPurpleResult = {
       isTriggered: true,
@@ -302,6 +307,7 @@ function handleScatterPurple(gameInstance: SLONE) {
       levelUp: [],
       booster: [],
       reTriggered: [],
+      count: []
     };
 
     gameInstance.settings.freeSpinType = "PURPLE";
@@ -310,15 +316,16 @@ function handleScatterPurple(gameInstance: SLONE) {
       const index = getRandomIndex(gameInstance.settings.scatterPurple.symbolsProbs);
       let symbol = gameInstance.settings.Symbols[index];
 
-      console.log("TOPSYM", topSymbols);
+      // console.log("TOPSYM", topSymbols);
 
       // purpleResponse.symbols.push(index);
       purpleResponse.topSymbols.push([...topSymbols]); // Create a copy of topSymbols
 
-      console.log("Symbol", symbol.Id, "Payout:", symbol.payout);
+      // console.log("Symbol", symbol.Id, "Payout:", symbol.payout);
 
+      purpleResponse.count.push(lives)
       --lives;
-      console.log("Remaining lives:", lives);
+      // console.log("Remaining lives:", lives);
 
       gameInstance.settings.freeSpinCount = lives;
       gameInstance.settings.resultSymbolMatrix = [symbol.Id]
@@ -338,12 +345,12 @@ function handleScatterPurple(gameInstance: SLONE) {
         // }
       }
 
-      console.log("payout:", payout);
+      // console.log("payout:", payout);
       totalPayout += payout;
 
       // Check if all the top symbols are empty (processed)
       if (topSymbols.every(symbol => symbol === 0)) {
-        console.log("All top symbols are empty. Re-triggering scatter purple feature.");
+        // console.log("All top symbols are empty. Re-triggering scatter purple feature.");
         lives = 10;
         topSymbols = getTopSymbols(gameInstance);
         purpleResponse.reTriggered.push(1);
@@ -353,7 +360,7 @@ function handleScatterPurple(gameInstance: SLONE) {
       purpleResponse.payout = totalPayout;
     }
     gameInstance.settings.scatterPurple.response = purpleResponse;
-    console.log("Scatter Purple response:", purpleResponse);
+    // console.log("Scatter Purple response:", purpleResponse);
     // gameInstance.playerData.currentWining = totalPayout;
     // console.log("totalPayout:", totalPayout);
     // gameInstance.playerData.haveWon += totalPayout;
@@ -362,8 +369,8 @@ function handleScatterPurple(gameInstance: SLONE) {
 
     return totalPayout;
   } catch (err) {
-    console.log(err);
-    console.log("Error in handleScatterPurple");
+    // console.log(err);
+    // console.log("Error in handleScatterPurple");
   }
 }
 
@@ -379,27 +386,27 @@ function applyScatterBlue(gameInstance: SLONE, symbol: Symbol, response: Scatter
 
     switch (feature) {
       case 1:
-        console.log("Level-up feature triggered");
+        // console.log("Level-up feature triggered");
         levelUpResult = checkForLevelUp(gameInstance, false);
-        console.log("lvlUp", levelUpResult);
+        // console.log("lvlUp", levelUpResult);
         if (levelUpResult.isLevelUp) {
-          console.log(`Leveled up to symbol: ${levelUpResult.level}`);
+          // console.log(`Leveled up to symbol: ${levelUpResult.level}`);
           sym = gameInstance.settings.Symbols[levelUpResult.level];
         }
         break;
       case 2:
-        console.log("Booster feature triggered");
+        // console.log("Booster feature triggered");
         boosterResult = checkForBooster(gameInstance, false);
         if (boosterResult.type !== 'NONE') {
-          console.log(`Booster applied with multipliers: ${boosterResult.multipliers}`);
+          // console.log(`Booster applied with multipliers: ${boosterResult.multipliers}`);
           multiplier = boosterResult.multipliers.reduce((a, b) => a + b, 0);
         }
-        console.log("booster", boosterResult);
+        // console.log("booster", boosterResult);
         break;
       case 3:
-        console.log("Level-up and booster both triggered");
+        // console.log("Level-up and booster both triggered");
         levelUpResult = checkForLevelUp(gameInstance, false);
-        console.log("lvlUp", levelUpResult);
+        // console.log("lvlUp", levelUpResult);
 
         if (levelUpResult.isLevelUp) {
           sym = gameInstance.settings.Symbols[levelUpResult.level];
@@ -408,10 +415,10 @@ function applyScatterBlue(gameInstance: SLONE, symbol: Symbol, response: Scatter
         if (boosterResult.type !== 'NONE') {
           multiplier = boosterResult.multipliers.reduce((a, b) => a + b, 0);
         }
-        console.log("booster", boosterResult);
+        // console.log("booster", boosterResult);
         break;
       default:
-        console.log("No feature triggered.");
+      // console.log("No feature triggered.");
     }
     response.booster.push(boosterResult)
     response.levelUp.push(levelUpResult)
@@ -424,8 +431,8 @@ function applyScatterBlue(gameInstance: SLONE, symbol: Symbol, response: Scatter
     }
     return payout
   } catch (err) {
-    console.log(err)
-    console.log("Error in applyScatterBlue")
+    // console.log(err)
+    // console.log("Error in applyScatterBlue")
   }
 
 }
@@ -440,29 +447,29 @@ function applyScatterPurple(gameInstance: SLONE, symbol: Symbol, response: Scatt
 
     switch (feature) {
       case 1:
-        console.log("Level-up feature triggered");
+        // console.log("Level-up feature triggered");
         levelUpResult = checkForLevelUp(gameInstance, true);
-        console.log("lvlUp", levelUpResult);
+        // console.log("lvlUp", levelUpResult);
         if (levelUpResult.isLevelUp) {
-          console.log(`Leveled up to symbol: ${levelUpResult.level}`);
+          // console.log(`Leveled up to symbol: ${levelUpResult.level}`);
           if ((levelUpResult.level < gameInstance.settings.Symbols.length - 4)) {
             sym = gameInstance.settings.Symbols[levelUpResult.level];
           }
         }
         break;
       case 2:
-        console.log("Booster feature triggered");
+        // console.log("Booster feature triggered");
         boosterResult = checkForBooster(gameInstance, true);
         if (boosterResult.type !== 'NONE') {
-          console.log(`Booster applied with multipliers: ${boosterResult.multipliers}`);
+          // console.log(`Booster applied with multipliers: ${boosterResult.multipliers}`);
           multiplier = boosterResult.multipliers.reduce((a, b) => a + b, 0);
         }
-        console.log("booster", boosterResult);
+        // console.log("booster", boosterResult);
         break;
       case 3:
-        console.log("Level-up and booster both triggered");
+        // console.log("Level-up and booster both triggered");
         levelUpResult = checkForLevelUp(gameInstance, true);
-        console.log("lvlUp", levelUpResult);
+        // console.log("lvlUp", levelUpResult);
         if (levelUpResult.isLevelUp) {
           if ((levelUpResult.level < gameInstance.settings.Symbols.length - 4)) {
             sym = gameInstance.settings.Symbols[levelUpResult.level];
@@ -472,10 +479,10 @@ function applyScatterPurple(gameInstance: SLONE, symbol: Symbol, response: Scatt
         if (boosterResult.type !== 'NONE') {
           multiplier = boosterResult.multipliers.reduce((a, b) => a + b, 0);
         }
-        console.log("booster", boosterResult);
+        // console.log("booster", boosterResult);
         break;
       default:
-        console.log("No feature triggered.");
+      // console.log("No feature triggered.");
     }
 
     response.symbols.push(sym.Id)
@@ -489,7 +496,7 @@ function applyScatterPurple(gameInstance: SLONE, symbol: Symbol, response: Scatt
         }
       })
     }
-    console.log("topSymbols", topSymbols);
+    // console.log("topSymbols", topSymbols);
     // response.topSymbols.push(topSymbols)
     response.booster.push(boosterResult)
     response.levelUp.push(levelUpResult)
@@ -502,8 +509,8 @@ function applyScatterPurple(gameInstance: SLONE, symbol: Symbol, response: Scatt
     }
     return payout
   } catch (err) {
-    console.log(err)
-    console.log("Error in applyScatterPurple")
+    // console.log(err)
+    // console.log("Error in applyScatterPurple")
   }
 }
 
@@ -522,8 +529,8 @@ export function checkForBooster(gameInstance: SLONE, trigger: boolean): BoosterR
         return { type: 'NONE', multipliers: [] };
     }
   } catch (err) {
-    console.log(err)
-    console.log("Error in checkForBooster")
+    // console.log(err)
+    // console.log("Error in checkForBooster")
   }
 }
 
@@ -556,8 +563,8 @@ function getExhaustiveMultipliers(multipliers: number[], multiplierProb: number[
     }
     return allMultipliers;
   } catch (err) {
-    console.log(err)
-    console.log("Error in getExhaustiveMultipliers")
+    // console.log(err)
+    // console.log("Error in getExhaustiveMultipliers")
   }
 }
 
@@ -570,8 +577,8 @@ function handleSimpleBooster(gameInstance: SLONE): BoosterResult {
       multipliers: [getSimpleMultiplier(multiplier, multiplierProbs)]
     };
   } catch (err) {
-    console.log(err)
-    console.log("Error in handleSimpleBooster")
+    // console.log(err)
+    // console.log("Error in handleSimpleBooster")
   }
 }
 
@@ -686,8 +693,8 @@ function getRandomIndex(probArray: number[]): number {
 
     return result;
   } catch (err) {
-    console.log(err)
-    console.log("Error in getRandomIndex")
+    // console.log(err)
+    // console.log("Error in getRandomIndex")
   }
 }
 // get 5 unique non special and non zero symbols 
@@ -704,8 +711,8 @@ function getTopSymbols(gameInstance: SLONE): number[] {
     }
     return topSymbols;
   } catch (err) {
-    console.log(err)
-    console.log("Error in getTopSymbols")
+    // console.log(err)
+    // console.log("Error in getTopSymbols")
   }
 }
 
@@ -715,22 +722,22 @@ export function checkForWin(gameInstance: SLONE) {
   const outerSymbol = gameInstance.settings.Symbols.find(sym => sym.Id === gameInstance.settings.resultSymbolMatrix[0]);
   if (!outerSymbol) throw new Error(`Symbol with Id ${gameInstance.settings.resultSymbolMatrix[0]} not found.`);
 
-  console.log("freespin", gameInstance.settings.freeSpinCount, gameInstance.settings.freeSpinType);
+  // console.log("freespin", gameInstance.settings.freeSpinCount, gameInstance.settings.freeSpinType);
   let payout = 0
 
 
   switch (outerSymbol.Name) {
     case "ScatterBlue":
-      console.log("Scatter Blue feature triggered");
+      // console.log("Scatter Blue feature triggered");
       payout = handleScatterBlue(gameInstance);
       break;
 
     case "ScatterPurple":
-      console.log("Scatter Purple feature triggered");
+      // console.log("Scatter Purple feature triggered");
       payout = handleScatterPurple(gameInstance);
       break;
     case "Joker":
-      console.log("Joker feature triggered");
+      // console.log("Joker feature triggered");
       payout = handleJoker(gameInstance);
       break;
     default:
@@ -777,6 +784,7 @@ export function checkForWin(gameInstance: SLONE) {
     payout: 0,
     levelUp: [],
     booster: [],
+    count: []
   }
 
   gameInstance.settings.scatterPurple.response = {
@@ -787,9 +795,10 @@ export function checkForWin(gameInstance: SLONE) {
     levelUp: [],
     booster: [],
     reTriggered: [],
+    count: []
   }
 
-  console.log("________________x_______x___________________");
+  // console.log("________________x_______x___________________");
 }
 
 export function makeResultJson(gameInstance: SLONE) {
@@ -812,9 +821,6 @@ export function makeResultJson(gameInstance: SLONE) {
           settings.freeSpinType == "BLUE" ?
             settings.scatterBlue.response :
             settings.scatterPurple.response
-        // freeSpinCount:settings.freeSpinCount,
-        // isFreeSpin: settings.isFreeSpin,
-        // freeSpinCount: settings.freeSpinCount
       },
       PlayerData: {
         Balance: Balance,
@@ -827,10 +833,10 @@ export function makeResultJson(gameInstance: SLONE) {
     gameInstance.sendMessage('ResultData', sendData);
     console.log("ResultData sent");
     console.log(sendData);
-    console.log("levlup resp", sendData.GameData.levelup);
-    console.log("booster resp", sendData.GameData.booster);
-    console.log("scatter resp", sendData.GameData.freeSpinResponse);
-    console.log("joker resp", sendData.GameData.jokerResponse);
+    // console.log("levlup resp", sendData.GameData.levelup);
+    // console.log("booster resp", sendData.GameData.booster);
+    // console.log("scatter resp", sendData.GameData.freeSpinResponse);
+    // console.log("joker resp", sendData.GameData.jokerResponse);
 
   } catch (error) {
     console.error("Error generating result JSON or sending message:", error);

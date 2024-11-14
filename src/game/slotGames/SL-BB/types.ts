@@ -94,9 +94,11 @@ export interface SLBBSETTINGS {
   bonus: {
     isBonus:boolean;
     isTriggered: boolean;
+    isWalterStash:boolean;
     count: number,
     payout: number;
   };
+  blanks:string[],
   cashCollectPrize: {
     isTriggered: boolean,
     payout: number,

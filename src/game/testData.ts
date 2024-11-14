@@ -1,4 +1,3 @@
-
 export const gameData = [
   // {
   //   "id": "SL-ONE",

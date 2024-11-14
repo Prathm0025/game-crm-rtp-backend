@@ -82,12 +82,14 @@ export interface ScatterPurpleResult {
   levelUp: LevelUpResult[];
   booster: BoosterResult[];
   topSymbols: number[][];
+  count: number[];
   reTriggered: number[] //0 - not reTriggered, 1 - reTriggered
 }
 export interface ScatterBlueResult {
   isTriggered: boolean;
   symbols:number[];
   payout: number;
+  count: number[];
   levelUp: LevelUpResult[];
   booster: BoosterResult[];
 }

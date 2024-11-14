@@ -20,23 +20,11 @@ export interface ZEUSSETTINGS {
     bets: number[];
     reels: any[][];
     Symbols: Symbol[];
-    hasCascading: boolean,
-    cascadingNo: number,
-    payoutAfterCascading: number,
-    cascadingResult: any[];
     lastReel: any[],
     tempReel: any[],
     firstReel: any[],
     tempReelSym: any[],
     freeSpinData: any[][],
-    jackpot: {
-        symbolName: string;
-        symbolsCount: number;
-        symbolId: number;
-        defaultAmount: number;
-        increaseValue: number;
-        useJackpot: boolean;
-    },
     freeSpin: {
         symbolID: string,
         freeSpinMuiltiplier: any[],
@@ -46,16 +34,21 @@ export interface ZEUSSETTINGS {
         useFreeSpin: boolean,
         freeSpinsAdded: boolean,
     };
+    replacedToWildIndices:any[],
     wild: {
         SymbolName: string;
         SymbolID: number;
         useWild: boolean
+    },
+    scatter:{
+        symbolID:number;
+        useScatter:boolean;
     }
 }
 
 
 export enum specialIcons {
-    jackpot = "Jackpot",
     wild = "Wild",
-    FreeSpin = "FreeSpin"
+    FreeSpin = "FreeSpin",
+    scatter =  "Scatter"
 }
