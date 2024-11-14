@@ -1,12 +1,11 @@
 import { currentGamedata } from "../../../Player";
-import { generateInitialReel, initializeGameSettings, sendInitData, makeResultJson, printWinningCombinations, checkWin, checkForFreespin } from "./helper";
-import { SLLOLSETTINGS } from "./types";
+import { generateInitialReel, initializeGameSettings, sendInitData, checkWin, generateFreeSpinReel } from "./helper";
 import { RandomResultGenerator } from "../RandomResultGenerator";
-import { getGambleResult, sendInitGambleData } from "./gamble";
 import { precisionRound } from "../../../utils/utils";
+import { SLTMSETTINGS } from "./types";
 
-export class SLLOL {
-  public settings: SLLOLSETTINGS;
+export class SLTM {
+  public settings: SLTMSETTINGS;
   playerData = {
     haveWon: 0,
     currentWining: 0,
@@ -17,7 +16,7 @@ export class SLLOL {
   }
 
   constructor(public currentGameData: currentGamedata) {
-    console.log("Initializing SLLOL game");
+    console.log("Initializing SLTM game");
     // console.log("currentGameData:", JSON.stringify(currentGameData, null, 2));
 
     try {
@@ -25,13 +24,14 @@ export class SLLOL {
       console.log("Game settings initialized")
 
       this.settings.reels = generateInitialReel(this.settings);
+      this.settings.freeSpinReels = generateFreeSpinReel(this.settings);
       // console.log("Initial reels generated:", this.settings.reels);
 
       sendInitData(this);
       console.log("credits : ", this.getPlayerData().credits);
 
     } catch (error) {
-      console.error("Error initializing SLLOL game:", error);
+      console.error("Error initializing SLTM game:", error);
     }
   }
 
@@ -81,41 +81,6 @@ export class SLLOL {
         this.getRTP(response.data.spins);
         break;
 
-      case "GAMBLEINIT":
-        const sendData = sendInitGambleData();
-
-        this.decrementPlayerBalance(this.playerData.currentWining);
-        this.playerData.haveWon -= this.playerData.currentWining;
-        // this.sendMessage("gambleInitData", sendData);
-        break;
-
-      case "GAMBLERESULT":
-        let result = getGambleResult({ selected: response.cardType });
-        //calculate payout
-        switch (result.playerWon) {
-          case true:
-            this.playerData.currentWining *= 2
-            result.balance = this.getPlayerData().credits + this.playerData.currentWining
-            result.currentWinning = this.playerData.currentWining
-            break;
-          case false:
-            result.currentWinning = 0;
-            result.balance = this.getPlayerData().credits;
-            this.playerData.currentWining = 0;
-            break;
-        }
-
-        this.sendMessage("GambleResult", result) // result card 
-
-        break;
-      case "GAMBLECOLLECT":
-        this.playerData.haveWon += this.playerData.currentWining;
-        this.incrementPlayerBalance(this.playerData.currentWining);
-        this.sendMessage("GambleCollect", {
-          currentWinning: this.playerData.currentWining,
-          balance: this.getPlayerData().credits
-        }) // balance , currentWinning
-        break;
       default:
         console.warn(`Unhandled message ID: ${response.id}`);
         this.sendError(`Unhandled message ID: ${response.id}`);
@@ -140,10 +105,10 @@ export class SLLOL {
       }
 
       //deduct only when freespin is not triggered
-      if (this.settings.freeSpinCount <= 0) {
-        this.decrementPlayerBalance(precisionRound(this.settings.currentBet, 3));
-        this.playerData.totalbet += Number(this.settings.currentBet.toFixed(3))
-      }
+      // if (this.settings.freeSpinCount <= 0) {
+      //   this.decrementPlayerBalance(precisionRound(this.settings.currentBet, 3));
+      //   this.playerData.totalbet += Number(this.settings.currentBet.toFixed(3))
+      // }
       this.playerData.totalbet = precisionRound(this.playerData.totalbet, 3)
 
       new RandomResultGenerator(this);
@@ -189,37 +154,6 @@ export class SLLOL {
       console.error("Error in checkResult:", error);
     }
   }
-  // private gamebleTesting() {
-  //   console.log("gamble test");
-  //
-  //   //FIX: gamebleTesting , remove later
-  //   if (this.settings.gamble.isEnabled) {
-  //
-  //     let result = getGambleResult({ selected: "BLACK" });
-  //     this.decrementPlayerBalance(this.playerData.currentWining);
-  //     //calculate payout
-  //     switch (result.playerWon) {
-  //       case true:
-  //         this.playerData.currentWining *= 2
-  //         result.Balance = this.getPlayerData().credits + this.playerData.currentWining
-  //         result.currentWinning = this.playerData.currentWining
-  //         break;
-  //       case false:
-  //         result.currentWinning = 0;
-  //         result.Balance = this.getPlayerData().credits;
-  //         // this.settings._winData.totalWinningAmount = 0;
-  //         this.playerData.haveWon -= this.playerData.currentWining;
-  //         this.playerData.currentWining = 0;
-  //         break;
-  //     }
-  //     console.log("Gamble Result:", result);
-  //
-  //     this.playerData.haveWon = this.playerData.currentWining;
-  //     this.incrementPlayerBalance(this.playerData.currentWining);
-  //     console.log("Balance:", this.getPlayerData().credits);
-  //
-  //   }
-  // }
 }
 
 

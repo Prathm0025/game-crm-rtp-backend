@@ -207,3 +207,10 @@ export const getSubordinateModel = (role: string) => {
   };
   return rolesHierarchy[role];
 };
+
+
+export function precisionRound(number, precision) {
+    var factor = Math.pow(10, precision);
+    return Math.round(number * factor) / factor;
+}
+
