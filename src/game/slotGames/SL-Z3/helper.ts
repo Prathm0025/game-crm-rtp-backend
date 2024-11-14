@@ -503,7 +503,7 @@ export function makeResultJson(gameInstance: SLZEUS) {
         const Balance = credits.toFixed(2)
         const sendData = {
             GameData: {
-                resultSymbols: settings.firstReel,
+                ResultReel: settings.resultSymbolMatrix,
                 linesToEmit: settings._winData.winningLines,
                 symbolsToEmit: settings._winData.winningSymbols,
                 wildSymbolIndices: settings.replacedToWildIndices,               
