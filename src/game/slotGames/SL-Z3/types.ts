@@ -15,6 +15,7 @@ export interface ZEUSSETTINGS {
     lineData: any[],
     _winData: WinData | undefined;
     currentBet: number;
+    baseBetAmount:number;
     currentLines: number;
     BetPerLines: number;
     bets: number[];

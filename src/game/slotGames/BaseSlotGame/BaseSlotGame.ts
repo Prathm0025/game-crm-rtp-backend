@@ -48,6 +48,8 @@ export default class BaseSlotGame implements RequiredSocketMethods {
         },
         bets: [], // Ensure bets is initialized
         linesCount: 0, // Ensure linesCount is initialized
+        betMultiplier:[]
+
       },
       tempReels: [[]],
 
