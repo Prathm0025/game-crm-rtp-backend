@@ -196,12 +196,12 @@ export function checkForWin(gameInstance: SLZEUS) {
                                 multiplier: symbolMultiplierLTR,
                                 matchCount,
                             });
-                            // console.log(`Line ${index + 1}:`, line);
-                            // console.log(
-                            //     `Payout for Line ${index + 1}:`,
-                            //     "payout",
-                            //     symbolMultiplierLTR
-                            // );
+                            console.log(`Line ${index + 1}:`, line);
+                            console.log(
+                                `Payout for Line ${index + 1}:`,
+                                "payout",
+                                symbolMultiplierLTR
+                            );
                             const formattedIndices = matchedIndices.map(({ col, row }) => `${col},${row}`);
                             const validIndices = formattedIndices.filter(
                                 (index) => index.length > 2
@@ -449,7 +449,7 @@ function checkForFreeSpin(gameInstance: SLZEUS) {
     
     let scatterCount = 0;
     
-    for (let i = 1; i < 6; i++) {
+    for (let i = 0; i <= 6; i++) {
         const reel = resultSymbolMatrix[i];        
         scatterCount += reel.filter(symbol => symbol === scatter.symbolID).length;
     }
@@ -459,30 +459,27 @@ function checkForFreeSpin(gameInstance: SLZEUS) {
     return {isFreeSpin, scatterCount};
 }
 
-function handleFreeSpins(scatterCount: number, gameInstance:SLZEUS) {
-    const { settings,playerData } = gameInstance;
-    switch (scatterCount) {
-        case 5:
-             settings.freeSpin.freeSpinCount += 50;
-             playerData.currentWining += settings.currentBet *50;
-             break;
+function handleFreeSpins(scatterCount: number, gameInstance: SLZEUS) {
+    const { settings, playerData } = gameInstance;
 
-        case 4:
-            settings.freeSpin.freeSpinCount += 25;
-            playerData.currentWining += settings.currentBet *10;
+    switch (true) {
+        case scatterCount >= 5:
+            settings.freeSpin.freeSpinCount += 50;
+            playerData.currentWining += settings.currentBet * 50;
             break;
-
-        case 3:
+        case scatterCount === 4:
+            settings.freeSpin.freeSpinCount += 25;
+            playerData.currentWining += settings.currentBet * 10;
+            break;
+        case scatterCount === 3:
             settings.freeSpin.freeSpinCount += 10;
             break;
-
         default:
-            // console.log("No Free Spins awarded or case not handled");
+            // No Free Spins awarded or case not handled
             break;
     }
-
-
 }
+
 function reduceMatrix(matrix) {
     const removeCounts = [5, 4, 3, 2, 1]; 
 
