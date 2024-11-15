@@ -64,10 +64,10 @@ const handlePlayerConnection = async (socket: Socket, decoded: DecodedToken, use
     let existingPlayer = currentActivePlayers.get(username);
 
     if (existingPlayer) {
-        if (existingPlayer.playerData.userAgent !== userAgent) {
-            socket.emit("AnotherDevice", "You are already playing on another browser.");
+        if (existingPlayer.playerData.userAgent !== userAgent || existingPlayer.platformData.socket?.connected) {
+            socket.emit("alert", "NewTab");
             socket.disconnect(true);
-            throw createHttpError(403, "Already playing on another device");
+            return;
         }
 
         // Check for platform reconnection
