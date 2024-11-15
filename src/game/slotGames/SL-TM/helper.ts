@@ -22,8 +22,8 @@ export function initializeGameSettings(gameData: any, gameInstance: SLTM) {
     currentLines: 0,
     BetPerLines: 0,
     reels: [],
-    freeSpinReels:[],
-    level:0 as 0|1|2|3|4,
+    freeSpinReels: [],
+    level: 0 as 0 | 1 | 2 | 3 | 4,
     isLevelUp: false,
     minMatchCount: gameSettings.minMatchCount || 3,
     isFreeSpin: false,
@@ -40,7 +40,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLTM) {
       ,
       SymbolName: SpecialSymbols.WILD,
     },
-    freeSpin:{
+    freeSpin: {
       SymbolId: gameInstance.currentGameData.gameSettings.Symbols.find((sym: SymbolType) => sym.Name == SpecialSymbols.FREE_SPIN).Id
       ,
       SymbolName: SpecialSymbols.FREE_SPIN,
@@ -181,8 +181,8 @@ export function makeResultJson(gameInstance: SLTM) {
     };
 
     console.log("Sending result JSON:", sendData);
-    console.log("winCom",sendData.gameData.winningCombinations);
-    
+    console.log("winCom", sendData.gameData.winningCombinations);
+
     gameInstance.sendMessage('ResultData', sendData);
   } catch (error) {
     console.error("Error generating result JSON or sending message:", error);
@@ -193,7 +193,7 @@ export function getSymbol(id: number, Symbols: SymbolType[]): SymbolType | undef
   return Symbols.find(s => s.Id == id);
 }
 
-export function isWild(symbolId: number, wildId:string): boolean {
+export function isWild(symbolId: number, wildId: string): boolean {
   return symbolId.toString() == wildId
 }
 
@@ -239,7 +239,7 @@ export function checkWin(gameInstance: SLTM): { payout: number; winningCombinati
     if (symbol.Name !== "Wild") {
       for (let row = 0; row < settings.matrix.y; row++) {
         const startSymbolId = settings.resultSymbolMatrix[row][0]; // Start in the leftmost column (0)
-        if (startSymbolId == symbol.Id || isWild(startSymbolId,settings.wild.SymbolId)) {
+        if (startSymbolId == symbol.Id || isWild(startSymbolId, settings.wild.SymbolId)) {
           findCombinations(symbol.Id, 1, [[row, 0]]);
         }
       }
@@ -263,14 +263,16 @@ export function checkWin(gameInstance: SLTM): { payout: number; winningCombinati
     combo.payout = combo.payout
     totalPayout += combo.payout;
   })
-  if( winningCombinations.length>0 ){
+  if (winningCombinations.length > 0) {
     settings.isLevelUp = true
-    if(settings.level <4 ){
+    if (settings.level < 4) {
       settings.level += 1
+      settings.matrix.y += 1
     }
-  }else{
+  } else {
     settings.isLevelUp = false
     settings.level = 0
+    settings.matrix.y = 3
   }
   settings.winningCombinations = winningCombinations
   gameInstance.playerData.currentWining = precisionRound(totalPayout, 3)
