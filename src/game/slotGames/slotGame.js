@@ -13,14 +13,18 @@ const OneOfAKindBase_1 = require("./SL-ONE/OneOfAKindBase");
 const bloodEternalBase_1 = require("./SL-BE/bloodEternalBase");
 const breakingBadBase_1 = require("./SL-BB/breakingBadBase");
 const LifeOfLuxury_1 = require("./SL-LOL/LifeOfLuxury");
-const zeusBase_1 = require("./zeus3/zeusBase");
+const zeusBase_1 = require("./SL-Z3/zeusBase");
+const buffaloTrailBase_1 = require("./SL-BT/buffaloTrailBase");
+const TimeMachineBase_1 = require("./SL-TM/TimeMachineBase");
 class SlotGameManager {
     constructor(currentGameData) {
         // console.log("Requesting Game : ",currentGameData.gameSettings.id);
         this.currentGameData = currentGameData;
         this.gameClassMapping = {
             "SL-CM": cashMachineBase_1.SLCM, "SL-CRZ": crazy777Base_1.SLCRZ, "SL-WOF": wheelOfFortuneBase_1.SLWOF, "SL-PM": planetMoolahBase_1.SLPM, "SL-BE": bloodEternalBase_1.SLBE,
-            "SL-ONE": OneOfAKindBase_1.SLONE, "SL-LOL": LifeOfLuxury_1.SLLOL, "SL-SR": stinkinRichBase_1.SLSR, "SL-BB": breakingBadBase_1.SLBB, "SL-Z3": zeusBase_1.SLZEUS
+            "SL-ONE": OneOfAKindBase_1.SLONE, "SL-LOL": LifeOfLuxury_1.SLLOL, "SL-SR": stinkinRichBase_1.SLSR, "SL-BB": breakingBadBase_1.SLBB, "SL-Z3": zeusBase_1.SLZEUS,
+            "SL-TM": TimeMachineBase_1.SLTM,
+            "SL-BT": buffaloTrailBase_1.SLBT,
         };
         const slotGameClass = this.gameClassMapping[currentGameData.gameSettings.id];
         if (slotGameClass) {

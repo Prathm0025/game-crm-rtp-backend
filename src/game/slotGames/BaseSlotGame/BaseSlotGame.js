@@ -54,6 +54,7 @@ class BaseSlotGame {
                 },
                 bets: [], // Ensure bets is initialized
                 linesCount: 0, // Ensure linesCount is initialized
+                betMultiplier: []
             },
             tempReels: [[]],
             payLine: [],
