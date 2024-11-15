@@ -13,7 +13,7 @@ export interface socketConnectionData {
     cleanedUp: boolean;
 }
 
-
+//
 export default class Manager {
     username: string;
     credits: number;
