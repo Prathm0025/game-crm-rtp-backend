@@ -356,7 +356,8 @@ export const gameData = [
          "1": 15,
          "2": 15,
          "3": 15,
-         "4": 15
+         "4": 15,
+         "5":15,
        },
        "multiplier": [
          [
@@ -387,7 +388,8 @@ export const gameData = [
          "1": 15,
          "2": 15,
          "3": 15,
-         "4": 15
+         "4": 15,
+         "5":15,
        },
        "multiplier": [
          [
@@ -418,7 +420,8 @@ export const gameData = [
          "1": 15,
          "2": 15,
          "3": 15,
-         "4": 15
+         "4": 15,
+         "5":15,
        },
        "multiplier": [
          [
@@ -449,7 +452,8 @@ export const gameData = [
          "1": 15,
          "2": 15,
          "3": 15,
-         "4": 15
+         "4": 15,
+         "5":15,
        },
        "multiplier": [
          [
@@ -480,7 +484,8 @@ export const gameData = [
          "1": 55,
          "2": 55,
          "3": 55,
-         "4": 55
+         "4": 55,
+         "5":15,
        },
        "multiplier": [
          [
@@ -511,7 +516,8 @@ export const gameData = [
          "1": 15,
          "2": 15,
          "3": 15,
-         "4": 15
+         "4": 15,
+         "5":15
        },
        "multiplier": [
          [
@@ -542,7 +548,8 @@ export const gameData = [
          "1": 6,
          "2": 6,
          "3": 6,
-         "4": 6
+         "4": 6,
+         "5":15,
        },
        "multiplier": [
          [
@@ -577,7 +584,8 @@ export const gameData = [
          "1": 6,
          "2": 6,
          "3": 6,
-         "4": 6
+         "4": 6,
+         "5":15,
        },
        "multiplier": [
          [
@@ -612,7 +620,8 @@ export const gameData = [
          "1": 6,
          "2": 6,
          "3": 6,
-         "4": 6
+         "4": 6,
+         "5":15,
        },
        "multiplier": [
          [
@@ -647,7 +656,8 @@ export const gameData = [
          "1": 6,
          "2": 6,
          "3": 6,
-         "4": 6
+         "4": 6,
+         "5":15,
        },
        "multiplier": [
          [
@@ -682,7 +692,8 @@ export const gameData = [
          "1": 6,
          "2": 6,
          "3": 6,
-         "4": 6
+         "4": 6,
+         "5":15,
        },
        "multiplier": [
          [
@@ -714,28 +725,34 @@ export const gameData = [
        "isFreeSpinMultiplier": false,
        "reelInstance": {
          "0": 0,
-         "1": 5,
-         "2": 5,
-         "3": 5,
-         "4": 5
+         "1": 15,
+         "2": 15,
+         "3": 15,
+         "4": 15,
+         "5":15,
        },
        "multiplier": [
 
        ],
      },
      {
-       "Name": "Scatter",
+       "Name": "FreeSpin",
        "Id": 12,
        "useWildSub": false,
        "isFreeSpinMultiplier": false,
        "reelInstance": {
-         "0": 5,
-         "1": 5,
-         "2": 5,
-         "3": 5,
-         "4": 5
+         "0": 25,
+         "1": 25,
+         "2": 25,
+         "3": 25,
+         "4": 25,
+         "5":15,
        },
        "multiplier": [
+         [0,10],
+         [0,7],
+         [0,5],
+         [0,3]
 
        ]
      }
