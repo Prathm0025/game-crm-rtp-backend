@@ -143,6 +143,7 @@ export function sendInitData(gameInstance: SLTM) {
     GameData: {
       Reel: reels,
       Bets: gameInstance.settings.currentGamedata.bets,
+      Symbols: gameInstance.settings.Symbols
     },
     UIData: UiInitData,
     PlayerData: {
