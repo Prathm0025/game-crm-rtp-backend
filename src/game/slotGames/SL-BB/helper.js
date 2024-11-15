@@ -44,6 +44,7 @@ function initializeGameSettings(gameData, gameInstance) {
         bonus: {
             isBonus: false,
             isTriggered: false,
+            isWalterStash: false,
             count: 0,
             payout: 0,
         },
@@ -95,6 +96,7 @@ function initializeGameSettings(gameData, gameInstance) {
             useWild: false,
             values: []
         },
+        blanks: ["9", "10", "11", "12", "13", "14"],
         cashCollectPrize: {
             isTriggered: false,
             payout: 0
@@ -375,8 +377,10 @@ function accessData(symbol, matchCount, gameInstance) {
 //TODO: jackpot or prize
 function handleJackpot(gameInstance) {
     const { settings } = gameInstance;
-    settings.jackpot.isTriggered = true;
     settings.jackpot.win = getRandomValue(gameInstance, "prizes");
+    if (settings.jackpot.win > 0) {
+        settings.jackpot.isTriggered = true;
+    }
 }
 //HAS SYMBOL IN MATRIX
 function hasSymbolInMatrix(matrix, symbolId) {
@@ -517,6 +521,9 @@ function checkForWin(gameInstance) {
         if (settings.bonus.count <= 0) {
             totalWin += settings.bonus.payout;
         }
+        if (settings.jackpot.win > 0) {
+            totalWin += settings.jackpot.win;
+        }
         gameInstance.playerData.currentWining = totalWin;
         gameInstance.playerData.haveWon += totalWin;
         makeResultJson(gameInstance);
@@ -529,6 +536,7 @@ function checkForWin(gameInstance) {
          * */
         if (settings.bonus.count <= 0) {
             settings.bonus.isBonus = false;
+            settings.bonus.isWalterStash = false;
             settings.bonus.payout = 0;
             settings.cashCollect.values = [];
             settings.coins.bonusValues = [];
@@ -577,6 +585,7 @@ function makeResultJson(gameInstance) {
                 },
                 bonus: {
                     isBonus: settings.bonus.isTriggered,
+                    isWalterSatash: settings.bonus.isWalterStash,
                     BonusResult: settings.bonusResultMatrix.map(row => row.map(item => Number(item))),
                     payout: settings.bonus.payout,
                     spinCount: settings.bonus.count,
