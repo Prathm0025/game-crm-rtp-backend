@@ -105,10 +105,10 @@ export class SLTM {
       }
 
       //deduct only when freespin is not triggered
-      // if (this.settings.freeSpinCount <= 0) {
-      //   this.decrementPlayerBalance(precisionRound(this.settings.currentBet, 3));
-      //   this.playerData.totalbet += Number(this.settings.currentBet.toFixed(3))
-      // }
+      if (this.settings.freeSpinCount <= 0 || !this.settings.isLevelUp) {
+        this.decrementPlayerBalance(precisionRound(this.settings.currentBet, 3));
+        this.playerData.totalbet += Number(this.settings.currentBet.toFixed(3))
+      }
       this.playerData.totalbet = precisionRound(this.playerData.totalbet, 3)
 
       new RandomResultGenerator(this);

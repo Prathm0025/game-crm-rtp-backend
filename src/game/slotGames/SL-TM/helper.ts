@@ -29,6 +29,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLTM) {
     isFreeSpin: false,
     isFreeSpinTriggered: false,
     freeSpinCount: 0,
+    freeSpinIncrement: gameSettings.freeSpin.incrementCount,
     // freeSpinMultipliers: [1, 1, 1, 1, 1],
     // freeSpinSymbolId: gameInstance.currentGameData.gameSettings.Symbols.find((sym: SymbolType) => sym.Name == 'FreeSpin')?.Id || "12",
     // maxMultiplier: 10,
@@ -156,39 +157,6 @@ export function sendInitData(gameInstance: SLTM) {
   gameInstance.sendMessage("InitData", dataToSend);
 }
 
-export function makeResultJson(gameInstance: SLTM) {
-  try {
-    const { settings, playerData } = gameInstance;
-    const credits = gameInstance.getPlayerData().credits;
-    const Balance = credits.toFixed(3);
-    const sendData = {
-      gameData: {
-        resultSymbols: settings.resultSymbolMatrix,
-        // freeSpin: {
-        //   isFreeSpin: settings.isFreeSpin,
-        //   freeSpinCount: settings.freeSpinCount,
-        //   freeSpinMultipliers: settings.freeSpinMultipliers
-        // },
-        winningCombinations: settings.winningCombinations,
-        isLevelUp: settings.isLevelUp,
-        level: settings.level,
-      },
-      PlayerData: {
-        Balance: Balance,
-        currentWining: playerData.currentWining,
-        totalbet: playerData.totalbet,
-        haveWon: playerData.haveWon,
-      }
-    };
-
-    console.log("Sending result JSON:", sendData);
-    console.log("winCom", sendData.gameData.winningCombinations);
-
-    gameInstance.sendMessage('ResultData', sendData);
-  } catch (error) {
-    console.error("Error generating result JSON or sending message:", error);
-  }
-}
 
 export function getSymbol(id: number, Symbols: SymbolType[]): SymbolType | undefined {
   return Symbols.find(s => s.Id == id);
@@ -237,7 +205,7 @@ export function checkWin(gameInstance: SLTM): { payout: number; winningCombinati
 
   // Iterate over each symbol in the first column
   settings.Symbols.forEach(symbol => {
-    if (symbol.Name !== "Wild") {
+    if (symbol.Name !== settings.wild.SymbolName) {
       for (let row = 0; row < settings.matrix.y; row++) {
         const startSymbolId = settings.resultSymbolMatrix[row][0]; // Start in the leftmost column (0)
         if (startSymbolId == symbol.Id || isWild(startSymbolId, settings.wild.SymbolId)) {
@@ -270,6 +238,11 @@ export function checkWin(gameInstance: SLTM): { payout: number; winningCombinati
       settings.level += 1
       settings.matrix.y += 1
     }
+    if (settings.level == 3) {
+      settings.isFreeSpin = true
+      settings.isFreeSpinTriggered = true
+      settings.freeSpinCount = settings.freeSpinIncrement
+    }
   } else {
     settings.isLevelUp = false
     settings.level = 0
@@ -290,3 +263,37 @@ export function checkWin(gameInstance: SLTM): { payout: number; winningCombinati
   return { payout: totalPayout, winningCombinations };
 }
 
+export function makeResultJson(gameInstance: SLTM) {
+  try {
+    const { settings, playerData } = gameInstance;
+    const credits = gameInstance.getPlayerData().credits;
+    const Balance = credits.toFixed(3);
+    const sendData = {
+      gameData: {
+        resultSymbols: settings.resultSymbolMatrix,
+        // freeSpin: {
+        //   isFreeSpin: settings.isFreeSpin,
+        //   freeSpinCount: settings.freeSpinCount,
+        //   freeSpinMultipliers: settings.freeSpinMultipliers
+        // },
+        winningCombinations: settings.winningCombinations,
+        isLevelUp: settings.isLevelUp,
+        level: settings.level,
+      },
+      PlayerData: {
+        Balance: Balance,
+        currentWining: playerData.currentWining,
+        totalbet: playerData.totalbet,
+        haveWon: playerData.haveWon,
+      }
+    };
+
+    console.log("Sending result JSON:");
+    console.log(JSON.stringify(sendData, null, 2));
+
+
+    gameInstance.sendMessage('ResultData', sendData);
+  } catch (error) {
+    console.error("Error generating result JSON or sending message:", error);
+  }
+}
