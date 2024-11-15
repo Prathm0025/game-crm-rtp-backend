@@ -2,7 +2,6 @@ import { SLLOL } from './LifeOfLuxury';
 import { SymbolType, GameResult, WinningCombination, FreeSpinResponse } from './types';
 import { WinData } from "../BaseSlotGame/WinData";
 import { convertSymbols, UiInitData } from '../../Utils/gameUtils';
-import { argv0 } from 'process';
 import { precisionRound } from '../../../utils/utils';
 
 

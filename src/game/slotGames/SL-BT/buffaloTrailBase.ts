@@ -1,10 +1,10 @@
 import { currentGamedata } from "../../../Player";
 import { RandomResultGenerator } from "../RandomResultGenerator";
 import { initializeGameSettings, generateInitialReel, sendInitData, makePayLines, checkForWin } from "./helper";
-import { ZEUSSETTINGS } from "./types";
+import { SLBTSETTINGS } from "./types";
 
-export class SLZEUS {
-    public settings: ZEUSSETTINGS;
+export class SLBT {
+    public settings: SLBTSETTINGS;
     playerData = {
         haveWon: 0,
         currentWining: 0,
@@ -66,7 +66,7 @@ export class SLZEUS {
     private prepareSpin(data: any) {
         this.settings.currentLines = data.currentLines;
         this.settings.BetPerLines = this.settings.currentGamedata.bets[data.currentBet];
-        this.settings.currentBet = this.settings.BetPerLines * this.settings.currentLines;
+        this.settings.currentBet = this.settings.BetPerLines
     }
 
 
@@ -82,18 +82,8 @@ export class SLZEUS {
                 await this.deductPlayerBalance(this.settings.currentBet);
                 this.playerData.totalbet += this.settings.currentBet;
             }
-
-
-            if (this.settings.freeSpin.freeSpinStarted) {
-                this.settings.freeSpin.freeSpinCount--;
-                console.log("Free Spin remaining count ", this.settings.freeSpin.freeSpinCount);
-            }
             await new RandomResultGenerator(this);
             checkForWin(this)
-            if (this.settings.freeSpin.freeSpinCount == 0) {
-                this.settings.freeSpin.freeSpinStarted = false
-                this.settings.freeSpin.freeSpinCount = 0
-            }
 
         } catch (error) {
             this.sendError("Spin error");
