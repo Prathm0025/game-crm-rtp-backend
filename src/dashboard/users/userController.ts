@@ -168,6 +168,10 @@ export class UserController {
       });
 
       const socketUser = currentActivePlayers.get(username);
+      if (socketUser?.platformData.socket?.connected || socketUser?.gameData.socket) {
+        throw createHttpError(403, "Already logged in on another browser or tab.");
+      }
+
       if (socketUser?.gameData.socket) {
         throw createHttpError(403, "You Are Already Playing on another browser or tab");
       }
@@ -178,8 +182,6 @@ export class UserController {
         role: user.role,
       });
     } catch (error) {
-      console.log(error);
-
       next(error);
     }
   }
