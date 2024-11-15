@@ -64,8 +64,8 @@ export class SLZEUS {
     }
     private prepareSpin(data: any) {
         this.settings.currentLines = data.currentLines;
-        this.settings.BetPerLines = this.settings.currentGamedata.bets[data.currentBet];
-        this.settings.currentBet = this.settings.BetPerLines * this.settings.currentLines;
+        this.settings.BetPerLines = this.settings.currentGamedata.betMultiplier[data.currentBet];
+        this.settings.currentBet = this.settings.BetPerLines * this.settings.baseBetAmount;
     }
 
 
@@ -81,19 +81,9 @@ export class SLZEUS {
                 await this.deductPlayerBalance(this.settings.currentBet);
                 this.playerData.totalbet += this.settings.currentBet;
             }
-
-
-            if (this.settings.freeSpin.freeSpinStarted) {
-                this.settings.freeSpin.freeSpinCount--;
-                console.log("Free Spin remaining count ", this.settings.freeSpin.freeSpinCount);
-            }
             await new RandomResultGenerator(this);
             checkForWin(this)
-            if (this.settings.freeSpin.freeSpinCount == 0) {
-                this.settings.freeSpin.freeSpinStarted = false
-                this.settings.freeSpin.freeSpinCount = 0
-            }
-
+           
         } catch (error) {
             this.sendError("Spin error");
             console.error("Failed to generate spin results:", error);
