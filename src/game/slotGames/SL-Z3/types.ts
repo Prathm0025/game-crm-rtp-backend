@@ -21,17 +21,9 @@ export interface ZEUSSETTINGS {
     bets: number[];
     reels: any[][];
     Symbols: Symbol[];
-    lastReel: any[],
-    tempReel: any[],
-    firstReel: any[],
-    tempReelSym: any[],
-    freeSpinData: any[][],
     freeSpin: {
         symbolID: string,
-        freeSpinMuiltiplier: any[],
-        freeSpinStarted: boolean,
         freeSpinCount: number,
-        noOfFreeSpins: number,
         useFreeSpin: boolean,
         freeSpinsAdded: boolean,
     };
