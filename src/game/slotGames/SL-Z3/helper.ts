@@ -512,7 +512,7 @@ export function makeResultJson(gameInstance: SLZEUS) {
 
             },
             PlayerData: {
-                Balance: Balance,
+                Balance: gameInstance.getPlayerData().credits,
                 currentWining: playerData.currentWining,
                 totalbet: playerData.totalbet,
                 haveWon: playerData.haveWon,
