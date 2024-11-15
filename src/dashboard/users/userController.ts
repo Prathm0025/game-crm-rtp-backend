@@ -173,7 +173,7 @@ export class UserController {
       }
 
       if (socketUser?.gameData.socket) {
-        throw createHttpError(403, "You Are Already Playing on another browser or tab");
+        throw createHttpError(403, "You Are Already Playing on another browser or tab.");
       }
 
       res.status(200).json({
