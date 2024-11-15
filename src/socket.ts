@@ -178,9 +178,9 @@ const socketController = (io: Server) => {
 
         } catch (error) {
             console.error("An error occurred during socket connection:", error.message);
-            if (socket.connected) {
-                socket.disconnect(true);
-            }
+            socket.emit("alert", "ForcedExit");
+            socket.disconnect(true);
+
         }
     });
 
