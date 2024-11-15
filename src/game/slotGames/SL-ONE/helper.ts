@@ -323,8 +323,8 @@ function handleScatterPurple(gameInstance: SLONE) {
 
       // console.log("Symbol", symbol.Id, "Payout:", symbol.payout);
 
-      purpleResponse.count.push(lives)
       --lives;
+      purpleResponse.count.push(lives)
       // console.log("Remaining lives:", lives);
 
       gameInstance.settings.freeSpinCount = lives;
@@ -664,6 +664,11 @@ export function checkForLevelUp(gameInstance: SLONE, trigger: boolean): LevelUpR
       console.error("Level up is not possible.");
       return { level: 0, isLevelUp: false }
     }
+    //addressing bug
+    if (newSymbol.Id == resultSymbol.Id) {
+      console.error("Level up is not possible.same symbol");
+      return { level: 0, isLevelUp: false }
+    }
     // console.log("levelUp", newSymbol.Id, newSymbol.payout);
     return {
       isLevelUp: newSymbol.Id !== resultSymbol.Id,
@@ -835,7 +840,7 @@ export function makeResultJson(gameInstance: SLONE) {
     console.log(sendData);
     // console.log("levlup resp", sendData.GameData.levelup);
     // console.log("booster resp", sendData.GameData.booster);
-    // console.log("scatter resp", sendData.GameData.freeSpinResponse);
+    console.log("scatter resp", sendData.GameData.freeSpinResponse);
     // console.log("joker resp", sendData.GameData.jokerResponse);
 
   } catch (error) {
