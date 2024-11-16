@@ -1,3 +1,4 @@
+import { sessionManager } from "../../../dashboard/session/sessionManager";
 import { currentGamedata } from "../../../Player";
 import { checkForWin, generateInitialReel, initializeGameSettings, sendInitData } from "./helper";
 import { SLONESETTINGS } from "./types";
@@ -70,6 +71,8 @@ export class SLONE {
     try {
       //TODO:
       const playerData = this.settings._winData.slotGame.getPlayerData()
+      const platformSession = sessionManager.getPlayerPlatform(playerData.username);
+
       // console.log('playerCredits', playerData.credits);
       //NOTE: low balance
       if (this.settings.currentBet > playerData.credits) {
@@ -85,8 +88,15 @@ export class SLONE {
       this.deductPlayerBalance(this.settings.currentBet);
       this.playerData.totalbet += this.settings.currentBet;
 
+      const spinId = platformSession.currentGameSession.createSpin();
+      platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
+
       this.randomResultGenerator()
       this.checkResult()
+
+      const winAmount = this.playerData.currentWining;
+      platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
+
     } catch (error) {
       this.sendError("Spin error");
       console.error("Failed to generate spin results:", error);

@@ -1,3 +1,4 @@
+import { sessionManager } from "../../../dashboard/session/sessionManager";
 import { currentGamedata } from "../../../Player";
 import { RandomResultGenerator } from "../RandomResultGenerator";
 import { initializeGameSettings, generateInitialReel, sendInitData, makePayLines, checkForWin } from "./helper";
@@ -71,6 +72,8 @@ export class SLSR {
     public async spinResult(): Promise<void> {
         try {
             const playerData = this.getPlayerData();
+            const platformSession = sessionManager.getPlayerPlatform(playerData.username);
+
             if (this.settings.currentBet > playerData.credits) {
                 this.sendError("Low Balance");
                 return;
@@ -84,8 +87,15 @@ export class SLSR {
                 this.settings.freeSpin.freeSpinCount--;
             }
 
+            const spinId = platformSession.currentGameSession.createSpin();
+            platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
+
             await new RandomResultGenerator(this);
             checkForWin(this)
+
+            const winAmount = this.playerData.currentWining;
+            platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
+
         } catch (error) {
             this.sendError("Spin error");
             console.error("Failed to generate spin results:", error);

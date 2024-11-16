@@ -2,6 +2,7 @@ import { currentGamedata } from "../../../Player";
 import { SLBBSETTINGS } from "./types";
 import { initializeGameSettings, generateInitialReel, checkForWin, sendInitData, generateInitialBonusReel, makePayLines, } from "./helper";
 import { RandomResultGenerator } from "../RandomResultGenerator";
+import { sessionManager } from "../../../dashboard/session/sessionManager";
 
 export class SLBB {
   public settings: SLBBSETTINGS;
@@ -75,6 +76,9 @@ export class SLBB {
   public async spinResult(): Promise<void> {
     try {
       const playerData = this.getPlayerData();
+      const platformSession = sessionManager.getPlayerPlatform(playerData.username);
+
+
       const { freeSpin, bonus } = this.settings
       if (!freeSpin.isFreeSpin && this.settings.currentBet > playerData.credits) {
         this.sendError("Low Balance");
@@ -113,10 +117,18 @@ export class SLBB {
       // console.log("free", this.settings.freeSpin.count);
       // console.log("bool", !( this.settings.bonus.count>0 ) || !( this.settings.freeSpin.count>0 ));
       //
+
+      const spinId = platformSession.currentGameSession.createSpin();
+      platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
+
       if (!(this.settings.bonus.count > 0)) {
         new RandomResultGenerator(this);
       }
       checkForWin(this)
+
+      const winAmount = this.playerData.currentWining;
+      platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
+
     } catch (error) {
       this.sendError("Spin error");
       console.error("Failed to generate spin results:", error);

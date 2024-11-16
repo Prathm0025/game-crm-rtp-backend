@@ -3,6 +3,7 @@ import { RandomResultGenerator } from "../RandomResultGenerator";
 import { CRZSETTINGS, WINNINGTYPE } from "./types";
 import { initializeGameSettings, generateInitialReel, sendInitData, calculatePayout, applyExtraSymbolEffect, checkWinningCondition, makeResultJson } from "./helper";
 import { log } from "console";
+import { sessionManager } from "../../../dashboard/session/sessionManager";
 
 export class SLCRZ {
   public settings: CRZSETTINGS;
@@ -71,6 +72,8 @@ export class SLCRZ {
   private async spinResult(): Promise<void> {
     try {
       const playerData = this.getPlayerData();
+      const platformSession = sessionManager.getPlayerPlatform(playerData.username);
+
       if (this.settings.currentBet > playerData.credits) {
         this.sendError("Low Balance");
         return;
@@ -98,8 +101,17 @@ export class SLCRZ {
         this.updatePlayerBalance(this.playerData.currentWining)
         // makeResultJson(this)
       }
+
+      const spinId = platformSession.currentGameSession.createSpin();
+      platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
+
+
       new RandomResultGenerator(this);
       this.checkResult();
+
+      const winAmount = this.playerData.currentWining;
+      platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
+
     } catch (error) {
       this.sendError("Spin error");
       console.error("Failed to generate spin results:", error);
