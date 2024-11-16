@@ -128,45 +128,56 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLBT) {
 
 export function checkForWin(gameInstance: SLBT) {
   const { settings } = gameInstance;
-  const wildSymbolId = settings.wild.SymbolID; // Access the wild symbol ID separately
+  const wildSymbolId = settings.wild.SymbolID;
   const winningLines = [];
-  let totalPayout =0;
+  let totalPayout = 0;
+
+  const isFreeSpin = settings.freeSpin.useFreeSpin;
+  const wildMultipliers = {}; // Dictionary to store wild multipliers during free spins
+
+  // Populate the dictionary with wild multipliers during free spins
+  if (isFreeSpin) {
+    for (let col = 1; col < settings.resultSymbolMatrix[0].length; col++) {
+      for (let row = 0; row < settings.resultSymbolMatrix.length; row++) {
+        if (settings.resultSymbolMatrix[row][col] === wildSymbolId) {
+          wildMultipliers[`${row}-${col}`] = getRandomMultiplier(); // Store multiplier with position
+        }
+      }
+    }
+    console.log("Wild multipliers during free spins:", wildMultipliers);
+  }
+
   // Loop through each row in the first column to start potential winning lines
   for (let row = 0; row < settings.resultSymbolMatrix.length; row++) {
-    const symbolId = settings.resultSymbolMatrix[row][0]; // Symbol in the first column
-    if (!symbolId || symbolId === wildSymbolId) continue; // Skip if no symbol or if it's a wild (wilds don't start lines)
+    const symbolId = settings.resultSymbolMatrix[row][0];
+    if (!symbolId || symbolId === wildSymbolId) continue;
 
-    // Find the symbol data to access the multiplier
     const symbolData = settings.Symbols.find((s) => s.Id === symbolId);
     if (!symbolData) continue;
 
-    // Initialize an array to store separate winning lines for each match
-    let consecutiveLines = [{ count: 1, positions: [{ row, col: 0 }] }];
+    let consecutiveLines = [{ count: 1, positions: [{ row, col: 0 }], wildMultiplierTotal: 0 }];
 
-    // Loop through each subsequent column
     for (let col = 1; col < settings.resultSymbolMatrix[0].length; col++) {
       let foundMatches = [];
 
-      // Check for matches or wilds in the current column
       for (let checkRow = 0; checkRow < settings.resultSymbolMatrix.length; checkRow++) {
         const currentSymbol = settings.resultSymbolMatrix[checkRow][col];
 
-        // If symbol matches or is a wild, it's considered a match
         if (currentSymbol === symbolId || currentSymbol === wildSymbolId) {
-          foundMatches.push({ row: checkRow, isWild: currentSymbol === wildSymbolId });
+          const wildMultiplier = wildMultipliers[`${checkRow}-${col}`] || 0;
+          foundMatches.push({ row: checkRow, isWild: currentSymbol === wildSymbolId, multiplier: wildMultiplier });
         }
       }
 
-      // If no matches in this column, break out of the loop for all current lines
       if (foundMatches.length === 0) break;
 
-      // Update each current winning line or start a new one for each match
       let newConsecutiveLines = [];
-      consecutiveLines.forEach(line => {
-        foundMatches.forEach(({ row: matchRow, isWild }) => {
+      consecutiveLines.forEach((line) => {
+        foundMatches.forEach(({ row: matchRow, isWild, multiplier }) => {
           newConsecutiveLines.push({
             count: line.count + 1,
             positions: [...line.positions, { row: matchRow, col }],
+            wildMultiplierTotal: line.wildMultiplierTotal + multiplier,
           });
         });
       });
@@ -174,35 +185,80 @@ export function checkForWin(gameInstance: SLBT) {
       consecutiveLines = newConsecutiveLines;
     }
 
-    // After processing all columns, record winning lines with count >= 2
-    consecutiveLines.forEach(line => {
+    consecutiveLines.forEach((line) => {
       if (line.count >= 2) {
-        console.log(`Winning line found starting from row ${row + 1} in the first column. Symbol ID: ${symbolId}, Consecutive count: ${line.count},`);
+        console.log(`Winning line found starting from row ${row + 1}. Symbol ID: ${symbolId}, Consecutive count: ${line.count}`);
 
-        // Store the winning line details
         winningLines.push({
           symbol: symbolId,
           count: line.count,
           positions: line.positions,
         });
-        const symbolMultiplier = accessData(symbolId, line.count, gameInstance);
-        totalPayout += symbolMultiplier * gameInstance.settings.currentBet;
-        gameInstance.playerData.currentWining += totalPayout;
-        console.log("Symbol multiplier",symbolMultiplier);
-        console.log("totalPayout",totalPayout);
-        
-        // Add payout for each winning line based on the consecutive count and multiplier
-        // const payout = line.count * (symbolData.multiplier || 1);
-        // _winData.addPayout(symbolId, payout);
+
+        const baseMultiplier = accessData(symbolId, line.count, gameInstance);
+        let linePayout = baseMultiplier * settings.currentBet;
+
+        if (line.wildMultiplierTotal > 0) {
+          linePayout *= (1 + line.wildMultiplierTotal);
+          console.log(`Wild multipliers in line: ${line.wildMultiplierTotal}. Total multiplier applied to payout: ${1 + line.wildMultiplierTotal}`);
+        }
+
+        totalPayout += linePayout;
+        gameInstance.playerData.currentWining += linePayout;
+        console.log("Line payout:", linePayout);
       }
     });
   }
-  console.log("Total winnings",gameInstance.playerData.currentWining);
-  
-  // Update game settings with winning data
+
+  checkForFreeSpin(gameInstance);
+  console.log("Total winnings:", gameInstance.playerData.currentWining);
+
   gameInstance.settings._winData.winningLines = winningLines;
-  console.log("Winning Lines",gameInstance.settings._winData.winningLines)
+  console.log("Winning Lines:", gameInstance.settings._winData.winningLines);
 }
+
+function getRandomMultiplier() {
+  const multipliers = [2, 3, 5];
+  return multipliers[Math.floor(Math.random() * multipliers.length)];
+}
+
+function checkForFreeSpin(gameInstance: SLBT) {
+  const { settings } = gameInstance;
+  const freeSpinSymbolId = settings.freeSpin.symbolID; // Access the free spin symbol ID
+  let freeSpinSymbolCount = 0;
+  console.log("Free Spin ID",freeSpinSymbolId);
+  
+
+  // Count occurrences of the free spin symbol in the result matrix
+  settings.resultSymbolMatrix.forEach((row) => {
+    row.forEach((symbol) => {
+      if (symbol === freeSpinSymbolId) {
+        freeSpinSymbolCount++;
+      }
+    });
+  });
+
+  // If 3 or more free spin symbols are found, trigger free spins
+  if (freeSpinSymbolCount >= 7-settings.freeSpin.freeSpinMuiltiplier.length && freeSpinSymbolCount < 7) {
+    console.log(`Free Spin triggered! Found ${freeSpinSymbolCount} free spin symbols.`);
+    
+    const freeSpinMultiplier =
+      settings.freeSpin.freeSpinMuiltiplier[ 6- freeSpinSymbolCount] ; // Get multiplier based on count
+    settings.freeSpin.freeSpinCount += freeSpinMultiplier[1]; // Add to free spin count
+    settings.freeSpin.useFreeSpin = true; // Mark free spin as active
+    console.log(`Free Spins awarded: ${settings.freeSpin.freeSpinCount}`);
+  }
+  if(freeSpinSymbolCount >= 7)
+  {
+    console.log(`Free Spin triggered! Found ${freeSpinSymbolCount} free spin symbols.`);
+    const freeSpinMultiplier =
+      settings.freeSpin.freeSpinMuiltiplier[0] ; // Get multiplier based on count
+    settings.freeSpin.freeSpinCount += freeSpinMultiplier[1]; // Add to free spin count
+    settings.freeSpin.useFreeSpin = true; // Mark free spin as active
+    console.log(`Free Spins awarded: ${settings.freeSpin.freeSpinCount}`);
+  }
+}
+
 
 function accessData(symbol, matchCount, gameInstance: SLBT) {
   const { settings } = gameInstance;
