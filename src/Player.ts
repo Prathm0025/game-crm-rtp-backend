@@ -469,7 +469,8 @@ export default class PlayerSocket {
       entryTime: this.entryTime,
       exitTime: this.exitTime,
       currentRTP: this.currentRTP,
-      currentGame: this.currentGameSession?.getSummary() || null
+      currentGame: this.currentGameSession?.getSummary() || null,
+      userAgent: this.playerData.userAgent
     }
   }
 
