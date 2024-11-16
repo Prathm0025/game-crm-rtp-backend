@@ -86,7 +86,9 @@ function handleBonusSpin(gameInstance) {
     //      3. check and freeze cc and coins 
     //      4. decrement count if there are no new coins 
     //      5. calculate payout
+    //      6. also check if all are filled 
     settings.bonus.isTriggered = false;
+    let isWalterStash = true;
     //1. 2.
     new RandomBonusGenerator(gameInstance);
     //3.
@@ -101,11 +103,14 @@ function handleBonusSpin(gameInstance) {
                     });
                 }
             }
-            else if (settings.bonusResultMatrix[i][j] == settings.link.SymbolID.toString() || settings.bonusResultMatrix[i][j] == settings.megalink.SymbolID.toString()) {
+            if (settings.bonusResultMatrix[i][j] == settings.link.SymbolID.toString() || settings.bonusResultMatrix[i][j] == settings.megalink.SymbolID.toString()) {
                 settings.coins.bonusValues.push({
                     index: [i, j],
                     value: (0, helper_1.getRandomValue)(gameInstance, "coin")
                 });
+            }
+            if (settings.blanks.includes(settings.bonusResultMatrix[i][j].toString())) {
+                isWalterStash = false;
             }
         }
     }
@@ -116,5 +121,9 @@ function handleBonusSpin(gameInstance) {
     if (settings.bonus.count == 0) {
         const bonusPayout = (0, helper_1.handleCoinsAndCashCollect)(gameInstance, "bonus");
         settings.bonus.payout = bonusPayout;
+    }
+    if (isWalterStash) {
+        settings.bonus.isWalterStash = true;
+        settings.bonus.payout += settings.jackpot.payout[0];
     }
 }
