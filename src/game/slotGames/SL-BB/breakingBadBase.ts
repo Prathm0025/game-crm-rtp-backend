@@ -30,15 +30,15 @@ export class SLBB {
 
 
   sendMessage(action: string, message: any) {
-    this.currentGameData.sendMessage(action, message);
+    this.currentGameData.sendMessage(action, message, true);
   }
 
   sendError(message: string) {
-    this.currentGameData.sendError(message);
+    this.currentGameData.sendError(message, true);
   }
 
   sendAlert(message: string) {
-    this.currentGameData.sendAlert(message);
+    this.currentGameData.sendAlert(message, true);
   }
 
   incrementPlayerBalance(amount: number) {
@@ -113,8 +113,8 @@ export class SLBB {
       // console.log("free", this.settings.freeSpin.count);
       // console.log("bool", !( this.settings.bonus.count>0 ) || !( this.settings.freeSpin.count>0 ));
       //
-      if( !( this.settings.bonus.count>0 ) ) {
-      new RandomResultGenerator(this);
+      if (!(this.settings.bonus.count > 0)) {
+        new RandomResultGenerator(this);
       }
       checkForWin(this)
     } catch (error) {
