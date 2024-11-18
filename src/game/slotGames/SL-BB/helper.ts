@@ -45,8 +45,8 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBB) {
       isFreeSpin: false,
       cashCollectValues: [],
       count: 0,
-      LPValues: gameData.gameSettings.freeSpin.LPValues,
-      LPProbs: gameData.gameSettings.freeSpin.LPProbs,
+      LPValues: gameData.gameSettings.freeSpin.LPValue,
+      LPProbs: gameData.gameSettings.freeSpin.LPValueProbs,
     },
     wild: {
       SymbolName: "Wild",
@@ -87,7 +87,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBB) {
       useWild: false,
       values: []
     },
-    blanks:["9","10","11","12","13","14"],
+    blanks: ["9", "10", "11", "12", "13", "14"],
     cashCollectPrize: {
       isTriggered: false,
       payout: 0
@@ -236,7 +236,7 @@ export function sendInitData(gameInstance: SLBB) {
 }
 
 export function getRandomValue(gameInstance: SLBB, type: 'coin' | 'freespin' | 'prizes'): number {
-  const { currentGameData,settings } = gameInstance;
+  const { currentGameData, settings } = gameInstance;
 
   let values: number[];
   let probabilities: number[];
@@ -399,7 +399,7 @@ function accessData(symbol, matchCount, gameInstance: SLBB): number {
 function handleJackpot(gameInstance: SLBB) {
   const { settings } = gameInstance
   settings.jackpot.win = getRandomValue(gameInstance, "prizes")
-  if(settings.jackpot.win > 0){
+  if (settings.jackpot.win > 0) {
     settings.jackpot.isTriggered = true
   }
 }
@@ -558,15 +558,15 @@ export function checkForWin(gameInstance: SLBB) {
       if (hasCashCollect && hasLosPollosSymbols) {
         handleFreeSpin(gameInstance)
       }
-      if(hasPrizeCoinSymbols && hasCashCollect) {
+      if (hasPrizeCoinSymbols && hasCashCollect) {
         handleJackpot(gameInstance)
       }
     }
 
-    if (settings.bonus.count <= 0 ) {
+    if (settings.bonus.count <= 0) {
       totalWin += settings.bonus.payout;
     }
-    if(settings.jackpot.win > 0) {
+    if (settings.jackpot.win > 0) {
       totalWin += settings.jackpot.win
     }
 
@@ -578,9 +578,9 @@ export function checkForWin(gameInstance: SLBB) {
     if (settings.freeSpin.count <= 0) {
       settings.freeSpin.isFreeSpin = false
     }
-/*
- * 
- * */
+    /*
+     * 
+     * */
     if (settings.bonus.count <= 0) {
       settings.bonus.isBonus = false;
       settings.bonus.isWalterStash = false
@@ -597,7 +597,7 @@ export function checkForWin(gameInstance: SLBB) {
     settings.losPollos.values = [];
     settings._winData.winningLines = [];
     settings.jackpot.win = 0
-    settings.jackpot.isTriggered=false
+    settings.jackpot.isTriggered = false
 
 
   } catch (error) {
