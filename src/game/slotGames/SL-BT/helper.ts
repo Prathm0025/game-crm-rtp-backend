@@ -135,12 +135,13 @@ export function checkForWin(gameInstance: SLBT) {
         if (settings.resultSymbolMatrix[row][col] === wildSymbolId) {
           const multiplier = getRandomMultiplier();
           wildMultipliers[`${row}-${col}`] = multiplier; // Store multiplier with position
-          wildPositionMultipliers.push({ position: { row, col }, multiplier }); // Store wild position and multiplier
+          wildPositionMultipliers.push([row, col, multiplier]); // Store [row, col, multiplier]
         }
       }
     }
-    console.log("Wild multipliers during free spins:", wildMultipliers);
+    console.log("Wild multipliers during free spins:", wildPositionMultipliers);
   }
+  
 
   // Loop through each row in the first column to start potential winning lines
   for (let row = 0; row < settings.resultSymbolMatrix.length; row++) {
