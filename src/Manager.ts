@@ -61,7 +61,7 @@ export default class Manager {
                     this.socketData.socket.emit("activePlayers", activeUsersData);
                     this.sendData({ type: "CREDITS", payload: { credits: this.credits, role: this.role } })
                 }
-            }, 30000), // 30 seconds interval
+            }, 5000),
             reconnectionAttempts: 0,
             maxReconnectionAttempts: 3,
             reconnectionTimeout: null,
