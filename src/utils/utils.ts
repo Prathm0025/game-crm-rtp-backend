@@ -40,6 +40,8 @@ export interface socketConnectionData {
   maxReconnectionAttempts: number;
   reconnectionTimeout: number;
   cleanedUp: boolean;
+  platformId?: string | null;
+
 }
 
 export const rolesHierarchy = {

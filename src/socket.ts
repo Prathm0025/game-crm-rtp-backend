@@ -52,6 +52,8 @@ const getManagerDetails = async (username: string) => {
 
 const handlePlayerConnection = async (socket: Socket, decoded: DecodedToken, userAgent: string) => {
     const username = decoded.username;
+    const platformId = socket.handshake.auth.platformId;
+
     const origin = socket.handshake.auth.origin;
     const gameId = socket.handshake.auth.gameId;
     const { credits, status } = await getPlayerDetails(decoded.username);
@@ -59,27 +61,30 @@ const handlePlayerConnection = async (socket: Socket, decoded: DecodedToken, use
     let existingPlayer = sessionManager.getPlayerPlatform(username)
 
     if (existingPlayer) {
-        if (existingPlayer.playerData.userAgent !== userAgent || existingPlayer.platformData.socket?.connected) {
-            socket.emit("alert", "NewTab");
-            socket.disconnect(true);
+        // Platform connection handling
+        if (origin) {
+            if (existingPlayer.platformData.platformId !== platformId) {
+                console.log(`Duplicate platform detected for ${username}`);
+                socket.emit("alert", "NewTab");
+                socket.disconnect(true);
+                return;
+            }
+
+            if (existingPlayer.platformData.socket && existingPlayer.platformData.socket.connected) {
+                console.log(`Platform already connected for ${username}`);
+                socket.emit("alert", "Platform already connected.");
+                socket.disconnect(true);
+                return;
+            }
+
+            console.log(`Reinitializing platform connection for ${username}`);
+            existingPlayer.initializePlatformSocket(socket);
+            existingPlayer.sendAlert(`Platform reconnected for ${username}`, false);
             return;
         }
 
-        // Check for platform reconnection
-        if (origin) {
-            if (existingPlayer.platformData.socket && existingPlayer.platformData.socket.connected) {
-                socket.emit("alert", "Platform already connected. Please disconnect the other session.");
-                socket.disconnect(true);
-                return;
-            } else {
-                console.log("Reinitializing platform connection");
-                existingPlayer.initializePlatformSocket(socket);
-                existingPlayer.sendAlert(`Platform reconnected for ${username}`, false);
-                return;
-            }
-        }
 
-        // Check for game connection, ensuring platform is ready
+        // Game connection handling
         if (gameId) {
             if (!existingPlayer.platformData.socket || !existingPlayer.platformData.socket.connected) {
                 console.log("Platform connection required before joining a game.");
@@ -95,15 +100,26 @@ const handlePlayerConnection = async (socket: Socket, decoded: DecodedToken, use
         }
     }
 
-    // New connection handling with delay-based retry for stability
+    // New platform connection
     if (origin) {
-        console.log("New platform connection detected, initializing player");
+        console.log(`New platform connection detected for ${username}. Initializing.`);
         const newUser = new Player(username, decoded.role, status, credits, userAgent, socket);
-        newUser.sendAlert(`Player initialized for ${newUser.playerData.username} on platform ${origin}`, false);
-    } else {
+        newUser.platformData.platformId = platformId;
+        newUser.sendAlert(`Player initialized for ${username} on platform ${origin}`, false);
+        return;
+    }
+
+    // Game connection without existing platform connection
+    if (gameId) {
+        console.log(`Game connection blocked for ${username} without active platform.`);
         socket.emit(messageType.ERROR, "You need to have an active platform connection before joining a game.");
         socket.disconnect(true);
+        return;
     }
+
+    // Invalid connection attempt
+    socket.emit(messageType.ERROR, "Invalid connection attempt.");
+    socket.disconnect(true);
 };
 
 const handleManagerConnection = async (socket: Socket, decoded: DecodedToken, userAgent: string) => {

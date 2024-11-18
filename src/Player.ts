@@ -86,7 +86,9 @@ export default class PlayerSocket {
       reconnectionAttempts: 0,
       maxReconnectionAttempts: 3,
       reconnectionTimeout: 1000,
-      cleanedUp: false
+      cleanedUp: false,
+      platformId: socket.handshake.auth.platformId
+
     }
 
     this.gameData = {
@@ -124,6 +126,7 @@ export default class PlayerSocket {
     }
 
     this.platformData.socket = socket;
+    this.platformData.platformId = socket.handshake.auth.platformId;
     this.messageHandler(false);
     this.startPlatformHeartbeat();
     this.onExit();
@@ -196,6 +199,7 @@ export default class PlayerSocket {
 
 
     if (this.platformData.socket) {
+      this.platformData.platformId = null;
       this.platformData.socket.disconnect(true);
       this.platformData.socket = null;
     }
