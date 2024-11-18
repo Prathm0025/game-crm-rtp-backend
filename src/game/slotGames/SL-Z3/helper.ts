@@ -22,6 +22,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLZEUS) {
         BetMultiplier: gameData.gameSettings.betMultiplier,
         Symbols: gameInstance.initSymbols,
         resultSymbolMatrix: [],
+        resultSymbolMatrixWithoutNull:[],
         currentGamedata: gameData.gameSettings,
         lineData: [],
         _winData: new WinData(gameInstance),
@@ -138,7 +139,7 @@ export function checkForWin(gameInstance: SLZEUS) {
     try {
         const { settings } = gameInstance;
         handleFullReelOfZeus(gameInstance);
-
+        settings.resultSymbolMatrixWithoutNull = settings.resultSymbolMatrix.map(row => [...row]);
         // Remove elements from each reel in the specified sequence: 5, 4, 3, 2, 1, 0
         settings.resultSymbolMatrix = reduceMatrix(settings.resultSymbolMatrix);
         console.log(settings.resultSymbolMatrix, "result symbol matrix column replace to wild(10)");
@@ -551,7 +552,7 @@ export function makeResultJson(gameInstance: SLZEUS) {
         const Balance = credits.toFixed(2)
         const sendData = {
             GameData: {
-                ResultReel: settings.resultSymbolMatrix,
+                ResultReel: settings.resultSymbolMatrixWithoutNull,
                 linesToEmit: settings._winData.winningLines,
                 symbolsToEmit: settings._winData.winningSymbols,
                 wildSymbolIndices: settings.replacedToWildIndices,
