@@ -838,10 +838,10 @@ export function makeResultJson(gameInstance: SLONE) {
 
     gameInstance.sendMessage('ResultData', sendData);
     console.log("ResultData sent");
-    console.log(sendData);
+    console.log(JSON.stringify(sendData, null, 2));
     // console.log("levlup resp", sendData.GameData.levelup);
     // console.log("booster resp", sendData.GameData.booster);
-    console.log("scatter resp", sendData.GameData.freeSpinResponse);
+    // console.log("scatter resp", sendData.GameData.freeSpinResponse);
     // console.log("joker resp", sendData.GameData.jokerResponse);
 
   } catch (error) {

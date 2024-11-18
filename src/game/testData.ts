@@ -640,6 +640,24 @@ export const gameData = [
 
         ]
       },
+
+      {
+        "Name": "LosPollos",
+        "Id": 16,
+        "reelInstance": {
+          "0": 5,
+          "1": 5,
+          "2": 5,
+          "3": 5,
+          "4": 5
+        },
+        "description": "",
+        "useWildSub": false,
+        "useHeisenberg": false,
+        "multiplier": [
+
+        ]
+      },
     ]
   }
 ]
