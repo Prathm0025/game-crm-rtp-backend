@@ -570,7 +570,7 @@ export function makeResultJson(gameInstance: SLZEUS) {
         };
         gameInstance.sendMessage('ResultData', sendData);
 
-        console.log(sendData.GameData.ResultReel, "send Data");
+        console.log(sendData, "send Data");
 
     } catch (error) {
         console.error("Error generating result JSON or sending message:", error);
