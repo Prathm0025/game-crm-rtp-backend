@@ -87,7 +87,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBB) {
       useWild: false,
       values: []
     },
-    blanks: ["9", "10", "11", "12", "13", "14"],
+    blanks: ["9"],
     cashCollectPrize: {
       isTriggered: false,
       payout: 0

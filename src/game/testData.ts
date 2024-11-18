@@ -539,147 +539,8 @@ export const gameData = [
       },
 
       {
-        "Name": "10",
-        "Id": 10,
-        "reelInstance": {
-          "0": 4,
-          "1": 4,
-          "2": 4,
-          "3": 4,
-          "4": 4
-        },
-        "useWildSub": true,
-        "useHeisenberg": true,
-        "multiplier": [
-          [
-            250,
-            0
-          ],
-          [
-            50,
-            0
-          ],
-          [
-            20,
-            0
-          ]
-        ]
-      },
-
-      {
-        "Name": "11",
-        "Id": 11,
-        "reelInstance": {
-          "0": 4,
-          "1": 4,
-          "2": 4,
-          "3": 4,
-          "4": 4
-        },
-        "useWildSub": true,
-        "useHeisenberg": true,
-        "multiplier": [
-          [
-            250,
-            0
-          ],
-          [
-            50,
-            0
-          ],
-          [
-            20,
-            0
-          ]
-        ]
-      },
-
-      {
-        "Name": "12",
-        "Id": 12,
-        "reelInstance": {
-          "0": 4,
-          "1": 4,
-          "2": 4,
-          "3": 4,
-          "4": 4
-        },
-        "useWildSub": true,
-        "useHeisenberg": true,
-        "multiplier": [
-          [
-            250,
-            0
-          ],
-          [
-            50,
-            0
-          ],
-          [
-            20,
-            0
-          ]
-        ]
-      },
-
-      {
-        "Name": "13",
-        "Id": 13,
-        "reelInstance": {
-          "0": 4,
-          "1": 4,
-          "2": 4,
-          "3": 4,
-          "4": 4
-        },
-        "useWildSub": true,
-        "useHeisenberg": true,
-        "multiplier": [
-          [
-            250,
-            0
-          ],
-          [
-            50,
-            0
-          ],
-          [
-            20,
-            0
-          ]
-        ]
-      },
-
-      {
-        "Name": "14",
-        "Id": 14,
-        "reelInstance": {
-          "0": 4,
-          "1": 4,
-          "2": 4,
-          "3": 4,
-          "4": 4
-        },
-        "useWildSub": true,
-        "useHeisenberg": true,
-        "multiplier": [
-          [
-            250,
-            0
-          ],
-          [
-            50,
-            0
-          ],
-          [
-            20,
-            0
-          ]
-        ]
-      },
-      {
         "Name": "Wild",
-        "Id": 15,
+        "Id": 10,
         "reelInstance": {
           "0": 5,
           "1": 5,
@@ -696,7 +557,7 @@ export const gameData = [
       },
       {
         "Name": "Link",
-        "Id": 16,
+        "Id": 11,
         "reelInstance": {
           "0": 5,
           "1": 5,
@@ -713,7 +574,7 @@ export const gameData = [
       },
       {
         "Name": "MegaLink",
-        "Id": 17,
+        "Id": 12,
         "reelInstance": {
           "0": 5,
           "1": 5,
@@ -730,7 +591,7 @@ export const gameData = [
       },
       {
         "Name": "CashCollect",
-        "Id": 18,
+        "Id": 13,
         "reelInstance": {
           "0": 5,
           "1": 5,
@@ -746,7 +607,7 @@ export const gameData = [
       },
       {
         "Name": "Coins",
-        "Id": 19,
+        "Id": 14,
         "reelInstance": {
           "0": 5,
           "1": 5,
@@ -764,7 +625,7 @@ export const gameData = [
 
       {
         "Name": "PrizeCoin",
-        "Id": 20,
+        "Id": 15,
         "reelInstance": {
           "0": 5,
           "1": 5,
