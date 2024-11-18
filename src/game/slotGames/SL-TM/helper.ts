@@ -267,9 +267,13 @@ export function makeResultJson(gameInstance: SLTM) {
     const { settings, playerData } = gameInstance;
     const credits = gameInstance.getPlayerData().credits;
     const Balance = credits.toFixed(3);
+    const symbolsToEmit = settings.winningCombinations.map(combo => {
+      return combo.positions.map(pos => `${pos[1]},${pos[0]}`);
+    }).flatMap(pos => pos);
     const sendData = {
-      gameData: {
+      GameData: {
         resultSymbols: settings.resultSymbolMatrix,
+        symbolsToEmit,
         // freeSpin: {
         //   isFreeSpin: settings.isFreeSpin,
         //   freeSpinCount: settings.freeSpinCount,
