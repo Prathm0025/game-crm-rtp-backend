@@ -71,7 +71,8 @@ export default class PlayerSocket {
       reconnectionAttempts: 0,
       maxReconnectionAttempts: 3,
       reconnectionTimeout: 1000,
-      cleanedUp: false
+      cleanedUp: false,
+      platformId: socket.handshake.auth.platformId
     }
 
     this.gameData = {
@@ -113,10 +114,11 @@ export default class PlayerSocket {
     }
   }
 
- 
+
 
   public async initializePlatformSocket(socket: Socket) {
     if (socket) {
+
       console.log(`Initializing platform connection for user ${this.playerData.username}`);
       if (this.gameData.socket) {
         console.log("Cleaning up existing game session before platform re-initialization.");
@@ -124,6 +126,7 @@ export default class PlayerSocket {
       }
 
       this.platformData.socket = socket;
+      this.platformData.platformId = socket.handshake.auth.platformId;
       this.messageHandler(false);
       this.startPlatformHeartbeat();
       this.onExit();
@@ -145,7 +148,7 @@ export default class PlayerSocket {
         console.error("Socket is null during initialization of disconnect event");
       }
 
-  
+
 
       this.sendData({ type: "CREDIT", data: { credits: this.playerData.credits } }, "platform");
     }
@@ -202,6 +205,7 @@ export default class PlayerSocket {
 
 
     if (this.platformData.socket) {
+      this.platformData.platformId = null;
       this.platformData.socket.disconnect(true);
       this.platformData.socket = null;
     }
