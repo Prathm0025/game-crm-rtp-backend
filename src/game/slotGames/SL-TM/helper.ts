@@ -291,7 +291,7 @@ export function makeResultJson(gameInstance: SLTM) {
         winningCombinations: settings.winningCombinations,
         isLevelUp: settings.isLevelUp,
         level: settings.level,
-        isFreeSpin: settings.isFreeSpin,
+        isFreeSpin: settings.isFreeSpinTriggered,
         freeSpinCount: settings.freeSpinCount
       },
       PlayerData: {
