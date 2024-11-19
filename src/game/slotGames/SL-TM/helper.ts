@@ -170,6 +170,8 @@ export function checkWin(gameInstance: SLTM): { payout: number; winningCombinati
   let totalPayout = 0;
   let winningCombinations: WinningCombination[] = [];
 
+  settings.isLevelUp = false
+
   const findCombinations = (symbolId: number, col: number, path: [number, number][]): void => {
     // Stop if we've checked all columns or path is complete
     if (col == settings.matrix.x) {
@@ -253,12 +255,8 @@ export function checkWin(gameInstance: SLTM): { payout: number; winningCombinati
 
   gameInstance.incrementPlayerBalance(gameInstance.playerData.currentWining);
   makeResultJson(gameInstance)
-  settings.isLevelUp = false
   settings.isFreeSpinTriggered = false
 
-  if (settings.freeSpinCount > 0) {
-    settings.freeSpinCount -= 1
-  }
   if (settings.level === 4 && settings.freeSpinCount === 0 && settings.isFreeSpin) {
     settings.isFreeSpin = false
     settings.matrix.y = 3
@@ -266,6 +264,9 @@ export function checkWin(gameInstance: SLTM): { payout: number; winningCombinati
 
   }
 
+  if (settings.freeSpinCount > 0) {
+    settings.freeSpinCount -= 1
+  }
 
   return { payout: totalPayout, winningCombinations };
 }

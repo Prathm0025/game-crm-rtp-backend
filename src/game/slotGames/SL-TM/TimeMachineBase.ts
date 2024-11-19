@@ -105,7 +105,8 @@ export class SLTM {
       }
 
       //deduct only when freespin is not triggered
-      if (this.settings.freeSpinCount <= 0 || !this.settings.isLevelUp) {
+      if (!this.settings.isFreeSpin && !this.settings.isLevelUp) {
+        console.warn("Deducting player balance for spin");
         this.decrementPlayerBalance(precisionRound(this.settings.currentBet, 3));
         this.playerData.totalbet += Number(this.settings.currentBet.toFixed(3))
       }
