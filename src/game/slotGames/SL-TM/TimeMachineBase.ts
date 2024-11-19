@@ -24,7 +24,7 @@ export class SLTM {
       console.log("Game settings initialized")
 
       this.settings.reels = generateInitialReel(this.settings);
-      this.settings.freeSpinReels = generateFreeSpinReel(this.settings);
+      // this.settings.freeSpinReels = generateFreeSpinReel(this.settings);
       // console.log("Initial reels generated:", this.settings.reels);
 
       sendInitData(this);

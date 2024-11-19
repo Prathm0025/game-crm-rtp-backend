@@ -30,7 +30,7 @@ export interface SLTMSETTINGS {
   currentLines: number;
   BetPerLines: number;
   reels: number[][];
-  freeSpinReels: number[][];
+  // freeSpinReels: number[][];
   minMatchCount: number;
   level: 0 | 1 | 2 | 3 | 4;
   isLevelUp: boolean;

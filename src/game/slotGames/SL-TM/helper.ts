@@ -22,7 +22,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLTM) {
     currentLines: 0,
     BetPerLines: 0,
     reels: [],
-    freeSpinReels: [],
+    // freeSpinReels: [],
     level: 0 as 0 | 1 | 2 | 3 | 4,
     isLevelUp: false,
     minMatchCount: gameSettings.minMatchCount || 3,
