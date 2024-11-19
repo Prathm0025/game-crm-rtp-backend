@@ -399,7 +399,7 @@ function accessData(symbol, matchCount, gameInstance: SLBB): number {
 //TODO: jackpot or prize
 function handleJackpot(gameInstance: SLBB) {
   const { settings } = gameInstance
-  settings.jackpot.win = getRandomValue(gameInstance, "prizes")
+  settings.jackpot.win = getRandomValue(gameInstance, "prizes") * settings.BetPerLines
   if (settings.jackpot.win > 0) {
     settings.jackpot.isTriggered = true
   }

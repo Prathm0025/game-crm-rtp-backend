@@ -117,7 +117,7 @@ export function handleBonusSpin(gameInstance: SLBB) {
           value: getRandomValue(gameInstance, "coin")
         })
       }
-      if(settings.blanks.includes(settings.bonusResultMatrix[i][j].toString())){
+      if (settings.blanks.includes(settings.bonusResultMatrix[i][j].toString())) {
         isWalterStash = false
       }
     }
@@ -131,12 +131,12 @@ export function handleBonusSpin(gameInstance: SLBB) {
     const bonusPayout = handleCoinsAndCashCollect(gameInstance, "bonus")
     settings.bonus.payout = bonusPayout
   }
-  if(isWalterStash){
+  if (isWalterStash) {
     settings.bonus.isWalterStash = true
-    settings.bonus.payout+=settings.jackpot.payout[0]
+    settings.bonus.payout += settings.jackpot.payout[0] * settings.BetPerLines
   }
 
 
-  
+
 
 }
