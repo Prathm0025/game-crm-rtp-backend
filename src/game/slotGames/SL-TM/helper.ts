@@ -30,11 +30,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLTM) {
     isFreeSpinTriggered: false,
     freeSpinCount: 0,
     freeSpinIncrement: gameSettings.freeSpin.incrementCount,
-    // freeSpinMultipliers: [1, 1, 1, 1, 1],
-    // freeSpinSymbolId: gameInstance.currentGameData.gameSettings.Symbols.find((sym: SymbolType) => sym.Name == 'FreeSpin')?.Id || "12",
-    // maxMultiplier: 10,
-    // freeSpinIncrement: gameSettings.freeSpin.incrementCount,
-    // gamble: gameSettings.gamble,
+    freeSpinRetriggerProbs: gameSettings.freeSpin.retriggerProbs,
     winningCombinations: [],
     wild: {
       SymbolId: gameInstance.currentGameData.gameSettings.Symbols.find((sym: SymbolType) => sym.Name == SpecialSymbols.WILD).Id
@@ -164,6 +160,18 @@ export function getSymbol(id: number, Symbols: SymbolType[]): SymbolType | undef
 export function isWild(symbolId: number, wildId: string): boolean {
   return symbolId.toString() == wildId
 }
+function getRandomIndex(probs: number[]): number {
+  const total = probs.reduce((acc, prob) => acc + prob, 0);
+  const random = Math.random() * total;
+  let current = 0;
+  for (let i = 0; i < probs.length; i++) {
+    current += probs[i];
+    if (random < current) {
+      return i;
+    }
+  }
+  return probs.length - 1;
+}
 
 export function checkWin(gameInstance: SLTM): { payout: number; winningCombinations: WinningCombination[] } {
   const { settings, playerData } = gameInstance;
@@ -171,6 +179,63 @@ export function checkWin(gameInstance: SLTM): { payout: number; winningCombinati
   let winningCombinations: WinningCombination[] = [];
 
   settings.isLevelUp = false
+  //NOTE: freespin plus one substitute
+  if (settings.isFreeSpin) {
+    console.log("Free spin mode active.");
+
+    const freeSpinIndex = getRandomIndex(settings.freeSpinRetriggerProbs);
+    console.log("Generated freeSpinIndex:", freeSpinIndex, "from probabilities:", settings.freeSpinRetriggerProbs);
+
+    let y: number = 0;
+    if (freeSpinIndex !== 0) {
+      y = getRandomIndex([1, 1, 1, 1, 1, 1, 1]);
+      console.log("Generated y index:", y);
+    }
+
+    switch (freeSpinIndex) {
+      case 0:
+        console.log("No extra free spin triggered.");
+        break;
+
+      case 1:
+        console.log("Extra free spin in 1st reel/column at position y:", y);
+        settings.resultSymbolMatrix[y][0] = settings.freeSpin.SymbolId;
+        settings.isFreeSpinTriggered = true;
+        settings.freeSpinCount += 1;
+        break;
+
+      case 2:
+        console.log("Extra free spin in 2nd reel/column at position y:", y);
+        settings.resultSymbolMatrix[y][1] = settings.freeSpin.SymbolId;
+        break;
+
+      case 3:
+        console.log("Extra free spin in 3rd reel/column at position y:", y);
+        settings.resultSymbolMatrix[y][2] = settings.freeSpin.SymbolId;
+        break;
+
+      case 4:
+        console.log("Extra free spin in 4th reel/column at position y:", y);
+        settings.resultSymbolMatrix[y][3] = settings.freeSpin.SymbolId;
+        break;
+
+      case 5:
+        console.log("Extra free spin in 5th reel/column at position y:", y);
+        settings.resultSymbolMatrix[y][4] = settings.freeSpin.SymbolId;
+        settings.isFreeSpinTriggered = true;
+        settings.freeSpinCount += 1;
+        break;
+
+      default:
+        console.error("Invalid freeSpinIndex:", freeSpinIndex);
+        break;
+    }
+
+    console.log("Updated resultSymbolMatrix:", settings.resultSymbolMatrix);
+    console.log("Free spin count:", settings.freeSpinCount, "Free spin triggered:", settings.isFreeSpinTriggered);
+  }
+
+
 
   const findCombinations = (symbolId: number, col: number, path: [number, number][]): void => {
     // Stop if we've checked all columns or path is complete

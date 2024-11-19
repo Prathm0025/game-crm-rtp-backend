@@ -34,6 +34,7 @@ export const gameData = [
     "freeSpin": {
       "isEnabled": true,
       "incrementCount": 4,
+      "retriggerProbs": [1, 10, 2, 2, 2, 10] // 1st slot is for no freespin , 2nd for freespin in 1st reel/column , 3rd for freespin in 2nd reel/column ,.....
     },
     "Symbols": [
       {
@@ -211,11 +212,11 @@ export const gameData = [
         "Id": 10,
         "useWildSub": false,
         "reelInstance": {
-          "0": 5,
-          "1": 5,
-          "2": 5,
-          "3": 5,
-          "4": 5
+          "0": 1,
+          "1": 1,
+          "2": 1,
+          "3": 1,
+          "4": 1
         },
         "multiplier": [],
       },
@@ -224,11 +225,11 @@ export const gameData = [
         "Id": 11,
         "useWildSub": false,
         "reelInstance": {
-          "0": 2,
+          "0": 0,
           "1": 0,
           "2": 0,
           "3": 0,
-          "4": 2
+          "4": 0
         },
         "multiplier": [],
       },

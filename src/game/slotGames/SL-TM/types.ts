@@ -38,7 +38,7 @@ export interface SLTMSETTINGS {
   isFreeSpinTriggered: boolean;
   freeSpinCount: number;
   freeSpinIncrement: number;
-
+  freeSpinRetriggerProbs: number[];
   // freeSpinSymbolId: number;
   // freeSpinMultipliers: number[];
   // maxMultiplier: number;
