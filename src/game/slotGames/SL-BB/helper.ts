@@ -223,7 +223,7 @@ export function sendInitData(gameInstance: SLBB) {
       BonusReel: gameInstance.settings.bonusReels,
       Lines: gameInstance.currentGameData.gameSettings.linesApiData,
       Bets: gameInstance.settings.currentGamedata.bets,
-      jackpot: gameInstance.settings.jackpot.payout
+      Jackpot: gameInstance.settings.jackpot.payout
     },
     UIData: UiInitData,
     PlayerData: {
