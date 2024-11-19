@@ -31,6 +31,8 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBT) {
     reels: [],
     wildSymbolMultipliers: [],
     freeSpinData: gameData.gameSettings.freeSpinData,
+    WildMultiplierProb : gameData.gameSettings.WildMultiplierProb,
+    WildMultiplier: gameData.gameSettings.WildMultiplier,
     jackpot: {
       symbolName: "",
       symbolsCount: 0,
@@ -129,11 +131,11 @@ export function checkForWin(gameInstance: SLBT) {
   const wildMultipliers = {}
 
   // Populate the dictionary with wild multipliers during free spins
-  if (isFreeSpin) {
+  if (gameInstance.settings.freeSpin.freeSpinCount>0) {
     for (let col = 1; col < settings.resultSymbolMatrix[0].length; col++) {
       for (let row = 0; row < settings.resultSymbolMatrix.length; row++) {
         if (settings.resultSymbolMatrix[row][col] === wildSymbolId) {
-          const multiplier = getRandomMultiplier();
+          const multiplier = getRandomMultiplier(gameInstance);
           wildMultipliers[`${row}-${col}`] = multiplier; 
           wildPositionMultipliers.push([row, col, multiplier]);
         }
@@ -215,22 +217,47 @@ export function checkForWin(gameInstance: SLBT) {
   gameInstance.settings._winData.winningLines = settings._winData.winningLines;
   gameInstance.settings._winData.winningSymbols = settings._winData.winningLines; // Store winning symbols for each line
   gameInstance.settings.wildSymbolMultipliers = wildPositionMultipliers; // Store wild positions and multipliers
-  console.log("Winning Lines:", gameInstance.settings._winData.winningLines);
-  console.log("Winning Symbols:", gameInstance.settings._winData.winningSymbols);
-  console.log("Wild Positions and Multipliers:", gameInstance.settings.wildSymbolMultipliers);
-
+  // console.log("Winning Lines:", gameInstance.settings._winData.winningLines);
+  // console.log("Winning Symbols:", gameInstance.settings._winData.winningSymbols);
+  // console.log("Wild Positions and Multipliers:", gameInstance.settings.wildSymbolMultipliers);
+  gameInstance.playerData.haveWon += gameInstance.playerData.currentWining;
+  gameInstance.updatePlayerBalance(gameInstance.playerData.currentWining);
   makeResultJson(gameInstance)
   gameInstance.settings._winData.winningLines =[];
   gameInstance.settings._winData.winningSymbols =[];
   gameInstance.settings.wildSymbolMultipliers =[];
   gameInstance.settings.freeSpin.useFreeSpin = false;
-  
+  gameInstance.playerData.currentWining = 0;
 }
 
-function getRandomMultiplier() {
-  const multipliers = [2, 3, 5];
-  return multipliers[Math.floor(Math.random() * multipliers.length)];
+function getRandomMultiplier(gameInstance: SLBT) {
+  const { settings } = gameInstance;
+  const cumulativeProbabilities = [];
+  console.log("settings.WildMultiplierProb",settings.WildMultiplierProb)
+  console.log("WildMultiplier",settings.WildMultiplier)
+  // Calculate cumulative probabilities
+  settings.WildMultiplierProb.reduce((acc, prob, index) => {
+    cumulativeProbabilities[index] = acc + prob;
+    return cumulativeProbabilities[index];
+  }, 0);
+
+  // Generate a random number between 0 and 1
+  const random = Math.random();
+
+  // Find the corresponding multiplier based on the random number
+  for (let i = 0; i < cumulativeProbabilities.length; i++) {
+    if (random < cumulativeProbabilities[i]) { // Use < instead of <= for clean intervals
+      console.log("Multiplier value",settings.WildMultiplier[i]);
+      return settings.WildMultiplier[i];
+      
+    }
+  }
+
+  // Fallback (this should never happen if probabilities are correct)
+  return settings.WildMultiplier[settings.WildMultiplier.length - 1];
 }
+
+
 
 
 function checkForFreeSpin(gameInstance: SLBT) {
@@ -329,8 +356,9 @@ export function makeResultJson(gameInstance: SLBT) {
       },
       PlayerData: {
         Balance: gameInstance.getPlayerData().credits,
-        totalbet: playerData.totalbet,
         haveWon: playerData.haveWon,
+        currentWining: gameInstance.playerData.currentWining,
+        totalbet: playerData.totalbet,
       }
     };
     gameInstance.sendMessage('ResultData', sendData);

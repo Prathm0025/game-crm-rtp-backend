@@ -22,6 +22,8 @@ export interface SLBTSETTINGS {
     Symbols: Symbol[];
     freeSpinData: any[][],
     wildSymbolMultipliers: any[],
+    WildMultiplier: any[],
+    WildMultiplierProb: any[],
     jackpot: {
         symbolName: string;
         symbolsCount: number;

@@ -603,12 +603,14 @@ export const gameData = [
      "y": 4
    },
    "linesCount": [
-     4096
+     1
    ],
+  "WildMultiplier": [2, 3, 4, 5],
+  "WildMultiplierProb": [0.4,0.3,0.2,0.1],
    "bets": [
      0.40,
      0.80,
-     1.20,
+     1.00,
      1.60,
      2.00,
      2.40,
