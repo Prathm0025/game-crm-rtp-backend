@@ -126,7 +126,7 @@ export function checkForWin(gameInstance: SLBT) {
   let totalPayout = 0;
 
   const isFreeSpin = settings.freeSpin.useFreeSpin;
-  const wildMultipliers = {}; // Dictionary to store wild multipliers during free spins
+  const wildMultipliers = {}
 
   // Populate the dictionary with wild multipliers during free spins
   if (isFreeSpin) {
@@ -134,8 +134,8 @@ export function checkForWin(gameInstance: SLBT) {
       for (let row = 0; row < settings.resultSymbolMatrix.length; row++) {
         if (settings.resultSymbolMatrix[row][col] === wildSymbolId) {
           const multiplier = getRandomMultiplier();
-          wildMultipliers[`${row}-${col}`] = multiplier; // Store multiplier with position
-          wildPositionMultipliers.push([row, col, multiplier]); // Store [row, col, multiplier]
+          wildMultipliers[`${row}-${col}`] = multiplier; 
+          wildPositionMultipliers.push([row, col, multiplier]);
         }
       }
     }
@@ -291,9 +291,6 @@ function accessData(symbol, matchCount, gameInstance: SLBT) {
 
 
 
-
-
-
 export function sendInitData(gameInstance: SLBT) {
   gameInstance.settings.lineData =
     gameInstance.settings.currentGamedata.linesApiData;
@@ -305,7 +302,6 @@ export function sendInitData(gameInstance: SLBT) {
       Reel: reels,
       linesApiData: gameInstance.settings.currentGamedata.linesApiData,
       Bets: gameInstance.settings.currentGamedata.bets,
-      freeSpinData: gameInstance.settings.freeSpinData,
     },
     UIData: UiInitData,
     PlayerData: {
@@ -324,13 +320,14 @@ export function makeResultJson(gameInstance: SLBT) {
     const credits = gameInstance.getPlayerData().credits 
     const sendData = {
       GameData: {
+        resultMatrix: settings.resultSymbolMatrix,
         symbolsToEmit: settings._winData.winningSymbols,
         isFreeSpin: settings.freeSpin.useFreeSpin,
         freeSpinCount: settings.freeSpin.freeSpinCount,
         WildMultipliers: settings.wildSymbolMultipliers
       },
       PlayerData: {
-        // Balance: se,
+        Balance: gameInstance.getPlayerData().credits,
         totalbet: playerData.totalbet,
         haveWon: playerData.haveWon,
       }
