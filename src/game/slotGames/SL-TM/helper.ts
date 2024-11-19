@@ -231,33 +231,41 @@ export function checkWin(gameInstance: SLTM): { payout: number; winningCombinati
     combo.payout = combo.payout
     totalPayout += combo.payout;
   })
-  if (winningCombinations.length > 0) {
+  if (winningCombinations.length > 0 && !settings.isFreeSpin) {
     settings.isLevelUp = true
     if (settings.level < 4) {
       settings.level += 1
       settings.matrix.y += 1
     }
-    if (settings.level == 3) {
+    if (settings.level == 4 && !settings.isFreeSpin) {
       settings.isFreeSpin = true
       settings.isFreeSpinTriggered = true
       settings.freeSpinCount = settings.freeSpinIncrement
     }
-  } else {
+  } else if (winningCombinations.length === 0 && !settings.isFreeSpin) {
     settings.isLevelUp = false
     settings.level = 0
     settings.matrix.y = 3
   }
   settings.winningCombinations = winningCombinations
   gameInstance.playerData.currentWining = precisionRound(totalPayout, 3)
-  gameInstance.playerData.haveWon += gameInstance.playerData.currentWining
-  gameInstance.playerData.haveWon = precisionRound(gameInstance.playerData.haveWon, 3)
+  gameInstance.playerData.haveWon += precisionRound(gameInstance.playerData.currentWining, 3)
 
   gameInstance.incrementPlayerBalance(gameInstance.playerData.currentWining);
   makeResultJson(gameInstance)
   settings.isLevelUp = false
+  settings.isFreeSpinTriggered = false
+
   if (settings.freeSpinCount > 0) {
     settings.freeSpinCount -= 1
   }
+  if (settings.level === 4 && settings.freeSpinCount === 0 && settings.isFreeSpin) {
+    settings.isFreeSpin = false
+    settings.matrix.y = 3
+    settings.level = 0
+
+  }
+
 
   return { payout: totalPayout, winningCombinations };
 }
@@ -282,6 +290,8 @@ export function makeResultJson(gameInstance: SLTM) {
         winningCombinations: settings.winningCombinations,
         isLevelUp: settings.isLevelUp,
         level: settings.level,
+        isFreeSpin: settings.isFreeSpin,
+        freeSpinCount: settings.freeSpinCount
       },
       PlayerData: {
         Balance: Balance,
@@ -292,7 +302,7 @@ export function makeResultJson(gameInstance: SLTM) {
     };
 
     console.log("Sending result JSON:");
-    console.log(JSON.stringify(sendData, null, 2));
+    console.log(JSON.stringify(sendData));
 
 
     gameInstance.sendMessage('ResultData', sendData);
