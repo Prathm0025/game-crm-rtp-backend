@@ -12,6 +12,7 @@ export interface ZEUSSETTINGS {
     matrix: { x: number, y: number };
     currentGamedata: GameData;
     resultSymbolMatrix: any[];
+    resultSymbolMatrixWithoutNull:any[];
     lineData: any[],
     _winData: WinData | undefined;
     currentBet: number;
