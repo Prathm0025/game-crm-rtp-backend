@@ -223,6 +223,7 @@ export function checkForWin(gameInstance: SLBT) {
   gameInstance.settings._winData.winningLines =[];
   gameInstance.settings._winData.winningSymbols =[];
   gameInstance.settings.wildSymbolMultipliers =[];
+  gameInstance.settings.freeSpin.useFreeSpin = false;
   
 }
 

@@ -83,7 +83,7 @@ export class SLBT {
                 await this.deductPlayerBalance(this.settings.currentBet);
                 this.playerData.totalbet += this.settings.currentBet;
             }
-            if(this.settings.freeSpin.useFreeSpin)
+            if(this.settings.freeSpin.freeSpinCount > 0)
             {
                 this.settings.freeSpin.freeSpinCount --;
 
