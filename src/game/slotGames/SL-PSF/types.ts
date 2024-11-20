@@ -7,7 +7,7 @@ interface Symbol {
     payout: number;
     reelInstance: { [key: string]: number };
 }
-export interface ZEUSSETTINGS {
+export interface SLPSFSETTINGS {
     id: string;
     matrix: { x: number, y: number };
     currentGamedata: GameData;
@@ -20,25 +20,10 @@ export interface ZEUSSETTINGS {
     bets: number[];
     reels: any[][];
     Symbols: Symbol[];
-    hasCascading: boolean,
-    cascadingNo: number,
-    payoutAfterCascading: number,
-    cascadingResult: any[];
-    lastReel: any[],
-    tempReel: any[],
-    firstReel: any[],
-    tempReelSym: any[],
-    freeSpinData: any[][],
-    jackpot: {
-        symbolName: string;
-        symbolsCount: number;
-        symbolId: number;
-        defaultAmount: number;
-        increaseValue: number;
-        useJackpot: boolean;
-    },
+
     freeSpin: {
-        symbolID: string,
+        SymbolName: string,
+        SymbolID: string,
         freeSpinMuiltiplier: any[],
         freeSpinStarted: boolean,
         freeSpinCount: number,
@@ -50,12 +35,17 @@ export interface ZEUSSETTINGS {
         SymbolName: string;
         SymbolID: number;
         useWild: boolean
+    },
+    trumpFreeSpin: {
+        SymbolName: string;
+        SymbolID: number;
+
     }
 }
 
 
 export enum specialIcons {
-    jackpot = "Jackpot",
+    trumpFreeSpin = "TrumpFreeSpin",
     wild = "Wild",
-    FreeSpin = "FreeSpin"
+    freeSpin = "FreeSpin"
 }

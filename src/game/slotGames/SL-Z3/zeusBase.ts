@@ -1,4 +1,3 @@
-import { sessionManager } from "../../../dashboard/session/sessionManager";
 import { currentGamedata } from "../../../Player";
 import { RandomResultGenerator } from "../RandomResultGenerator";
 import { initializeGameSettings, generateInitialReel, sendInitData, makePayLines, checkForWin } from "./helper";
@@ -13,7 +12,6 @@ export class SLZEUS {
         rtpSpinCount: 0,
         totalSpin: 0,
         currentPayout: 0,
-        payoutafterCascading: 0,
     };
 
     constructor(public currentGameData: currentGamedata) {
@@ -33,15 +31,15 @@ export class SLZEUS {
 
 
     sendMessage(action: string, message: any) {
-        this.currentGameData.sendMessage(action, message, true);
+        this.currentGameData.sendMessage(action, message);
     }
 
     sendError(message: string) {
-        this.currentGameData.sendError(message, true);
+        this.currentGameData.sendError(message);
     }
 
     sendAlert(message: string) {
-        this.currentGameData.sendAlert(message, true);
+        this.currentGameData.sendAlert(message);
     }
 
     updatePlayerBalance(amount: number) {
@@ -66,18 +64,16 @@ export class SLZEUS {
     }
     private prepareSpin(data: any) {
         this.settings.currentLines = data.currentLines;
-        this.settings.BetPerLines = this.settings.currentGamedata.bets[data.currentBet];
-        this.settings.currentBet = this.settings.BetPerLines * this.settings.currentLines;
+        this.settings.BetPerLines = this.settings.currentGamedata.betMultiplier[data.currentBet];
+        this.settings.currentBet = this.settings.BetPerLines * this.settings.baseBetAmount;
     }
 
 
     public async spinResult(): Promise<void> {
         try {
             const playerData = this.getPlayerData();
-            const platformSession = sessionManager.getPlayerPlatform(playerData.username);
-
             if (this.settings.currentBet > playerData.credits) {
-                console.log(this.settings.currentBet + playerData.credits, 'dfdsfds')
+                console.log(this.settings.currentBet + playerData.credits)
                 this.sendError("Low Balance");
                 return;
             }
@@ -85,27 +81,9 @@ export class SLZEUS {
                 await this.deductPlayerBalance(this.settings.currentBet);
                 this.playerData.totalbet += this.settings.currentBet;
             }
-
-
-            if (this.settings.freeSpin.freeSpinStarted) {
-                this.settings.freeSpin.freeSpinCount--;
-                console.log("Free Spin remaining count ", this.settings.freeSpin.freeSpinCount);
-            }
-
-            const spinId = platformSession.currentGameSession.createSpin();
-            platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
-
-
             await new RandomResultGenerator(this);
             checkForWin(this)
-            if (this.settings.freeSpin.freeSpinCount == 0) {
-                this.settings.freeSpin.freeSpinStarted = false
-                this.settings.freeSpin.freeSpinCount = 0
-            }
-
-            const winAmount = this.playerData.currentWining;
-            platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
-
+           
         } catch (error) {
             this.sendError("Spin error");
             console.error("Failed to generate spin results:", error);
