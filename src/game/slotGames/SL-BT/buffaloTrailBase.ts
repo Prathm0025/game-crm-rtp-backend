@@ -1,3 +1,4 @@
+import { sessionManager } from "../../../dashboard/session/sessionManager";
 import { currentGamedata } from "../../../Player";
 import { RandomResultGenerator } from "../RandomResultGenerator";
 import { initializeGameSettings, generateInitialReel, sendInitData, makePayLines, checkForWin } from "./helper";
@@ -72,6 +73,8 @@ export class SLBT {
     public async spinResult(): Promise<void> {
         try {
             const playerData = this.getPlayerData();
+            const platformSession = sessionManager.getPlayerPlatform(playerData.username);
+
             if (this.settings.currentBet > playerData.credits) {
                 console.log(this.settings.currentBet + playerData.credits, 'dfdsfds')
                 this.sendError("Low Balance");
@@ -85,13 +88,20 @@ export class SLBT {
             }
             if (this.settings.freeSpin.freeSpinCount > 0) {
                 this.settings.freeSpin.freeSpinCount--;
-
             }
+
+            const spinId = platformSession.currentGameSession.createSpin();
+            platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
+
+
             await new RandomResultGenerator(this);
             checkForWin(this)
             if (this.settings.freeSpin.freeSpinCount == 0) {
                 this.settings.freeSpin.useFreeSpin = false
             }
+
+            const winAmount = this.playerData.currentWining;
+            platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
 
         } catch (error) {
             this.sendError("Spin error");

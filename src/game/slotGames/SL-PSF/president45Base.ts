@@ -1,3 +1,4 @@
+import { sessionManager } from "../../../dashboard/session/sessionManager";
 import { currentGamedata } from "../../../Player";
 import { RandomResultGenerator } from "../RandomResultGenerator";
 import { initializeGameSettings, generateInitialReel, sendInitData, makePayLines, checkForWin, checkForFreeSpin, makeResultJson } from "./helper";
@@ -72,6 +73,8 @@ export class SLPSF {
     public async spinResult(): Promise<void> {
         try {
             const playerData = this.getPlayerData();
+            const platformSession = sessionManager.getPlayerPlatform(playerData.username);
+
             if (this.settings.currentBet > playerData.credits) {
                 this.sendError("Low Balance");
                 return;
@@ -90,9 +93,18 @@ export class SLPSF {
                     });
                 }
             }
+
+            const spinId = platformSession.currentGameSession.createSpin();
+            platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
+
             await new RandomResultGenerator(this);
             checkForWin(this)
             checkForFreeSpin(this)
+
+
+            const winAmount = this.playerData.currentWining;
+            platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
+
             makeResultJson(this)
         } catch (error) {
             this.sendError("Spin error");
