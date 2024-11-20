@@ -14,6 +14,7 @@ export interface ZEUSSETTINGS {
     resultSymbolMatrix: any[];
     resultSymbolMatrixWithoutNull:any[];
     lineData: any[],
+    matchCountOfLines: any[][],
     _winData: WinData | undefined;
     currentBet: number;
     baseBetAmount:number;

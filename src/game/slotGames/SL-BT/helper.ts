@@ -29,15 +29,10 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBT) {
     currentLines: 0,
     BetPerLines: 0,
     reels: [],
-    hasCascading: false,
-    cascadingNo: 0,
-    payoutAfterCascading: 0,
-    cascadingResult: [],
-    lastReel: [],
-    tempReel: [],
-    firstReel: [],
-    tempReelSym: [],
+    wildSymbolMultipliers: [],
     freeSpinData: gameData.gameSettings.freeSpinData,
+    WildMultiplierProb : gameData.gameSettings.WildMultiplierProb,
+    WildMultiplier: gameData.gameSettings.WildMultiplier,
     jackpot: {
       symbolName: "",
       symbolsCount: 0,
@@ -129,23 +124,26 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLBT) {
 export function checkForWin(gameInstance: SLBT) {
   const { settings } = gameInstance;
   const wildSymbolId = settings.wild.SymbolID;
-  const winningLines = [];
+  const wildPositionMultipliers = []; // Array to store wild positions and multipliers
   let totalPayout = 0;
 
   const isFreeSpin = settings.freeSpin.useFreeSpin;
-  const wildMultipliers = {}; // Dictionary to store wild multipliers during free spins
+  const wildMultipliers = {}
 
   // Populate the dictionary with wild multipliers during free spins
-  if (isFreeSpin) {
+  if (gameInstance.settings.freeSpin.freeSpinCount>0) {
     for (let col = 1; col < settings.resultSymbolMatrix[0].length; col++) {
       for (let row = 0; row < settings.resultSymbolMatrix.length; row++) {
         if (settings.resultSymbolMatrix[row][col] === wildSymbolId) {
-          wildMultipliers[`${row}-${col}`] = getRandomMultiplier(); // Store multiplier with position
+          const multiplier = getRandomMultiplier(gameInstance);
+          wildMultipliers[`${row}-${col}`] = multiplier; 
+          wildPositionMultipliers.push([row, col, multiplier]);
         }
       }
     }
-    console.log("Wild multipliers during free spins:", wildMultipliers);
+    console.log("Wild multipliers during free spins:", wildPositionMultipliers);
   }
+  
 
   // Loop through each row in the first column to start potential winning lines
   for (let row = 0; row < settings.resultSymbolMatrix.length; row++) {
@@ -188,12 +186,15 @@ export function checkForWin(gameInstance: SLBT) {
     consecutiveLines.forEach((line) => {
       if (line.count >= 2) {
         console.log(`Winning line found starting from row ${row + 1}. Symbol ID: ${symbolId}, Consecutive count: ${line.count}`);
+        const transformedPositions = line.positions.map((pos) => [pos.row, pos.col]);
 
-        winningLines.push({
-          symbol: symbolId,
-          count: line.count,
-          positions: line.positions,
-        });
+        gameInstance.settings._winData.winningLines.push(
+          transformedPositions
+        );
+
+        // Collect winning symbols for this line
+         gameInstance.settings._winData.winningSymbols.push(transformedPositions); // Add transformed positions to winningSymbols
+
 
         const baseMultiplier = accessData(symbolId, line.count, gameInstance);
         let linePayout = baseMultiplier * settings.currentBet;
@@ -213,14 +214,51 @@ export function checkForWin(gameInstance: SLBT) {
   checkForFreeSpin(gameInstance);
   console.log("Total winnings:", gameInstance.playerData.currentWining);
 
-  gameInstance.settings._winData.winningLines = winningLines;
-  console.log("Winning Lines:", gameInstance.settings._winData.winningLines);
+  gameInstance.settings._winData.winningLines = settings._winData.winningLines;
+  gameInstance.settings._winData.winningSymbols = settings._winData.winningLines; // Store winning symbols for each line
+  gameInstance.settings.wildSymbolMultipliers = wildPositionMultipliers; // Store wild positions and multipliers
+  // console.log("Winning Lines:", gameInstance.settings._winData.winningLines);
+  // console.log("Winning Symbols:", gameInstance.settings._winData.winningSymbols);
+  // console.log("Wild Positions and Multipliers:", gameInstance.settings.wildSymbolMultipliers);
+  gameInstance.playerData.haveWon += gameInstance.playerData.currentWining;
+  gameInstance.updatePlayerBalance(gameInstance.playerData.currentWining);
+  makeResultJson(gameInstance)
+  gameInstance.settings._winData.winningLines =[];
+  gameInstance.settings._winData.winningSymbols =[];
+  gameInstance.settings.wildSymbolMultipliers =[];
+  gameInstance.settings.freeSpin.useFreeSpin = false;
+  gameInstance.playerData.currentWining = 0;
 }
 
-function getRandomMultiplier() {
-  const multipliers = [2, 3, 5];
-  return multipliers[Math.floor(Math.random() * multipliers.length)];
+function getRandomMultiplier(gameInstance: SLBT) {
+  const { settings } = gameInstance;
+  const cumulativeProbabilities = [];
+  console.log("settings.WildMultiplierProb",settings.WildMultiplierProb)
+  console.log("WildMultiplier",settings.WildMultiplier)
+  // Calculate cumulative probabilities
+  settings.WildMultiplierProb.reduce((acc, prob, index) => {
+    cumulativeProbabilities[index] = acc + prob;
+    return cumulativeProbabilities[index];
+  }, 0);
+
+  // Generate a random number between 0 and 1
+  const random = Math.random();
+
+  // Find the corresponding multiplier based on the random number
+  for (let i = 0; i < cumulativeProbabilities.length; i++) {
+    if (random < cumulativeProbabilities[i]) { // Use < instead of <= for clean intervals
+      console.log("Multiplier value",settings.WildMultiplier[i]);
+      return settings.WildMultiplier[i];
+      
+    }
+  }
+
+  // Fallback (this should never happen if probabilities are correct)
+  return settings.WildMultiplier[settings.WildMultiplier.length - 1];
 }
+
+
+
 
 function checkForFreeSpin(gameInstance: SLBT) {
   const { settings } = gameInstance;
@@ -281,9 +319,6 @@ function accessData(symbol, matchCount, gameInstance: SLBT) {
 
 
 
-
-
-
 export function sendInitData(gameInstance: SLBT) {
   gameInstance.settings.lineData =
     gameInstance.settings.currentGamedata.linesApiData;
@@ -295,7 +330,6 @@ export function sendInitData(gameInstance: SLBT) {
       Reel: reels,
       linesApiData: gameInstance.settings.currentGamedata.linesApiData,
       Bets: gameInstance.settings.currentGamedata.bets,
-      freeSpinData: gameInstance.settings.freeSpinData,
     },
     UIData: UiInitData,
     PlayerData: {
@@ -311,24 +345,20 @@ export function sendInitData(gameInstance: SLBT) {
 export function makeResultJson(gameInstance: SLBT) {
   try {
     const { settings, playerData } = gameInstance;
-    const credits = gameInstance.getPlayerData().credits + settings.payoutAfterCascading
-    const Balance = credits.toFixed(2)
+    const credits = gameInstance.getPlayerData().credits 
     const sendData = {
       GameData: {
-        resultSymbols: settings.firstReel,
-        linesToEmit: settings._winData.winningLines,
+        resultMatrix: settings.resultSymbolMatrix,
         symbolsToEmit: settings._winData.winningSymbols,
-        jackpot: settings._winData.jackpotwin,
-        cascading: settings.cascadingResult,
-        isCascading: settings.hasCascading,
         isFreeSpin: settings.freeSpin.useFreeSpin,
         freeSpinCount: settings.freeSpin.freeSpinCount,
+        WildMultipliers: settings.wildSymbolMultipliers
       },
       PlayerData: {
-        Balance: Balance,
-        currentWining: settings.payoutAfterCascading,
-        totalbet: playerData.totalbet,
+        Balance: gameInstance.getPlayerData().credits,
         haveWon: playerData.haveWon,
+        currentWining: gameInstance.playerData.currentWining,
+        totalbet: playerData.totalbet,
       }
     };
     gameInstance.sendMessage('ResultData', sendData);

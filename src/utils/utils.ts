@@ -8,29 +8,40 @@ import { TransactionController } from "../dashboard/transactions/transactionCont
 import { v2 as cloudinary } from "cloudinary";
 import { config } from "../config/config";
 import bcrypt from "bcrypt";
-import { users } from "../socket";
+import { sessionManager } from "../dashboard/session/sessionManager";
+import { Player } from "../dashboard/users/userModel";
+import { Socket } from "socket.io";
 
 
 const transactionController = new TransactionController()
 
-export const clients: Map<string, WebSocket> = new Map();
-
 export function formatDate(isoString: string): string {
-    const date = new Date(isoString);
-    const formattedDate = date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-    });
+  const date = new Date(isoString);
+  const formattedDate = date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 
-    const formattedTime = date.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: 'numeric',
-        second: 'numeric',
-        hour12: true
-    });
+  const formattedTime = date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+    hour12: true
+  });
 
-    return `${formattedDate} at ${formattedTime}`;
+  return `${formattedDate} at ${formattedTime}`;
+}
+
+export interface socketConnectionData {
+  socket: Socket | null;
+  heartbeatInterval: NodeJS.Timeout;
+  reconnectionAttempts: number;
+  maxReconnectionAttempts: number;
+  reconnectionTimeout: number;
+  cleanedUp: boolean;
+  platformId?: string | null;
+
 }
 
 export const rolesHierarchy = {
@@ -58,6 +69,15 @@ export const enum MESSAGETYPE {
   ALERT = "alert",
   MESSAGE = "message",
   ERROR = "internalError",
+}
+
+export enum eventType {
+  ENTERED_PLATFORM = "ENTERED_PLATFORM",
+  EXITED_PLATFORM = "EXITED_PLATFORM",
+  ENTERED_GAME = "ENTERED_GAME",
+  EXITED_GAME = "EXITED_GAME",
+  GAME_SPIN = "HIT_SPIN",
+  UPDATED_SPIN = "UPDATED_SPIN",
 }
 
 export interface DecodedToken {
@@ -89,9 +109,9 @@ export const updateStatus = (client: IUser | IPlayer, status: string) => {
     throw createHttpError(400, "Invalid status value");
   }
   client.status = status;
-  for (const [username, playerSocket] of users) {
+  for (const [username, playerSocket] of sessionManager.getPlatformSessions()) {
     if (playerSocket) {
-      const socketUser = users.get(client.username);
+      const socketUser = sessionManager.getPlayerPlatform(client.username)
       if (socketUser) {
         if (status === 'inactive') {
           socketUser.forceExit();
@@ -106,25 +126,8 @@ export const updateStatus = (client: IUser | IPlayer, status: string) => {
 export const updatePassword = async (
   client: IUser | IPlayer,
   password: string,
-  existingPassword: string
 ) => {
   try {
-    if (!existingPassword) {
-      throw createHttpError(
-        400,
-        "Existing password is required to update the password"
-      );
-    }
-
-    // Check if existingPassword matches client's current password
-    const isPasswordValid = await bcrypt.compare(
-      existingPassword,
-      client.password
-    );
-    if (!isPasswordValid) {
-      throw createHttpError(400, "Existing password is incorrect");
-    }
-
     // Update password
     client.password = await bcrypt.hash(password, 10);
   } catch (error) {
@@ -132,6 +135,7 @@ export const updatePassword = async (
     throw error
   }
 };
+
 
 export const updateCredits = async (
   client: IUser | IPlayer,
@@ -142,9 +146,19 @@ export const updateCredits = async (
   session.startTransaction();
 
   try {
+    const clientSocket = sessionManager.getPlatformSessions().get(client.username);
+    if (clientSocket) {
+      if (clientSocket.gameData.socket || clientSocket.currentGameData.gameId) {
+        throw createHttpError(409, "Cannot recharge while in a game")
+      }
+    }
+
+    const agentSocket = sessionManager.getActiveManagerByUsername(client.username);
+    const managerSocket = sessionManager.getActiveManagerByUsername(creator.username)
+
+
     const { type, amount } = credits;
 
-    // Validate credits
     if (
       !type ||
       typeof amount !== "number" ||
@@ -170,6 +184,32 @@ export const updateCredits = async (
 
     await client.save({ session });
     await creator.save({ session });
+
+
+    if (
+      managerSocket &&
+      managerSocket.socketData.socket
+    ) {
+      managerSocket.sendData({
+        type: "CREDITS",
+        payload: { credits: creator.credits, role: creator.role }
+      });
+      managerSocket.credits = creator.credits;
+    }
+
+    if (agentSocket && agentSocket.socketData.socket) {
+      agentSocket.sendData({
+        type: "CREDITS",
+        payload: { credits: client.credits, role: client.role }
+      });
+      agentSocket.credits = client.credits
+    }
+
+    if (clientSocket && clientSocket.platformData.socket && clientSocket.platformData.socket.connected) {
+      clientSocket.playerData.credits = client.credits;
+      clientSocket.sendData({ type: "CREDIT", data: { credits: client.credits } }, "platform");
+      clientSocket.playerData.credits = client.credits;
+    }
 
     await session.commitTransaction();
     session.endSession();
@@ -208,9 +248,31 @@ export const getSubordinateModel = (role: string) => {
   return rolesHierarchy[role];
 };
 
+export const getManagerName = async (username: string): Promise<string | null> => {
+  try {
+    // Fetch the player and populate the 'createdBy' field
+    const player = await Player.findOne({ username }).populate("createdBy").exec();
+
+    if (!player) {
+      console.error(`Player ${username} not found in the database.`);
+      return null;
+    }
+
+    // Check if 'createdBy' is populated and return the manager's name
+    const manager = player.createdBy as IUser;
+    if (manager && manager.name) {
+      return manager.name;
+    } else {
+      console.log(`No manager found for player ${username}`);
+      return null;
+    }
+  } catch (error) {
+    console.error(`Error fetching manager for player ${username}:`, error);
+    return null;
+  }
+};
 
 export function precisionRound(number, precision) {
-    var factor = Math.pow(10, precision);
-    return Math.round(number * factor) / factor;
+  var factor = Math.pow(10, precision);
+  return Math.round(number * factor) / factor;
 }
-
