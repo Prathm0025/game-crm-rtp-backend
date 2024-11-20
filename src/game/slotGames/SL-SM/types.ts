@@ -7,14 +7,12 @@ interface Symbol {
     payout: number;
     reelInstance: { [key: string]: number };
 }
-export interface ZEUSSETTINGS {
+export interface SLSMSETTINGS {
     id: string;
     matrix: { x: number, y: number };
     currentGamedata: GameData;
     resultSymbolMatrix: any[];
-    resultSymbolMatrixWithoutNull:any[];
     lineData: any[],
-    matchCountOfLines: any[][],
     _winData: WinData | undefined;
     currentBet: number;
     baseBetAmount:number;
@@ -46,4 +44,8 @@ export enum specialIcons {
     wild = "Wild",
     FreeSpin = "FreeSpin",
     scatter =  "Scatter"
+}
+
+interface count {
+    
 }
