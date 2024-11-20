@@ -4,7 +4,7 @@ import { WinData } from "../BaseSlotGame/WinData";
 export interface Symbol {
   Name: string;
   Id: number;
-  multiplier: [number,number][];
+  multiplier: [number, number][];
   useWildSub: boolean;
   useHeisenberg: boolean;
   reelInstance: { [key: string]: number };
@@ -36,6 +36,7 @@ export interface SLBBSETTINGS {
   reels: any[][];
   bonusReels: any[][],
   Symbols: Symbol[];
+  isCoinCollect: boolean;
   jackpot: {
     isTriggered: boolean;
     payout: number[];
@@ -48,8 +49,8 @@ export interface SLBBSETTINGS {
     count: number,
     isFreeSpin: boolean,
     cashCollectValues: valueType[],
-    LPValues:number[],
-    LPProbs:number[]
+    LPValues: number[],
+    LPProbs: number[]
   };
   wild: {
     SymbolName: string;
@@ -92,13 +93,13 @@ export interface SLBBSETTINGS {
     values: valueType[]
   };
   bonus: {
-    isBonus:boolean;
+    isBonus: boolean;
     isTriggered: boolean;
-    isWalterStash:boolean;
+    isWalterStash: boolean;
     count: number,
     payout: number;
   };
-  blanks:string[],
+  blanks: string[],
   cashCollectPrize: {
     isTriggered: boolean,
     payout: number,

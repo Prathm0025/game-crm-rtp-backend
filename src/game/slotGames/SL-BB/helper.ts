@@ -25,6 +25,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBB) {
     BetPerLines: 0,
     reels: [],
     bonusReels: [],
+    isCoinCollect: false,
     jackpot: {
       isTriggered: false,
       payout: gameData.gameSettings.jackpot.payout,
@@ -543,6 +544,7 @@ export function checkForWin(gameInstance: SLBB) {
         coinWins = handleCoinsAndCashCollect(gameInstance, "result");
         console.log(coinWins, "coin collected");
         totalWin += coinWins;
+        settings.isCoinCollect = true
       }
 
       if (settings.bonus.isTriggered) {
@@ -593,6 +595,7 @@ export function checkForWin(gameInstance: SLBB) {
         settings.losPollos.values = [];
       }
     }
+    settings.isCoinCollect = false
     settings._winData.winningLines = [];
     settings._winData.winningSymbols = [];
     settings.losPollos.values = [];
@@ -621,6 +624,7 @@ export function makeResultJson(gameInstance: SLBB) {
         linesToEmit: settings._winData.winningLines,
         symbolsToEmit: settings._winData.winningSymbols,
         WinAmount: gameInstance.playerData.currentWining,
+        isCoinCollect: settings.isCoinCollect,
         freeSpins: {
           count: settings.freeSpin.count,
           isNewAdded: settings.freeSpin.isTriggered
