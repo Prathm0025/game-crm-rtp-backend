@@ -478,6 +478,7 @@ export function checkForWin(gameInstance: SLBB) {
   try {
     let coinWins: number = 0;
     let totalWin: number = 0;
+    
 
     const { settings } = gameInstance;
     settings.isCashCollect = false;
@@ -578,8 +579,8 @@ export function checkForWin(gameInstance: SLBB) {
 
     gameInstance.playerData.currentWining = totalWin;
     gameInstance.playerData.haveWon += totalWin;
-    makeResultJson(gameInstance)
     gameInstance.incrementPlayerBalance(gameInstance.playerData.currentWining)
+    makeResultJson(gameInstance)
 
     if (settings.freeSpin.count <= 0) {
       settings.freeSpin.isFreeSpin = false
@@ -619,7 +620,7 @@ export function checkForWin(gameInstance: SLBB) {
 export function makeResultJson(gameInstance: SLBB) {
   try {
     const { settings, playerData } = gameInstance;
-    const credits = gameInstance.getPlayerData().credits + playerData.currentWining
+    const credits = gameInstance.getPlayerData().credits 
     const Balance = Number(credits.toFixed(2))
     const sendData = {
       GameData: {
