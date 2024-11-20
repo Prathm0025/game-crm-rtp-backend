@@ -25,6 +25,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLZEUS) {
         resultSymbolMatrixWithoutNull:[],
         currentGamedata: gameData.gameSettings,
         lineData: [],
+        matchCountOfLines: [],
         _winData: new WinData(gameInstance),
         currentBet: 0,
         baseBetAmount: gameData.gameSettings.baseBet,
@@ -199,6 +200,7 @@ export function checkForWin(gameInstance: SLZEUS) {
                                 multiplier: symbolMultiplierLTR,
                                 matchCount,
                             });
+                            settings.matchCountOfLines.push([index + 1, matchCount]);
                             console.log(`Line ${index + 1}:`, line);
                             console.log(
                                 `Payout for Line ${index + 1}:`,
@@ -242,6 +244,7 @@ export function checkForWin(gameInstance: SLZEUS) {
                                 multiplier: symbolMultiplierRTL,
                                 matchCount,
                             });
+                            settings.matchCountOfLines.push([index + 1, matchCount]);
                             console.log(`Line ${index + 1}:`, line);
                             console.log(
                                 `Payout for Line ${index + 1}:`,
@@ -292,7 +295,7 @@ export function checkForWin(gameInstance: SLZEUS) {
         settings._winData.winningSymbols = []
         settings.replacedToWildIndices = [];
         settings.freeSpin.freeSpinsAdded = false;
-
+        settings.matchCountOfLines = [];
 
 
         return winningLines;
@@ -554,6 +557,7 @@ export function makeResultJson(gameInstance: SLZEUS) {
             GameData: {
                 ResultReel: settings.resultSymbolMatrixWithoutNull,
                 linesToEmit: settings._winData.winningLines,
+                matchCountofLines:settings.matchCountOfLines,
                 symbolsToEmit: settings._winData.winningSymbols,
                 wildSymbolIndices: settings.replacedToWildIndices,
                 isFreeSpin: settings.freeSpin.useFreeSpin,
@@ -570,7 +574,7 @@ export function makeResultJson(gameInstance: SLZEUS) {
         };
         gameInstance.sendMessage('ResultData', sendData);
 
-        console.log(sendData, "send Data");
+        // console.log(sendData.GameData.matchCountofLines, "send Data");
 
     } catch (error) {
         console.error("Error generating result JSON or sending message:", error);
