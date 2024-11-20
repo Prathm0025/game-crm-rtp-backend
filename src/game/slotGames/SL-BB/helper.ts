@@ -541,10 +541,13 @@ export function checkForWin(gameInstance: SLBB) {
 
       console.log(totalWin, "Total win before coins ");
       if (hasCoinSymbols && hasCashCollect && !settings.bonus.isBonus) {
+        //check if cc is in 1st or 
         coinWins = handleCoinsAndCashCollect(gameInstance, "result");
         console.log(coinWins, "coin collected");
         totalWin += coinWins;
-        settings.isCoinCollect = true
+        if(coinWins>0){
+          settings.isCoinCollect = true
+        }
       }
 
       if (settings.bonus.isTriggered) {
