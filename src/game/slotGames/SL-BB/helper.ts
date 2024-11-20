@@ -564,7 +564,7 @@ export function checkForWin(gameInstance: SLBB) {
       }
     }
 
-    if (settings.bonus.count <= 0) {
+    if (settings.bonus.count <= 0 || settings.bonus.isWalterStash) {
       totalWin += settings.bonus.payout;
     }
     if (settings.jackpot.win > 0) {
