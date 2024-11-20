@@ -5,7 +5,7 @@ import { config } from "./config/config";
 import Player from "./Player";
 import { messageType } from "./game/Utils/gameUtils";
 import Manager from "./Manager";
-import { currentActiveManagers, sessionManager } from "./dashboard/session/sessionManager";
+import { sessionManager } from "./dashboard/session/sessionManager";
 
 
 interface DecodedToken {
@@ -127,7 +127,7 @@ const handleManagerConnection = async (socket: Socket, decoded: DecodedToken, us
     const role = decoded.role
     const { credits } = await getManagerDetails(username);
 
-    let existingManager = currentActiveManagers.get(username);
+    let existingManager = sessionManager.getActiveManagerByUsername(username);
 
     if (existingManager) {
         console.log(`Reinitializing manager ${username}`);
@@ -140,7 +140,7 @@ const handleManagerConnection = async (socket: Socket, decoded: DecodedToken, us
         socket.emit(messageType.ALERT, `Manager ${username} has been reconnected.`);
     } else {
         const newManager = new Manager(username, credits, role, userAgent, socket);
-        currentActiveManagers.set(username, newManager);
+        sessionManager.addManager(username, newManager)
         socket.emit(messageType.ALERT, `Manager ${username} has been connected.`);
     }
 

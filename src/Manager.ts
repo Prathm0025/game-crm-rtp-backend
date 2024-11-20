@@ -1,6 +1,6 @@
 import { Socket } from "socket.io";
 import { Player } from "./dashboard/users/userModel";
-import { currentActiveManagers, sessionManager } from "./dashboard/session/sessionManager";
+import { sessionManager } from "./dashboard/session/sessionManager";
 import { PlatformSessionModel } from "./dashboard/session/sessionModel";
 
 
@@ -84,7 +84,7 @@ export default class Manager {
 
         this.socketData.reconnectionTimeout = setTimeout(() => {
             console.log(`Removing manager ${this.username} due to prolonged disconnection`);
-            currentActiveManagers.delete(this.username);
+            sessionManager.deleteManagerByUsername(this.username)
         }, 60000); // 1-minute timeout for reconnection
     }
 

@@ -243,12 +243,14 @@ export default class PlayerSocket {
   // Start heartbeat for platform socket
   private startPlatformHeartbeat() {
     if (this.platformData.socket) {
+      this.sendData({ type: "CREDIT", data: { credits: this.playerData.credits } }, "platform");
+
       this.platformData.heartbeatInterval = setInterval(() => {
         if (this.gameData.socket) {
           this.sendAlert(`Currenlty Playing : ${this.currentGameData.gameId}`)
         }
         this.sendData({ type: "CREDIT", data: { credits: this.playerData.credits } }, "platform");
-      }, 10000)
+      }, 5000)
     }
   }
 
