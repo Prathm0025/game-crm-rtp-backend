@@ -74,7 +74,6 @@ export default class Manager {
             console.log(`Manager ${this.username} disconnected`);
             this.handleDisconnection();
         });
-        console.log("Manager initialized with socket ID:", this.socketData.socket.id);
         this.sendData({ type: "CREDITS", payload: { credits: this.credits, role: this.role } })
     }
 

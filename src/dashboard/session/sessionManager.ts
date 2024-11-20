@@ -11,37 +11,42 @@ class SessionManager {
 
     public async startPlatformSession(player: PlayerSocket) {
         this.platformSessions.set(player.playerData.username, player);
-
         try {
             const platformSessionData = new PlatformSessionModel(player.getSummary())
             await platformSessionData.save();
+
+            const manager = this.getActiveManagerByUsername(player.managerName);
+            if (manager) {
+                manager.notifyManager({ type: eventType.ENTERED_PLATFORM, payload: player.getSummary() });
+            }
         } catch (error) {
             console.error(`Failed to save platform session for player: ${player.playerData.username}`, error);
+        } finally {
+            console.log(`PLATFORM STARTED : `, player.playerData.username)
         }
     }
 
     public async endPlatformSession(playerId: string) {
-        const platformSession = this.getPlayerPlatform(playerId)
-        if (platformSession) {
-            platformSession.setExitTime();
-            this.platformSessions.delete(playerId);
+        try {
+            const platformSession = this.getPlayerPlatform(playerId)
+            if (platformSession) {
+                platformSession.setExitTime();
+                this.platformSessions.delete(playerId);
 
-            const currentManager = this.getActiveManagerByUsername(platformSession.managerName)
-            if (currentManager) {
-                currentManager.notifyManager({ type: eventType.EXITED_PLATFORM, payload: platformSession.getSummary() })
-            }
+                const currentManager = this.getActiveManagerByUsername(platformSession.managerName)
+                if (currentManager) {
+                    currentManager.notifyManager({ type: eventType.EXITED_PLATFORM, payload: platformSession.getSummary() })
+                }
 
-            try {
                 await PlatformSessionModel.updateOne(
                     { playerId: playerId, entryTime: platformSession.entryTime },
                     { $set: { exitTime: platformSession.exitTime } }
                 )
-            } catch (error) {
-                console.error(`Failed to save platform session for player: ${playerId}`, error);
-
             }
-
+        } catch (error) {
+            console.error(`Failed to save platform session for player: ${playerId}`, error);
         }
+
     }
 
     public async startGameSession(playerId: string, gameId: string, credits: number) {

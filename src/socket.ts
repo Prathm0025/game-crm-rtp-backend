@@ -6,6 +6,7 @@ import Player from "./Player";
 import { messageType } from "./game/Utils/gameUtils";
 import Manager from "./Manager";
 import { sessionManager } from "./dashboard/session/sessionManager";
+import { IUser } from "./dashboard/users/userType";
 
 
 interface DecodedToken {
@@ -34,9 +35,13 @@ const verifySocketToken = (socket: Socket): Promise<DecodedToken> => {
 };
 
 const getPlayerDetails = async (username: string) => {
-    const player = await PlayerModel.findOne({ username });
+    const player = await PlayerModel.findOne({ username }).populate<{ createdBy: IUser }>("createdBy", "name");
     if (player) {
-        return { credits: player.credits, status: player.status };
+        return {
+            credits: player.credits,
+            status: player.status,
+            managerName: player.createdBy?.name || null
+        };
     }
     throw new Error("Player not found");
 };
@@ -56,7 +61,7 @@ const handlePlayerConnection = async (socket: Socket, decoded: DecodedToken, use
 
     const origin = socket.handshake.auth.origin;
     const gameId = socket.handshake.auth.gameId;
-    const { credits, status } = await getPlayerDetails(decoded.username);
+    const { credits, status, managerName } = await getPlayerDetails(username);
 
     let existingPlayer = sessionManager.getPlayerPlatform(username)
 
@@ -102,8 +107,7 @@ const handlePlayerConnection = async (socket: Socket, decoded: DecodedToken, use
 
     // New platform connection
     if (origin) {
-        console.log(`New platform connection detected for ${username}. Initializing.`);
-        const newUser = new Player(username, decoded.role, status, credits, userAgent, socket);
+        const newUser = new Player(username, decoded.role, status, credits, userAgent, socket, managerName);
         newUser.platformData.platformId = platformId;
         newUser.sendAlert(`Player initialized for ${username} on platform ${origin}`, false);
         return;
@@ -111,7 +115,6 @@ const handlePlayerConnection = async (socket: Socket, decoded: DecodedToken, use
 
     // Game connection without existing platform connection
     if (gameId) {
-        console.log(`Game connection blocked for ${username} without active platform.`);
         socket.emit(messageType.ERROR, "You need to have an active platform connection before joining a game.");
         socket.disconnect(true);
         return;
@@ -126,6 +129,7 @@ const handleManagerConnection = async (socket: Socket, decoded: DecodedToken, us
     const username = decoded.username;
     const role = decoded.role
     const { credits } = await getManagerDetails(username);
+    console.log("MANAGER CONNECTION")
 
     let existingManager = sessionManager.getActiveManagerByUsername(username);
 

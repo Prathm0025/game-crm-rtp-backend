@@ -8,7 +8,7 @@ import { getPlayerCredits, messageType } from "./game/Utils/gameUtils";
 import { gameData } from "./game/testData";
 import GameManager from "./game/GameManager";
 import createHttpError from "http-errors";
-import { getManagerName, socketConnectionData } from "./utils/utils";
+import { socketConnectionData } from "./utils/utils";
 import { sessionManager } from "./dashboard/session/sessionManager";
 import { GameSession } from "./dashboard/session/gameSession";
 
@@ -60,6 +60,7 @@ export default class PlayerSocket {
     credits: number,
     userAgent: string,
     socket: Socket,
+    managerName: string
   ) {
 
 
@@ -79,6 +80,7 @@ export default class PlayerSocket {
 
     this.entryTime = new Date();
     this.initialCredits = credits;
+    this.managerName = managerName
 
     this.platformData = {
       socket: socket,
@@ -125,18 +127,13 @@ export default class PlayerSocket {
       await this.cleanupGameSocket()
     }
 
+    await sessionManager.startPlatformSession(this)
     this.platformData.socket = socket;
     this.platformData.platformId = socket.handshake.auth.platformId;
     this.messageHandler(false);
     this.startPlatformHeartbeat();
     this.onExit();
 
-    this.managerName = await this.getManager(this.playerData.username);
-    if (!this.managerName) {
-      throw new Error(`Manager name not found for player ${this.playerData.username}`);
-    }
-
-    await sessionManager.startPlatformSession(this)
 
     if (this.platformData.socket) {
       this.platformData.socket.on("disconnect", () => {
@@ -460,10 +457,6 @@ export default class PlayerSocket {
     this.playerData.credits -= currentBet;
   }
 
-  public async getManager(username: string): Promise<string> {
-    const managerName = await getManagerName(username)
-    return managerName;
-  }
 
   public getSummary() {
     return {
