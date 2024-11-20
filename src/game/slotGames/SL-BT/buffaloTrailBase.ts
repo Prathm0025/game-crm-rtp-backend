@@ -12,7 +12,6 @@ export class SLBT {
         rtpSpinCount: 0,
         totalSpin: 0,
         currentPayout: 0,
-        payoutafterCascading: 0,
     };
 
     constructor(public currentGameData: currentGamedata) {
@@ -80,11 +79,11 @@ export class SLBT {
             }
             console.log("free Spin count",this.settings.freeSpin.freeSpinCount);
             
-            if (!this.settings.freeSpin.useFreeSpin) {
+            if (this.settings.freeSpin.freeSpinCount==0) {
                 await this.deductPlayerBalance(this.settings.currentBet);
                 this.playerData.totalbet += this.settings.currentBet;
             }
-            if(this.settings.freeSpin.useFreeSpin)
+            if(this.settings.freeSpin.freeSpinCount > 0)
             {
                 this.settings.freeSpin.freeSpinCount --;
 

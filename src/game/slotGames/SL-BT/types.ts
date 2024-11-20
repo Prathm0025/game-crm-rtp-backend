@@ -20,15 +20,10 @@ export interface SLBTSETTINGS {
     bets: number[];
     reels: any[][];
     Symbols: Symbol[];
-    hasCascading: boolean,
-    cascadingNo: number,
-    payoutAfterCascading: number,
-    cascadingResult: any[];
-    lastReel: any[],
-    tempReel: any[],
-    firstReel: any[],
-    tempReelSym: any[],
     freeSpinData: any[][],
+    wildSymbolMultipliers: any[],
+    WildMultiplier: any[],
+    WildMultiplierProb: any[],
     jackpot: {
         symbolName: string;
         symbolsCount: number;
