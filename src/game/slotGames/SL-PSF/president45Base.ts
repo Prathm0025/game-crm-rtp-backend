@@ -1,6 +1,6 @@
 import { currentGamedata } from "../../../Player";
 import { RandomResultGenerator } from "../RandomResultGenerator";
-import { initializeGameSettings, generateInitialReel, sendInitData, makePayLines, checkForWin, checkForFreeSpin } from "./helper";
+import { initializeGameSettings, generateInitialReel, sendInitData, makePayLines, checkForWin, checkForFreeSpin, makeResultJson } from "./helper";
 import { SLPSFSETTINGS } from "./types";
 
 export class SLPSF {
@@ -87,32 +87,18 @@ export class SLPSF {
                     Object.assign(freeSpin, {
                         freeSpinStarted: false,
                         freeSpinsAdded: false,
-
                     });
                 }
             }
             await new RandomResultGenerator(this);
             checkForWin(this)
             checkForFreeSpin(this)
+            makeResultJson(this)
         } catch (error) {
             this.sendError("Spin error");
             console.error("Failed to generate spin results:", error);
         }
     }
-
-    // Helper method for generating random results
-    private async generateRandomResult(): Promise<void> {
-        await new RandomResultGenerator(this);
-    }
-
-    // Check for win logic
-    private checkForWin(): void {
-        checkForWin(this);
-    }
-
-    // Check for free spin logic
-    private checkFor
-
 
     private async getRTP(spins: number): Promise<void> {
         try {

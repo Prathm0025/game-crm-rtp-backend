@@ -415,11 +415,11 @@ export const gameData = [
         "Name": "FreeSpin",
         "Id": 8,
         "reelInstance": {
-          "0": 25,
-          "1": 25,
-          "2": 25,
-          "3": 25,
-          "4": 25
+          "0": 0,
+          "1": 0,
+          "2": 0,
+          "3": 0,
+          "4": 0
         },
         "description": "Activates 20, 50, or 100 free spins when 3, 4, or 5 symbols appear anywhere on the result matrix.",
         "useWildSub": false,
@@ -459,11 +459,11 @@ export const gameData = [
         "Name": "TrumpFreeSpin",
         "Id": 10,
         "reelInstance": {
-          "0": 2,
-          "1": 2,
-          "2": 2,
-          "3": 2,
-          "4": 2
+          "0": 10,
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 10
         },
         "description": "Trump free spin trigger +1 free spin corresponding to the symbol count on a winning condition",
         "useWildSub": false,
