@@ -1,5 +1,5 @@
 import { currentGamedata } from "../../../Player";
-import { generateInitialReel, initializeGameSettings, sendInitData, checkWin, generateFreeSpinReel } from "./helper";
+import { generateInitialReel, initializeGameSettings, sendInitData, checkWin, } from "./helper";
 import { RandomResultGenerator } from "../RandomResultGenerator";
 import { precisionRound } from "../../../utils/utils";
 import { SLTMSETTINGS } from "./types";
