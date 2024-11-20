@@ -31,15 +31,15 @@ export class SLSM {
 
 
     sendMessage(action: string, message: any) {
-        this.currentGameData.sendMessage(action, message);
+        this.currentGameData.sendMessage(action, message, true);
     }
 
     sendError(message: string) {
-        this.currentGameData.sendError(message);
+        this.currentGameData.sendError(message, true);
     }
 
     sendAlert(message: string) {
-        this.currentGameData.sendAlert(message);
+        this.currentGameData.sendAlert(message, true);
     }
 
     updatePlayerBalance(amount: number) {
@@ -64,7 +64,7 @@ export class SLSM {
     }
     private prepareSpin(data: any) {
         console.log(data, "data");
-        
+
         this.settings.currentLines = data.currentLines;
         this.settings.BetPerLines = this.settings.currentGamedata.bets[data.currentBet];
         this.settings.currentBet = this.settings.BetPerLines * this.settings.currentLines;
@@ -85,7 +85,7 @@ export class SLSM {
             }
             await new RandomResultGenerator(this);
             checkForWin(this)
-           
+
         } catch (error) {
             this.sendError("Spin error");
             console.error("Failed to generate spin results:", error);

@@ -31,15 +31,15 @@ export class SLZEUS {
 
 
     sendMessage(action: string, message: any) {
-        this.currentGameData.sendMessage(action, message);
+        this.currentGameData.sendMessage(action, message, true);
     }
 
     sendError(message: string) {
-        this.currentGameData.sendError(message);
+        this.currentGameData.sendError(message, true);
     }
 
     sendAlert(message: string) {
-        this.currentGameData.sendAlert(message);
+        this.currentGameData.sendAlert(message, true);
     }
 
     updatePlayerBalance(amount: number) {
@@ -83,7 +83,7 @@ export class SLZEUS {
             }
             await new RandomResultGenerator(this);
             checkForWin(this)
-           
+
         } catch (error) {
             this.sendError("Spin error");
             console.error("Failed to generate spin results:", error);
