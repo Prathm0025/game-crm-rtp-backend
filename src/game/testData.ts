@@ -1022,11 +1022,11 @@ export const gameData = [
        "useWildSub": false,
        "isFreeSpinMultiplier": false,
        "reelInstance": {
-         "0": 17,
-         "1": 17,
-         "2": 17,
-         "3": 17,
-         "4": 17,
+         "0": 47,
+         "1": 47,
+         "2": 47,
+         "3": 47,
+         "4": 47,
          "5":7,
        },
        "multiplier": [

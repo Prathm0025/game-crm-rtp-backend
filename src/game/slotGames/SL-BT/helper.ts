@@ -33,6 +33,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBT) {
     freeSpinData: gameData.gameSettings.freeSpinData,
     WildMultiplierProb : gameData.gameSettings.WildMultiplierProb,
     WildMultiplier: gameData.gameSettings.WildMultiplier,
+    fsWinningSymbols:[],
     jackpot: {
       symbolName: "",
       symbolsCount: 0,
@@ -148,7 +149,8 @@ export function checkForWin(gameInstance: SLBT) {
   // Loop through each row in the first column to start potential winning lines
   for (let row = 0; row < settings.resultSymbolMatrix.length; row++) {
     const symbolId = settings.resultSymbolMatrix[row][0];
-    if (!symbolId || symbolId === wildSymbolId) continue;
+    if (symbolId === null || symbolId === undefined || symbolId === wildSymbolId || symbolId === gameInstance.settings.freeSpin.symbolID) continue;
+
 
     const symbolData = settings.Symbols.find((s) => s.Id === symbolId);
     if (!symbolData) continue;
@@ -228,6 +230,7 @@ export function checkForWin(gameInstance: SLBT) {
   gameInstance.settings.wildSymbolMultipliers =[];
   gameInstance.settings.freeSpin.useFreeSpin = false;
   gameInstance.playerData.currentWining = 0;
+  gameInstance.settings.fsWinningSymbols = [];
 }
 
 function getRandomMultiplier(gameInstance: SLBT) {
@@ -267,15 +270,18 @@ function checkForFreeSpin(gameInstance: SLBT) {
   console.log("Free Spin ID",freeSpinSymbolId);
   
 
-  // Count occurrences of the free spin symbol in the result matrix
-  settings.resultSymbolMatrix.forEach((row) => {
-    row.forEach((symbol) => {
+  settings.resultSymbolMatrix.forEach((row, rowIndex) => {
+    row.forEach((symbol, colIndex) => {
       if (symbol === freeSpinSymbolId) {
         freeSpinSymbolCount++;
+  
+        // Push the position [row, col] into fsWinningSymbols
+        settings.fsWinningSymbols.push([rowIndex, colIndex]);
       }
     });
   });
-
+  console.log("FS winning symbols ", settings.fsWinningSymbols);
+  
   // If 3 or more free spin symbols are found, trigger free spins
   if (freeSpinSymbolCount >= 7-settings.freeSpin.freeSpinMuiltiplier.length && freeSpinSymbolCount < 7) {
     console.log(`Free Spin triggered! Found ${freeSpinSymbolCount} free spin symbols.`);
@@ -351,6 +357,7 @@ export function makeResultJson(gameInstance: SLBT) {
         resultMatrix: settings.resultSymbolMatrix,
         symbolsToEmit: settings._winData.winningSymbols,
         isFreeSpin: settings.freeSpin.useFreeSpin,
+        fsWinningSymbols: settings.fsWinningSymbols,
         freeSpinCount: settings.freeSpin.freeSpinCount,
         WildMultipliers: settings.wildSymbolMultipliers
       },

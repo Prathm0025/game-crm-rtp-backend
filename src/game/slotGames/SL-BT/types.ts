@@ -24,6 +24,7 @@ export interface SLBTSETTINGS {
     wildSymbolMultipliers: any[],
     WildMultiplier: any[],
     WildMultiplierProb: any[],
+    fsWinningSymbols: any[],
     jackpot: {
         symbolName: string;
         symbolsCount: number;
