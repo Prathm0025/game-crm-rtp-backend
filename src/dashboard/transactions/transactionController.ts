@@ -10,7 +10,7 @@ import TransactionService from "./transactionService";
 import { QueryParams } from "../../utils/globalTypes";
 export class TransactionController {
   private transactionService: TransactionService;
- 
+
 
   constructor() {
     this.transactionService = new TransactionService();
