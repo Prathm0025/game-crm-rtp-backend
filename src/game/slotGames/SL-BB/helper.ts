@@ -313,9 +313,17 @@ export function getCoinsValues(gameInstance: SLBB, matrixType: 'result' | 'bonus
         }else if(matrixType === 'mega'){
           //TODO:
           coinValue = getRandomValue(gameInstance, "mega")
-          const indexExists = settings.coins.values.find(
+          // Check if index already exists in settings.coins.bonusValues
+
+          const indexExists = settings.coins.bonusValues.find(
             item => item.index[0] === row && item.index[1] === col
-          )
+          );
+
+          // Only add the new value if the index does not already exist
+          if (!indexExists) {
+            settings.coins.bonusValues.push({ index: [row, col], value: coinValue });
+            settings.bonus.count = 3
+          }
 
           // Only add the new value if the index does not already exist
           if (!indexExists) {

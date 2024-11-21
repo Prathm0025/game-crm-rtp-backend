@@ -212,11 +212,11 @@ export const gameData = [
   //       "Id": 10,
   //       "useWildSub": false,
   //       "reelInstance": {
-  //         "0": 1,
-  //         "1": 1,
-  //         "2": 1,
-  //         "3": 1,
-  //         "4": 1
+  //         "0": 10,
+  //         "1": 10,
+  //         "2": 10,
+  //         "3": 10,
+  //         "4": 10
   //       },
   //       "multiplier": [],
   //     },
@@ -814,11 +814,11 @@ export const gameData = [
         "Name": "MegaLink",
         "Id": 12,
         "reelInstance": {
-          "0": 1,
-          "1": 1,
-          "2": 1,
-          "3": 1,
-          "4": 1
+          "0": 10,
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 10
         },
         "description": "",
         "useWildSub": false,
