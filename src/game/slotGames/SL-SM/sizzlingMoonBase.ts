@@ -63,13 +63,11 @@ export class SLSM {
         }
     }
     private prepareSpin(data: any) {
-        console.log(data, "data");
-        
         this.settings.currentLines = data.currentLines;
         this.settings.BetPerLines = this.settings.currentGamedata.bets[data.currentBet];
         this.settings.currentBet = this.settings.BetPerLines * this.settings.currentLines;
-    }
-
+      }
+    
 
     public async spinResult(): Promise<void> {
         try {
