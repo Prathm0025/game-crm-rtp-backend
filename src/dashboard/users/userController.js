@@ -22,7 +22,7 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const userModel_1 = require("./userModel");
 const userService_1 = __importDefault(require("./userService"));
 const transactionModel_1 = __importDefault(require("../transactions/transactionModel"));
-const socket_1 = require("../../socket");
+const sessionManager_1 = require("../session/sessionManager");
 class UserController {
     constructor() {
         this.userService = new userService_1.default();
@@ -101,6 +101,7 @@ class UserController {
     }
     loginUser(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             try {
                 const { username, password } = req.body;
                 if (!username || !password) {
@@ -128,9 +129,12 @@ class UserController {
                     httpOnly: true,
                     sameSite: "none",
                 });
-                const socketUser = socket_1.users.get(username);
-                if (socketUser === null || socketUser === void 0 ? void 0 : socketUser.socketData.gameSocket) {
-                    throw (0, http_errors_1.default)(403, "You Are Already Playing on another browser or tab");
+                const socketUser = sessionManager_1.sessionManager.getPlayerPlatform(username);
+                if (((_a = socketUser === null || socketUser === void 0 ? void 0 : socketUser.platformData.socket) === null || _a === void 0 ? void 0 : _a.connected) || (socketUser === null || socketUser === void 0 ? void 0 : socketUser.gameData.socket)) {
+                    throw (0, http_errors_1.default)(403, "Already logged in on another browser or tab.");
+                }
+                if (socketUser === null || socketUser === void 0 ? void 0 : socketUser.gameData.socket) {
+                    throw (0, http_errors_1.default)(403, "You Are Already Playing on another browser or tab.");
                 }
                 res.status(200).json({
                     message: "Login successful",
@@ -139,7 +143,7 @@ class UserController {
                 });
             }
             catch (error) {
-                console.log(error);
+                console.error("Login error:", error);
                 next(error);
             }
         });
@@ -152,12 +156,6 @@ class UserController {
                 if (!username) {
                     throw (0, http_errors_1.default)(400, "Username is required");
                 }
-                if (!socket_1.users.has(username)) {
-                    throw (0, http_errors_1.default)(404, "User not logged in");
-                }
-                // Remove the user from the logged-in users map
-                socket_1.users.delete(username);
-                console.log("User logged out : ", username);
                 // Clear the user token cookie
                 res.clearCookie("userToken", {
                     httpOnly: true,
@@ -371,8 +369,8 @@ class UserController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const activePlayers = new Set();
-                socket_1.users.forEach((value, key) => {
-                    activePlayers.add({ username: key, currentGame: value.gameId });
+                sessionManager_1.sessionManager.getPlatformSessions().forEach((value, key) => {
+                    activePlayers.add({ username: key, currentGame: value.currentGameData.gameId });
                 });
                 const _req = req;
                 const { username: loggedUserName, role: loggedUserRole } = _req.user;

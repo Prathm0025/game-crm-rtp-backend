@@ -15,13 +15,13 @@ class KenoBaseGame {
         console.log("CHANED PARSHEET IN KENO ");
     }
     sendMessage(action, message) {
-        this.currentGameData.sendMessage(action, message);
+        this.currentGameData.sendMessage(action, message, true);
     }
     sendError(message) {
-        this.currentGameData.sendError(message);
+        this.currentGameData.sendError(message, true);
     }
     sendAlert(message) {
-        this.currentGameData.sendAlert(message);
+        this.currentGameData.sendAlert(message, true);
     }
     updatePlayerBalance(message) {
         this.currentGameData.updatePlayerBalance(message);

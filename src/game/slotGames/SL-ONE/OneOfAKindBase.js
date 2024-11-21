@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SLONE = void 0;
+const sessionManager_1 = require("../../../dashboard/session/sessionManager");
 const helper_1 = require("./helper");
 class SLONE {
     constructor(currentGameData) {
@@ -34,13 +35,13 @@ class SLONE {
         return Symbols;
     }
     sendMessage(action, message) {
-        this.currentGameData.sendMessage(action, message);
+        this.currentGameData.sendMessage(action, message, true);
     }
     sendError(message) {
-        this.currentGameData.sendError(message);
+        this.currentGameData.sendError(message, true);
     }
     sendAlert(message) {
-        this.currentGameData.sendAlert(message);
+        this.currentGameData.sendAlert(message, true);
     }
     updatePlayerBalance(amount) {
         this.currentGameData.updatePlayerBalance(amount);
@@ -69,6 +70,7 @@ class SLONE {
             try {
                 //TODO:
                 const playerData = this.settings._winData.slotGame.getPlayerData();
+                const platformSession = sessionManager_1.sessionManager.getPlayerPlatform(playerData.username);
                 // console.log('playerCredits', playerData.credits);
                 //NOTE: low balance
                 if (this.settings.currentBet > playerData.credits) {
@@ -82,8 +84,12 @@ class SLONE {
                 //NOTE: deduct balance
                 this.deductPlayerBalance(this.settings.currentBet);
                 this.playerData.totalbet += this.settings.currentBet;
+                const spinId = platformSession.currentGameSession.createSpin();
+                platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
                 this.randomResultGenerator();
                 this.checkResult();
+                const winAmount = this.playerData.currentWining;
+                platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
             }
             catch (error) {
                 this.sendError("Spin error");
