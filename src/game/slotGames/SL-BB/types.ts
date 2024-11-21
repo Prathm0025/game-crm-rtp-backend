@@ -43,6 +43,16 @@ export interface SLBBSETTINGS {
     payoutProbs: number[];
     win: number
   },
+  bonus: {
+    isBonus: boolean;
+    isTriggered: boolean;
+    isWalterStash: boolean;
+    isMegaLink:boolean;
+    count: number,
+    payout: number;
+    megaLinkCoinValue: number[];
+    megaLinkCoinProb: number[]
+  };
   freeSpin: {
     isEnabled: boolean,
     isTriggered: boolean,
@@ -91,13 +101,6 @@ export interface SLBBSETTINGS {
     SymbolID: string;
     useWild: boolean;
     values: valueType[]
-  };
-  bonus: {
-    isBonus: boolean;
-    isTriggered: boolean;
-    isWalterStash: boolean;
-    count: number,
-    payout: number;
   };
   blanks: string[],
   cashCollectPrize: {

@@ -37,8 +37,11 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBB) {
       isBonus: false,
       isTriggered: false,
       isWalterStash: false,
+      isMegaLink: false,
       count: 0,
       payout: 0,
+      megaLinkCoinValue:gameData.gameSettings.megaLinkCoinValue,
+      megaLinkCoinProb:gameData.gameSettings.megaLinkCoinProb
     },
     freeSpin: {
       isEnabled: gameData.gameSettings.freeSpin.isEnabled,
@@ -237,7 +240,7 @@ export function sendInitData(gameInstance: SLBB) {
   gameInstance.sendMessage("InitData", dataToSend);
 }
 
-export function getRandomValue(gameInstance: SLBB, type: 'coin' | 'freespin' | 'prizes'): number {
+export function getRandomValue(gameInstance: SLBB, type: 'coin' | 'freespin' | 'prizes' | 'mega'): number {
   const { currentGameData, settings } = gameInstance;
 
   let values: number[];
@@ -252,6 +255,9 @@ export function getRandomValue(gameInstance: SLBB, type: 'coin' | 'freespin' | '
   } else if (type === 'prizes') {
     values = settings.jackpot.payout
     probabilities = settings.jackpot.payoutProbs
+  } else if(type === 'mega') {
+    values = settings.bonus.megaLinkCoinValue;
+    probabilities = settings.bonus.megaLinkCoinProb
   } else {
     throw new Error("Invalid type, expected 'coin' or 'freespin'");
   }
@@ -269,7 +275,7 @@ export function getRandomValue(gameInstance: SLBB, type: 'coin' | 'freespin' | '
 }
 
 // Function to set "Coins" symbols with their respective values
-export function getCoinsValues(gameInstance: SLBB, matrixType: 'result' | 'bonus' | 'prev') {
+export function getCoinsValues(gameInstance: SLBB, matrixType: 'result' | 'bonus' | 'mega') {
   const { settings } = gameInstance;
   const matrix = matrixType === 'result'
     ? settings.resultSymbolMatrix
@@ -279,7 +285,7 @@ export function getCoinsValues(gameInstance: SLBB, matrixType: 'result' | 'bonus
       const symbol = matrix[row][col];
 
       if (symbol == settings.coins.SymbolID.toString()) {
-        const coinValue = getRandomValue(gameInstance, "coin");
+        let coinValue = getRandomValue(gameInstance, "coin");
 
         if (matrixType === 'result') {
           // Check if index already exists in settings.coins.values
@@ -302,6 +308,18 @@ export function getCoinsValues(gameInstance: SLBB, matrixType: 'result' | 'bonus
           if (!indexExists) {
             settings.coins.bonusValues.push({ index: [row, col], value: coinValue });
             settings.bonus.count = 3
+          }
+
+        }else if(matrixType === 'mega'){
+          //TODO:
+          coinValue = getRandomValue(gameInstance, "mega")
+          const indexExists = settings.coins.values.find(
+            item => item.index[0] === row && item.index[1] === col
+          )
+
+          // Only add the new value if the index does not already exist
+          if (!indexExists) {
+            settings.coins.values.push({ index: [row, col], value: coinValue });
           }
 
         }
@@ -591,6 +609,7 @@ export function checkForWin(gameInstance: SLBB) {
     if (settings.bonus.count <= 0) {
       settings.bonus.isBonus = false;
       settings.bonus.isWalterStash = false
+      settings.bonus.isMegaLink = false
       settings.bonus.payout = 0
       settings.cashCollect.values = [];
       settings.coins.bonusValues = [];
@@ -658,11 +677,6 @@ export function makeResultJson(gameInstance: SLBB) {
         haveWon: playerData.haveWon,
       }
     };
-    //FIX: remove logs
-    // console.log("losPollosValues", settings.losPollos.values);
-    // console.log("coins", settings.coins.values);
-    // console.log("linestoemit", settings._winData.winningLines);
-    // console.log("symtoemit", settings._winData.winningSymbols);
 
     gameInstance.sendMessage('ResultData', sendData);
     console.log(sendData);
