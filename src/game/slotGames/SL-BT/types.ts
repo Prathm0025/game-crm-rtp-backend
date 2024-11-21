@@ -38,7 +38,7 @@ export interface SLBTSETTINGS {
         freeSpinMuiltiplier: any[],
         freeSpinStarted: boolean,
         freeSpinCount: number,
-        noOfFreeSpins: number,
+        isNewAdded: number,
         useFreeSpin: boolean,
         freeSpinsAdded: boolean,
     };

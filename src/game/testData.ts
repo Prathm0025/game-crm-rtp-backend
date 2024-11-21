@@ -594,451 +594,429 @@ export const gameData = [
 //         }
 //     ]
 //   }
-  {
-   "id": "SL-BT",
-   "isSpecial": true,
-   "minMatchCount": 3,
-   "matrix": {
-     "x": 6,
-     "y": 4
-   },
-   "linesCount": [
-     1
-   ],
-  "WildMultiplier": [2, 3, 4, 5],
-  "WildMultiplierProb": [0.4,0.3,0.2,0.1],
-   "bets": [
-     0.40,
-     0.80,
-     1.00,
-     1.60,
-     2.00,
-     2.40,
-     2.80,
-     3.20,
-     3.60,
-     4.00,
-     8.00,
-     12.00,
-     16.00
-   ],
-   "freeSpin": {
-     "isEnabled": true,
-     "incrementCount": 4,
-   },
-   "Symbols": [
-     {
-       "Name": "0",
-       "Id": 0,
-       "useWildSub": true,
-       "isFreeSpinMultiplier": true,
-       "reelInstance": {
-         "0": 55,
-         "1": 55,
-         "2": 55,
-         "3": 55,
-         "4": 55,
-         "5":15,
-       },
-       "multiplier": [
-         [
-           50,
-           0
-         ],
-         [
-           25,
-           0
-         ],
-         [
-           15,
-           0
-         ],
-         [
-           10,
-           0
-         ]
-       ],
-     },
-     {
-       "Name": "1",
-       "Id": 1,
-       "useWildSub": true,
-       "isFreeSpinMultiplier": true,
-       "reelInstance": {
-         "0": 15,
-         "1": 15,
-         "2": 15,
-         "3": 15,
-         "4": 15,
-         "5":15,
-       },
-       "multiplier": [
-         [
-           50,
-           0
-         ],
-         [
-           25,
-           0
-         ],
-         [
-           15,
-           0
-         ],
-         [
-           10,
-           0
-         ]
-       ],
-     },
-     {
-       "Name": "2",
-       "Id": 2,
-       "useWildSub": true,
-       "isFreeSpinMultiplier": true,
-       "reelInstance": {
-         "0": 15,
-         "1": 15,
-         "2": 15,
-         "3": 15,
-         "4": 15,
-         "5":15,
-       },
-       "multiplier": [
-         [
-           50,
-           0
-         ],
-         [
-           25,
-           0
-         ],
-         [
-           15,
-           0
-         ],
-         [
-           10,
-           0
-         ]
-       ],
-     },
-     {
-       "Name": "3",
-       "Id": 3,
-       "useWildSub": true,
-       "isFreeSpinMultiplier": true,
-       "reelInstance": {
-         "0": 15,
-         "1": 15,
-         "2": 15,
-         "3": 15,
-         "4": 15,
-         "5":15,
-       },
-       "multiplier": [
-         [
-           50,
-           0
-         ],
-         [
-           25,
-           0
-         ],
-         [
-           15,
-           0
-         ],
-         [
-           10,
-           0
-         ]
-       ],
-     },
-     {
-       "Name": "4",
-       "Id": 4,
-       "useWildSub": true,
-       "isFreeSpinMultiplier": true,
-       "reelInstance": {
-         "0": 5,
-         "1": 5,
-         "2": 5,
-         "3": 5,
-         "4": 5,
-         "5":15,
-       },
-       "multiplier": [
-         [
-           50,
-           0
-         ],
-         [
-           25,
-           0
-         ],
-         [
-           15,
-           0
-         ],
-         [
-           10,
-           0
-         ]
-       ],
-     },
-     {
-       "Name": "5",
-       "Id": 5,
-       "useWildSub": true,
-       "isFreeSpinMultiplier": false,
-       "reelInstance": {
-         "0": 15,
-         "1": 15,
-         "2": 15,
-         "3": 15,
-         "4": 15,
-         "5":15
-       },
-       "multiplier": [
-         [
-           50,
-           0
-         ],
-         [
-           25,
-           0
-         ],
-         [
-           15,
-           0
-         ],
-         [
-           10,
-           0
-         ]
-       ],
-     },
-     {
-       "Name": "6",
-       "Id": 6,
-       "useWildSub": true,
-       "isFreeSpinMultiplier": false,
-       "reelInstance": {
-         "0": 6,
-         "1": 6,
-         "2": 6,
-         "3": 6,
-         "4": 6,
-         "5":15,
-       },
-       "multiplier": [
-         [
-           50,
-           0
-         ],
-         [
-           25,
-           0
-         ],
-         [
-           15,
-           0
-         ],
-         [
-           10,
-           0
-         ],
-         [
-           5,
-           0
-         ]
-       ],
-     },
-     {
-       "Name": "7",
-       "Id": 7,
-       "useWildSub": true,
-       "isFreeSpinMultiplier": false,
-       "reelInstance": {
-         "0": 6,
-         "1": 6,
-         "2": 6,
-         "3": 6,
-         "4": 6,
-         "5":15,
-       },
-       "multiplier": [
-         [
-           50,
-           0
-         ],
-         [
-           25,
-           0
-         ],
-         [
-           15,
-           0
-         ],
-         [
-           10,
-           0
-         ],
-         [
-           5,
-           0
-         ]
-       ],
-     },
-     {
-       "Name": "8",
-       "Id": 8,
-       "useWildSub": true,
-       "isFreeSpinMultiplier": false,
-       "reelInstance": {
-         "0": 6,
-         "1": 6,
-         "2": 6,
-         "3": 6,
-         "4": 6,
-         "5":15,
-       },
-       "multiplier": [
-         [
-           50,
-           0
-         ],
-         [
-           25,
-           0
-         ],
-         [
-           15,
-           0
-         ],
-         [
-           10,
-           0
-         ],
-         [
-           5,
-           0
-         ]
-       ],
-     },
-     {
-       "Name": "9",
-       "Id": 9,
-       "useWildSub": true,
-       "isFreeSpinMultiplier": false,
-       "reelInstance": {
-         "0": 6,
-         "1": 6,
-         "2": 6,
-         "3": 6,
-         "4": 6,
-         "5":15,
-       },
-       "multiplier": [
-         [
-           50,
-           0
-         ],
-         [
-           25,
-           0
-         ],
-         [
-           15,
-           0
-         ],
-         [
-           10,
-           0
-         ],
-         [
-           5,
-           0
-         ]
-       ],
-     },
-     {
-       "Name": "10",
-       "Id": 10,
-       "useWildSub": true,
-       "isFreeSpinMultiplier": false,
-       "reelInstance": {
-         "0": 6,
-         "1": 6,
-         "2": 6,
-         "3": 6,
-         "4": 6,
-         "5":15,
-       },
-       "multiplier": [
-         [
-           50,
-           0
-         ],
-         [
-           25,
-           0
-         ],
-         [
-           15,
-           0
-         ],
-         [
-           10,
-           0
-         ],
-         [
-           5,
-           0
-         ]
-       ],
-     },
-     {
-       "Name": "Wild",
-       "Id": 11,
-       "useWildSub": false,
-       "isFreeSpinMultiplier": false,
-       "reelInstance": {
-         "0": 0,
-         "1": 5,
-         "2": 5,
-         "3": 5,
-         "4": 5,
-         "5":5,
-       },
-       "multiplier": [
+{
+  "id": "SL-BT",
+  "isSpecial": true,
+  "minMatchCount": 3,
+  "matrix": {
+    "x": 6,
+    "y": 4
+  },
+  "linesCount": [
+    1
+  ],
+ "WildMultiplier": [2, 3, 4, 5],
+ "WildMultiplierProb": [0.4,0.3,0.2,0.1],
+  "bets": [
+    0.40,
+    0.80,
+    1.00,
+    1.60,
+    2.00,
+    2.40,
+    2.80,
+    3.20,
+    3.60,
+    4.00,
+    8.00,
+    12.00,
+    16.00
+  ],
+  
+  "Symbols": [
+    {
+      "Name": "0",
+      "Id": 0,
+      "useWildSub": true,
+      "isFreeSpinMultiplier": true,
+      "reelInstance": {
+        "0": 12,
+        "1": 12,
+        "2": 12,
+        "3": 12,
+        "4": 12,
+        "5": 12,
+      },
+      "multiplier": [
+        [
+          3,
+          0
+        ],
+        [
+          1.5,
+          0
+        ],
+        [
+          0.8,
+          0
+        ],
+        [
+          0.5,
+          0
+        ]
+      ]
+    },
+    {
+      "Name": "1",
+      "Id": 1,
+      "useWildSub": true,
+      "isFreeSpinMultiplier": true,
+      "reelInstance": {
+        "0": 12,
+        "1": 12,
+        "2": 12,
+        "3": 12,
+        "4": 12,
+        "5": 12,
+      },
+      "multiplier": [
+        [
+          3,
+          0
+        ],
+        [
+          1.5,
+          0
+        ],
+        [
+          0.8,
+          0
+        ],
+        [
+          0.5,
+          0
+        ]
+      ]
+    },
+    {
+      "Name": "2",
+      "Id": 2,
+      "useWildSub": true,
+      "isFreeSpinMultiplier": true,
+      "reelInstance": {
+        "0": 12,
+        "1": 12,
+        "2": 12,
+        "3": 12,
+        "4": 12,
+        "5": 12,
+      },
+      "multiplier": [
+        [
+          3,
+          0
+        ],
+        [
+          1.5,
+          0
+        ],
+        [
+          0.8,
+          0
+        ],
+        [
+          0.5,
+          0
+        ]
+     ]
+    },
+    {
+      "Name": "3",
+      "Id": 3,
+      "useWildSub": true,
+      "isFreeSpinMultiplier": true,
+      "reelInstance": {
+        "0": 12,
+        "1": 12,
+        "2": 12,
+        "3": 12,
+        "4": 12,
+        "5": 12,
+      },
+      "multiplier": [
+        [
+          3,
+          0
+        ],
+        [
+          1.5,
+          0
+        ],
+        [
+          0.8,
+          0
+        ],
+        [
+          0.5,
+          0
+        ]
+      ]
+    },
+    {
+      "Name": "4",
+      "Id": 4,
+      "useWildSub": true,
+      "isFreeSpinMultiplier": true,
+      "reelInstance": {
+        "0": 12,
+        "1": 12,
+        "2": 12,
+        "3": 12,
+        "4": 12,
+        "5": 12,
+      },
+      "multiplier": [
+        [
+          3,
+          0
+        ],
+        [
+          1.5,
+          0
+        ],
+        [
+          0.8,
+          0
+        ],
+        [
+          0.5,
+          0
+        ]
+      ]
+    },
+    {
+      "Name": "5",
+      "Id": 5,
+      "useWildSub": true,
+      "isFreeSpinMultiplier": false,
+      "reelInstance": {
+        "0": 12,
+        "1": 12,
+        "2": 12,
+        "3": 12,
+        "4": 12,
+        "5": 12
+      },
+      "multiplier": [
+        [
+          3,
+          0
+        ],
+        [
+          1.5,
+          0
+        ],
+        [
+          0.8,
+          0
+        ],
+        [
+          0.5,
+          0
+        ]
+      ]
+    },
+    {
+      "Name": "6",
+      "Id": 6,
+      "useWildSub": true,
+      "isFreeSpinMultiplier": false,
+      "reelInstance": {
+        "0": 5,
+        "1": 5,
+        "2": 5,
+        "3": 5,
+        "4": 5,
+        "5": 5
+      },
+      "multiplier": [
+        [
+          4,
+          0
+        ],
+        [
+          2.5,
+          0
+        ],
+        [
+          1.5,
+          0
+        ],
+        [
+          0.8,
+          0
+        ]
+      ]
+    },
+    {
+      "Name": "7",
+      "Id": 7,
+      "useWildSub": true,
+      "isFreeSpinMultiplier": false,
+      "reelInstance": {
+        "0": 5,
+        "1": 5,
+        "2": 5,
+        "3": 5,
+        "4": 5,
+        "5": 5
+      },
+      "multiplier": [
+        [
+          4,
+          0
+        ],
+        [
+          2.5,
+          0
+        ],
+        [
+          1.5,
+          0
+        ],
+        [
+          0.8,
+          0
+        ]
+      ]
+    },
+    {
+      "Name": "8",
+      "Id": 8,
+      "useWildSub": true,
+      "isFreeSpinMultiplier": false,
+      "reelInstance": {
+        "0": 5,
+        "1": 5,
+        "2": 5,
+        "3": 5,
+        "4": 5,
+        "5": 5
+      },
+      "multiplier": [
+        [
+          4,
+          0
+        ],
+        [
+          2.5,
+          0
+        ],
+        [
+          1.5,
+          0
+        ],
+        [
+          0.8,
+          0
+        ]
+      ]
+    },
+    {
+      "Name": "9",
+      "Id": 9,
+      "useWildSub": true,
+      "isFreeSpinMultiplier": false,
+      "reelInstance": {
+        "0": 4,
+        "1": 4,
+        "2": 4,
+        "3": 4,
+        "4": 4,
+        "5": 4
+      },
+      "multiplier": [
+        [
+          4,
+          0
+        ],
+        [
+          2.5,
+          0
+        ],
+        [
+          1.5,
+          0
+        ],
+        [
+          0.8,
+          0
+        ]
+      ]
+    },
+    {
+      "Name": "10",
+      "Id": 10,
+      "useWildSub": true,
+      "isFreeSpinMultiplier": false,
+      "reelInstance": {
+        "0": 5,
+        "1": 5,
+        "2": 5,
+        "3": 5,
+        "4": 5,
+        "5": 5
+      },
+      "multiplier": [
+        [
+          4,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          1.5,
+          0
+        ],
+        [
+          0.8,
+          0
+        ]
+      ]
+    },
+    {
+      "Name": "Wild",
+      "Id": 11,
+      "useWildSub": false,
+      "isFreeSpinMultiplier": false,
+      "reelInstance": {
+        "0": 0,
+        "1": 5,
+        "2": 5,
+        "3": 5,
+        "4": 5,
+        "5": 5
+      },
+      "multiplier": [
 
-       ],
-     },
-     {
-       "Name": "FreeSpin",
-       "Id": 12,
-       "useWildSub": false,
-       "isFreeSpinMultiplier": false,
-       "reelInstance": {
-         "0": 47,
-         "1": 47,
-         "2": 47,
-         "3": 47,
-         "4": 47,
-         "5":7,
-       },
-       "multiplier": [
-         [0,10],
-         [0,7],
-         [0,5],
-         [0,3]
+      ],
+    },
+    {
+      "Name": "FreeSpin",
+      "Id": 12,
+      "useWildSub": false,
+      "isFreeSpinMultiplier": false,
+      "reelInstance": {
+        "0": 5,
+        "1": 5,
+        "2": 5,
+        "3": 5,
+        "4": 5,
+        "5": 5
+      },
+      "multiplier": [
+        [0,10],
+        [0,7],
+        [0,5],
+        [0,3]
 
-       ]
-     }
-   ]
- }
+      ]
+    }
+  ]
+}
+
 
    // {
    //   "id": "SL-ONE",

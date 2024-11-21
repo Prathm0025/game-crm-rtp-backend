@@ -82,7 +82,8 @@ export class SLSR {
             }
         
             if(this.settings.freeSpin.freeSpinCount>0)
-            {
+            {   
+                
                 this.settings.freeSpin.freeSpinCount --;
             }
             

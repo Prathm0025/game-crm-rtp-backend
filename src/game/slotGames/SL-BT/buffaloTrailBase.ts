@@ -77,16 +77,16 @@ export class SLBT {
                 this.sendError("Low Balance");
                 return;
             }
-            console.log("free Spin count",this.settings.freeSpin.freeSpinCount);
+            if(this.settings.freeSpin.freeSpinCount > 0)
+            {
+                this.settings.freeSpin.freeSpinCount --;
+                this.settings.currentBet =0;
+
+            }
             
             if (this.settings.freeSpin.freeSpinCount==0) {
                 await this.deductPlayerBalance(this.settings.currentBet);
                 this.playerData.totalbet += this.settings.currentBet;
-            }
-            if(this.settings.freeSpin.freeSpinCount > 0)
-            {
-                this.settings.freeSpin.freeSpinCount --;
-
             }
             await new RandomResultGenerator(this);
             checkForWin(this)
