@@ -13,6 +13,7 @@ exports.SLWOF = void 0;
 const RandomResultGenerator_1 = require("../RandomResultGenerator");
 const types_1 = require("./types");
 const helper_1 = require("./helper");
+const sessionManager_1 = require("../../../dashboard/session/sessionManager");
 class SLWOF {
     constructor(currentGameData) {
         this.currentGameData = currentGameData;
@@ -36,13 +37,13 @@ class SLWOF {
         return Symbols;
     }
     sendMessage(action, message) {
-        this.currentGameData.sendMessage(action, message);
+        this.currentGameData.sendMessage(action, message, true);
     }
     sendError(message) {
-        this.currentGameData.sendError(message);
+        this.currentGameData.sendError(message, true);
     }
     sendAlert(message) {
-        this.currentGameData.sendAlert(message);
+        this.currentGameData.sendAlert(message, true);
     }
     updatePlayerBalance(amount) {
         console.log(amount, 'updatePlayerBalance');
@@ -71,14 +72,19 @@ class SLWOF {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const playerData = this.getPlayerData();
+                const platformSession = sessionManager_1.sessionManager.getPlayerPlatform(playerData.username);
                 if (this.settings.currentBet > playerData.credits) {
                     this.sendError("Low Balance");
                     return;
                 }
                 yield this.deductPlayerBalance(this.settings.currentBet * 3);
                 this.playerData.totalbet += this.settings.currentBet * 3;
+                const spinId = platformSession.currentGameSession.createSpin();
+                platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
                 new RandomResultGenerator_1.RandomResultGenerator(this);
                 yield this.checkResult();
+                const winAmount = this.playerData.currentWining;
+                platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
             }
             catch (error) {
                 this.sendError("Spin error");

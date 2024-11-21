@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const sessionManager_1 = require("../../../dashboard/session/sessionManager");
 const gameUtils_1 = require("../../Utils/gameUtils");
 const SlotUtils_1 = require("../../Utils/SlotUtils");
 const RandomResultGenerator_1 = require("../RandomResultGenerator");
@@ -113,16 +114,15 @@ class BaseSlotGame {
             currentMoolahCount: 0,
         };
         this.initialize(currentGameData.gameSettings);
-        // this.messageHandler((data: any));
     }
     sendMessage(action, message) {
-        this.currentGameData.sendMessage(action, message);
+        this.currentGameData.sendMessage(action, message, true);
     }
     sendError(message) {
-        this.currentGameData.sendError(message);
+        this.currentGameData.sendError(message, true);
     }
     sendAlert(message) {
-        this.currentGameData.sendAlert(message);
+        this.currentGameData.sendAlert(message, true);
     }
     updatePlayerBalance(message) {
         this.currentGameData.updatePlayerBalance(message);
@@ -284,6 +284,7 @@ class BaseSlotGame {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const playerData = this.getPlayerData();
+                const platformSession = sessionManager_1.sessionManager.getPlayerPlatform(playerData.username);
                 if (this.settings.currentBet > playerData.credits) {
                     console.log("Low Balance : ", playerData.credits);
                     console.log("Current Bet : ", this.settings.currentBet);
@@ -312,12 +313,16 @@ class BaseSlotGame {
                         this.settings.freeSpin.freeSpinsAdded = false;
                     }
                 }
+                const spinId = platformSession.currentGameSession.createSpin();
+                platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
                 this.settings.tempReels = [[]];
                 this.settings.bonus.start = false;
                 this.playerData.totalbet += this.settings.currentBet;
                 new RandomResultGenerator_1.RandomResultGenerator(this);
                 const result = new CheckResult_1.CheckResult(this);
                 result.makeResultJson(gameUtils_1.ResultType.normal);
+                const winAmount = this.playerData.currentWining;
+                platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
             }
             catch (error) {
                 console.error("Failed to generate spin results:", error);

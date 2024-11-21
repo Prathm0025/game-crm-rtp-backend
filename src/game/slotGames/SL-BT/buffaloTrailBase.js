@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SLBT = void 0;
+const sessionManager_1 = require("../../../dashboard/session/sessionManager");
 const RandomResultGenerator_1 = require("../RandomResultGenerator");
 const helper_1 = require("./helper");
 class SLBT {
@@ -22,7 +23,6 @@ class SLBT {
             rtpSpinCount: 0,
             totalSpin: 0,
             currentPayout: 0,
-            payoutafterCascading: 0,
         };
         this.settings = (0, helper_1.initializeGameSettings)(currentGameData, this);
         (0, helper_1.generateInitialReel)(this.settings);
@@ -37,13 +37,13 @@ class SLBT {
         return Symbols;
     }
     sendMessage(action, message) {
-        this.currentGameData.sendMessage(action, message);
+        this.currentGameData.sendMessage(action, message, true);
     }
     sendError(message) {
-        this.currentGameData.sendError(message);
+        this.currentGameData.sendError(message, true);
     }
     sendAlert(message) {
-        this.currentGameData.sendAlert(message);
+        this.currentGameData.sendAlert(message, true);
     }
     updatePlayerBalance(amount) {
         this.currentGameData.updatePlayerBalance(amount);
@@ -71,17 +71,29 @@ class SLBT {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const playerData = this.getPlayerData();
+                const platformSession = sessionManager_1.sessionManager.getPlayerPlatform(playerData.username);
                 if (this.settings.currentBet > playerData.credits) {
                     console.log(this.settings.currentBet + playerData.credits, 'dfdsfds');
                     this.sendError("Low Balance");
                     return;
                 }
-                if (!this.settings.freeSpin.useFreeSpin) {
+                console.log("free Spin count", this.settings.freeSpin.freeSpinCount);
+                if (this.settings.freeSpin.freeSpinCount == 0) {
                     yield this.deductPlayerBalance(this.settings.currentBet);
                     this.playerData.totalbet += this.settings.currentBet;
                 }
+                if (this.settings.freeSpin.freeSpinCount > 0) {
+                    this.settings.freeSpin.freeSpinCount--;
+                }
+                const spinId = platformSession.currentGameSession.createSpin();
+                platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
                 yield new RandomResultGenerator_1.RandomResultGenerator(this);
                 (0, helper_1.checkForWin)(this);
+                if (this.settings.freeSpin.freeSpinCount == 0) {
+                    this.settings.freeSpin.useFreeSpin = false;
+                }
+                const winAmount = this.playerData.currentWining;
+                platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
             }
             catch (error) {
                 this.sendError("Spin error");

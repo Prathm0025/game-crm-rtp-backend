@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SLBB = void 0;
 const helper_1 = require("./helper");
 const RandomResultGenerator_1 = require("../RandomResultGenerator");
+const sessionManager_1 = require("../../../dashboard/session/sessionManager");
 class SLBB {
     constructor(currentGameData) {
         this.currentGameData = currentGameData;
@@ -35,13 +36,13 @@ class SLBB {
         return Symbols;
     }
     sendMessage(action, message) {
-        this.currentGameData.sendMessage(action, message);
+        this.currentGameData.sendMessage(action, message, true);
     }
     sendError(message) {
-        this.currentGameData.sendError(message);
+        this.currentGameData.sendError(message, true);
     }
     sendAlert(message) {
-        this.currentGameData.sendAlert(message);
+        this.currentGameData.sendAlert(message, true);
     }
     incrementPlayerBalance(amount) {
         this.currentGameData.updatePlayerBalance(amount);
@@ -71,6 +72,7 @@ class SLBB {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const playerData = this.getPlayerData();
+                const platformSession = sessionManager_1.sessionManager.getPlayerPlatform(playerData.username);
                 const { freeSpin, bonus } = this.settings;
                 if (!freeSpin.isFreeSpin && this.settings.currentBet > playerData.credits) {
                     this.sendError("Low Balance");
@@ -103,10 +105,14 @@ class SLBB {
                 // console.log("free", this.settings.freeSpin.count);
                 // console.log("bool", !( this.settings.bonus.count>0 ) || !( this.settings.freeSpin.count>0 ));
                 //
+                const spinId = platformSession.currentGameSession.createSpin();
+                platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
                 if (!(this.settings.bonus.count > 0)) {
                     new RandomResultGenerator_1.RandomResultGenerator(this);
                 }
                 (0, helper_1.checkForWin)(this);
+                const winAmount = this.playerData.currentWining;
+                platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
             }
             catch (error) {
                 this.sendError("Spin error");
