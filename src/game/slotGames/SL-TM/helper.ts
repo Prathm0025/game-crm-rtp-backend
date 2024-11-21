@@ -326,7 +326,7 @@ export function makeResultJson(gameInstance: SLTM) {
         //   freeSpinCount: settings.freeSpinCount,
         //   freeSpinMultipliers: settings.freeSpinMultipliers
         // },
-        winningCombinations: settings.winningCombinations,
+        // winningCombinations: settings.winningCombinations,
         isLevelUp: settings.isLevelUp,
         level: settings.level,
         isFreeSpin: settings.isFreeSpinTriggered,
