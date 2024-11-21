@@ -663,6 +663,7 @@ export function makeResultJson(gameInstance: SLBB) {
         bonus: {
           isBonus: settings.bonus.isTriggered,
           isWalterSatash: settings.bonus.isWalterStash,
+          isMegaLink: settings.bonus.isMegaLink,
           BonusResult: settings.bonusResultMatrix.map(row => row.map(item => Number(item))),
           payout: settings.bonus.payout,
           spinCount: settings.bonus.count,
