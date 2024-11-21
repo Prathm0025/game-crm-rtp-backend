@@ -139,7 +139,7 @@ export function handleBonusSpin(gameInstance: SLBB) {
   }
   if (settings.bonus.count == 0) {
     const bonusPayout = handleCoinsAndCashCollect(gameInstance, "bonus")
-    settings.bonus.payout = bonusPayout
+    settings.bonus.payout += bonusPayout
   }
 
 
