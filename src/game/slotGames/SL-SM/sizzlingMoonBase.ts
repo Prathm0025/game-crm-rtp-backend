@@ -23,9 +23,11 @@ export class SLSM {
 
     get initSymbols() {
         const Symbols = [];
-        this.currentGameData.gameSettings.Symbols.forEach((Element: Symbol) => {
+        //filter symbols which appear only in base game
+        const baseGameSymbol = this.currentGameData.gameSettings.Symbols.filter((symbol)=> !symbol.isBonusGameSymbol || symbol.isSpecialSymbol)        
+        baseGameSymbol.forEach((Element: Symbol) => {
             Symbols.push(Element);
-        });
+        });    
         return Symbols;
     }
 
@@ -65,7 +67,7 @@ export class SLSM {
     private prepareSpin(data: any) {
         this.settings.currentLines = data.currentLines;
         this.settings.BetPerLines = this.settings.currentGamedata.bets[data.currentBet];
-        this.settings.currentBet = this.settings.BetPerLines * this.settings.currentLines;
+        this.settings.currentBet = this.settings.BetPerLines;
       }
     
 
