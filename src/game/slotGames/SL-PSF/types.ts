@@ -7,7 +7,7 @@ interface Symbol {
     payout: number;
     reelInstance: { [key: string]: number };
 }
-export interface SLBTSETTINGS {
+export interface SLPSFSETTINGS {
     id: string;
     matrix: { x: number, y: number };
     currentGamedata: GameData;
@@ -20,20 +20,10 @@ export interface SLBTSETTINGS {
     bets: number[];
     reels: any[][];
     Symbols: Symbol[];
-    freeSpinData: any[][],
-    wildSymbolMultipliers: any[],
-    WildMultiplier: any[],
-    WildMultiplierProb: any[],
-    jackpot: {
-        symbolName: string;
-        symbolsCount: number;
-        symbolId: number;
-        defaultAmount: number;
-        increaseValue: number;
-        useJackpot: boolean;
-    },
+
     freeSpin: {
-        symbolID: string,
+        SymbolName: string,
+        SymbolID: string,
         freeSpinMuiltiplier: any[],
         freeSpinStarted: boolean,
         freeSpinCount: number,
@@ -45,12 +35,17 @@ export interface SLBTSETTINGS {
         SymbolName: string;
         SymbolID: number;
         useWild: boolean
+    },
+    trumpFreeSpin: {
+        SymbolName: string;
+        SymbolID: number;
+
     }
 }
 
 
 export enum specialIcons {
-    jackpot = "Jackpot",
+    trumpFreeSpin = "TrumpFreeSpin",
     wild = "Wild",
-    FreeSpin = "FreeSpin"
+    freeSpin = "FreeSpin"
 }

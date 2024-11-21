@@ -108,15 +108,12 @@ export class CheckResult {
 
     private checkForFreeSpin() {
         let temp = this.findSymbol(specialIcons.FreeSpin);
-
         if (temp.length > (5 - this.currentGame.settings.freeSpin.freeSpinMuiltiplier.length)) {
             console.log("!!!! FREEE SPINNN !!!!!"
             );
-
             const freeSpins = this.accessData(this.currentGame.settings.freeSpin.symbolID, temp.length)
             this.currentGame.settings.freeSpin.freeSpinStarted = true;
             this.currentGame.settings.freeSpin.freeSpinsAdded = true;
-
             this.currentGame.settings.freeSpin.freeSpinCount += freeSpins;
             this.currentGame.playerData.totalSpin += freeSpins;
             this.currentGame.playerData.rtpSpinCount += freeSpins;

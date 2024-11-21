@@ -14,11 +14,8 @@ import { User, Player as PlayerModel, Player } from "./userModel";
 import UserService from "./userService";
 import Transaction from "../transactions/transactionModel";
 import { QueryParams } from "../../utils/globalTypes";
-import { users } from "../../socket";
 import { IPlayer, IUser } from "./userType";
-import { playerData } from "../../Player";
-
-
+import { sessionManager } from "../session/sessionManager";
 
 interface ActivePlayer {
   username: string;
@@ -163,9 +160,14 @@ export class UserController {
         sameSite: "none",
       });
 
-      const socketUser = users.get(username);
-      if (socketUser?.socketData.gameSocket) {
-        throw createHttpError(403, "You Are Already Playing on another browser or tab");
+      const socketUser = sessionManager.getPlayerPlatform(username);
+
+      if (socketUser?.platformData.socket?.connected || socketUser?.gameData.socket) {
+        throw createHttpError(403, "Already logged in on another browser or tab.");
+      }
+
+      if (socketUser?.gameData.socket) {
+        throw createHttpError(403, "You Are Already Playing on another browser or tab.");
       }
 
       res.status(200).json({
@@ -174,8 +176,7 @@ export class UserController {
         role: user.role,
       });
     } catch (error) {
-      console.log(error);
-
+      console.error("Login error:", error);
       next(error);
     }
   }
@@ -187,16 +188,7 @@ export class UserController {
 
       if (!username) {
         throw createHttpError(400, "Username is required");
-      }
-
-      if (!users.has(username)) {
-        throw createHttpError(404, "User not logged in");
-      }
-
-      // Remove the user from the logged-in users map
-      users.delete(username);
-      console.log("User logged out : ", username);
-
+      }      
 
       // Clear the user token cookie
       res.clearCookie("userToken", {
@@ -462,8 +454,8 @@ export class UserController {
   async getAllPlayers(req: Request, res: Response, next: NextFunction) {
     try {
       const activePlayers = new Set();
-      users.forEach((value, key) => {
-        activePlayers.add({ username: key, currentGame: value.gameId });
+      sessionManager.getPlatformSessions().forEach((value, key) => {
+        activePlayers.add({ username: key, currentGame: value.currentGameData.gameId });
       });
 
       const _req = req as AuthRequest;
