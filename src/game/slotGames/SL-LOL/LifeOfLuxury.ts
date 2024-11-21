@@ -2,10 +2,8 @@ import { currentGamedata } from "../../../Player";
 import { generateInitialReel, initializeGameSettings, sendInitData, makeResultJson, printWinningCombinations, checkWin, checkForFreespin } from "./helper";
 import { SLLOLSETTINGS } from "./types";
 import { RandomResultGenerator } from "../RandomResultGenerator";
-import { GAMBLETYPE } from "../BaseSlotGame/newGambleGame";
 import { getGambleResult, sendInitGambleData } from "./gamble";
-import PlatformSession from "../../../dashboard/session/PlatformSession";
-import { GameSession } from "../../../dashboard/session/gameSession";
+import { precisionRound } from "../../../utils/utils";
 import { sessionManager } from "../../../dashboard/session/sessionManager";
 
 export class SLLOL {
@@ -18,8 +16,6 @@ export class SLLOL {
     totalSpin: 0,
     currentPayout: 0
   }
-  session: PlatformSession;
-  gameSession: GameSession;
 
   constructor(public currentGameData: currentGamedata) {
     console.log("Initializing SLLOL game");
@@ -34,9 +30,6 @@ export class SLLOL {
 
       sendInitData(this);
       console.log("credits : ", this.getPlayerData().credits);
-
-      this.session = sessionManager.getPlatformSession(this.getPlayerData().username);
-      this.gameSession = this.session.currentGameSession;
 
     } catch (error) {
       console.error("Error initializing SLLOL game:", error);
@@ -132,6 +125,7 @@ export class SLLOL {
   }
 
   private prepareSpin(data: any) {
+
     this.settings.currentLines = data.currentLines;
     this.settings.BetPerLines = this.settings.currentGamedata.bets[data.currentBet];
     this.settings.currentBet = this.settings.BetPerLines * this.settings.currentLines;
@@ -139,7 +133,10 @@ export class SLLOL {
 
   private async spinResult(): Promise<void> {
     try {
+
       const playerData = this.getPlayerData();
+      const platformSession = sessionManager.getPlayerPlatform(playerData.username);
+
       if (this.settings.currentBet > playerData.credits) {
         this.sendError("Low Balance");
         return;
@@ -147,21 +144,19 @@ export class SLLOL {
 
       //deduct only when freespin is not triggered
       if (this.settings.freeSpinCount <= 0) {
-        this.decrementPlayerBalance(this.settings.currentBet);
-        this.playerData.totalbet += this.settings.currentBet;
+        this.decrementPlayerBalance(precisionRound(this.settings.currentBet, 3));
+        this.playerData.totalbet += Number(this.settings.currentBet.toFixed(3))
       }
+      this.playerData.totalbet = precisionRound(this.playerData.totalbet, 3)
 
-      const spinId = this.gameSession.createSpin();
-      this.gameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet * 3)
+      const spinId = platformSession.currentGameSession.createSpin();
+      platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
 
       new RandomResultGenerator(this);
       this.checkResult();
 
       const winAmount = this.playerData.currentWining;
-      this.gameSession.updateSpinField(spinId, 'winAmount', winAmount)
-
-      const updateCredits = playerData.credits - this.settings.currentBet * 3 + winAmount;
-      this.session.updateCredits(updateCredits);
+      platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
 
     } catch (error) {
       this.sendError("Spin error");
@@ -199,31 +194,7 @@ export class SLLOL {
     try {
       this.playerData.currentWining = 0
 
-      const { payout, winningCombinations } = checkWin(this);
-      // printWinningCombinations(winningCombinations)
-
-      // console.log("balance:", this.getPlayerData().credits)
-      // console.log("freespin:", {
-      //   count: this.settings.freeSpinCount,
-      //   isFreespin: this.settings.isFreeSpin,
-      //   multipliers: this.settings.freeSpinMultipliers
-      // })
-
-      if (payout > 0) {
-        this.playerData.currentWining = payout;
-        this.playerData.haveWon += payout;
-        this.incrementPlayerBalance(this.playerData.currentWining);
-      } else {
-        this.playerData.currentWining = 0;
-      }
-      // console.log("Payout checkwin: ", payout);
-      //
-      // this.gamebleTesting()
-
-
-
-      // console.log("playerData :", this.playerData);
-      // console.log("windata :", this.settings._winData.totalWinningAmount);
+      checkWin(this);
     } catch (error) {
       console.error("Error in checkResult:", error);
     }

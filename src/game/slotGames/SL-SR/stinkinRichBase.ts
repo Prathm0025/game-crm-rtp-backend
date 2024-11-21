@@ -1,7 +1,5 @@
-import { currentGamedata } from "../../../Player";
-import PlatformSession from "../../../dashboard/session/PlatformSession";
-import { GameSession } from "../../../dashboard/session/gameSession";
 import { sessionManager } from "../../../dashboard/session/sessionManager";
+import { currentGamedata } from "../../../Player";
 import { RandomResultGenerator } from "../RandomResultGenerator";
 import { initializeGameSettings, generateInitialReel, sendInitData, makePayLines, checkForWin } from "./helper";
 import { SLSRSETTINGS } from "./types";
@@ -15,16 +13,12 @@ export class SLSR {
         totalSpin: 0,
         currentPayout: 0,
     };
-    session: PlatformSession;
-    gameSession: GameSession;
 
     constructor(public currentGameData: currentGamedata) {
         this.settings = initializeGameSettings(currentGameData, this);
         generateInitialReel(this.settings)
         sendInitData(this)
-        makePayLines(this);
-        this.session = sessionManager.getPlatformSession(this.getPlayerData().username);
-        this.gameSession = this.session.currentGameSession;
+        makePayLines(this)
     }
 
     get initSymbols() {
@@ -78,6 +72,8 @@ export class SLSR {
     public async spinResult(): Promise<void> {
         try {
             const playerData = this.getPlayerData();
+            const platformSession = sessionManager.getPlayerPlatform(playerData.username);
+
             if (this.settings.currentBet > playerData.credits) {
                 this.sendError("Low Balance");
                 return;
@@ -91,18 +87,15 @@ export class SLSR {
                 this.settings.freeSpin.freeSpinCount--;
             }
 
-            const spinId = this.gameSession.createSpin();
-            this.gameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
-
+            const spinId = platformSession.currentGameSession.createSpin();
+            platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
 
             await new RandomResultGenerator(this);
-            checkForWin(this);
+            checkForWin(this)
 
             const winAmount = this.playerData.currentWining;
-            this.gameSession.updateSpinField(spinId, 'winAmount', winAmount);
+            platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
 
-            const updateCredits = playerData.credits - this.settings.currentBet + winAmount;
-            this.session.updateCredits(updateCredits);
         } catch (error) {
             this.sendError("Spin error");
             console.error("Failed to generate spin results:", error);

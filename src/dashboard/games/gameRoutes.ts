@@ -11,7 +11,7 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 
 
 
 // GET : Get all Games
-gameRoutes.get("/", validateApiKey, checkUser, checkGamesToggle, gameController.getGames);
+gameRoutes.get("/", validateApiKey, checkUser,checkGamesToggle, gameController.getGames);
 
 // POST : Add a Game
 gameRoutes.post('/', upload.fields([{ name: 'thumbnail' }, { name: 'payoutFile' }]), checkUser, gameController.addGame);

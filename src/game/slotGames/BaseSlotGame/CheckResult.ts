@@ -35,8 +35,6 @@ export class CheckResult {
         this.bonusResult = [];
         this.bonusGame = this.bonusGame
         this.searchWinSymbols();
-
-        // this.currentGame.gameSession.rec
     }
 
 
@@ -59,13 +57,10 @@ export class CheckResult {
             this.startFreeSpin();
         const winRate: number =
             (this.currentGame.playerData.haveWon / this.currentGame.playerData.totalbet) * 100;
-
-        this.currentGame.session.rtp = winRate;
         console.log(
             `Total Spend : ${this.currentGame.playerData.totalbet}  Total Won : ${this.currentGame.playerData.haveWon
             } 
         Current RTP for ${this.currentGame.currentGameData.username}: ${winRate.toFixed(2)}% `
-            //TODO: CURRENT RTP
         );
         // console.log(this.currentGame.player.playerData.rtpSpinCount, 'this.currentGame.player.playerData.rtpSpinCount');
         // console.log("Free spin Count", this.currentGame.player.playerData.totalSpin)
@@ -113,21 +108,19 @@ export class CheckResult {
 
     private checkForFreeSpin() {
         let temp = this.findSymbol(specialIcons.FreeSpin);
-
         if (temp.length > (5 - this.currentGame.settings.freeSpin.freeSpinMuiltiplier.length)) {
             console.log("!!!! FREEE SPINNN !!!!!"
             );
-
             const freeSpins = this.accessData(this.currentGame.settings.freeSpin.symbolID, temp.length)
             this.currentGame.settings.freeSpin.freeSpinStarted = true;
             this.currentGame.settings.freeSpin.freeSpinsAdded = true;
-
             this.currentGame.settings.freeSpin.freeSpinCount += freeSpins;
             this.currentGame.playerData.totalSpin += freeSpins;
             this.currentGame.playerData.rtpSpinCount += freeSpins;
             this.currentGame.settings._winData.winningSymbols.push(temp);
         }
     }
+    
 
     //check for win function
     private checkForWin() {

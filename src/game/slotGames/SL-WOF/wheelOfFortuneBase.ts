@@ -3,8 +3,6 @@ import { RandomResultGenerator } from "../RandomResultGenerator";
 import { WOFSETTINGS, WINNINGTYPE } from "./types";
 import { initializeGameSettings, generateInitialReel, sendInitData, checkWinningCondition, calculatePayout, makeResultJson, triggerBonusGame } from "./helper";
 import { log } from "console";
-import PlatformSession from "../../../dashboard/session/PlatformSession";
-import { GameSession } from "../../../dashboard/session/gameSession";
 import { sessionManager } from "../../../dashboard/session/sessionManager";
 
 export class SLWOF {
@@ -17,15 +15,11 @@ export class SLWOF {
     totalSpin: 0,
     currentPayout: 0
   };
-  session: PlatformSession;
-  gameSession: GameSession;
 
   constructor(public currentGameData: currentGamedata) {
     this.settings = initializeGameSettings(currentGameData, this);
     generateInitialReel(this.settings)
-    sendInitData(this);
-    this.session = sessionManager.getPlatformSession(this.getPlayerData().username);
-    this.gameSession = this.session.currentGameSession;
+    sendInitData(this)
   }
 
   get initSymbols() {
@@ -80,24 +74,23 @@ export class SLWOF {
   private async spinResult(): Promise<void> {
     try {
       const playerData = this.getPlayerData();
+      const platformSession = sessionManager.getPlayerPlatform(playerData.username);
+
       if (this.settings.currentBet > playerData.credits) {
         this.sendError("Low Balance");
         return;
       }
       await this.deductPlayerBalance(this.settings.currentBet * 3);
       this.playerData.totalbet += this.settings.currentBet * 3;
+
+      const spinId = platformSession.currentGameSession.createSpin();
+      platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
+
       new RandomResultGenerator(this);
-
-      const spinId = this.gameSession.createSpin();
-      this.gameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet * 3)
-
       await this.checkResult();
 
       const winAmount = this.playerData.currentWining;
-      this.gameSession.updateSpinField(spinId, 'winAmount', winAmount)
-
-      const updateCredits = playerData.credits - this.settings.currentBet * 3 + winAmount;
-      this.session.updateCredits(updateCredits);
+      platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
 
     } catch (error) {
       this.sendError("Spin error");

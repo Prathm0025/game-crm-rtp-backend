@@ -23,12 +23,14 @@ export interface SLONESETTINGS {
     isEnabled: boolean;
     topSymbolProbs: number[];
     symbolsProbs: number[];
-    featureProbs: number[]
+    featureProbs: number[],
+    response: ScatterPurpleResult
   };
   scatterBlue: {
     isEnabled: boolean;
     symbolsProbs: number[];
-    featureProbs: number[]
+    featureProbs: number[],
+    response: ScatterBlueResult
   };
   currentBet: number;
   currentLines: number;
@@ -41,24 +43,28 @@ export interface SLONESETTINGS {
   multiplierType:  'NONE' | 'SIMPLE' | 'EXHAUSTIVE';
   joker: {
     isEnabled: boolean;
+    isJoker:boolean;
     payout: number[];
     blueRound: number[];
     greenRound: number[];
     redRound: number[];
+    response: JokerResponse
   },
   booster: {
     isEnabledSimple: boolean;
     isEnabledExhaustive: boolean;
-    type: string;
     typeProbs: number[];
     multiplier: number[];
     multiplierProbs: number[];
+    response : BoosterResult
   };
   levelUp:{
     isEnabled: boolean;
+    isLevelUp:boolean;
     level: number[];
     levelProbs: number[];
-  }
+    response: LevelUpResult
+  },
 }
 
 export interface BoosterResult {
@@ -76,12 +82,14 @@ export interface ScatterPurpleResult {
   levelUp: LevelUpResult[];
   booster: BoosterResult[];
   topSymbols: number[][];
+  count: number[];
   reTriggered: number[] //0 - not reTriggered, 1 - reTriggered
 }
 export interface ScatterBlueResult {
   isTriggered: boolean;
   symbols:number[];
   payout: number;
+  count: number[];
   levelUp: LevelUpResult[];
   booster: BoosterResult[];
 }

@@ -1,8 +1,8 @@
 import { Socket } from "socket.io";
-import { currentActiveManagers, currentActivePlayers } from "./socket";
 import { Player } from "./dashboard/users/userModel";
 import { sessionManager } from "./dashboard/session/sessionManager";
 import { PlatformSessionModel } from "./dashboard/session/sessionModel";
+
 
 export interface socketConnectionData {
     socket: Socket | null;
@@ -54,14 +54,14 @@ export default class Manager {
             heartbeatInterval: setInterval(() => {
                 // Check if socket is still connected before emitting
                 if (this.socketData.socket) {
-                    const activeUsersData = Array.from(currentActivePlayers.values()).map(player => {
-                        const platformSession = sessionManager.getPlatformSession(player.playerData.username);
+                    const activeUsersData = Array.from(sessionManager.getPlatformSessions().values()).map(player => {
+                        const platformSession = sessionManager.getPlayerPlatform(player.playerData.username);
                         return platformSession?.getSummary() || {};
                     });
                     this.socketData.socket.emit("activePlayers", activeUsersData);
                     this.sendData({ type: "CREDITS", payload: { credits: this.credits, role: this.role } })
                 }
-            }, 30000), // 30 seconds interval
+            }, 5000),
             reconnectionAttempts: 0,
             maxReconnectionAttempts: 3,
             reconnectionTimeout: null,
@@ -74,7 +74,6 @@ export default class Manager {
             console.log(`Manager ${this.username} disconnected`);
             this.handleDisconnection();
         });
-        console.log("Manager initialized with socket ID:", this.socketData.socket.id);
         this.sendData({ type: "CREDITS", payload: { credits: this.credits, role: this.role } })
     }
 
@@ -84,7 +83,7 @@ export default class Manager {
 
         this.socketData.reconnectionTimeout = setTimeout(() => {
             console.log(`Removing manager ${this.username} due to prolonged disconnection`);
-            currentActiveManagers.delete(this.username);
+            sessionManager.deleteManagerByUsername(this.username)
         }, 60000); // 1-minute timeout for reconnection
     }
 
@@ -112,7 +111,7 @@ export default class Manager {
     }
 
 
-  
+
 
     public notifyManager(data: { type: string, payload: any }) {
         if (this.socketData.socket) {
@@ -150,7 +149,8 @@ export default class Manager {
             }
 
             // Notify the player socket of the status change
-            const playerSocket = currentActivePlayers.get(data.playerId);
+            const playerSocket = sessionManager.getPlayerPlatform(data.playerId)
+
             if (playerSocket) {
                 if (data.status === "inactive") {
                     await playerSocket.forceExit(false);

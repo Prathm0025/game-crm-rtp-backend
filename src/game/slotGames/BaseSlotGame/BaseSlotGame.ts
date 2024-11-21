@@ -1,6 +1,4 @@
 
-import { GameSession } from "../../../dashboard/session/gameSession";
-import PlatformSession from "../../../dashboard/session/PlatformSession";
 import { sessionManager } from "../../../dashboard/session/sessionManager";
 import { currentGamedata } from "../../../Player";
 import { UiInitData, convertSymbols, specialIcons, bonusGameType, shuffleArray, ResultType, RequiredSocketMethods } from "../../Utils/gameUtils";
@@ -21,9 +19,6 @@ export default class BaseSlotGame implements RequiredSocketMethods {
     rtpSpinCount: 0,
     totalSpin: 0,
   };
-  session: PlatformSession;
-  gameSession: GameSession;
-
 
   constructor(public currentGameData: currentGamedata) {
     this.settings = {
@@ -54,6 +49,8 @@ export default class BaseSlotGame implements RequiredSocketMethods {
         },
         bets: [], // Ensure bets is initialized
         linesCount: 0, // Ensure linesCount is initialized
+        betMultiplier:[]
+
       },
       tempReels: [[]],
 
@@ -114,8 +111,7 @@ export default class BaseSlotGame implements RequiredSocketMethods {
     };
 
     this.initialize(currentGameData.gameSettings);
-    this.session = sessionManager.getPlatformSession(this.getPlayerData().username);
-    this.gameSession = this.session.currentGameSession;
+
   }
 
   sendMessage(action: string, message: any) {
@@ -141,7 +137,6 @@ export default class BaseSlotGame implements RequiredSocketMethods {
   messageHandler(response: any) {
     switch (response.id) {
       case "SPIN":
-        console.log("SPIN ; ", response);
         if (this.settings.startGame) {
           this.settings.currentLines = response.data.currentLines;
           this.settings.BetPerLines = this.settings.currentGamedata.bets[response.data.currentBet];
@@ -188,12 +183,10 @@ export default class BaseSlotGame implements RequiredSocketMethods {
   }
 
   private initialize(GameData: any) {
-    console.log("INITILIZE WITH  : ", GameData.matrix)
     this.settings.Symbols = [];
     this.settings.Weights = [];
     this.settings._winData = new WinData(this);
     this.settings.currentGamedata = GameData[0] || GameData;
-    console.log("AFTER INITILAZATION  : ", this.settings.currentGamedata.matrix)
     this.initSymbols();
     UiInitData.paylines = convertSymbols(this.settings.currentGamedata.Symbols);
     this.settings.startGame = true;
@@ -328,10 +321,10 @@ export default class BaseSlotGame implements RequiredSocketMethods {
   private async spinResult() {
     try {
       const playerData = this.getPlayerData();
-      const currentCredits = playerData.credits;
+      const platformSession = sessionManager.getPlayerPlatform(playerData.username);
 
-      if (this.settings.currentBet > currentCredits) {
-        console.log("Low Balance : ", currentCredits);
+      if (this.settings.currentBet > playerData.credits) {
+        console.log("Low Balance : ", playerData.credits);
         console.log("Current Bet : ", this.settings.currentBet);
         this.sendError("Low Balance");
         return;
@@ -372,32 +365,18 @@ export default class BaseSlotGame implements RequiredSocketMethods {
         }
       }
 
-      const spinId = this.gameSession.createSpin();
-      this.gameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
-
+      const spinId = platformSession.currentGameSession.createSpin();
+      platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
 
       this.settings.tempReels = [[]];
       this.settings.bonus.start = false;
       this.playerData.totalbet += this.settings.currentBet;
-
       new RandomResultGenerator(this);
       const result = new CheckResult(this);
       result.makeResultJson(ResultType.normal);
 
       const winAmount = this.playerData.currentWining;
-      this.gameSession.updateSpinField(spinId, 'winAmount', winAmount);
-
-      const specialFeatures = this.getSpecialFeatures();
-      if (specialFeatures) {
-        this.gameSession.updateSpinField(spinId, 'specialFeatures', specialFeatures);
-      }
-
-      // Add the winnings to the player's credits
-      const updatedCredits = currentCredits - this.settings.currentBet + winAmount;
-      this.session.updateCredits(updatedCredits);
-
-      console.log(`Spin result recorded for player: ${this.getPlayerData().username}, win: ${winAmount}`);
-
+      platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
 
     } catch (error) {
       console.error("Failed to generate spin results:", error);
@@ -405,26 +384,6 @@ export default class BaseSlotGame implements RequiredSocketMethods {
     }
   }
 
-  private getSpecialFeatures(): any {
-    const specialFeatures: any = {};
-    if (this.settings.jackpot.useJackpot) {
-      specialFeatures.jackpot = {
-        triggered: true,
-        amountWon: this.settings.jackpot.defaultAmount,
-      }
-    }
-
-    if (this.settings.freeSpin.useFreeSpin) {
-      specialFeatures.freeSpin = {
-        triggered: true,
-        freeSpinsRemaining: this.settings.freeSpin.freeSpinCount,
-      }
-    }
-
-    return Object.keys(specialFeatures).length > 0 ? specialFeatures : null;
-  }
-
-  //TODO : NEED TO GO THORUGH
   private getRTP(spins: number) {
     try {
       let spend: number = 0;

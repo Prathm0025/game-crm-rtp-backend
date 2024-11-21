@@ -2,7 +2,7 @@ import { WinData } from "../BaseSlotGame/WinData";
 import { SLBB } from "./breakingBadBase";
 import { convertSymbols, UiInitData } from "../../Utils/gameUtils";
 import { specialIcons } from "./types";
-import { checkForBonus } from "./bonus";
+import { checkForBonus, handleBonusSpin } from "./bonus";
 
 export function initializeGameSettings(gameData: any, gameInstance: SLBB) {
   // const getSymbolIdByName = (name: string) => {
@@ -27,13 +27,18 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBB) {
     bonusReels: [],
     jackpot: {
       isTriggered: false,
-      payout: 0,
-    },
-    grandPrize: {
-      isTriggered: false,
-      payout: 0
+      payout: gameData.gameSettings.jackpot.payout,
+      payoutProbs: gameData.gameSettings.jackpot.payoutProbs,
+      win: 0
     },
     isCashCollect: false,
+    bonus: {
+      isBonus: false,
+      isTriggered: false,
+      isWalterStash: false,
+      count: 0,
+      payout: 0,
+    },
     freeSpin: {
       isEnabled: gameData.gameSettings.freeSpin.isEnabled,
       isTriggered: false,
@@ -62,12 +67,14 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBB) {
       SymbolName: "CashCollect",
       SymbolID: "-1",
       useWild: false,
+      values: [],
     },
     coins: {
       SymbolName: "Coins",
       SymbolID: "-1",
       useWild: false,
-      values: []
+      values: [],
+      bonusValues: []
     },
     prizeCoin: {
       SymbolName: "PrizeCoin",
@@ -80,12 +87,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBB) {
       useWild: false,
       values: []
     },
-    bonus: {
-      isBonus: false,
-      isTriggered: false,
-      count: 0,
-      payout: 0,
-    },
+    blanks:["9","10","11","12","13","14"],
     cashCollectPrize: {
       isTriggered: false,
       payout: 0
@@ -146,7 +148,9 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLBB) {
 export function generateInitialReel(gameSettings: any): string[][] {
   const reels = [[], [], [], [], []];
   const validSymbols = gameSettings.Symbols.filter(symbol =>
-    !symbol.useHeisenberg || symbol.Name === "CashCollect" || symbol.Name === "Coins"
+    !symbol.useHeisenberg ||
+    // symbol.Name === gameSettings.cashCollect.SymbolName ||
+    symbol.Name === gameSettings.coins.SymbolName
   );
   validSymbols.forEach(symbol => {
     for (let i = 0; i < 5; i++) {
@@ -166,12 +170,26 @@ export function generateInitialReel(gameSettings: any): string[][] {
 //GENERATE INITIAL HEISENBERG REEL
 export function generateInitialBonusReel(gameSettings: any): string[][] {
   const reels = [[], [], [], [], []];
+  //FIX: alter later
+  // const ccReelInstance = [
+  //   1,
+  //   1,
+  //   1,
+  //   1,
+  //   1
+  // ]
 
   const bonusSymbols = gameSettings.Symbols.filter(symbol => symbol.useHeisenberg);
 
+
   bonusSymbols.forEach(symbol => {
     for (let i = 0; i < 5; i++) {
-      const count = symbol.reelInstance[i] || 0;
+      let count = symbol.reelInstance[i] || 0;
+
+      // //FIX: alter later
+      // if (symbol.Id == gameSettings.cashCollect.SymbolID) {
+      //   count = ccReelInstance[i]
+      // }
       for (let j = 0; j < count; j++) {
         reels[i].push(symbol.Id);
       }
@@ -217,9 +235,8 @@ export function sendInitData(gameInstance: SLBB) {
   gameInstance.sendMessage("InitData", dataToSend);
 }
 
-
-function getRandomValue(gameInstance: SLBB, type: 'coin' | 'freespin' | 'prizes'): number {
-  const { currentGameData } = gameInstance;
+export function getRandomValue(gameInstance: SLBB, type: 'coin' | 'freespin' | 'prizes'): number {
+  const { currentGameData,settings } = gameInstance;
 
   let values: number[];
   let probabilities: number[];
@@ -228,11 +245,11 @@ function getRandomValue(gameInstance: SLBB, type: 'coin' | 'freespin' | 'prizes'
     values = currentGameData.gameSettings.coinsvalue;
     probabilities = currentGameData.gameSettings.coinsvalueprob;
   } else if (type === 'freespin') {
-    values = currentGameData.gameSettings.freeSpin.LPValues;
-    probabilities = currentGameData.gameSettings.freeSpin.LPProbs;
+    values = settings.freeSpin.LPValues;
+    probabilities = settings.freeSpin.LPProbs;
   } else if (type === 'prizes') {
-    values = currentGameData.gameSettings.prizes;
-    probabilities = currentGameData.gameSettings.prizesProbs;
+    values = settings.jackpot.payout
+    probabilities = settings.jackpot.payoutProbs
   } else {
     throw new Error("Invalid type, expected 'coin' or 'freespin'");
   }
@@ -250,7 +267,7 @@ function getRandomValue(gameInstance: SLBB, type: 'coin' | 'freespin' | 'prizes'
 }
 
 // Function to set "Coins" symbols with their respective values
-export function getCoinsValues(gameInstance: SLBB, matrixType: 'result' | 'heisenberg' | 'prev') {
+export function getCoinsValues(gameInstance: SLBB, matrixType: 'result' | 'bonus' | 'prev') {
   const { settings } = gameInstance;
   const matrix = matrixType === 'result'
     ? settings.resultSymbolMatrix
@@ -262,14 +279,29 @@ export function getCoinsValues(gameInstance: SLBB, matrixType: 'result' | 'heise
       if (symbol == settings.coins.SymbolID.toString()) {
         const coinValue = getRandomValue(gameInstance, "coin");
 
-        // Check if index already exists in settings.coins.values
-        const indexExists = settings.coins.values.find(
-          item => item.index[0] === row && item.index[1] === col
-        );
+        if (matrixType === 'result') {
+          // Check if index already exists in settings.coins.values
+          const indexExists = settings.coins.values.find(
+            item => item.index[0] === row && item.index[1] === col
+          );
 
-        // Only add the new value if the index does not already exist
-        if (!indexExists) {
-          settings.coins.values.push({ index: [row, col], value: coinValue });
+          // Only add the new value if the index does not already exist
+          if (!indexExists) {
+            settings.coins.values.push({ index: [row, col], value: coinValue });
+          }
+        } else if (matrixType === 'bonus') {
+          // Check if index already exists in settings.coins.bonusValues
+
+          const indexExists = settings.coins.bonusValues.find(
+            item => item.index[0] === row && item.index[1] === col
+          );
+
+          // Only add the new value if the index does not already exist
+          if (!indexExists) {
+            settings.coins.bonusValues.push({ index: [row, col], value: coinValue });
+            settings.bonus.count = 3
+          }
+
         }
       }
     }
@@ -277,9 +309,9 @@ export function getCoinsValues(gameInstance: SLBB, matrixType: 'result' | 'heise
 }
 
 //COINS +CASH COLLECT ON 0 OR 4 -> triggers coin collection with cash collect
-function handleCoinsAndCashCollect(
+export function handleCoinsAndCashCollect(
   gameInstance: SLBB,
-  matrixType: 'result' | 'heisenberg'
+  matrixType: 'result' | 'bonus'
 ): number {
   const { settings } = gameInstance;
   settings.isCashCollect = true;
@@ -288,34 +320,26 @@ function handleCoinsAndCashCollect(
   const cashCollectSymbolId = settings.cashCollect.SymbolID;
   const coinSymbolId = settings.coins.SymbolID;
   let hasCoinSymbols: boolean
-  if (matrixType == 'heisenberg') {
-    hasCoinSymbols = hasSymbolInMatrix(settings.bonusResultMatrix, coinSymbolId.toString());
-    //handle cc count 
-    for (let i = 0; i < settings.bonusResultMatrix.length; i++) {
-      for (let j = 0; j < settings.bonusResultMatrix[i].length; j++) {
-        if (settings.bonusResultMatrix[i][j] == cashCollectSymbolId.toString()) {
-          cashCollectCount++;
+  let matrix = matrixType === 'result' ? settings.resultSymbolMatrix : settings.bonusResultMatrix
+  for (let i = 0; i < matrix.length; i++) {
+    for (let j = 0; j < matrix[i].length; j++) {
+      if (matrixType == 'bonus') {
+        if (matrix[i][j] == cashCollectSymbolId.toString()) {
+          cashCollectCount++
+        }
+      } else if (matrixType == 'result' && (j == 0 || j == matrix[i].length - 1)) {
+        if (matrix[i][j] == cashCollectSymbolId.toString()) {
+          cashCollectCount++
         }
       }
-    }
-  } else if (matrixType == 'result') {
-    hasCoinSymbols = hasSymbolInMatrix(settings.resultSymbolMatrix, coinSymbolId.toString());
 
-    //handle cc count 
-    if (hasSymbolInMatrix(settings.resultSymbolMatrix, cashCollectSymbolId.toString())) {
-      for (let i = 0; i < settings.resultSymbolMatrix.length; i++) {
-        for (let j of [0, 4]) {
-          if (settings.resultSymbolMatrix[i][j] == cashCollectSymbolId.toString()) {
-            cashCollectCount++;
-          }
-        }
-      }
     }
   }
+  const coinValues = matrixType === 'result' ? settings.coins.values : settings.coins.bonusValues
 
-  if (settings.coins.values.length > 0) {
-    const coinValue = settings.coins.values.reduce((total, coin) => total + coin.value, 0);
-    totalCoinValue += coinValue;
+  if (coinValues.length > 0) {
+    const totalCoins = coinValues.reduce((total, coin) => total + coin.value, 0);
+    totalCoinValue = totalCoins;
   }
 
   if (cashCollectCount > 0) {
@@ -325,35 +349,34 @@ function handleCoinsAndCashCollect(
   return 0;
 }
 //NOTE: lp freespin
-function handleFreeSpin(hasLP: boolean, hasCC: boolean, gameInstance: SLBB) {
+function handleFreeSpin(gameInstance: SLBB) {
   const { settings } = gameInstance
-  if (hasLP && hasCC) {
 
-    settings.losPollos.values = [];
-    const matrix = settings.resultSymbolMatrix
-    for (let row = 0; row < matrix.length; row++) {
-      for (let col = 0; col < matrix[row].length; col++) {
-        const losPollosValue = getRandomValue(gameInstance, "freespin")
-        const symbol = matrix[row][col];
-        if (symbol === settings.losPollos.SymbolID) {
-          settings.losPollos.values.push({ index: [row, col], value: losPollosValue })
-        }
+  settings.losPollos.values = [];
+  const matrix = settings.resultSymbolMatrix
+  for (let row = 0; row < matrix.length; row++) {
+    for (let col = 0; col < matrix[row].length; col++) {
+      // check if lpvalues is already there 
+      const lpIndices = settings.losPollos.values.map(lp => `${lp.index[0]},${lp.index[1]}`)
+
+      if (lpIndices.includes(`${row},${col}`)) continue
+      const losPollosValue = getRandomValue(gameInstance, "freespin")
+      const symbol = matrix[row][col];
+      if (symbol === settings.losPollos.SymbolID) {
+        settings.losPollos.values.push({ index: [row, col], value: losPollosValue })
       }
     }
-    let count = 0
-    settings.losPollos.values.map((value) => {
-      count += value.value
-    })
-    if (count > 0) {
-      settings.freeSpin.isTriggered = true
-    }
-    settings.freeSpin.isFreeSpin = true
-    settings.freeSpin.count += count
   }
+  let count = 0
+  settings.losPollos.values.map((value) => {
+    count += value.value
+  })
+  if (count > 0) {
+    settings.freeSpin.isTriggered = true
+  }
+  settings.freeSpin.isFreeSpin = true
+  settings.freeSpin.count += count
 }
-
-
-//ACCESS DATA
 function accessData(symbol, matchCount, gameInstance: SLBB): number {
   const { settings } = gameInstance;
   try {
@@ -372,12 +395,18 @@ function accessData(symbol, matchCount, gameInstance: SLBB): number {
     return 0;
   }
 }
-
+//TODO: jackpot or prize
+function handleJackpot(gameInstance: SLBB) {
+  const { settings } = gameInstance
+  settings.jackpot.win = getRandomValue(gameInstance, "prizes")
+  if(settings.jackpot.win > 0){
+    settings.jackpot.isTriggered = true
+  }
+}
 //HAS SYMBOL IN MATRIX
 function hasSymbolInMatrix(matrix: any[][], symbolId: string): boolean {
   return matrix.some(row => row.find(symbol => symbol == symbolId));
 }
-
 
 function findFirstNonWildSymbol(line, gameInstance: SLBB) {
   try {
@@ -396,125 +425,6 @@ function findFirstNonWildSymbol(line, gameInstance: SLBB) {
     return null;
   }
 }
-//NOTE: 
-//TO CALCUALTE AND CHECK WINNINGS
-export function checkForWin(gameInstance: SLBB) {
-  try {
-    let coinWins: number = 0;
-    let totalWin: number = 0;
-    // let winningLines: number[] = [];
-
-    const { settings, currentGameData } = gameInstance;
-    settings.isCashCollect = false;
-
-    // if (settings.heisenberg.isTriggered) {
-    //   handleHeisenbergSpin(gameInstance)
-    // }
-
-    const coinSymbolId = settings.coins.SymbolID;
-    const cashCollectId = settings.cashCollect.SymbolID;
-    const linkSymbolId = settings.link.SymbolID;
-    const megaLinkSymbolId = settings.megalink.SymbolID;
-    const losPollosId = settings.losPollos.SymbolID;
-    const prizeCoinId = settings.prizeCoin.SymbolID;
-    const linesApiData = currentGameData.gameSettings.linesApiData;
-    const resultSymbolMatrix = settings.resultSymbolMatrix;
-
-    const hasCoinSymbols = hasSymbolInMatrix(resultSymbolMatrix, coinSymbolId);
-    const hasCashCollect = hasSymbolInMatrix(resultSymbolMatrix, cashCollectId);
-    const hasLinkSymbols = hasSymbolInMatrix(resultSymbolMatrix, linkSymbolId);
-    const hasMegaLinkSymbols = hasSymbolInMatrix(resultSymbolMatrix, megaLinkSymbolId);
-    const hasLosPollosSymbols = hasSymbolInMatrix(resultSymbolMatrix, losPollosId);
-    const hasPrizeCoinSymbols = hasSymbolInMatrix(resultSymbolMatrix, prizeCoinId);
-
-    console.log("Result Matrix", gameInstance.settings.resultSymbolMatrix);
-
-
-    //NOTE: freespin lp
-    settings.freeSpin.isTriggered = false
-    // if()
-
-    if (settings.bonus.count > 0) {
-      // handleBonusSpin(gameInstance)
-    } else {
-      if (hasCoinSymbols) {
-        getCoinsValues(gameInstance, 'result');
-      }
-
-      settings.lineData.forEach((line, index) => {
-
-        const firstSymbolPosition = line[0];
-        let firstSymbol = settings.resultSymbolMatrix[firstSymbolPosition][0];
-
-        if (settings.wild.useWild && firstSymbol == settings.wild.SymbolID.toString()) {
-          firstSymbol = findFirstNonWildSymbol(line, gameInstance);
-        }
-
-        const { isWinningLine, matchCount, matchedIndices } = checkLineSymbols(firstSymbol, line, gameInstance);
-        if (isWinningLine && matchCount >= 3) {
-          const symbolMultiplier = accessData(firstSymbol, matchCount, gameInstance);
-          console.log(matchedIndices)
-          if (symbolMultiplier > 0) {
-            totalWin += symbolMultiplier * settings.BetPerLines;
-            settings._winData.winningLines.push(index);
-            console.log(`Line ${index + 1}:`, line);
-            console.log(`Payout multiplier for Line ${index + 1}:`, 'payout', symbolMultiplier);
-            const formattedIndices = matchedIndices.map(({ col, row }) => `${col},${row}`);
-            const validIndices = formattedIndices.filter(index => index.length > 2);
-            if (validIndices.length > 0) {
-              settings._winData.winningSymbols.push(validIndices);
-            }
-          }
-        }
-      });
-
-      console.log(totalWin, "Total win before coins ");
-      if (hasCoinSymbols && hasCashCollect && !settings.bonus.isTriggered) {
-        coinWins = handleCoinsAndCashCollect(gameInstance, "result");
-        console.log(coinWins, "coin collected");
-        totalWin += coinWins;
-      }
-
-      if (settings.bonus.isTriggered) {
-        totalWin += settings.bonus.payout;
-        settings.bonus.payout = 0;
-      }
-    }
-
-
-
-
-    //TODO: bonus check
-    checkForBonus(gameInstance, hasCashCollect, hasLinkSymbols, hasMegaLinkSymbols);
-
-
-    //TODO: freespin check 
-    handleFreeSpin(hasLosPollosSymbols, hasCashCollect, gameInstance)
-
-    gameInstance.playerData.currentWining = totalWin;
-    gameInstance.playerData.haveWon += totalWin;
-    makeResultJson(gameInstance)
-    gameInstance.incrementPlayerBalance(gameInstance.playerData.currentWining)
-    settings._winData.winningLines = [];
-    settings._winData.winningSymbols = [];
-    settings.losPollos.values = [];
-    settings.coins.values = [];
-    gameInstance.playerData.currentWining = 0
-    settings._winData.winningLines = [];
-
-
-  } catch (error) {
-    console.error("Error in checkForWin", error);
-    return {
-      totalWin: 0,
-      winningLines: [],
-    };
-  }
-}
-
-
-
-
 //checking matching lines with first symbol and wild subs
 function checkLineSymbols(
   firstSymbol: string,
@@ -562,6 +472,143 @@ function checkLineSymbols(
   }
 }
 
+export function checkForWin(gameInstance: SLBB) {
+  try {
+    let coinWins: number = 0;
+    let totalWin: number = 0;
+
+    const { settings } = gameInstance;
+    settings.isCashCollect = false;
+
+    const coinSymbolId = settings.coins.SymbolID;
+    const cashCollectId = settings.cashCollect.SymbolID;
+    const linkSymbolId = settings.link.SymbolID;
+    const megaLinkSymbolId = settings.megalink.SymbolID;
+    const losPollosId = settings.losPollos.SymbolID;
+    const prizeCoinId = settings.prizeCoin.SymbolID;
+    const resultSymbolMatrix = settings.resultSymbolMatrix;
+
+    const hasCoinSymbols = hasSymbolInMatrix(resultSymbolMatrix, coinSymbolId);
+    const hasCashCollect = hasSymbolInMatrix(resultSymbolMatrix, cashCollectId);
+    const hasLinkSymbols = hasSymbolInMatrix(resultSymbolMatrix, linkSymbolId);
+    const hasMegaLinkSymbols = hasSymbolInMatrix(resultSymbolMatrix, megaLinkSymbolId);
+    const hasLosPollosSymbols = hasSymbolInMatrix(resultSymbolMatrix, losPollosId);
+    const hasPrizeCoinSymbols = hasSymbolInMatrix(resultSymbolMatrix, prizeCoinId);
+
+    console.log("Result Matrix", gameInstance.settings.resultSymbolMatrix);
+
+
+    //NOTE: freespin lp
+    settings.freeSpin.isTriggered = false
+    // if()
+
+    //TODO: bonus spin
+    if (settings.bonus.isBonus) {
+      handleBonusSpin(gameInstance)
+    } else {
+      if (hasCoinSymbols) {
+        getCoinsValues(gameInstance, 'result');
+      }
+
+      settings.lineData.forEach((line, index) => {
+
+        const firstSymbolPosition = line[0];
+        let firstSymbol = settings.resultSymbolMatrix[firstSymbolPosition][0];
+
+        if (settings.wild.useWild && firstSymbol == settings.wild.SymbolID.toString()) {
+          firstSymbol = findFirstNonWildSymbol(line, gameInstance);
+        }
+
+        const { isWinningLine, matchCount, matchedIndices } = checkLineSymbols(firstSymbol, line, gameInstance);
+        if (isWinningLine && matchCount >= 3) {
+          const symbolMultiplier = accessData(firstSymbol, matchCount, gameInstance);
+          console.log(matchedIndices)
+          if (symbolMultiplier > 0) {
+            totalWin += symbolMultiplier * settings.BetPerLines;
+            settings._winData.winningLines.push(index);
+            console.log(`Line ${index + 1}:`, line);
+            console.log(`Payout multiplier for Line ${index + 1}:`, 'payout', symbolMultiplier);
+            const formattedIndices = matchedIndices.map(({ col, row }) => `${col},${row}`);
+            const validIndices = formattedIndices.filter(index => index.length > 2);
+            if (validIndices.length > 0) {
+              settings._winData.winningSymbols.push(validIndices);
+            }
+          }
+        }
+      });
+
+      console.log(totalWin, "Total win before coins ");
+      if (hasCoinSymbols && hasCashCollect && !settings.bonus.isBonus) {
+        coinWins = handleCoinsAndCashCollect(gameInstance, "result");
+        console.log(coinWins, "coin collected");
+        totalWin += coinWins;
+      }
+
+      if (settings.bonus.isTriggered) {
+        totalWin += settings.bonus.payout;
+        settings.bonus.payout = 0;
+      }
+    }
+
+
+    //TODO: bonus check. if not bonus
+    if (!settings.bonus.isBonus) {
+      checkForBonus(gameInstance, hasCashCollect, hasLinkSymbols, hasMegaLinkSymbols);
+      //TODO: freespin check 
+      if (hasCashCollect && hasLosPollosSymbols) {
+        handleFreeSpin(gameInstance)
+      }
+      if(hasPrizeCoinSymbols && hasCashCollect) {
+        handleJackpot(gameInstance)
+      }
+    }
+
+    if (settings.bonus.count <= 0 ) {
+      totalWin += settings.bonus.payout;
+    }
+    if(settings.jackpot.win > 0) {
+      totalWin += settings.jackpot.win
+    }
+
+    gameInstance.playerData.currentWining = totalWin;
+    gameInstance.playerData.haveWon += totalWin;
+    makeResultJson(gameInstance)
+    gameInstance.incrementPlayerBalance(gameInstance.playerData.currentWining)
+
+    if (settings.freeSpin.count <= 0) {
+      settings.freeSpin.isFreeSpin = false
+    }
+/*
+ * 
+ * */
+    if (settings.bonus.count <= 0) {
+      settings.bonus.isBonus = false;
+      settings.bonus.isWalterStash = false
+      settings.bonus.payout = 0
+      settings.cashCollect.values = [];
+      settings.coins.bonusValues = [];
+      settings.coins.values = [];
+      if (!settings.freeSpin.isFreeSpin) {
+        settings.losPollos.values = [];
+      }
+    }
+    settings._winData.winningLines = [];
+    settings._winData.winningSymbols = [];
+    settings.losPollos.values = [];
+    settings._winData.winningLines = [];
+    settings.jackpot.win = 0
+    settings.jackpot.isTriggered=false
+
+
+  } catch (error) {
+    console.error("Error in checkForWin", error);
+    return {
+      totalWin: 0,
+      winningLines: [],
+    };
+  }
+}
+
 export function makeResultJson(gameInstance: SLBB) {
   try {
     const { settings, playerData } = gameInstance;
@@ -570,8 +617,6 @@ export function makeResultJson(gameInstance: SLBB) {
     const sendData = {
       GameData: {
         ResultReel: settings.resultSymbolMatrix,
-        // isFreeSpin: settings.freeSpin.isTriggered,
-        // freeSpinCount: settings.freeSpin.freeSpinCount,
         linesToEmit: settings._winData.winningLines,
         symbolsToEmit: settings._winData.winningSymbols,
         WinAmount: gameInstance.playerData.currentWining,
@@ -583,22 +628,18 @@ export function makeResultJson(gameInstance: SLBB) {
           coinValues: settings.coins.values,
           losPollos: settings.losPollos.values
         },
-        // isCashCollect: settings.isCashCollect,
-        jackpot: settings.jackpot.payout,
-        // bonus: {
-        //   isBonus: settings.heisenberg.isTriggered,
-        //   BonusResult: settings.heisenbergSymbolMatrix.map(row => row.map(item => Number(item))),
-        //   payout: settings.heisenberg.payout,
-        //   spinCount: settings.heisenberg.freeSpin.noOfFreeSpins,
-        //   freeSpinAdded: settings.heisenberg.freeSpin.freeSpinsAdded,
-        //   isWalterStash: settings.jackpot.isTriggered,
-        //   walterStashPayout: settings.jackpot.payout,
-        //   isGrandPrize: settings.grandPrize.isTriggered,
-        //   grandPrizePayout: settings.grandPrize.payout,
-        //   freezeIndices: Array.from(settings.heisenbergFreeze, item =>
-        //     item.split(',').map(Number)
-        //   ),
-        // },
+        jackpot: {
+          isTriggered: settings.jackpot.isTriggered,
+          payout: settings.jackpot.win
+        },
+        bonus: {
+          isBonus: settings.bonus.isTriggered,
+          isWalterSatash: settings.bonus.isWalterStash,
+          BonusResult: settings.bonusResultMatrix.map(row => row.map(item => Number(item))),
+          payout: settings.bonus.payout,
+          spinCount: settings.bonus.count,
+          coins: settings.coins.bonusValues,
+        },
 
       },
       PlayerData: {
@@ -617,6 +658,9 @@ export function makeResultJson(gameInstance: SLBB) {
     gameInstance.sendMessage('ResultData', sendData);
     console.log(sendData);
     console.log("coins", sendData.GameData.winData.coinValues);
+    console.log("Bonus coins", sendData.GameData.bonus.coins);
+    console.log("cc", settings.cashCollect.values);
+
     console.log("lp", sendData.GameData.winData.losPollos);
     console.log("symbolsToEmit", sendData.GameData.symbolsToEmit);
 

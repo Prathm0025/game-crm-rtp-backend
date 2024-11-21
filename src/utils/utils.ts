@@ -8,14 +8,41 @@ import { TransactionController } from "../dashboard/transactions/transactionCont
 import { v2 as cloudinary } from "cloudinary";
 import { config } from "../config/config";
 import bcrypt from "bcrypt";
-import { currentActiveManagers, currentActivePlayers } from "../socket";
+import { sessionManager } from "../dashboard/session/sessionManager";
 import { Player } from "../dashboard/users/userModel";
 import { Socket } from "socket.io";
 
 
 const transactionController = new TransactionController()
 
-export const clients: Map<string, WebSocket> = new Map();
+export function formatDate(isoString: string): string {
+  const date = new Date(isoString);
+  const formattedDate = date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  const formattedTime = date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+    hour12: true
+  });
+
+  return `${formattedDate} at ${formattedTime}`;
+}
+
+export interface socketConnectionData {
+  socket: Socket | null;
+  heartbeatInterval: NodeJS.Timeout;
+  reconnectionAttempts: number;
+  maxReconnectionAttempts: number;
+  reconnectionTimeout: number;
+  cleanedUp: boolean;
+  platformId?: string | null;
+
+}
 
 export const rolesHierarchy = {
   company: ["master", "distributor", "subdistributor", "store", "player"],
@@ -44,6 +71,15 @@ export const enum MESSAGETYPE {
   ERROR = "internalError",
 }
 
+export enum eventType {
+  ENTERED_PLATFORM = "ENTERED_PLATFORM",
+  EXITED_PLATFORM = "EXITED_PLATFORM",
+  ENTERED_GAME = "ENTERED_GAME",
+  EXITED_GAME = "EXITED_GAME",
+  GAME_SPIN = "HIT_SPIN",
+  UPDATED_SPIN = "UPDATED_SPIN",
+}
+
 export interface DecodedToken {
   username: string;
   role: string;
@@ -66,17 +102,6 @@ export interface CustomJwtPayload extends JwtPayload {
   role: string;
 }
 
-export interface socketConnectionData {
-  socket: Socket | null;
-  heartbeatInterval: NodeJS.Timeout;
-  reconnectionAttempts: number;
-  maxReconnectionAttempts: number;
-  reconnectionTimeout: number;
-  cleanedUp: boolean;
-  platformId?: string | null;
-}
-
-
 export const updateStatus = (client: IUser | IPlayer, status: string) => {
   // Destroy SlotGame instance if we update user to inactive && the client is currently in a game
   const validStatuses = ["active", "inactive"];
@@ -84,9 +109,9 @@ export const updateStatus = (client: IUser | IPlayer, status: string) => {
     throw createHttpError(400, "Invalid status value");
   }
   client.status = status;
-  for (const [username, playerSocket] of currentActivePlayers) {
+  for (const [username, playerSocket] of sessionManager.getPlatformSessions()) {
     if (playerSocket) {
-      const socketUser = currentActivePlayers.get(client.username);
+      const socketUser = sessionManager.getPlayerPlatform(client.username)
       if (socketUser) {
         if (status === 'inactive') {
           socketUser.forceExit();
@@ -111,6 +136,7 @@ export const updatePassword = async (
   }
 };
 
+
 export const updateCredits = async (
   client: IUser | IPlayer,
   creator: IUser,
@@ -120,19 +146,19 @@ export const updateCredits = async (
   session.startTransaction();
 
   try {
-    const clientSocket = currentActivePlayers.get(client.username)
+    const clientSocket = sessionManager.getPlatformSessions().get(client.username);
     if (clientSocket) {
       if (clientSocket.gameData.socket || clientSocket.currentGameData.gameId) {
         throw createHttpError(409, "Cannot recharge while in a game")
       }
     }
 
-    const agentSocket = currentActiveManagers.get(client.username);
-    const managerSocket = currentActiveManagers.get(creator.username);
+    const agentSocket = sessionManager.getActiveManagerByUsername(client.username);
+    const managerSocket = sessionManager.getActiveManagerByUsername(creator.username)
+
 
     const { type, amount } = credits;
 
-    // Validate credits
     if (
       !type ||
       typeof amount !== "number" ||
@@ -159,6 +185,7 @@ export const updateCredits = async (
     await client.save({ session });
     await creator.save({ session });
 
+
     if (
       managerSocket &&
       managerSocket.socketData.socket
@@ -180,11 +207,9 @@ export const updateCredits = async (
 
     if (clientSocket && clientSocket.platformData.socket && clientSocket.platformData.socket.connected) {
       clientSocket.playerData.credits = client.credits;
-      clientSocket.sendData({ type: playerDataType.CREDIT, data: { credits: client.credits } }, "platform");
+      clientSocket.sendData({ type: "CREDIT", data: { credits: client.credits } }, "platform");
       clientSocket.playerData.credits = client.credits;
     }
-
-
 
     await session.commitTransaction();
     session.endSession();
@@ -223,7 +248,6 @@ export const getSubordinateModel = (role: string) => {
   return rolesHierarchy[role];
 };
 
-
 export const getManagerName = async (username: string): Promise<string | null> => {
   try {
     // Fetch the player and populate the 'createdBy' field
@@ -248,34 +272,7 @@ export const getManagerName = async (username: string): Promise<string | null> =
   }
 };
 
-export enum eventType {
-  ENTERED_PLATFORM = "ENTERED_PLATFORM",
-  EXITED_PLATFORM = "EXITED_PLATFORM",
-  ENTERED_GAME = "ENTERED_GAME",
-  EXITED_GAME = "EXITED_GAME",
-  GAME_SPIN = "HIT_SPIN",
-  UPDATED_SPIN = "UPDATED_SPIN",
-}
-
-export enum playerDataType {
-  CREDIT = "CREDIT",
-  GAMES = "GAMES"
-}
-
-export function formatDate(isoString: string): string {
-  const date = new Date(isoString);
-  const formattedDate = date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-
-  const formattedTime = date.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: 'numeric',
-    second: 'numeric',
-    hour12: true
-  });
-
-  return `${formattedDate} at ${formattedTime}`;
+export function precisionRound(number, precision) {
+  var factor = Math.pow(10, precision);
+  return Math.round(number * factor) / factor;
 }

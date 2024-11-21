@@ -3,20 +3,16 @@ import jwt from "jsonwebtoken";
 import { Player as PlayerModel, User } from "./dashboard/users/userModel";
 import { config } from "./config/config";
 import Player from "./Player";
-import createHttpError from "http-errors";
 import { messageType } from "./game/Utils/gameUtils";
 import Manager from "./Manager";
 import { sessionManager } from "./dashboard/session/sessionManager";
+import { IUser } from "./dashboard/users/userType";
 
 
 interface DecodedToken {
     username: string;
     role?: string;
 }
-
-export let currentActivePlayers: Map<string, Player> = new Map();
-export let currentActiveManagers: Map<string, Manager> = new Map();
-
 
 const verifySocketToken = (socket: Socket): Promise<DecodedToken> => {
     return new Promise((resolve, reject) => {
@@ -39,9 +35,13 @@ const verifySocketToken = (socket: Socket): Promise<DecodedToken> => {
 };
 
 const getPlayerDetails = async (username: string) => {
-    const player = await PlayerModel.findOne({ username });
+    const player = await PlayerModel.findOne({ username }).populate<{ createdBy: IUser }>("createdBy", "name");
     if (player) {
-        return { credits: player.credits, status: player.status };
+        return {
+            credits: player.credits,
+            status: player.status,
+            managerName: player.createdBy?.name || null
+        };
     }
     throw new Error("Player not found");
 };
@@ -61,9 +61,9 @@ const handlePlayerConnection = async (socket: Socket, decoded: DecodedToken, use
 
     const origin = socket.handshake.auth.origin;
     const gameId = socket.handshake.auth.gameId;
-    const { credits, status } = await getPlayerDetails(decoded.username);
+    const { credits, status, managerName } = await getPlayerDetails(username);
 
-    let existingPlayer = currentActivePlayers.get(username);
+    let existingPlayer = sessionManager.getPlayerPlatform(username)
 
     if (existingPlayer) {
         // Platform connection handling
@@ -86,7 +86,6 @@ const handlePlayerConnection = async (socket: Socket, decoded: DecodedToken, use
             existingPlayer.initializePlatformSocket(socket);
             existingPlayer.sendAlert(`Platform reconnected for ${username}`, false);
             return;
-
         }
 
 
@@ -108,17 +107,14 @@ const handlePlayerConnection = async (socket: Socket, decoded: DecodedToken, use
 
     // New platform connection
     if (origin) {
-        console.log(`New platform connection detected for ${username}. Initializing.`);
-        const newUser = new Player(username, decoded.role, status, credits, userAgent, socket);
+        const newUser = new Player(username, decoded.role, status, credits, userAgent, socket, managerName);
         newUser.platformData.platformId = platformId;
-        currentActivePlayers.set(username, newUser);
         newUser.sendAlert(`Player initialized for ${username} on platform ${origin}`, false);
         return;
     }
 
     // Game connection without existing platform connection
     if (gameId) {
-        console.log(`Game connection blocked for ${username} without active platform.`);
         socket.emit(messageType.ERROR, "You need to have an active platform connection before joining a game.");
         socket.disconnect(true);
         return;
@@ -127,15 +123,15 @@ const handlePlayerConnection = async (socket: Socket, decoded: DecodedToken, use
     // Invalid connection attempt
     socket.emit(messageType.ERROR, "Invalid connection attempt.");
     socket.disconnect(true);
-
 };
 
 const handleManagerConnection = async (socket: Socket, decoded: DecodedToken, userAgent: string) => {
     const username = decoded.username;
     const role = decoded.role
     const { credits } = await getManagerDetails(username);
+    console.log("MANAGER CONNECTION")
 
-    let existingManager = currentActiveManagers.get(username);
+    let existingManager = sessionManager.getActiveManagerByUsername(username);
 
     if (existingManager) {
         console.log(`Reinitializing manager ${username}`);
@@ -148,13 +144,13 @@ const handleManagerConnection = async (socket: Socket, decoded: DecodedToken, us
         socket.emit(messageType.ALERT, `Manager ${username} has been reconnected.`);
     } else {
         const newManager = new Manager(username, credits, role, userAgent, socket);
-        currentActiveManagers.set(username, newManager);
+        sessionManager.addManager(username, newManager)
         socket.emit(messageType.ALERT, `Manager ${username} has been connected.`);
     }
 
     // Send all active players to the manager upon connection
-    const activeUsersData = Array.from(currentActivePlayers.values()).map(player => {
-        const platformSession = sessionManager.getPlatformSession(player.playerData.username);
+    const activeUsersData = Array.from(sessionManager.getPlatformSessions().values()).map(player => {
+        const platformSession = sessionManager.getPlayerPlatform(player.playerData.username);
         return platformSession?.getSummary() || {};
     });
 
@@ -198,7 +194,6 @@ const socketController = (io: Server) => {
             console.error("An error occurred during socket connection:", error.message);
             socket.emit("alert", "ForcedExit");
             socket.disconnect(true);
-
         }
     });
 

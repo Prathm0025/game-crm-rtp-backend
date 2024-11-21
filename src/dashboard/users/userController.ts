@@ -14,11 +14,8 @@ import { User, Player as PlayerModel, Player } from "./userModel";
 import UserService from "./userService";
 import Transaction from "../transactions/transactionModel";
 import { QueryParams } from "../../utils/globalTypes";
-import { currentActivePlayers } from "../../socket";
 import { IPlayer, IUser } from "./userType";
-import { playerData } from "../../Player";
-
-
+import { sessionManager } from "../session/sessionManager";
 
 interface ActivePlayer {
   username: string;
@@ -137,10 +134,6 @@ export class UserController {
         throw createHttpError(401, "Invalid username or password");
       }
 
-      if (user.status !== "active") {
-        throw createHttpError(403, "User account is not active");
-      }
-
       if (user.role === "player") {
         await PlayerModel.updateOne(
           { _id: user._id },
@@ -167,7 +160,8 @@ export class UserController {
         sameSite: "none",
       });
 
-      const socketUser = currentActivePlayers.get(username);
+      const socketUser = sessionManager.getPlayerPlatform(username);
+
       if (socketUser?.platformData.socket?.connected || socketUser?.gameData.socket) {
         throw createHttpError(403, "Already logged in on another browser or tab.");
       }
@@ -182,6 +176,7 @@ export class UserController {
         role: user.role,
       });
     } catch (error) {
+      console.error("Login error:", error);
       next(error);
     }
   }
@@ -193,16 +188,7 @@ export class UserController {
 
       if (!username) {
         throw createHttpError(400, "Username is required");
-      }
-
-      if (!currentActivePlayers.has(username)) {
-        throw createHttpError(404, "User not logged in");
-      }
-
-      // Remove the user from the logged-in users map
-      currentActivePlayers.delete(username);
-      console.log("User logged out : ", username);
-
+      }      
 
       // Clear the user token cookie
       res.clearCookie("userToken", {
@@ -468,7 +454,7 @@ export class UserController {
   async getAllPlayers(req: Request, res: Response, next: NextFunction) {
     try {
       const activePlayers = new Set();
-      currentActivePlayers.forEach((value, key) => {
+      sessionManager.getPlatformSessions().forEach((value, key) => {
         activePlayers.add({ username: key, currentGame: value.currentGameData.gameId });
       });
 
@@ -598,6 +584,8 @@ export class UserController {
       next(error);
     }
   }
+
+
 
 
   async getCurrentUserSubordinates(
@@ -878,7 +866,6 @@ export class UserController {
       if (credits) {
         credits.amount = Number(credits.amount);
         await updateCredits(client, admin, credits);
-
       }
 
       await admin.save();

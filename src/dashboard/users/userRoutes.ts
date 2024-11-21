@@ -8,7 +8,7 @@ const userController = new UserController();
 const userRoutes = express.Router();
 
 // LOGIN
-userRoutes.post("/login", checkLoginToggle, userController.loginUser);
+userRoutes.post("/login",checkLoginToggle, userController.loginUser);
 
 // LOGOUT
 userRoutes.post("/logout", checkUser, userController.logoutUser)
