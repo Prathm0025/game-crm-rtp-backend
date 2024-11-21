@@ -31,6 +31,8 @@ export function formatDate(isoString: string): string {
   });
 
   return `${formattedDate} at ${formattedTime}`;
+}
+
 export interface socketConnectionData {
   socket: Socket | null;
   heartbeatInterval: NodeJS.Timeout;
@@ -39,6 +41,7 @@ export interface socketConnectionData {
   reconnectionTimeout: number;
   cleanedUp: boolean;
   platformId?: string | null;
+
 }
 
 export const rolesHierarchy = {
@@ -125,6 +128,7 @@ export const updatePassword = async (
   password: string,
 ) => {
   try {
+    // Update password
     client.password = await bcrypt.hash(password, 10);
   } catch (error) {
     console.log(error);
