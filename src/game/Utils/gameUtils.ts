@@ -35,7 +35,8 @@ export const enum messageType {
     ALERT = "alert",
     MESSAGE = "message",
     ERROR = "internalError",
-    CREDITSUPDATE = 'creditsUpdate'
+    CREDITSUPDATE = 'creditsUpdate',
+    DATA = "data"
 }
 
 export const getCurrentRTP = {
