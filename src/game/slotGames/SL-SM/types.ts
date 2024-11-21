@@ -33,19 +33,57 @@ export interface SLSMSETTINGS {
         SymbolID: number;
         useWild: boolean
     },
-    scatter:{
-        symbolID:number;
-        useScatter:boolean;
+    bonus:{
+        SymbolName: string;
+        SymbolID: number;
+        useWild: boolean
+    },
+    stickyBonus:{
+        SymbolName: string;
+        SymbolID: number;
+        useWild: boolean
+    },
+    mystery:{
+        SymbolName: string;
+        SymbolID: number;
+        useWild: boolean
+    },
+    moonMystery:{
+        SymbolName: string;
+        SymbolID: number;
+        useWild: boolean
+    },
+    mini:{
+        SymbolName: string;
+        SymbolID: number;
+        useWild: boolean
+    },
+    minor:{
+        SymbolName: string;
+        SymbolID: number;
+        useWild: boolean
+    },
+    major:{    
+        SymbolName: string;
+        SymbolID: number;
+        useWild: boolean
+    },
+    moon:{    
+        SymbolName: string;
+        SymbolID: number;
+        useWild: boolean
     }
 }
 
 
 export enum specialIcons {
     wild = "Wild",
-    FreeSpin = "FreeSpin",
-    scatter =  "Scatter"
-}
-
-interface count {
-    
+    bonus = "Bonus",
+    stickyBonus = "StickyBonus",
+    mystery = "Mystery",
+    moonMystery = "MoonMystery",
+    mini = "mini",
+    minor = "minor",
+    major = "major",
+    moon = "MOON"
 }
