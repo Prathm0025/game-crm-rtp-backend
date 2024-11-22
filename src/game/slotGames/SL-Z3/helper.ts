@@ -139,10 +139,11 @@ export function sendInitData(gameInstance: SLZEUS) {
 export function checkForWin(gameInstance: SLZEUS) {
     try {
         const { settings } = gameInstance;
-        handleFullReelOfZeus(gameInstance);
         settings.resultSymbolMatrixWithoutNull = settings.resultSymbolMatrix.map(row => [...row]);
         // Remove elements from each reel in the specified sequence: 5, 4, 3, 2, 1, 0
         settings.resultSymbolMatrix = reduceMatrix(settings.resultSymbolMatrix);
+        handleFullReelOfZeus(gameInstance);
+
         console.log(settings.resultSymbolMatrix, "result symbol matrix column replace to wild(10)");
         // Subsitute full reel of zeus with wild
 
@@ -593,7 +594,7 @@ export function makeResultJson(gameInstance: SLZEUS) {
         };
         gameInstance.sendMessage('ResultData', sendData);
 
-        // console.log(sendData.GameData.symbolsToEmit, "send Data");
+        console.log(sendData);
 
     } catch (error) {
         console.error("Error generating result JSON or sending message:", error);
