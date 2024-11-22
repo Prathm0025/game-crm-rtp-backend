@@ -189,8 +189,6 @@ export class UserController {
 
       if (!username) {
         throw createHttpError(400, "Username is required");
-      }
-
       // Clear the user token cookie
       res.clearCookie("userToken", {
         httpOnly: true,
