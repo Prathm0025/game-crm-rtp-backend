@@ -615,6 +615,7 @@ export function checkForWin(gameInstance: SLBB) {
      * 
      * */
     if (settings.bonus.count <= 0) {
+      settings.bonusResultMatrix = [];
       settings.bonus.isBonus = false;
       settings.bonus.isWalterStash = false
       settings.bonus.isMegaLink = false
@@ -670,7 +671,7 @@ export function makeResultJson(gameInstance: SLBB) {
         },
         bonus: {
           isBonus: settings.bonus.isTriggered,
-          isWalterSatash: settings.bonus.isWalterStash,
+          isWalterStash: settings.bonus.isWalterStash,
           isMegaLink: settings.bonus.isMegaLink,
           BonusResult: settings.bonusResultMatrix.map(row => row.map(item => Number(item))),
           payout: settings.bonus.payout,
