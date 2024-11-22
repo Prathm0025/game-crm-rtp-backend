@@ -181,7 +181,8 @@ export function checkForWin(gameInstance: SLBT) {
           });
         });
       });
-
+     
+      
       consecutiveLines = newConsecutiveLines;
     }
 
@@ -202,7 +203,7 @@ export function checkForWin(gameInstance: SLBT) {
         let linePayout = baseMultiplier * settings.currentBet;
 
         if (line.wildMultiplierTotal > 0) {
-          linePayout *= (1 + line.wildMultiplierTotal);
+          linePayout *= (line.wildMultiplierTotal);
           console.log(`Wild multipliers in line: ${line.wildMultiplierTotal}. Total multiplier applied to payout: ${1 + line.wildMultiplierTotal}`);
         }
 
@@ -236,8 +237,8 @@ export function checkForWin(gameInstance: SLBT) {
 function getRandomMultiplier(gameInstance: SLBT) {
   const { settings } = gameInstance;
   const cumulativeProbabilities = [];
-  console.log("settings.WildMultiplierProb",settings.WildMultiplierProb)
-  console.log("WildMultiplier",settings.WildMultiplier)
+  // console.log("settings.WildMultiplierProb",settings.WildMultiplierProb)
+  // console.log("WildMultiplier",settings.WildMultiplier)
   // Calculate cumulative probabilities
   settings.WildMultiplierProb.reduce((acc, prob, index) => {
     cumulativeProbabilities[index] = acc + prob;
@@ -267,7 +268,7 @@ function checkForFreeSpin(gameInstance: SLBT) {
   const { settings } = gameInstance;
   const freeSpinSymbolId = settings.freeSpin.symbolID; // Access the free spin symbol ID
   let freeSpinSymbolCount = 0;
-  console.log("Free Spin ID", freeSpinSymbolId);
+  // console.log("Free Spin ID", freeSpinSymbolId);
 
   settings.resultSymbolMatrix.forEach((row, rowIndex) => {
     row.forEach((symbol, colIndex) => {
@@ -280,7 +281,7 @@ function checkForFreeSpin(gameInstance: SLBT) {
     });
   });
 
-  console.log("FS winning symbols ", settings.fsWinningSymbols);
+  // console.log("FS winning symbols ", settings.fsWinningSymbols);
 
   let newFreeSpinsAwarded = 0; // Initialize variable for new free spins
   // If 3 or more free spin symbols are found, trigger free spins
@@ -300,19 +301,19 @@ function checkForFreeSpin(gameInstance: SLBT) {
     // Add to free spin count
     settings.freeSpin.freeSpinCount += newFreeSpinsAwarded;
     settings.freeSpin.useFreeSpin = true; // Mark free spin as active
-    console.log(`Free Spins awarded: ${settings.freeSpin.freeSpinCount}`);
+    // console.log(`Free Spins awarded: ${settings.freeSpin.freeSpinCount}`);
   }
   if (freeSpinSymbolCount >= 7) {
-    console.log(
-      `Free Spin triggered! Found ${freeSpinSymbolCount} free spin symbols.`
-    );
+    // console.log(
+    //   `Free Spin triggered! Found ${freeSpinSymbolCount} free spin symbols.`
+    // );
     const freeSpinMultiplier = settings.freeSpin.freeSpinMuiltiplier[0]; // Get multiplier based on count
     newFreeSpinsAwarded = freeSpinMultiplier[1]; // Set the new free spins awarded
 
     // Add to free spin count
     settings.freeSpin.freeSpinCount += newFreeSpinsAwarded;
     settings.freeSpin.useFreeSpin = true; // Mark free spin as active
-    console.log(`Free Spins awarded: ${settings.freeSpin.freeSpinCount}`);
+    // console.log(`Free Spins awarded: ${settings.freeSpin.freeSpinCount}`);
   }
 
   // If freeSpinCount becomes greater than 0 for the first time, set isNewAdded to 0

@@ -597,7 +597,6 @@ export const gameData = [
 {
   "id": "SL-BT",
   "isSpecial": true,
-  "minMatchCount": 3,
   "matrix": {
     "x": 6,
     "y": 4
@@ -606,21 +605,27 @@ export const gameData = [
     1
   ],
  "WildMultiplier": [2, 3, 4, 5],
- "WildMultiplierProb": [0.4,0.3,0.2,0.1],
+ "WildMultiplierProb": [0.75,0.15,0.09,0.01],
   "bets": [
-    0.40,
-    0.80,
+    0.01,
+    0.02,
+    0.03,
+    0.05,
+    0.07,
+    0.10,
+    0.25,
+    0.50,
+    0.75,
     1.00,
-    1.60,
+    1.50,
     2.00,
-    2.40,
-    2.80,
-    3.20,
-    3.60,
-    4.00,
-    8.00,
-    12.00,
-    16.00
+    2.50,
+    5.00,
+    10.00,
+    15.00,
+    20.00,
+    30.00,
+    40.00
   ],
   
   "Symbols": [
@@ -639,19 +644,19 @@ export const gameData = [
       },
       "multiplier": [
         [
-          3,
+          2,
           0
         ],
         [
-          1.5,
+          1,
           0
         ],
         [
-          0.8,
+          0.4,
           0
         ],
         [
-          0.5,
+          0.2,
           0
         ]
       ]
@@ -671,19 +676,19 @@ export const gameData = [
       },
       "multiplier": [
         [
-          3,
+          2,
           0
         ],
         [
-          1.5,
+          1,
           0
         ],
         [
-          0.8,
+          0.4,
           0
         ],
         [
-          0.5,
+          0.2,
           0
         ]
       ]
@@ -703,22 +708,22 @@ export const gameData = [
       },
       "multiplier": [
         [
-          3,
+          2,
           0
         ],
         [
-          1.5,
+          1,
           0
         ],
         [
-          0.8,
+          0.4,
           0
         ],
         [
-          0.5,
+          0.2,
           0
         ]
-     ]
+      ]
     },
     {
       "Name": "3",
@@ -735,19 +740,19 @@ export const gameData = [
       },
       "multiplier": [
         [
-          3,
+          2,
           0
         ],
         [
-          1.5,
+          1,
           0
         ],
         [
-          0.8,
+          0.4,
           0
         ],
         [
-          0.5,
+          0.2,
           0
         ]
       ]
@@ -767,19 +772,19 @@ export const gameData = [
       },
       "multiplier": [
         [
-          3,
+          2,
           0
         ],
         [
-          1.5,
+          1,
           0
         ],
         [
-          0.8,
+          0.4,
           0
         ],
         [
-          0.5,
+          0.2,
           0
         ]
       ]
@@ -799,19 +804,19 @@ export const gameData = [
       },
       "multiplier": [
         [
-          3,
+          2,
           0
         ],
         [
-          1.5,
+          1,
           0
         ],
         [
-          0.8,
+          0.4,
           0
         ],
         [
-          0.5,
+          0.2,
           0
         ]
       ]
@@ -831,11 +836,7 @@ export const gameData = [
       },
       "multiplier": [
         [
-          4,
-          0
-        ],
-        [
-          2.5,
+          3,
           0
         ],
         [
@@ -844,6 +845,10 @@ export const gameData = [
         ],
         [
           0.8,
+          0
+        ],
+        [
+          0.4,
           0
         ]
       ]
@@ -863,11 +868,7 @@ export const gameData = [
       },
       "multiplier": [
         [
-          4,
-          0
-        ],
-        [
-          2.5,
+          3,
           0
         ],
         [
@@ -876,6 +877,10 @@ export const gameData = [
         ],
         [
           0.8,
+          0
+        ],
+        [
+          0.4,
           0
         ]
       ]
@@ -895,11 +900,7 @@ export const gameData = [
       },
       "multiplier": [
         [
-          4,
-          0
-        ],
-        [
-          2.5,
+          3,
           0
         ],
         [
@@ -908,6 +909,10 @@ export const gameData = [
         ],
         [
           0.8,
+          0
+        ],
+        [
+          0.4,
           0
         ]
       ]
@@ -927,11 +932,7 @@ export const gameData = [
       },
       "multiplier": [
         [
-          4,
-          0
-        ],
-        [
-          2.5,
+          3,
           0
         ],
         [
@@ -940,6 +941,10 @@ export const gameData = [
         ],
         [
           0.8,
+          0
+        ],
+        [
+          0.4,
           0
         ]
       ]
@@ -959,11 +964,7 @@ export const gameData = [
       },
       "multiplier": [
         [
-          4,
-          0
-        ],
-        [
-          2,
+          3,
           0
         ],
         [
@@ -972,6 +973,10 @@ export const gameData = [
         ],
         [
           0.8,
+          0
+        ],
+        [
+          0.4,
           0
         ]
       ]
@@ -983,11 +988,11 @@ export const gameData = [
       "isFreeSpinMultiplier": false,
       "reelInstance": {
         "0": 0,
-        "1": 5,
-        "2": 5,
-        "3": 5,
-        "4": 5,
-        "5": 5
+        "1": 2,
+        "2": 2,
+        "3": 2,
+        "4": 2,
+        "5": 2
       },
       "multiplier": [
 
@@ -999,12 +1004,12 @@ export const gameData = [
       "useWildSub": false,
       "isFreeSpinMultiplier": false,
       "reelInstance": {
-        "0": 15,
-        "1": 15,
-        "2": 15,
-        "3": 15,
-        "4": 15,
-        "5": 15
+        "0": 4,
+        "1": 4,
+        "2": 4,
+        "3": 4,
+        "4": 4,
+        "5": 4
       },
       "multiplier": [
         [0,10],
