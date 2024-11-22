@@ -80,7 +80,6 @@ export class SLBT {
             if(this.settings.freeSpin.freeSpinCount > 0)
             {
                 this.settings.freeSpin.freeSpinCount --;
-                this.settings.currentBet =0;
 
             }
             
