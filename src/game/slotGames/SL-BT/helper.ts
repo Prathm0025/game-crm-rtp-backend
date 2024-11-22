@@ -395,3 +395,4 @@ export function makeResultJson(gameInstance: SLBT) {
     console.error("Error generating result JSON or sending message:", error);
   }
 }
+
