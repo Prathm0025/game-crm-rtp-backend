@@ -208,7 +208,7 @@ export function checkForWin(gameInstance: SLZEUS) {
                                 "payout",
                                 symbolMultiplierLTR
                             );
-                            const formattedIndices = matchedIndices.map(({ col, row }) => `${row},${col}`);
+                            const formattedIndices = matchedIndices.map(({ col, row }) => `${col},${row}`);
                             const validIndices = formattedIndices.filter(
                                 (index) => index.length > 2
                             );
@@ -252,7 +252,7 @@ export function checkForWin(gameInstance: SLZEUS) {
                                 "payout",
                                 symbolMultiplierRTL
                             );
-                            const formattedIndices = matchedIndices.map(({ col, row }) => `${row},${col}`);
+                            const formattedIndices = matchedIndices.map(({ col, row }) => `${col},${row}`);
                             const validIndices = formattedIndices.filter(
                                 (index) => index.length > 2
                             );
@@ -594,7 +594,7 @@ export function makeResultJson(gameInstance: SLZEUS) {
         };
         gameInstance.sendMessage('ResultData', sendData);
 
-        console.log(sendData);
+        // console.log(sendData.GameData.symbolsToEmit, "send Data");
 
     } catch (error) {
         console.error("Error generating result JSON or sending message:", error);
