@@ -156,8 +156,7 @@ export function checkForWin(gameInstance: SLZEUS) {
 
         settings.lineData.forEach((line, index) => {
             //RTL for free spins
-            const direction = isFreeSpin ? 'RTL' : 'LTR';
-
+            const direction = settings.freeSpin.useFreeSpin ? 'RTL' : 'LTR';            
             const firstSymbolPositionLTR = line[0];
             const firstSymbolPositionRTL = line[line.length - 1];
 
@@ -591,7 +590,7 @@ export function makeResultJson(gameInstance: SLZEUS) {
         };
         gameInstance.sendMessage('ResultData', sendData);
 
-        // console.log(sendData, "send Data");
+        console.log(sendData, "send Data");
 
     } catch (error) {
         console.error("Error generating result JSON or sending message:", error);
