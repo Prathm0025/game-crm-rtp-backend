@@ -208,7 +208,7 @@ export function checkForWin(gameInstance: SLZEUS) {
                                 "payout",
                                 symbolMultiplierLTR
                             );
-                            const formattedIndices = matchedIndices.map(({ col, row }) => `${col},${row}`);
+                            const formattedIndices = matchedIndices.map(({ col, row }) => `${row},${col}`);
                             const validIndices = formattedIndices.filter(
                                 (index) => index.length > 2
                             );
@@ -252,7 +252,7 @@ export function checkForWin(gameInstance: SLZEUS) {
                                 "payout",
                                 symbolMultiplierRTL
                             );
-                            const formattedIndices = matchedIndices.map(({ col, row }) => `${col},${row}`);
+                            const formattedIndices = matchedIndices.map(({ col, row }) => `${row},${col}`);
                             const validIndices = formattedIndices.filter(
                                 (index) => index.length > 2
                             );
@@ -491,7 +491,7 @@ function checkForFreeSpin(gameInstance: SLZEUS) {
     }
 
     const isFreeSpin = scatterCount >= 3;
-    const formattedIndices = scatterIndices.map(({ col, row }) => `${col},${row}`);
+    const formattedIndices = scatterIndices.map(({ col, row }) => `${row},${col}`);
                             const validIndices = formattedIndices.filter(
                                 (index) => index.length > 2
                             );
