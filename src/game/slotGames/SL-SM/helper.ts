@@ -42,10 +42,48 @@ export function initializeGameSettings(gameData: any, gameInstance: SLSM) {
             SymbolID: -1,
             useWild: false,
         },
-        scatter: {
-            symbolID: 11,
-            useScatter: false,
-        }
+        bonus: {
+            SymbolName: "",
+            SymbolID: -1,
+            useWild: false,
+        },
+        stickyBonus: {
+            SymbolName: "",
+            SymbolID: -1,
+            useWild: false,
+        },
+        mystery: {
+            SymbolName: "",
+            SymbolID: -1,
+            useWild: false,
+        },
+        moonMystery: {
+            SymbolName: "",
+            SymbolID: -1,
+            useWild: false,
+        },
+        mini: {
+            SymbolName: "",
+            SymbolID: -1,
+            useWild: false,
+        },
+        minor: {
+            SymbolName: "",
+            SymbolID: -1,
+            useWild: false,
+        },
+        major: {
+            SymbolName: "",
+            SymbolID: -1,
+            useWild: false,
+        },
+        moon: {
+            SymbolName: "",
+            SymbolID: -1,
+            useWild: false,
+        },
+
+
     };
 }
 /**
@@ -148,7 +186,14 @@ export function checkForWin(gameInstance: SLSM) {
 
         const validWinSymbols = countOccurenceOfSymbols(gameInstance);
         console.log(validWinSymbols, "validWinSymbols");
-                
+        validWinSymbols.map(([symbol, matchCount]) => {
+            const multiplier =
+                accessData(symbol, matchCount, gameInstance)
+            console.log(multiplier);
+            const payout = multiplier * settings.BetPerLines;
+            totalPayout += payout;
+        })
+        console.log(totalPayout, "payout");
 
         if (settings.freeSpin.useFreeSpin && settings.freeSpin.freeSpinCount > 0) {
             settings.freeSpin.freeSpinCount -= 1;
@@ -181,49 +226,34 @@ export function checkForWin(gameInstance: SLSM) {
         return [];
     }
 }
- 
-function countOccurenceOfSymbols( gameInstance:SLSM){
-   const { settings } = gameInstance;
-   const counts: Record<string | number, number> = {};
-  
-   for(let row of settings.resultSymbolMatrix){
-       for(let num of row){
-        counts[num] = (counts[num] || 0) + 1;
-       }
-   }
 
-  //Symbols whose count are 8 or more
-  const validWinSymbols = Object.entries(counts)
-    .filter(([_, count]) => count >= 8) 
-    .map(([symbol]) => symbol);
+function countOccurenceOfSymbols(gameInstance: SLSM) {
+    const { settings } = gameInstance;
+    const counts: Record<string | number, number> = {};
+    let wildCount = 0;
+    for (let row of settings.resultSymbolMatrix) {
+        for (let num of row) {
+            if(num === settings.wild.SymbolID){                
+                wildCount++;
+                continue;
+            }
+            counts[num] = (counts[num] || 0) + 1;
+        }
+    }
 
+    //add wild count to eligible symbols
+    settings.Symbols.forEach((symbol:any)=>{
+        if(symbol.useWildSub && symbol.Id in counts){
+            counts[symbol.Id] += wildCount;
+        }
+    })
+    //symbols whose count are 8 or more
+    const validWinSymbols = Object.entries(counts)
+        .filter(([_, count]) => count >= 8);
     return validWinSymbols;
 }
 
 
-/**
- * Finds the first non-wild symbol in a line, considering the specified direction.
- * @param line - The line of symbols to analyze.
- * @param gameInstance - The game instance containing symbol data.
- * @param direction - The direction to scan ('LTR' or 'RTL').
- * @returns The first non-wild symbol found, or the wild symbol if none are found.
- */
-function findFirstNonWildSymbol(line: number[], gameInstance: SLSM, direction: 'LTR' | 'RTL' = 'LTR') {
-    const { settings } = gameInstance;
-    const wildSymbol = settings.wild.SymbolID;
-    const start = direction === 'LTR' ? 0 : line.length - 1;
-    const end = direction === 'LTR' ? line.length : -1;
-    const step = direction === 'LTR' ? 1 : -1;
-
-    for (let i = start; i !== end; i += step) {
-        const rowIndex = line[i];
-        const symbol = settings.resultSymbolMatrix[rowIndex][i];
-        if (symbol !== wildSymbol) {
-            return symbol;
-        }
-    }
-    return wildSymbol;
-}
 
 /**
  * Retrieves the multiplier associated with a symbol and match count.
@@ -241,8 +271,8 @@ function accessData(symbol, matchCount, gameInstance: SLSM) {
         );
         if (symbolData) {
             const multiplierArray = symbolData.multiplier;
-            if (multiplierArray && multiplierArray[5 - matchCount]) {
-                return multiplierArray[5 - matchCount][0];
+            if (multiplierArray && multiplierArray[16 - matchCount]) {
+                return multiplierArray[16 - matchCount][0];
             }
         }
         return 0;
@@ -266,17 +296,46 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLSM) {
             gameInstance.settings.wild.SymbolName = symbol.Name;
             gameInstance.settings.wild.SymbolID = symbol.Id;
             gameInstance.settings.wild.useWild = true;
-
             break;
-        case specialIcons.FreeSpin:
-            gameInstance.settings.freeSpin.symbolID = symbol.Id;
-            gameInstance.settings.freeSpin.useFreeSpin = true;
+        case specialIcons.bonus:
+            gameInstance.settings.bonus.SymbolName = symbol.Name;
+            gameInstance.settings.bonus.SymbolID = symbol.Id;
+            gameInstance.settings.bonus.useWild = true;
             break;
-        case specialIcons.scatter:
-            (gameInstance.settings.scatter.symbolID = symbol.Id),
-                //   (gameInstance.settings.scatter.multiplier = symbol.multiplier);
-                gameInstance.settings.scatter.useScatter = true;
-
+        case specialIcons.stickyBonus:
+            gameInstance.settings.stickyBonus.SymbolName = symbol.Name;
+            gameInstance.settings.stickyBonus.SymbolID = symbol.Id;
+            gameInstance.settings.stickyBonus.useWild = true;
+            break;
+        case specialIcons.mystery:
+            gameInstance.settings.mystery.SymbolName = symbol.Name;
+            gameInstance.settings.mystery.SymbolID = symbol.Id;
+            gameInstance.settings.mystery.useWild = false;
+            break;
+        case specialIcons.moonMystery:
+            gameInstance.settings.moonMystery.SymbolName = symbol.Name;
+            gameInstance.settings.moonMystery.SymbolID = symbol.Id;
+            gameInstance.settings.moonMystery.useWild = false;
+            break;
+        case specialIcons.mini:
+            gameInstance.settings.mini.SymbolName = symbol.Name;
+            gameInstance.settings.mini.SymbolID = symbol.Id;
+            gameInstance.settings.mini.useWild = false;
+            break;
+        case specialIcons.minor:
+            gameInstance.settings.minor.SymbolName = symbol.Name;
+            gameInstance.settings.minor.SymbolID = symbol.Id;
+            gameInstance.settings.minor.useWild = false;
+            break;
+        case specialIcons.major:
+            gameInstance.settings.major.SymbolName = symbol.Name;
+            gameInstance.settings.major.SymbolID = symbol.Id;
+            gameInstance.settings.major.useWild = false;
+            break;
+        case specialIcons.moon:
+            gameInstance.settings.moon.SymbolName = symbol.Name;
+            gameInstance.settings.moon.SymbolID = symbol.Id;
+            gameInstance.settings.moon.useWild = false;
             break;
         default:
             break; ``
@@ -291,7 +350,7 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLSM) {
  */
 
 function checkForFreeSpin(gameInstance: SLSM) {
-    const { resultSymbolMatrix, scatter } = gameInstance.settings;
+    const { resultSymbolMatrix } = gameInstance.settings;
 
     let scatterCount = 0;
 
