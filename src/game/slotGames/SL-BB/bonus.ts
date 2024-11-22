@@ -134,7 +134,7 @@ export function handleBonusSpin(gameInstance: SLBB) {
 
   if (isWalterStash) {
     settings.bonus.isWalterStash = true
-    settings.bonus.payout += settings.jackpot.payout[settings.jackpot.payout.length - 1] * settings.BetPerLines
+    settings.bonus.payout += settings.jackpot.payout[0] * settings.BetPerLines
     settings.bonus.count = 0
   }
   if (settings.bonus.count == 0) {

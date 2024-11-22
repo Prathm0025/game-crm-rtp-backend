@@ -461,10 +461,10 @@ export const gameData = [
       25,
       30
     ],
-    "coinsvalue":       [1, 2, 5, 10, 15, 20, 25, 30, 35, 40],
-    "coinsvalueprob":   [10, 20, 30, 40, 50, 10, 15, 25, 35, 55],
-    "megaLinkCoinValue":[ 50, 60, 65, 70, 75, 80, 85, 90, 95, 100],
-    "megaLinkCoinProb": [ 10, 9, 8, 7, 6, 5, 4, 3, 2, 1],
+    "coinsvalue": [1, 2, 5, 10, 15, 20, 25, 30, 35, 40],
+    "coinsvalueprob": [10, 20, 30, 40, 50, 10, 15, 25, 35, 55],
+    "megaLinkCoinValue": [50, 60, 65, 70, 75, 80, 85, 90, 95, 100],
+    "megaLinkCoinProb": [10, 9, 8, 7, 6, 5, 4, 3, 2, 1],
     "bets": [
       0.0005,
       0.0025,
@@ -484,8 +484,8 @@ export const gameData = [
       2
     ],
     "jackpot": {
-      "payout": [50, 500, 5000],
-      "payoutProbs": [2.5, 1.5, 0.5]
+      "payout": [5000, 500, 50, 5],
+      "payoutProbs": [0.5, 1.5, 2.5, 3.5]
     },
     "freeSpin": {
       "isEnabled": true,
@@ -814,11 +814,11 @@ export const gameData = [
         "Name": "MegaLink",
         "Id": 12,
         "reelInstance": {
-          "0": 10,
-          "1": 10,
-          "2": 10,
-          "3": 10,
-          "4": 10
+          "0": 1,
+          "1": 1,
+          "2": 1,
+          "3": 1,
+          "4": 1
         },
         "description": "",
         "useWildSub": false,
@@ -883,11 +883,11 @@ export const gameData = [
         "Name": "LosPollos",
         "Id": 16,
         "reelInstance": {
-          "0": 2,
-          "1": 2,
-          "2": 2,
-          "3": 2,
-          "4": 2
+          "0": 10,
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 10,
         },
         "description": "",
         "useWildSub": false,
