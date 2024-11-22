@@ -154,11 +154,11 @@ export class UserController {
         { expiresIn: "7d" }
       );
 
-      // res.cookie("userToken", token, {
-      //   maxAge: 1000 * 60 * 60 * 24 * 7,
-      //   httpOnly: true,
-      //   sameSite: "none",
-      // });
+      res.cookie("userToken", token, {
+        maxAge: 1000 * 60 * 60 * 24 * 7,
+        httpOnly: true,
+        sameSite: "none",
+      });
 
 
       const socketUser = sessionManager.getPlayerPlatform(username);
