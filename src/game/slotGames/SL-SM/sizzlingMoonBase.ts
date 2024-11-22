@@ -2,10 +2,10 @@ import { sessionManager } from "../../../dashboard/session/sessionManager";
 import { currentGamedata } from "../../../Player";
 import { RandomResultGenerator } from "../RandomResultGenerator";
 import { initializeGameSettings, generateInitialReel, sendInitData, makePayLines, checkForWin } from "./helper";
-import { SLBTSETTINGS } from "./types";
+import { SLSMSETTINGS } from "./types";
 
-export class SLBT {
-    public settings: SLBTSETTINGS;
+export class SLSM {
+    public settings: SLSMSETTINGS;
     playerData = {
         haveWon: 0,
         currentWining: 0,
@@ -66,9 +66,9 @@ export class SLBT {
     private prepareSpin(data: any) {
         this.settings.currentLines = data.currentLines;
         this.settings.BetPerLines = this.settings.currentGamedata.bets[data.currentBet];
-        this.settings.currentBet = this.settings.BetPerLines
-    }
-
+        this.settings.currentBet = this.settings.BetPerLines * this.settings.currentLines;
+      }
+    
 
     public async spinResult(): Promise<void> {
         try {
@@ -76,22 +76,13 @@ export class SLBT {
             const platformSession = sessionManager.getPlayerPlatform(playerData.username);
 
             if (this.settings.currentBet > playerData.credits) {
-                console.log(this.settings.currentBet + playerData.credits, 'dfdsfds')
+                console.log(this.settings.currentBet + playerData.credits)
                 this.sendError("Low Balance");
                 return;
             }
-            if(this.settings.freeSpin.freeSpinCount > 0)
-            {
-                this.settings.freeSpin.freeSpinCount --;
-
-            }
-            
-            if (this.settings.freeSpin.freeSpinCount==0) {
+            if (!this.settings.freeSpin.useFreeSpin) {
                 await this.deductPlayerBalance(this.settings.currentBet);
                 this.playerData.totalbet += this.settings.currentBet;
-            }
-            if (this.settings.freeSpin.freeSpinCount > 0) {
-                this.settings.freeSpin.freeSpinCount--;
             }
 
             const spinId = platformSession.currentGameSession.createSpin();
@@ -100,9 +91,6 @@ export class SLBT {
 
             await new RandomResultGenerator(this);
             checkForWin(this)
-            if (this.settings.freeSpin.freeSpinCount == 0) {
-                this.settings.freeSpin.useFreeSpin = false
-            }
 
             const winAmount = this.playerData.currentWining;
             platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);

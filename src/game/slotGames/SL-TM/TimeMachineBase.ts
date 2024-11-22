@@ -1,8 +1,9 @@
 import { currentGamedata } from "../../../Player";
-import { generateInitialReel, initializeGameSettings, sendInitData, checkWin, generateFreeSpinReel } from "./helper";
+import { generateInitialReel, initializeGameSettings, sendInitData, checkWin, } from "./helper";
 import { RandomResultGenerator } from "../RandomResultGenerator";
 import { precisionRound } from "../../../utils/utils";
 import { SLTMSETTINGS } from "./types";
+import { sessionManager } from "../../../dashboard/session/sessionManager";
 
 export class SLTM {
   public settings: SLTMSETTINGS;
@@ -24,7 +25,7 @@ export class SLTM {
       console.log("Game settings initialized")
 
       this.settings.reels = generateInitialReel(this.settings);
-      this.settings.freeSpinReels = generateFreeSpinReel(this.settings);
+      // this.settings.freeSpinReels = generateFreeSpinReel(this.settings);
       // console.log("Initial reels generated:", this.settings.reels);
 
       sendInitData(this);
@@ -43,15 +44,15 @@ export class SLTM {
   }
 
   sendMessage(action: string, message: any) {
-    this.currentGameData.sendMessage(action, message);
+    this.currentGameData.sendMessage(action, message, true);
   }
 
   sendError(message: string) {
-    this.currentGameData.sendError(message);
+    this.currentGameData.sendError(message, true);
   }
 
   sendAlert(message: string) {
-    this.currentGameData.sendAlert(message);
+    this.currentGameData.sendAlert(message, true);
   }
 
   incrementPlayerBalance(amount: number) {
@@ -99,20 +100,29 @@ export class SLTM {
     try {
 
       const playerData = this.getPlayerData();
+      const platformSession = sessionManager.getPlayerPlatform(playerData.username);
+
       if (this.settings.currentBet > playerData.credits) {
         this.sendError("Low Balance");
         return;
       }
 
       //deduct only when freespin is not triggered
-      // if (this.settings.freeSpinCount <= 0) {
-      //   this.decrementPlayerBalance(precisionRound(this.settings.currentBet, 3));
-      //   this.playerData.totalbet += Number(this.settings.currentBet.toFixed(3))
-      // }
+      if (!this.settings.isFreeSpin && !this.settings.isLevelUp) {
+        console.warn("Deducting player balance for spin");
+        this.decrementPlayerBalance(precisionRound(this.settings.currentBet, 3));
+        this.playerData.totalbet += Number(this.settings.currentBet.toFixed(3))
+      }
       this.playerData.totalbet = precisionRound(this.playerData.totalbet, 3)
+
+      const spinId = platformSession.currentGameSession.createSpin();
+      platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
 
       new RandomResultGenerator(this);
       this.checkResult();
+
+      const winAmount = this.playerData.currentWining;
+      platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
     } catch (error) {
       this.sendError("Spin error");
       console.error("Failed to generate spin results:", error);
