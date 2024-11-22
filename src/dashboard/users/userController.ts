@@ -154,11 +154,12 @@ export class UserController {
         { expiresIn: "7d" }
       );
 
-      res.cookie("userToken", token, {
-        maxAge: 1000 * 60 * 60 * 24 * 7,
-        httpOnly: true,
-        sameSite: "none",
-      });
+      // res.cookie("userToken", token, {
+      //   maxAge: 1000 * 60 * 60 * 24 * 7,
+      //   httpOnly: true,
+      //   sameSite: "none",
+      // });
+
 
       const socketUser = sessionManager.getPlayerPlatform(username);
 
@@ -188,8 +189,6 @@ export class UserController {
 
       if (!username) {
         throw createHttpError(400, "Username is required");
-      }      
-
       // Clear the user token cookie
       res.clearCookie("userToken", {
         httpOnly: true,
