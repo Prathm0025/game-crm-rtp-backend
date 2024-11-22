@@ -140,7 +140,7 @@ export function checkForWin(gameInstance: SLZEUS) {
         const { settings } = gameInstance;
         settings.resultSymbolMatrixWithoutNull = settings.resultSymbolMatrix.map(row => [...row]);
         // Remove elements from each reel in the specified sequence: 5, 4, 3, 2, 1, 0
-        settings.resultSymbolMatrix = reduceMatrix(settings.resultSymbolMatrix);
+        settings.resultSymbolMatrix = reduceMatrix(gameInstance);
         handleFullReelOfZeus(gameInstance);
 
         console.log(settings.resultSymbolMatrix, "result symbol matrix column replace to wild(10)");
@@ -161,14 +161,18 @@ export function checkForWin(gameInstance: SLZEUS) {
             const firstSymbolPositionRTL = line[line.length - 1];
 
             let firstSymbolLTR = settings.resultSymbolMatrix[firstSymbolPositionLTR][0];
-            let firstSymbolRTL = settings.resultSymbolMatrix[firstSymbolPositionRTL][line.length - 1];
-            const firstSymbol = isFreeSpin ? firstSymbolRTL : firstSymbolLTR;
-            if (settings.wild.useWild && firstSymbolLTR === settings.wild.SymbolID) {
+            let firstSymbolRTL = settings.resultSymbolMatrix[firstSymbolPositionRTL][line.length - 1];            
+            const firstSymbol = settings.freeSpin.useFreeSpin ? firstSymbolRTL : firstSymbolLTR;
+            if (settings.wild.useWild && firstSymbolLTR === settings.wild.SymbolID) {                
                 firstSymbolLTR = findFirstNonWildSymbol(line, gameInstance);
             }
 
             if (settings.wild.useWild && firstSymbolRTL === settings.wild.SymbolID) {
-                firstSymbolRTL = findFirstNonWildSymbol(line, gameInstance, 'RTL');
+                firstSymbolRTL = findFirstNonWildSymbol(line, gameInstance, 'RTL');                
+            }
+
+            if(settings.freeSpin.useFreeSpin){
+                settings.resultSymbolMatrix 
             }
 
             const { isWinningLine, matchCount, matchedIndices } = checkLineSymbols(
@@ -541,8 +545,21 @@ function handleFreeSpins(freeSpinCount: number, gameInstance: SLZEUS) {
  * @returns The updated matrix with specified symbols removed.
  */
 
-function reduceMatrix(matrix) {
+function reduceMatrix(gameInstance:SLZEUS) {
+    const { settings } = gameInstance;
+    const matrix = settings.resultSymbolMatrix;
     const removeCounts = [5, 4, 3, 2, 1];
+    if (settings.freeSpin.useFreeSpin) {
+        const validSymbols = settings?.Symbols?.filter(symbol => symbol?.Id !== settings.wild.SymbolID);     
+        const sixthColumnIndex = 5; 
+        for (let row = 0; row < matrix.length; row++) {
+            if (matrix[row][sixthColumnIndex] === settings.wild.SymbolID) {
+                const randomIndex = Math.floor(Math.random() * validSymbols.length);
+                const randomSymbol = validSymbols[randomIndex];                                
+                matrix[row][sixthColumnIndex] = randomSymbol?.Id;
+            }
+        }
+    }
 
     for (let col = 0; col < removeCounts.length && col < matrix[0].length; col++) {
         let countToRemove = removeCounts[col];
@@ -590,7 +607,7 @@ export function makeResultJson(gameInstance: SLZEUS) {
         };
         gameInstance.sendMessage('ResultData', sendData);
 
-        console.log(sendData, "send Data");
+        // console.log(sendData, "send Data");
 
     } catch (error) {
         console.error("Error generating result JSON or sending message:", error);

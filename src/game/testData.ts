@@ -556,7 +556,7 @@ export const gameData = [
                 "2":5,
                 "3":5,
                 "4":5,
-                "5":5
+                "5":105
             },
             "description":"Substitutes for all symbols except Jackpot, Free Spin, Bonus, and Scatter.",
             "useWildSub":false,
