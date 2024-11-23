@@ -170,15 +170,12 @@ function checkForWin(gameInstance) {
         if (isFreeSpin) {
             handleFreeSpins(scatterCount, gameInstance);
         }
-        const validWinSymbols = countOccurenceOfSymbols(gameInstance);
-        console.log(validWinSymbols, "validWinSymbols");
+        const validWinSymbols = countOccurenceOfSymbolsAndIndices(gameInstance);
         validWinSymbols.map(([symbol, matchCount]) => {
             const multiplier = accessData(symbol, matchCount, gameInstance);
-            console.log(multiplier);
             const payout = multiplier * settings.BetPerLines;
             totalPayout += payout;
         });
-        console.log(totalPayout, "payout");
         if (settings.freeSpin.useFreeSpin && settings.freeSpin.freeSpinCount > 0) {
             settings.freeSpin.freeSpinCount -= 1;
             if (settings.freeSpin.freeSpinCount <= 0) {
@@ -205,28 +202,54 @@ function checkForWin(gameInstance) {
         return [];
     }
 }
-function countOccurenceOfSymbols(gameInstance) {
+function countOccurenceOfSymbolsAndIndices(gameInstance) {
     const { settings } = gameInstance;
     const counts = {};
+    const indices = {};
     let wildCount = 0;
-    for (let row of settings.resultSymbolMatrix) {
-        for (let num of row) {
+    let combinedIndices = new Set();
+    // count symbols and track their indices
+    settings.resultSymbolMatrix.forEach((row, rowIndex) => {
+        row.forEach((num, colIndex) => {
             if (num === settings.wild.SymbolID) {
                 wildCount++;
-                continue;
+                if (!indices[settings.wild.SymbolID])
+                    indices[settings.wild.SymbolID] = [];
+                indices[settings.wild.SymbolID].push([rowIndex, colIndex]);
             }
-            counts[num] = (counts[num] || 0) + 1;
-        }
-    }
-    //add wild count to eligible symbols
+            else {
+                counts[num] = (counts[num] || 0) + 1;
+                if (!indices[num])
+                    indices[num] = [];
+                indices[num].push([rowIndex, colIndex]);
+            }
+        });
+    });
+    /**
+     * substitute wild symbol with every symbol
+     * wild can substitute more than one symbol and give winnigs
+     * for each symbol whose count is greater or equal to 8 combined with wild symbols
+    */
     settings.Symbols.forEach((symbol) => {
         if (symbol.useWildSub && symbol.Id in counts) {
             counts[symbol.Id] += wildCount;
         }
     });
-    //symbols whose count are 8 or more
-    const validWinSymbols = Object.entries(counts)
-        .filter(([_, count]) => count >= 8);
+    // valid winning symbols(count greater or equal to 8)
+    const validWinSymbols = Object.entries(counts).filter(([_, count]) => count >= 8);
+    // combine indices for valid symbols and wild symbols for symbols to emit
+    validWinSymbols.forEach(([symbolId]) => {
+        [symbolId, settings.wild.SymbolID].forEach(id => {
+            if (indices[id]) {
+                indices[id].forEach(([row, col]) => {
+                    combinedIndices.add(`${col},${row}`);
+                });
+            }
+        });
+    });
+    const formattedIndices = Array.from(combinedIndices);
+    settings._winData.winningSymbols = formattedIndices;
+    console.log(settings._winData.winningSymbols);
     return validWinSymbols;
 }
 /**
@@ -274,6 +297,7 @@ function handleSpecialSymbols(symbol, gameInstance) {
             gameInstance.settings.stickyBonus.SymbolID = symbol.Id;
             gameInstance.settings.stickyBonus.useWild = true;
             break;
+        //TO DO: FIX INITIALISATION
         case types_1.specialIcons.mystery:
             gameInstance.settings.mystery.SymbolName = symbol.Name;
             gameInstance.settings.mystery.SymbolID = symbol.Id;
