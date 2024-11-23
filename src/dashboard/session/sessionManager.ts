@@ -105,6 +105,26 @@ class SessionManager {
         } else {
             console.error(`No active platform session or game session found for player: ${playerId}`);
         }
+
+        try {
+            const platformSession = this.getPlayerPlatform(playerId);
+            if (platformSession && platformSession.currentGameSession) {
+                // End and delete the current game session
+                platformSession.currentGameSession.endSession(platformSession.playerData.credits);
+                const gameSessionData = platformSession.currentGameSession.getSummary();
+
+                await PlatformSessionModel.updateOne(
+                    { playerId: playerId, entryTime: platformSession.entryTime },
+                    { $push: { gameSessions: gameSessionData }, $set: { currentRTP: platformSession.currentRTP } }
+                );
+
+                platformSession.currentGameSession = null;
+                console.log(`Current game session deleted for player: ${playerId}`);
+            }
+        } catch (error) {
+            console.error(`Failed to delete the current game session for player: ${playerId}`, error);
+        }
+
     }
 
 
