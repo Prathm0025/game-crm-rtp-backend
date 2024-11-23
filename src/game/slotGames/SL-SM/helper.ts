@@ -6,6 +6,7 @@ import {
 } from "../../Utils/gameUtils";
 import { SLSM } from "./sizzlingMoonBase";
 import { specialIcons } from "./types";
+import { freezeIndex } from "../SL-CM/helper";
 
 /**
  * Initializes the game settings using the provided game data and game instance.
@@ -20,6 +21,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLSM) {
         bets: gameData.gameSettings.bets,
         baseBet: gameData.gameSettings.baseBet,
         BetMultiplier: gameData.gameSettings.betMultiplier,
+        frozenIndices:[],
         Symbols: gameInstance.initSymbols,
         resultSymbolMatrix: [],
         currentGamedata: gameData.gameSettings,
@@ -178,6 +180,7 @@ export function checkForWin(gameInstance: SLSM) {
 
         const winningLines = [];
         let totalPayout = 0;
+        handleStickyBonus(gameInstance);
 
         const { isFreeSpin, scatterCount } = checkForFreeSpin(gameInstance);
         if (isFreeSpin) {
@@ -369,6 +372,29 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLSM) {
     }
 }
 
+
+//handle sticky bonus
+
+function handleStickyBonus(gameInstance: SLSM) {
+    const { settings } = gameInstance;
+    const { resultSymbolMatrix, stickyBonus, frozenIndices } = settings;
+
+    if (!stickyBonus?.SymbolID) {
+        console.warn("Sticky Bonus SymbolID is not defined.");
+        return;
+    }
+
+    resultSymbolMatrix.forEach((row, rowIndex) => {
+        row.forEach((symbol, colIndex) => {
+            if (symbol === stickyBonus.SymbolID) {                
+                frozenIndices.push([colIndex, rowIndex])
+            }
+        });
+    });
+
+    console.log(frozenIndices);
+    
+}
 
 /**
  * Checks if there are enough scatter symbols in the reels to trigger free spins.
