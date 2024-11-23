@@ -7,41 +7,45 @@ interface Symbol {
     payout: number;
     reelInstance: { [key: string]: number };
 }
-export interface ZEUSSETTINGS {
+export interface SLPSFSETTINGS {
     id: string;
     matrix: { x: number, y: number };
     currentGamedata: GameData;
     resultSymbolMatrix: any[];
-    resultSymbolMatrixWithoutNull:any[];
     lineData: any[],
-    matchCountOfLines: any[][],
     _winData: WinData | undefined;
     currentBet: number;
-    baseBetAmount:number;
     currentLines: number;
     BetPerLines: number;
     bets: number[];
     reels: any[][];
     Symbols: Symbol[];
+
     freeSpin: {
+        SymbolName: string,
+        SymbolID: string,
+        freeSpinMuiltiplier: any[],
+        freeSpinStarted: boolean,
         freeSpinCount: number,
+        noOfFreeSpins: number,
         useFreeSpin: boolean,
         freeSpinsAdded: boolean,
     };
-    replacedToWildIndices:any[],
     wild: {
         SymbolName: string;
         SymbolID: number;
         useWild: boolean
     },
-    freeSpinSymbol:{
-        symbolID: string,
-        multiplier:any[];
+    trumpFreeSpin: {
+        SymbolName: string;
+        SymbolID: number;
+
     }
 }
 
 
 export enum specialIcons {
+    trumpFreeSpin = "TrumpFreeSpin",
     wild = "Wild",
-    FreeSpin = "FreeSpin",
+    freeSpin = "FreeSpin"
 }

@@ -3,6 +3,7 @@ import { generateInitialReel, initializeGameSettings, sendInitData, checkWin, } 
 import { RandomResultGenerator } from "../RandomResultGenerator";
 import { precisionRound } from "../../../utils/utils";
 import { SLTMSETTINGS } from "./types";
+import { sessionManager } from "../../../dashboard/session/sessionManager";
 
 export class SLTM {
   public settings: SLTMSETTINGS;
@@ -43,15 +44,15 @@ export class SLTM {
   }
 
   sendMessage(action: string, message: any) {
-    this.currentGameData.sendMessage(action, message);
+    this.currentGameData.sendMessage(action, message, true);
   }
 
   sendError(message: string) {
-    this.currentGameData.sendError(message);
+    this.currentGameData.sendError(message, true);
   }
 
   sendAlert(message: string) {
-    this.currentGameData.sendAlert(message);
+    this.currentGameData.sendAlert(message, true);
   }
 
   incrementPlayerBalance(amount: number) {
@@ -99,6 +100,8 @@ export class SLTM {
     try {
 
       const playerData = this.getPlayerData();
+      const platformSession = sessionManager.getPlayerPlatform(playerData.username);
+
       if (this.settings.currentBet > playerData.credits) {
         this.sendError("Low Balance");
         return;
@@ -112,8 +115,14 @@ export class SLTM {
       }
       this.playerData.totalbet = precisionRound(this.playerData.totalbet, 3)
 
+      const spinId = platformSession.currentGameSession.createSpin();
+      platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
+
       new RandomResultGenerator(this);
       this.checkResult();
+
+      const winAmount = this.playerData.currentWining;
+      platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
     } catch (error) {
       this.sendError("Spin error");
       console.error("Failed to generate spin results:", error);

@@ -1,3 +1,4 @@
+import { sessionManager } from "../../../dashboard/session/sessionManager";
 import { currentGamedata } from "../../../Player";
 import { RandomResultGenerator } from "../RandomResultGenerator";
 import { initializeGameSettings, generateInitialReel, sendInitData, makePayLines, checkForWin } from "./helper";
@@ -31,15 +32,15 @@ export class SLZEUS {
 
 
     sendMessage(action: string, message: any) {
-        this.currentGameData.sendMessage(action, message);
+        this.currentGameData.sendMessage(action, message, true);
     }
 
     sendError(message: string) {
-        this.currentGameData.sendError(message);
+        this.currentGameData.sendError(message, true);
     }
 
     sendAlert(message: string) {
-        this.currentGameData.sendAlert(message);
+        this.currentGameData.sendAlert(message, true);
     }
 
     updatePlayerBalance(amount: number) {
@@ -64,14 +65,16 @@ export class SLZEUS {
     }
     private prepareSpin(data: any) {
         this.settings.currentLines = data.currentLines;
-        this.settings.BetPerLines = this.settings.currentGamedata.bets[data.currentBet];
-        this.settings.currentBet = this.settings.BetPerLines * this.settings.currentLines;
+        this.settings.BetPerLines = this.settings.currentGamedata.betMultiplier[data.currentBet];
+        this.settings.currentBet = this.settings.BetPerLines * this.settings.baseBetAmount;
     }
 
 
     public async spinResult(): Promise<void> {
         try {
             const playerData = this.getPlayerData();
+            const platformSession = sessionManager.getPlayerPlatform(playerData.username);
+
             if (this.settings.currentBet > playerData.credits) {
                 console.log(this.settings.currentBet + playerData.credits)
                 this.sendError("Low Balance");
@@ -82,17 +85,14 @@ export class SLZEUS {
                 this.playerData.totalbet += this.settings.currentBet;
             }
 
+            const spinId = platformSession.currentGameSession.createSpin();
+            platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
 
-            if (this.settings.freeSpin.freeSpinStarted) {
-                this.settings.freeSpin.freeSpinCount--;
-                console.log("Free Spin remaining count ", this.settings.freeSpin.freeSpinCount);
-            }
             await new RandomResultGenerator(this);
-            checkForWin(this)
-            if (this.settings.freeSpin.freeSpinCount == 0) {
-                this.settings.freeSpin.freeSpinStarted = false
-                this.settings.freeSpin.freeSpinCount = 0
-            }
+            checkForWin(this);
+
+            const winAmount = this.playerData.currentWining;
+            platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
 
         } catch (error) {
             this.sendError("Spin error");

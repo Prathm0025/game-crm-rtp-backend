@@ -2,6 +2,7 @@ import { WinData } from "../BaseSlotGame/WinData";
 import { CMSettings, SPECIALSYMBOLS, SPINTYPES } from "./types";
 import { initializeGameSettings, sendInitData, freezeIndex, checkSameMatrix, checkPayout, makeResultJson } from "./helper";
 import { currentGamedata } from "../../../Player";
+import { sessionManager } from "../../../dashboard/session/sessionManager";
 
 
 /**
@@ -27,15 +28,15 @@ export class SLCM {
     }
 
     sendMessage(action: string, message: any) {
-        this.currentGameData.sendMessage(action, message);
+        this.currentGameData.sendMessage(action, message, true);
     }
 
     sendError(message: string) {
-        this.currentGameData.sendError(message);
+        this.currentGameData.sendError(message, true);
     }
 
     sendAlert(message: string) {
-        this.currentGameData.sendAlert(message);
+        this.currentGameData.sendAlert(message, true);
     }
 
     updatePlayerBalance(amount: number) {
@@ -67,6 +68,8 @@ export class SLCM {
     public async spinResult(): Promise<void> {
         try {
             const playerData = this.getPlayerData();
+            const platformSession = sessionManager.getPlayerPlatform(playerData.username);
+
             if (this.settings.currentBet > playerData.credits) {
                 this.sendError("Low Balance");
                 return;
@@ -75,7 +78,15 @@ export class SLCM {
             }
             this.playerData.totalbet += this.settings.currentBet;
             this.settings.resultSymbolMatrix[0] = this.selectResultBasedOnProbability(this.settings.matrix.x);
+
+            const spinId = platformSession.currentGameSession.createSpin();
+            platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
+
             this.checkResult();
+
+
+            const winAmount = this.playerData.currentWining;
+            platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
         } catch (error) {
             this.sendError("Spin error");
             console.error("Failed to generate spin results:", error);

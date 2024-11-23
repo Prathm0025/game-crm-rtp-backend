@@ -1,10 +1,11 @@
 import { sessionManager } from "../../../dashboard/session/sessionManager";
 import { currentGamedata } from "../../../Player";
 import { RandomResultGenerator } from "../RandomResultGenerator";
-import { initializeGameSettings, generateInitialReel, sendInitData, makePayLines, checkForWin } from "./helper";
-import { SLSRSETTINGS } from "./types";
-export class SLSR {
-    public settings: SLSRSETTINGS;
+import { initializeGameSettings, generateInitialReel, sendInitData, makePayLines, checkForWin, checkForFreeSpin, makeResultJson } from "./helper";
+import { SLPSFSETTINGS } from "./types";
+
+export class SLPSF {
+    public settings: SLPSFSETTINGS;
     playerData = {
         haveWon: 0,
         currentWining: 0,
@@ -78,15 +79,19 @@ export class SLSR {
                 this.sendError("Low Balance");
                 return;
             }
-            if (this.settings.freeSpin.freeSpinCount == 0) {
-                await this.deductPlayerBalance(this.settings.currentBet);
-                this.playerData.totalbet += this.settings.currentBet;
-            }
-        
-            if(this.settings.freeSpin.freeSpinCount>0)
-            {   
-                
-                this.settings.freeSpin.freeSpinCount --;
+            const { freeSpin, currentBet } = this.settings;
+            if (!freeSpin.freeSpinStarted && freeSpin.freeSpinCount === 0) {
+                await this.deductPlayerBalance(currentBet);
+            } else if (freeSpin.freeSpinStarted && freeSpin.freeSpinCount > 0) {
+                freeSpin.freeSpinCount--;
+                freeSpin.freeSpinsAdded = false;
+                console.log(freeSpin.freeSpinCount, "Remaining Free Spins");
+                if (freeSpin.freeSpinCount === 0) {
+                    Object.assign(freeSpin, {
+                        freeSpinStarted: false,
+                        freeSpinsAdded: false,
+                    });
+                }
             }
 
             const spinId = platformSession.currentGameSession.createSpin();
@@ -94,10 +99,13 @@ export class SLSR {
 
             await new RandomResultGenerator(this);
             checkForWin(this)
+            checkForFreeSpin(this)
+
 
             const winAmount = this.playerData.currentWining;
             platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
 
+            makeResultJson(this)
         } catch (error) {
             this.sendError("Spin error");
             console.error("Failed to generate spin results:", error);
@@ -120,6 +128,7 @@ export class SLSR {
             if (spend > 0) {
                 rtp = won / spend;
             }
+            //
             console.log('RTP calculated:', rtp * 100);
             return;
         } catch (error) {
