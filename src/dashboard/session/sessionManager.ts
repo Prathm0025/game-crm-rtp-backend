@@ -84,28 +84,6 @@ class SessionManager {
     }
 
     public async endGameSession(playerId: string, credits: number) {
-        const platformSession = this.getPlayerPlatform(playerId);
-        if (platformSession) {
-            const currentSession = platformSession.currentGameSession;
-            if (currentSession) {
-                currentSession.endSession(credits);
-                const gameSessionData = currentSession.getSummary();
-
-                try {
-                    await PlatformSessionModel.updateOne(
-                        { playerId: playerId, entryTime: platformSession.entryTime },
-                        { $push: { gameSessions: gameSessionData }, $set: { currentRTP: platformSession.currentRTP } }
-                    );
-                } catch (error) {
-                    console.error(`Failed to save game session for player: ${playerId}`, error);
-                }
-            } else {
-                console.error(`No Active Game found for : ${playerId}`)
-            }
-        } else {
-            console.error(`No active platform session or game session found for player: ${playerId}`);
-        }
-
         try {
             const platformSession = this.getPlayerPlatform(playerId);
             if (platformSession && platformSession.currentGameSession) {
