@@ -22,6 +22,7 @@ function initializeGameSettings(gameData, gameInstance) {
         bets: gameData.gameSettings.bets,
         baseBet: gameData.gameSettings.baseBet,
         BetMultiplier: gameData.gameSettings.betMultiplier,
+        frozenIndices: [],
         Symbols: gameInstance.initSymbols,
         resultSymbolMatrix: [],
         currentGamedata: gameData.gameSettings,
@@ -166,6 +167,7 @@ function checkForWin(gameInstance) {
         const { settings } = gameInstance;
         const winningLines = [];
         let totalPayout = 0;
+        handleStickyBonus(gameInstance);
         const { isFreeSpin, scatterCount } = checkForFreeSpin(gameInstance);
         if (isFreeSpin) {
             handleFreeSpins(scatterCount, gameInstance);
@@ -332,6 +334,23 @@ function handleSpecialSymbols(symbol, gameInstance) {
             break;
             ``;
     }
+}
+//handle sticky bonus
+function handleStickyBonus(gameInstance) {
+    const { settings } = gameInstance;
+    const { resultSymbolMatrix, stickyBonus, frozenIndices } = settings;
+    if (!(stickyBonus === null || stickyBonus === void 0 ? void 0 : stickyBonus.SymbolID)) {
+        console.warn("Sticky Bonus SymbolID is not defined.");
+        return;
+    }
+    resultSymbolMatrix.forEach((row, rowIndex) => {
+        row.forEach((symbol, colIndex) => {
+            if (symbol === stickyBonus.SymbolID) {
+                frozenIndices.push([colIndex, rowIndex]);
+            }
+        });
+    });
+    console.log(frozenIndices);
 }
 /**
  * Checks if there are enough scatter symbols in the reels to trigger free spins.

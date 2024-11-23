@@ -404,7 +404,7 @@ function checkForFreeSpin(gameInstance) {
     const isFreeSpin = freeSpinSymbolCount >= 3;
     const formattedIndices = freeSpinIndices.map(({ col, row }) => `${row},${col}`);
     const validIndices = formattedIndices.filter((index) => index.length > 2);
-    if (validIndices.length > 0) {
+    if (validIndices.length > 0 && isFreeSpin) {
         // console.log(validIndices);
         _winData.winningSymbols.push(validIndices);
     }
@@ -506,7 +506,7 @@ function makeResultJson(gameInstance) {
             }
         };
         gameInstance.sendMessage('ResultData', sendData);
-        // console.log(sendData, "send Data");
+        // console.log(sendData.GameData.symbolsToEmit, "send Data");
     }
     catch (error) {
         console.error("Error generating result JSON or sending message:", error);
