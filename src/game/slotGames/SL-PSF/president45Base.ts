@@ -1,6 +1,7 @@
+import { sessionManager } from "../../../dashboard/session/sessionManager";
 import { currentGamedata } from "../../../Player";
 import { RandomResultGenerator } from "../RandomResultGenerator";
-import { initializeGameSettings, generateInitialReel, sendInitData, makePayLines, checkForWin, checkForFreeSpin } from "./helper";
+import { initializeGameSettings, generateInitialReel, sendInitData, makePayLines, checkForWin, checkForFreeSpin, makeResultJson } from "./helper";
 import { SLPSFSETTINGS } from "./types";
 
 export class SLPSF {
@@ -31,15 +32,15 @@ export class SLPSF {
 
 
     sendMessage(action: string, message: any) {
-        this.currentGameData.sendMessage(action, message);
+        this.currentGameData.sendMessage(action, message, true);
     }
 
     sendError(message: string) {
-        this.currentGameData.sendError(message);
+        this.currentGameData.sendError(message, true);
     }
 
     sendAlert(message: string) {
-        this.currentGameData.sendAlert(message);
+        this.currentGameData.sendAlert(message, true);
     }
 
     updatePlayerBalance(amount: number) {
@@ -72,6 +73,8 @@ export class SLPSF {
     public async spinResult(): Promise<void> {
         try {
             const playerData = this.getPlayerData();
+            const platformSession = sessionManager.getPlayerPlatform(playerData.username);
+
             if (this.settings.currentBet > playerData.credits) {
                 this.sendError("Low Balance");
                 return;
@@ -87,32 +90,27 @@ export class SLPSF {
                     Object.assign(freeSpin, {
                         freeSpinStarted: false,
                         freeSpinsAdded: false,
-
                     });
                 }
             }
+
+            const spinId = platformSession.currentGameSession.createSpin();
+            platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
+
             await new RandomResultGenerator(this);
             checkForWin(this)
             checkForFreeSpin(this)
+
+
+            const winAmount = this.playerData.currentWining;
+            platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
+
+            makeResultJson(this)
         } catch (error) {
             this.sendError("Spin error");
             console.error("Failed to generate spin results:", error);
         }
     }
-
-    // Helper method for generating random results
-    private async generateRandomResult(): Promise<void> {
-        await new RandomResultGenerator(this);
-    }
-
-    // Check for win logic
-    private checkForWin(): void {
-        checkForWin(this);
-    }
-
-    // Check for free spin logic
-    private checkFor
-
 
     private async getRTP(spins: number): Promise<void> {
         try {
@@ -130,6 +128,7 @@ export class SLPSF {
             if (spend > 0) {
                 rtp = won / spend;
             }
+            //
             console.log('RTP calculated:', rtp * 100);
             return;
         } catch (error) {

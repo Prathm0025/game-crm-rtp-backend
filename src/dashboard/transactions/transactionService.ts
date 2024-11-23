@@ -5,8 +5,8 @@ import createHttpError from "http-errors";
 import Transaction from "./transactionModel";
 import { Player, User } from "../users/userModel";
 import { QueryParams } from "../../utils/globalTypes";
-import { users } from "../../socket";
 import { messageType } from "../../game/Utils/gameUtils";
+import { sessionManager } from "../session/sessionManager";
 
 export class TransactionService {
 
@@ -19,34 +19,34 @@ export class TransactionService {
   ): Promise<ITransaction> {
 
     // Check if the client is currently in a game via socket connection
-    const socketUser = users.get(client.username);
-    if (socketUser?.socketData.gameSocket) {
-      throw createHttpError(403, "Please tell the user to exit from your current game before performing transactions");
+    const socketUser = sessionManager.getPlayerPlatform(client.username);
+    if (socketUser?.gameData.socket) {
+      throw createHttpError(403, "The client must exit their current game session before initiating a transaction.");
     }
 
     if (!rolesHierarchy[manager.role]?.includes(client.role)) {
       throw createHttpError(
         403,
-        `${manager.role} cannot perform transactions with ${client.role}`
+        `A ${manager.role} is not authorized to perform transactions with a ${client.role}.`
       );
     }
 
-
-
     if (type === "recharge") {
       if (manager.credits < amount) {
-        throw createHttpError(400, "Insufficient credits to recharge");
+        throw createHttpError(400, "Insufficient credits available for recharge.");
       }
       client.credits += amount;
       client.totalRecharged += amount;
       manager.credits -= amount;
     } else if (type === "redeem") {
       if (client.credits < amount) {
-        throw createHttpError(400, "Client has insufficient credits to redeem");
+        throw createHttpError(400, "Client does not have enough credits to redeem.");
       }
       client.credits -= amount;
       client.totalRedeemed += amount;
       manager.credits += amount;
+    } else {
+      throw createHttpError(400, "Invalid transaction type specified.");
     }
 
     const transaction = new Transaction({

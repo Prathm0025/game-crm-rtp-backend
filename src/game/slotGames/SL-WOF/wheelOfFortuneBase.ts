@@ -3,6 +3,7 @@ import { RandomResultGenerator } from "../RandomResultGenerator";
 import { WOFSETTINGS, WINNINGTYPE } from "./types";
 import { initializeGameSettings, generateInitialReel, sendInitData, checkWinningCondition, calculatePayout, makeResultJson, triggerBonusGame } from "./helper";
 import { log } from "console";
+import { sessionManager } from "../../../dashboard/session/sessionManager";
 
 export class SLWOF {
   public settings: WOFSETTINGS;
@@ -31,15 +32,15 @@ export class SLWOF {
 
 
   sendMessage(action: string, message: any) {
-    this.currentGameData.sendMessage(action, message);
+    this.currentGameData.sendMessage(action, message, true);
   }
 
   sendError(message: string) {
-    this.currentGameData.sendError(message);
+    this.currentGameData.sendError(message, true);
   }
 
   sendAlert(message: string) {
-    this.currentGameData.sendAlert(message);
+    this.currentGameData.sendAlert(message, true);
   }
 
   updatePlayerBalance(amount: number) {
@@ -73,14 +74,23 @@ export class SLWOF {
   private async spinResult(): Promise<void> {
     try {
       const playerData = this.getPlayerData();
+      const platformSession = sessionManager.getPlayerPlatform(playerData.username);
+
       if (this.settings.currentBet > playerData.credits) {
         this.sendError("Low Balance");
         return;
       }
       await this.deductPlayerBalance(this.settings.currentBet * 3);
       this.playerData.totalbet += this.settings.currentBet * 3;
+
+      const spinId = platformSession.currentGameSession.createSpin();
+      platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
+
       new RandomResultGenerator(this);
       await this.checkResult();
+
+      const winAmount = this.playerData.currentWining;
+      platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
 
     } catch (error) {
       this.sendError("Spin error");
