@@ -9,11 +9,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SLPM = void 0;
+exports.SLSM = void 0;
 const sessionManager_1 = require("../../../dashboard/session/sessionManager");
 const RandomResultGenerator_1 = require("../RandomResultGenerator");
 const helper_1 = require("./helper");
-class SLPM {
+class SLSM {
     constructor(currentGameData) {
         this.currentGameData = currentGameData;
         this.playerData = {
@@ -23,7 +23,6 @@ class SLPM {
             rtpSpinCount: 0,
             totalSpin: 0,
             currentPayout: 0,
-            payoutafterCascading: 0,
         };
         this.settings = (0, helper_1.initializeGameSettings)(currentGameData, this);
         (0, helper_1.generateInitialReel)(this.settings);
@@ -32,7 +31,9 @@ class SLPM {
     }
     get initSymbols() {
         const Symbols = [];
-        this.currentGameData.gameSettings.Symbols.forEach((Element) => {
+        //filter symbols which appear only in base game
+        const baseGameSymbol = this.currentGameData.gameSettings.Symbols.filter((symbol) => !symbol.isBonusGameSymbol || symbol.isSpecialSymbol);
+        baseGameSymbol.forEach((Element) => {
             Symbols.push(Element);
         });
         return Symbols;
@@ -66,7 +67,7 @@ class SLPM {
     prepareSpin(data) {
         this.settings.currentLines = data.currentLines;
         this.settings.BetPerLines = this.settings.currentGamedata.bets[data.currentBet];
-        this.settings.currentBet = this.settings.BetPerLines * this.settings.currentLines;
+        this.settings.currentBet = this.settings.BetPerLines;
     }
     spinResult() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -74,7 +75,7 @@ class SLPM {
                 const playerData = this.getPlayerData();
                 const platformSession = sessionManager_1.sessionManager.getPlayerPlatform(playerData.username);
                 if (this.settings.currentBet > playerData.credits) {
-                    console.log(this.settings.currentBet + playerData.credits, 'dfdsfds');
+                    console.log(this.settings.currentBet + playerData.credits);
                     this.sendError("Low Balance");
                     return;
                 }
@@ -82,18 +83,10 @@ class SLPM {
                     yield this.deductPlayerBalance(this.settings.currentBet);
                     this.playerData.totalbet += this.settings.currentBet;
                 }
-                if (this.settings.freeSpin.freeSpinStarted) {
-                    this.settings.freeSpin.freeSpinCount--;
-                    console.log("Free Spin remaining count ", this.settings.freeSpin.freeSpinCount);
-                }
                 const spinId = platformSession.currentGameSession.createSpin();
                 platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
                 yield new RandomResultGenerator_1.RandomResultGenerator(this);
                 (0, helper_1.checkForWin)(this);
-                if (this.settings.freeSpin.freeSpinCount == 0) {
-                    this.settings.freeSpin.freeSpinStarted = false;
-                    this.settings.freeSpin.freeSpinCount = 0;
-                }
                 const winAmount = this.playerData.currentWining;
                 platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
             }
@@ -129,4 +122,4 @@ class SLPM {
         });
     }
 }
-exports.SLPM = SLPM;
+exports.SLSM = SLSM;

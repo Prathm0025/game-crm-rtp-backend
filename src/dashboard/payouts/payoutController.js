@@ -17,7 +17,7 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const payoutModel_1 = __importDefault(require("./payoutModel"));
 const path_1 = __importDefault(require("path"));
 const gameModel_1 = require("../games/gameModel");
-const socket_1 = require("../../socket");
+const sessionManager_1 = require("../session/sessionManager");
 class PayoutsController {
     uploadNewVersion(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -52,17 +52,10 @@ class PayoutsController {
                 if (!platform) {
                     throw (0, http_errors_1.default)(404, "Platform or game not found");
                 }
-                for (const [username, playerSocket] of socket_1.users) {
+                for (const [username, playerSocket] of sessionManager_1.sessionManager.getPlatformSessions()) {
                     const gameId = payoutFileName.split('_')[0];
-                    if (playerSocket.gameId === gameId) {
-                        const socketUser = socket_1.users.get(username);
-                        if ((socketUser === null || socketUser === void 0 ? void 0 : socketUser.currentGameData) && socketUser.currentGameData.gameSettings) {
-                            socketUser.currentGameData.currentGameManager.currentGameType.currentGame.initialize(payoutJSONData);
-                            // console.log(`Updated current game data for user: ${username} to `, socketUser.currentGameData.gameSettings);
-                        }
-                        else {
-                            console.warn(`User ${username} does not have a current game or settings.`);
-                        }
+                    if (playerSocket.currentGameData.gameId === gameId) {
+                        playerSocket.currentGameData.currentGameManager.currentGameType.currentGame.initialize(payoutJSONData);
                     }
                 }
                 yield session.commitTransaction();
@@ -209,17 +202,10 @@ class PayoutsController {
                     { $sort: { "content.createdAt": -1 } }
                 ]);
                 const matchingPayout = currentUpdatedPayout.find(payout => payout.content._id.toString() === targetPayoutId);
-                for (const [username, playerSocket] of socket_1.users) {
+                for (const [username, playerSocket] of sessionManager_1.sessionManager.getPlatformSessions()) {
                     const gameId = tagName;
-                    if (playerSocket.gameId === gameId) {
-                        const socketUser = socket_1.users.get(username);
-                        if (socketUser.currentGameData.currentGameManager && socketUser.currentGameData.gameSettings) {
-                            socketUser.currentGameData.currentGameManager.currentGameType.currentGame.initialize(matchingPayout.content.data);
-                            // console.log(`Updated current game data for user: ${username} to `, socketUser.currentGameData.gameSettings);
-                        }
-                        else {
-                            console.warn(`User ${username} does not have a current game or settings.`);
-                        }
+                    if (playerSocket.currentGameData.gameId === gameId) {
+                        playerSocket.currentGameData.currentGameManager.currentGameType.currentGame.initialize(matchingPayout.content.data);
                     }
                 }
                 res.status(200).json({ message: "Game payout version updated" });

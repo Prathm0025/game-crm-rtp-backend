@@ -13,6 +13,7 @@ exports.SLTM = void 0;
 const helper_1 = require("./helper");
 const RandomResultGenerator_1 = require("../RandomResultGenerator");
 const utils_1 = require("../../../utils/utils");
+const sessionManager_1 = require("../../../dashboard/session/sessionManager");
 class SLTM {
     constructor(currentGameData) {
         this.currentGameData = currentGameData;
@@ -30,7 +31,7 @@ class SLTM {
             this.settings = (0, helper_1.initializeGameSettings)(currentGameData, this);
             console.log("Game settings initialized");
             this.settings.reels = (0, helper_1.generateInitialReel)(this.settings);
-            this.settings.freeSpinReels = (0, helper_1.generateFreeSpinReel)(this.settings);
+            // this.settings.freeSpinReels = generateFreeSpinReel(this.settings);
             // console.log("Initial reels generated:", this.settings.reels);
             (0, helper_1.sendInitData)(this);
             console.log("credits : ", this.getPlayerData().credits);
@@ -46,13 +47,13 @@ class SLTM {
         return Symbols;
     }
     sendMessage(action, message) {
-        this.currentGameData.sendMessage(action, message);
+        this.currentGameData.sendMessage(action, message, true);
     }
     sendError(message) {
-        this.currentGameData.sendError(message);
+        this.currentGameData.sendError(message, true);
     }
     sendAlert(message) {
-        this.currentGameData.sendAlert(message);
+        this.currentGameData.sendAlert(message, true);
     }
     incrementPlayerBalance(amount) {
         this.currentGameData.updatePlayerBalance(amount);
@@ -91,18 +92,24 @@ class SLTM {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const playerData = this.getPlayerData();
+                const platformSession = sessionManager_1.sessionManager.getPlayerPlatform(playerData.username);
                 if (this.settings.currentBet > playerData.credits) {
                     this.sendError("Low Balance");
                     return;
                 }
                 //deduct only when freespin is not triggered
-                // if (this.settings.freeSpinCount <= 0) {
-                //   this.decrementPlayerBalance(precisionRound(this.settings.currentBet, 3));
-                //   this.playerData.totalbet += Number(this.settings.currentBet.toFixed(3))
-                // }
+                if (!this.settings.isFreeSpin && !this.settings.isLevelUp) {
+                    console.warn("Deducting player balance for spin");
+                    this.decrementPlayerBalance((0, utils_1.precisionRound)(this.settings.currentBet, 3));
+                    this.playerData.totalbet += Number(this.settings.currentBet.toFixed(3));
+                }
                 this.playerData.totalbet = (0, utils_1.precisionRound)(this.playerData.totalbet, 3);
+                const spinId = platformSession.currentGameSession.createSpin();
+                platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
                 new RandomResultGenerator_1.RandomResultGenerator(this);
                 this.checkResult();
+                const winAmount = this.playerData.currentWining;
+                platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
             }
             catch (error) {
                 this.sendError("Spin error");
