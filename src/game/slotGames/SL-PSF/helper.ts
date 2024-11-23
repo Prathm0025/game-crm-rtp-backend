@@ -150,6 +150,7 @@ export function checkForWin(gameInstance: SLPSF) {
           );
           switch (true) {
             case symbolMultiplier > 0:
+              checkForTrumpFreeSpin(gameInstance)
               totalPayout += symbolMultiplier;
               settings._winData.winningLines.push(index + 1);
               winningLines.push({
@@ -171,6 +172,7 @@ export function checkForWin(gameInstance: SLPSF) {
               if (validIndices.length > 0) {
                 settings._winData.winningSymbols.push(validIndices);
                 settings._winData.totalWinningAmount = totalPayout * settings.BetPerLines;
+
               }
               break;
             default:
@@ -178,6 +180,7 @@ export function checkForWin(gameInstance: SLPSF) {
           }
       }
     });
+
     return winningLines;
   } catch (error) {
     console.error("Error in checkForWin", error);
@@ -262,7 +265,6 @@ function accessData(symbol, matchCount, gameInstance: SLPSF) {
         } else {
           return multiplierArray[5 - matchCount][0];
         }
-
       }
     }
     return 0;
@@ -309,17 +311,18 @@ export function checkForFreeSpin(gameInstance: SLPSF): void {
   const { settings, playerData } = gameInstance;
   try {
     // Find positions of Free Spin symbols in the result matrix
-    const temp = findSymbol(gameInstance, specialIcons.freeSpin);
-    console.log(`${temp.length} Free Spin symbols found.`, settings.freeSpin.freeSpinMuiltiplier.length);
-    if (temp.length > (5 - settings.freeSpin.freeSpinMuiltiplier.length)) {
+    const freeSpinsSymbol = findSymbol(gameInstance, specialIcons.freeSpin);
+    if (freeSpinsSymbol.length > (5 - settings.freeSpin.freeSpinMuiltiplier.length)) {
       console.log("!!! FREE SPIN AWARDED !!!");
-      const freeSpins = accessData(settings.freeSpin.SymbolID, temp.length, gameInstance);
+      const freeSpins = accessData(settings.freeSpin.SymbolID, freeSpinsSymbol.length, gameInstance);
       settings.freeSpin.freeSpinStarted = true;
       settings.freeSpin.freeSpinsAdded = true;
       settings.freeSpin.freeSpinCount += freeSpins;
-      // playerData.totalSpin += freeSpins;
+      playerData.totalSpin += freeSpins;
+      // uncomment only for testing purpose 
       // playerData.rtpSpinCount += freeSpins;
-      settings._winData.winningSymbols.push(temp);
+      settings._winData.winningSymbols.push(freeSpinsSymbol);
+      return
     }
   } catch (error) {
     console.error("Error in checkForFreeSpin:", error);
@@ -327,6 +330,23 @@ export function checkForFreeSpin(gameInstance: SLPSF): void {
 }
 
 
+export function checkForTrumpFreeSpin(gameInstance: SLPSF): void {
+  const { settings, playerData } = gameInstance;
+  try {
+    // Find positions of TrumpFreeSpin symbols in the result matrix
+    const TrumpFreeSpinSymbol = findSymbol(gameInstance, specialIcons.trumpFreeSpin);
+    if (15 - TrumpFreeSpinSymbol.length > 0) {
+      console.log(TrumpFreeSpinSymbol.length, 'checkForTrumpFreeSpin')
+      settings.freeSpin.freeSpinStarted = true;
+      settings.freeSpin.freeSpinsAdded = true;
+      settings.freeSpin.freeSpinCount += TrumpFreeSpinSymbol.length;
+      settings._winData.winningSymbols.push(TrumpFreeSpinSymbol);
+      return
+    }
+  } catch (error) {
+    console.error("Error in checkForTrumpFreeSpin:", error);
+  }
+}
 /**
  * Sends the initial game and player data to the client.
  * @param gameInstance - The instance of the SLCM class containing the game settings and player data.
@@ -361,6 +381,7 @@ export function makeResultJson(gameInstance: SLPSF) {
     const Balance = credits.toFixed(2)
     const sendData = {
       GameData: {
+        resultSymbols: settings.resultSymbolMatrix,
         linesToEmit: settings._winData.winningLines,
         symbolsToEmit: settings._winData.winningSymbols,
         jackpot: settings._winData.jackpotwin,
