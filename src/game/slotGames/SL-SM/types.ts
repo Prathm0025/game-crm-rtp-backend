@@ -21,6 +21,7 @@ export interface SLSMSETTINGS {
     bets: number[];
     reels: any[][];
     Symbols: Symbol[];
+    frozenIndices:any[][],
     freeSpin: {
         symbolID: string,
         freeSpinCount: number,

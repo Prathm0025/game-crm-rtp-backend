@@ -556,7 +556,7 @@ export const gameData = [
                 "2":5,
                 "3":5,
                 "4":5,
-                "5":105
+                "5":5
             },
             "description":"Substitutes for all symbols except Jackpot, Free Spin, Bonus, and Scatter.",
             "useWildSub":false,
@@ -569,8 +569,8 @@ export const gameData = [
             "Id":11,
             "reelInstance":{
                 "0":0,
-                "1":5,
-                "2":5,
+                "1":50,
+                "2":50,
                 "3":5,
                 "4":5,
                 "5":5
