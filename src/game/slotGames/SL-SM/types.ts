@@ -7,6 +7,11 @@ interface Symbol {
     payout: number;
     reelInstance: { [key: string]: number };
 }
+
+export interface FrozenIndex {
+    position: [number, number];
+    value: number;
+  }
 export interface SLSMSETTINGS {
     id: string;
     matrix: { x: number, y: number };
@@ -21,7 +26,9 @@ export interface SLSMSETTINGS {
     bets: number[];
     reels: any[][];
     Symbols: Symbol[];
-    frozenIndices:any[][],
+    stickyBonusIndex:FrozenIndex[],
+    stickySymbolCount: number [],
+    stickySymbolCountProb :number [],
     freeSpin: {
         symbolID: string,
         freeSpinCount: number,
