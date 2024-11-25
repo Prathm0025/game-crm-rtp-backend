@@ -20,7 +20,7 @@ export interface SLPSFSETTINGS {
     bets: number[];
     reels: any[][];
     Symbols: Symbol[];
-
+    isWining: boolean;
     freeSpin: {
         SymbolName: string,
         SymbolID: string,
