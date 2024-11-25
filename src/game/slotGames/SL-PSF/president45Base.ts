@@ -105,6 +105,10 @@ export class SLPSF {
             const winAmount = this.playerData.currentWining;
             platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
             makeResultJson(this)
+            //clear json
+            this.settings.resultSymbolMatrix = [];
+            this.settings._winData.winningLines = [];
+            this.settings._winData.winningSymbols = []
         } catch (error) {
             this.sendError("Spin error");
             console.error("Failed to generate spin results:", error);

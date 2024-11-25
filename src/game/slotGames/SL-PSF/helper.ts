@@ -363,9 +363,6 @@ export function sendInitData(gameInstance: SLPSF) {
     UIData: UiInitData,
     PlayerData: {
       Balance: gameInstance.getPlayerData().credits,
-      haveWon: gameInstance.playerData.haveWon,
-      currentWining: gameInstance.playerData.currentWining,
-      totalbet: gameInstance.playerData.totalbet,
     },
   };
   gameInstance.sendMessage("InitData", dataToSend);
@@ -381,7 +378,6 @@ export function makeResultJson(gameInstance: SLPSF) {
         resultSymbols: settings.resultSymbolMatrix,
         linesToEmit: settings._winData.winningLines,
         symbolsToEmit: settings._winData.winningSymbols,
-        jackpot: settings._winData.jackpotwin,
         freeSpins: {
           count: settings.freeSpin.freeSpinCount,
           isNewAdded: settings.freeSpin.freeSpinsAdded
@@ -391,6 +387,7 @@ export function makeResultJson(gameInstance: SLPSF) {
         Balance: Balance,
         totalbet: playerData.totalbet,
         haveWon: playerData.haveWon,
+        currentWining: settings._winData.totalWinningAmount
       }
     };
     gameInstance.sendMessage('ResultData', sendData);
