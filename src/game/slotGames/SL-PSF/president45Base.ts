@@ -1,7 +1,7 @@
 import { sessionManager } from "../../../dashboard/session/sessionManager";
 import { currentGamedata } from "../../../Player";
 import { RandomResultGenerator } from "../RandomResultGenerator";
-import { initializeGameSettings, generateInitialReel, sendInitData, makePayLines, checkForWin, checkForFreeSpin, makeResultJson } from "./helper";
+import { initializeGameSettings, generateInitialReel, sendInitData, makePayLines, checkForWin, checkForFreeSpin, makeResultJson, checkForTrumpFreeSpin } from "./helper";
 import { SLPSFSETTINGS } from "./types";
 
 export class SLPSF {
@@ -90,6 +90,7 @@ export class SLPSF {
                     Object.assign(freeSpin, {
                         freeSpinStarted: false,
                         freeSpinsAdded: false,
+                        freeSpinCount: 0
                     });
                 }
             }
@@ -100,11 +101,9 @@ export class SLPSF {
             await new RandomResultGenerator(this);
             checkForWin(this)
             checkForFreeSpin(this)
-
-
+            checkForTrumpFreeSpin(this)
             const winAmount = this.playerData.currentWining;
             platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
-
             makeResultJson(this)
         } catch (error) {
             this.sendError("Spin error");

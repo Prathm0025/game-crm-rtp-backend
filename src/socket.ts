@@ -113,7 +113,7 @@ const handlePlayerConnection = async (socket: Socket, decoded: DecodedToken, use
     }
 
     // Game connection without existing platform connection
-    if (gameId) {
+    if (gameId || !gameId) {
         socket.emit(messageType.ERROR, "You need to have an active platform connection before joining a game.");
         socket.disconnect(true);
         return;
