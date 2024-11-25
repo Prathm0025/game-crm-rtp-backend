@@ -17,6 +17,7 @@ export interface SLSMSETTINGS {
     matrix: { x: number, y: number };
     currentGamedata: GameData;
     resultSymbolMatrix: any[];
+    tempResultSymbolMatrix:any[];
     lineData: any[],
     _winData: WinData | undefined;
     currentBet: number;
@@ -30,7 +31,6 @@ export interface SLSMSETTINGS {
     stickySymbolCount: number [],
     stickySymbolCountProb :number [],
     freeSpin: {
-        symbolID: string,
         freeSpinCount: number,
         useFreeSpin: boolean,
         freeSpinsAdded: boolean,

@@ -23,6 +23,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLSM) {
         BetMultiplier: gameData.gameSettings.betMultiplier,
         Symbols: gameInstance.initSymbols,
         resultSymbolMatrix: [],
+        tempResultSymbolMatrix:[],
         currentGamedata: gameData.gameSettings,
         lineData: [],
         _winData: new WinData(gameInstance),
@@ -31,11 +32,10 @@ export function initializeGameSettings(gameData: any, gameInstance: SLSM) {
         currentLines: 0,
         BetPerLines: 0,
         reels: [],
-        stickyBonusIndex:[],
+        stickyBonusIndex: [],
         stickySymbolCount: gameData.gameSettings.stickyBonusCount,
-        stickySymbolCountProb:gameData.gameSettings.stickySymbolCountProb,
+        stickySymbolCountProb: gameData.gameSettings.stickySymbolCountProb,
         freeSpin: {
-            symbolID: "-1",
             freeSpinsAdded: false,
             freeSpinCount: 0,
             useFreeSpin: false,
@@ -181,25 +181,27 @@ export function checkForWin(gameInstance: SLSM) {
         const { settings } = gameInstance;
 
         const winningLines = [];
-        let totalPayout = 0;        
-       if(settings.stickyBonusIndex.length>0){
-           settings.stickyBonusIndex[0].value--;
-           freezeSymbolonSpecificIndex(gameInstance);
-           if (settings.stickyBonusIndex[0].value <= 0) {
-            settings.stickyBonusIndex.splice(0, 1);
-            console.log("After Decrementedto zero:", settings.stickyBonusIndex.length);
-        }        
+        let totalPayout = 0;
 
-        console.log("After Decrement:", settings.stickyBonusIndex[0]?.value);
+        // check for stickybonussymbol and freeze
+        if (settings.stickyBonusIndex.length > 0) {
+            settings.stickyBonusIndex[0].value--;
+            freezeSymbolonSpecificIndex(gameInstance);
+            if (settings.stickyBonusIndex[0].value <= 0) {
+                settings.stickyBonusIndex.splice(0, 1);
+                console.log("After Decrementedto zero:", settings.stickyBonusIndex.length);
+            }
+            console.log("After Decrement:", settings.stickyBonusIndex[0]?.value);
+        } else {
+            handleStickyBonus(gameInstance);
+        }
 
-       }else{
-        handleStickyBonus(gameInstance);     
-       }
-     
+        //check for free spin
         const { isFreeSpin, bonusSymbolCount } = checkForFreeSpin(gameInstance);
         if (isFreeSpin) {
             handleFreeSpins(bonusSymbolCount, gameInstance);
         }
+
 
         const validWinSymbols = countOccurenceOfSymbolsAndIndices(gameInstance);
         validWinSymbols.map(([symbol, matchCount]) => {
@@ -350,7 +352,7 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLSM) {
             gameInstance.settings.stickyBonus.SymbolID = symbol.Id;
             gameInstance.settings.stickyBonus.useWild = true;
             break;
-            //TO DO: FIX INITIALISATION
+        //TO DO: FIX INITIALISATION
         case specialIcons.mystery:
             gameInstance.settings.mystery.SymbolName = symbol.Name;
             gameInstance.settings.mystery.SymbolID = symbol.Id;
@@ -403,56 +405,56 @@ function handleStickyBonus(gameInstance: SLSM) {
 
     resultSymbolMatrix.forEach((row, rowIndex) => {
         row.forEach((symbol, colIndex) => {
-            if (symbol === stickyBonus.SymbolID) {                
+            if (symbol === stickyBonus.SymbolID) {
                 const randomValue = getRandomValue(gameInstance);
-                stickyBonusIndices.push({ position: [colIndex, rowIndex], value: randomValue });     
-                   }
+                stickyBonusIndices.push({ position: [colIndex, rowIndex], value: randomValue||0 });
+            }
         });
     });
     if (stickyBonusIndices.length > 0) {
-        const maxFrozenObject = stickyBonusIndices.reduce((max, frozenObject) => 
-            frozenObject.value > max.value ? frozenObject : max, 
+        const maxFrozenObject = stickyBonusIndices.reduce((max, frozenObject) =>
+            frozenObject.value > max.value ? frozenObject : max,
             stickyBonusIndices[0]
         );
-       stickyBonusIndex.push(maxFrozenObject);
-    }    
-// console.log(stickyBonusIndex, "FROZEN INDEX");    
+        stickyBonusIndex.push(maxFrozenObject);
+    }
+    // console.log(stickyBonusIndex, "FROZEN INDEX");    
 }
 
 
 
 export function getRandomValue(gameInstance: SLSM): number {
     const { settings } = gameInstance;
-  
+
     let values: number[];
     let probabilities: number[];
     values = settings.stickySymbolCount;
     probabilities = settings.stickySymbolCountProb;
-    
+
     const totalProbability = probabilities.reduce((sum, prob) => sum + prob, 0);
     const randomValue = Math.random() * totalProbability;
-  
+
     let cumulativeProbability = 0;
     for (let i = 0; i < probabilities.length; i++) {
-      cumulativeProbability += probabilities[i];
-      if (randomValue < cumulativeProbability) {
-        return values[i];
-      }
+        cumulativeProbability += probabilities[i];
+        if (randomValue < cumulativeProbability) {
+            return values[i];
+        }
     }
     return values[0];
-  }
+}
 
 
-  function freezeSymbolonSpecificIndex(gameInstance:SLSM){
-       const { settings } = gameInstance;
-       const index = settings.stickyBonusIndex[0].position;
-       const row = index[1];
-       const col = index [0];
+function freezeSymbolonSpecificIndex(gameInstance: SLSM) {
+    const { settings } = gameInstance;
+    const index = settings.stickyBonusIndex[0].position;
+    const row = index[1];
+    const col = index[0];
 
-       settings.resultSymbolMatrix[row][col] = settings.stickyBonus.SymbolID;
-       console.log(settings.resultSymbolMatrix);
-            
-  }
+    settings.resultSymbolMatrix[row][col] = settings.stickyBonus.SymbolID;
+    console.log(settings.resultSymbolMatrix);
+
+}
 
 /**
  * Checks if there are enough scatter symbols in the reels to trigger free spins.
@@ -461,24 +463,30 @@ export function getRandomValue(gameInstance: SLSM): number {
  */
 
 function checkForFreeSpin(gameInstance: SLSM) {
-    const { resultSymbolMatrix, bonus, stickyBonusIndex } = gameInstance.settings;
+    const { resultSymbolMatrix, bonus, stickyBonusIndex, freeSpin } = gameInstance.settings;
     let bonusSymbolCount = 0
     resultSymbolMatrix.forEach((row, rowIndex) => {
         row.forEach((num: number, colIndex: number) => {
-            if (num === bonus.SymbolID ) {
+            if (num === bonus.SymbolID) {
                 bonusSymbolCount++;
-        }});
+            }
+        });
     });
+    const isFreeSpin = bonusSymbolCount >= 6;
 
-    if(stickyBonusIndex.length>0){
-        bonusSymbolCount+=1;
-        if(bonusSymbolCount >=6){
-         stickyBonusIndex.splice(0, 1);
+    if (stickyBonusIndex.length > 0) {
+        bonusSymbolCount += 1;
+        if (bonusSymbolCount >= 6) {
+            stickyBonusIndex.splice(0, 1);
         }
     }
-  
-    const isFreeSpin = bonusSymbolCount >= 6;
+
+    if(isFreeSpin){
+        gameInstance.settings.tempResultSymbolMatrix = resultSymbolMatrix
+        freeSpin.useFreeSpin = true;
+    }
     console.log(`bonus symbol Count: ${bonusSymbolCount}`);
+    console.log(  gameInstance.settings.tempResultSymbolMatrix );
     console.log(`Free Spin Triggered: ${isFreeSpin}`);
     return { isFreeSpin, bonusSymbolCount };
 }
