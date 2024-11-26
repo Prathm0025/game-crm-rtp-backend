@@ -120,7 +120,7 @@ export class CheckResult {
             this.currentGame.settings._winData.winningSymbols.push(temp);
         }
     }
-    
+
 
     //check for win function
     private checkForWin() {
@@ -346,28 +346,7 @@ export class CheckResult {
         }
     }
 
-    // private removeRecurringIndexSymbols(symbolsToEmit: string[][]): string[][] {
-    //     const seen = new Set<string>();
-    //     const result: string[][] = [];
 
-    //     symbolsToEmit.forEach((subArray) => {
-    //         if (!Array.isArray(subArray)) {
-    //             return;
-    //         }
-    //         const uniqueSubArray: string[] = [];
-    //         subArray.forEach((symbol) => {
-    //             if (!seen.has(symbol)) {
-    //                 seen.add(symbol);
-    //                 uniqueSubArray.push(symbol);
-    //             }
-    //         });
-    //         if (uniqueSubArray.length > 0) {
-    //             result.push(uniqueSubArray);
-    //         }
-    //     });
-
-    //     return result;
-    // }
 
 
     private startFreeSpin() {
