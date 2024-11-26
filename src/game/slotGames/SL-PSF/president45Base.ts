@@ -81,6 +81,7 @@ export class SLPSF {
             }
             const { freeSpin, currentBet } = this.settings;
             if (!freeSpin.freeSpinStarted && freeSpin.freeSpinCount === 0) {
+                this.playerData.totalbet += currentBet
                 await this.deductPlayerBalance(currentBet);
             } else if (freeSpin.freeSpinStarted && freeSpin.freeSpinCount > 0) {
                 freeSpin.freeSpinCount--;

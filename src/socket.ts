@@ -113,7 +113,7 @@ const handlePlayerConnection = async (socket: Socket, decoded: DecodedToken, use
     }
 
     // Game connection without existing platform connection
-    if (gameId && process.env.NODE_ENV === "testing") {
+    if (process.env.NODE_ENV === "testing") {
         console.log("Testing environment detected. Creating platform socket for the player.");
 
         const mockPlatformSocket = {
