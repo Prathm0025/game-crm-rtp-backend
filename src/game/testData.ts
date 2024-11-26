@@ -1,151 +1,23 @@
+
+
 export const gameData = [
     {
-        "id": "SL-PSF",
+        "id": "SL-SB",
         "matrix": {
             "x": 5,
             "y": 3
         },
         "linesApiData": [
-            [
-                1,
-                1,
-                1,
-                1,
-                1
-            ],
-            [
-                0,
-                0,
-                0,
-                0,
-                0
-            ],
-            [
-                2,
-                2,
-                2,
-                2,
-                2
-            ],
-            [
-                0,
-                1,
-                2,
-                1,
-                0
-            ],
-            [
-                2,
-                1,
-                0,
-                1,
-                2
-            ],
-            [
-                0,
-                1,
-                1,
-                1,
-                0
-            ],
-            [
-                2,
-                1,
-                1,
-                1,
-                2
-            ],
-            [
-                1,
-                0,
-                0,
-                0,
-                1
-            ],
-            [
-                1,
-                2,
-                2,
-                2,
-                1
-            ],
-            [
-                1,
-                1,
-                0,
-                1,
-                1
-            ],
-            [
-                1,
-                1,
-                2,
-                1,
-                1
-            ],
-            [
-                0,
-                0,
-                1,
-                0,
-                0
-            ],
-            [
-                2,
-                2,
-                1,
-                2,
-                2
-            ],
-            [
-                0,
-                1,
-                0,
-                1,
-                0
-            ],
-            [
-                2,
-                1,
-                2,
-                1,
-                2
-            ],
-            [
-                1,
-                0,
-                1,
-                0,
-                1
-            ],
-            [
-                1,
-                2,
-                1,
-                2,
-                1
-            ],
-            [
-                0,
-                2,
-                2,
-                2,
-                0
-            ],
-            [
-                2,
-                0,
-                0,
-                0,
-                2
-            ],
-            [
-                2,
-                2,
-                0,
-                2,
-                2
-            ]
+            [0, 0, 0, 0, 0],
+            [1, 1, 1, 1, 1],
+            [2, 2, 2, 2, 2],
+            [0, 1, 2, 1, 0],
+            [2, 1, 0, 1, 2],
+            [0, 0, 1, 2, 2],
+            [2, 2, 1, 0, 0],
+            [1, 0, 0, 0, 1],
+            [1, 2, 2, 2, 1],
+            [0, 1, 1, 1, 2],
         ],
         "linesCount": [
             1,
@@ -171,35 +43,6 @@ export const gameData = [
             1.5,
             2
         ],
-        "bonus": {
-            "type": "spin",
-            "isEnabled": true,
-            "noOfItem": 8,
-            "payOut": [
-                200,
-                100,
-                70,
-                50,
-                30,
-                20,
-                10,
-                5
-            ],
-            "payOutProb": [
-                0.05,
-                0.5,
-                1,
-                3,
-                10,
-                20,
-                25,
-                39.4
-            ]
-        },
-        "gamble": {
-            "type": "card",
-            "isEnabled": false
-        },
         "Symbols": [
             {
                 "Name": "0",
@@ -410,8 +253,8 @@ export const gameData = [
                 ]
             },
             {
-                "Name": "FreeSpin",
-                "Id": 8,
+                "Name": "Wild",
+                "Id": 9,
                 "reelInstance": {
                     "0": 1,
                     "1": 1,
@@ -419,52 +262,11 @@ export const gameData = [
                     "3": 1,
                     "4": 1
                 },
-                "description": "Activates 20, 50, or 100 free spins when 3, 4, or 5 symbols appear anywhere on the result matrix.",
-                "useWildSub": false,
-                "multiplier": [
-                    [
-                        0,
-                        100
-                    ],
-                    [
-                        0,
-                        50
-                    ],
-                    [
-                        0,
-                        20
-                    ]
-
-                ]
-            },
-            {
-                "Name": "Wild",
-                "Id": 9,
-                "reelInstance": {
-                    "0": 5,
-                    "1": 5,
-                    "2": 5,
-                    "3": 5,
-                    "4": 5
-                },
                 "description": "Substitutes for all symbols except Jackpot, Free Spin, Bonus, and Scatter.",
                 "useWildSub": false,
                 "multiplier": [
 
                 ]
-            },
-            {
-                "Name": "TrumpFreeSpin",
-                "Id": 10,
-                "reelInstance": {
-                    "0": 5,
-                    "1": 5,
-                    "2": 5,
-                    "3": 5,
-                    "4": 5
-                },
-                "description": "Trump free spin trigger +1 free spin corresponding to the symbol count on a winning condition",
-                "useWildSub": false,
             }
         ]
     }
