@@ -22,6 +22,7 @@ export interface SLPSFSETTINGS {
     Symbols: Symbol[];
     isWildExpandedReels: any[]
     isWildExpanded: boolean;
+    isWildExpandedCount: number;
     wild: {
         SymbolName: string;
         SymbolID: number;

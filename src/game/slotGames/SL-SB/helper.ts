@@ -28,6 +28,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLSB) {
         reels: [],
         isWildExpandedReels: [],
         isWildExpanded: false,
+        isWildExpandedCount: 0,
         wild: {
             SymbolName: "",
             SymbolID: -1,
@@ -261,61 +262,45 @@ function findFirstNonWildSymbol(line: number[], gameInstance: SLSB, direction: '
 
 export function wildExpansion(gameInstance: SLSB): void {
     const { settings } = gameInstance;
-
-    // Ensure no further expansion occurs if the limit is reached
     if (settings.isWildExpandedReels.length === 2) {
         console.log("Wild expansion limit reached. Strictly preventing further expansion.");
-        return; // Stop execution entirely
+        return;
     }
-
     const originalReels: Record<number, string[]> = {};
-
     console.log("Original Matrix Before Expansion:", JSON.stringify(settings.resultSymbolMatrix));
-
-    // Iterate through reels for wild expansion
     for (let reelIndex = 1; reelIndex <= 3; reelIndex++) {
         if (settings.isWildExpandedReels.includes(reelIndex)) {
             console.log(`Reel ${reelIndex} is already expanded. Skipping.`);
-            continue; // Skip already expanded reels
+            continue;
         }
 
         if (settings.resultSymbolMatrix.some(row => row[reelIndex] === settings.wild.SymbolID)) {
             console.log(`Wild symbol detected on reel ${reelIndex}`);
             settings.isWildExpanded = true;
 
-            // Store original reel data
             originalReels[reelIndex] = settings.resultSymbolMatrix.map(row => row[reelIndex]);
-
-            // Change the entire reel to wild
             settings.resultSymbolMatrix.forEach(row => {
                 row[reelIndex] = settings.wild.SymbolID;
             });
 
             console.log(`Reel ${reelIndex} changed to all wild symbols.`);
             settings.isWildExpandedReels.push(reelIndex);
-
-            // Check if expansion limit is reached
             if (settings.isWildExpandedReels.length === 2) {
                 console.log("Wild expansion limit reached during this iteration.");
-                break; // Stop further iterations
+                break;
             }
         } else {
             console.log(`No wild symbols detected on reel ${reelIndex}.`);
         }
     }
-
-    // If no wild expansion occurred, return without checking paylines
     if (!settings.isWildExpanded) {
         console.log("No wild symbols detected or expanded.");
         return;
     }
-
-    // Log matrix changes for debugging
     console.log("Wild expanded! Re-evaluating paylines...");
     console.log("Original Reels (before expansion):", JSON.stringify(originalReels));
     console.log("Updated Matrix After Expansion:", JSON.stringify(settings.resultSymbolMatrix));
 
-    // Recheck paylines and update results
     checkForWin(gameInstance);
     makeResultJson(gameInstance);
 }
