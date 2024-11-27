@@ -386,15 +386,32 @@ export function checkForWin(gameInstance: SLSB) {
         }
       }
     });
-    if (!settings.isStarBurst) {
+    //NOTE: not starburst
+    if (!settings.isStarBurst && settings.starBurstReel.length === 0) {
+
       gameInstance.playerData.currentWining = totalPayout;
       makeResultJson(gameInstance)
 
       settings.starBurstReel = []
       settings.isStarBurst = false
       settings.starBurstResponse = []
+      //NOTE: starburst last spin
+    } else if (!settings.isStarBurst && settings.starBurstReel.length > 0) {
+
+      settings.starBurstResponse.push({
+        resultMatrix: settings.resultSymbolMatrix,
+        symbolsToEmit: settings._winData.winningSymbols,
+        linesToEmit: settings._winData.winningLines,
+        payout: totalPayout
+      })
+
+      makeResultJson(gameInstance)
+
+      settings.starBurstReel = []
+      settings.isStarBurst = false
+      settings.starBurstResponse = []
+      //NOTE: starburst spins
     } else {
-      //NOTE: run checkwin again since it is a freespin
       settings.starBurstResponse.push({
         resultMatrix: settings.resultSymbolMatrix,
         symbolsToEmit: settings._winData.winningSymbols,
@@ -404,6 +421,7 @@ export function checkForWin(gameInstance: SLSB) {
 
       settings._winData.winningLines = []
       settings._winData.winningSymbols = []
+      //NOTE: run checkwin again since it is a freespin
       new RandomResultGenerator(gameInstance);
       checkForWin(gameInstance)
     }
@@ -428,7 +446,7 @@ export function makeResultJson(gameInstance: SLSB) {
         resultSymbols: settings.resultSymbolMatrix,
         linesToEmit: settings._winData.winningLines,
         symbolsToEmit: settings._winData.winningSymbols,
-        isStarBurst: settings.starBurstReel.length>0,
+        isStarBurst: settings.starBurstReel.length > 0,
         starBurstReel: settings.starBurstReel,
         starBurstResponse: settings.starBurstResponse
       },
