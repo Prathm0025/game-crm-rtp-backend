@@ -3,6 +3,7 @@ import { checkForWin, initializeGameSettings, makePayLines, sendInitData } from 
 import { currentGamedata } from "../../../Player";
 import { RandomResultGenerator } from "../RandomResultGenerator";
 import { getGambleResult, sendInitGambleData } from "./gamble";
+import { sessionManager } from "../../../dashboard/session/sessionManager";
 /**
  * Represents the Blood Eternal Slot  Game Class for handling slot machine operations.
  */
@@ -27,15 +28,15 @@ export class SLBE {
   }
 
   sendMessage(action: string, message: any) {
-    this.currentGameData.sendMessage(action, message);
+    this.currentGameData.sendMessage(action, message, true);
   }
 
   sendError(message: string) {
-    this.currentGameData.sendError(message);
+    this.currentGameData.sendError(message, true);
   }
 
   sendAlert(message: string) {
-    this.currentGameData.sendAlert(message);
+    this.currentGameData.sendAlert(message, true);
   }
 
   updatePlayerBalance(amount: number) {
@@ -121,6 +122,8 @@ export class SLBE {
   public async spinResult(): Promise<void> {
     try {
       const playerData = this.getPlayerData();
+      const platformSession = sessionManager.getPlayerPlatform(playerData.username);
+
       if (this.settings.currentBet > playerData.credits) {
         this.sendError("Low Balance");
         return;
@@ -131,9 +134,18 @@ export class SLBE {
         this.deductPlayerBalance(this.settings.currentBet);
         this.playerData.totalbet += this.settings.currentBet;
       }
+
+      const spinId = platformSession.currentGameSession.createSpin();
+      platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
+
       new RandomResultGenerator(this);
       checkForWin(this)
       // this.gamebleTesting()
+
+      const winAmount = this.playerData.currentWining;
+      platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
+
+
     } catch (error) {
       this.sendError("Spin error");
       console.error("Failed to generate spin results:", error);
