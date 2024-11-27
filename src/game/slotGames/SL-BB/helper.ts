@@ -689,13 +689,13 @@ export function makeResultJson(gameInstance: SLBB) {
     };
 
     gameInstance.sendMessage('ResultData', sendData);
-    console.log(sendData);
-    console.log("coins", sendData.GameData.winData.coinValues);
-    console.log("Bonus coins", sendData.GameData.bonus.coins);
-    console.log("cc", settings.cashCollect.values);
-
-    console.log("lp", sendData.GameData.winData.losPollos);
-    console.log("symbolsToEmit", sendData.GameData.symbolsToEmit);
+    // console.log(sendData);
+    // console.log("coins", sendData.GameData.winData.coinValues);
+    // console.log("Bonus coins", sendData.GameData.bonus.coins);
+    // console.log("cc", settings.cashCollect.values);
+    //
+    // console.log("lp", sendData.GameData.winData.losPollos);
+    // console.log("symbolsToEmit", sendData.GameData.symbolsToEmit);
 
   } catch (error) {
     console.error("Error generating result JSON or sending message:", error);
