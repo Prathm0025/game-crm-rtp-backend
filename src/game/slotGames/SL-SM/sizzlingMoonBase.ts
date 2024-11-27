@@ -30,7 +30,17 @@ export class SLSM {
         });    
         return Symbols;
     }
+   
 
+    get initBonusSymbols() {
+        const Symbols = [];
+        //filter symbols which appear only in base game
+        const bonusGameSymbol = this.currentGameData.gameSettings.Symbols.filter((symbol)=> symbol.isBonusGameSymbol || symbol.isSpecialSymbol)        
+        bonusGameSymbol.forEach((Element: Symbol) => {
+            Symbols.push(Element);
+        });    
+        return Symbols;
+    }
 
     sendMessage(action: string, message: any) {
         this.currentGameData.sendMessage(action, message);

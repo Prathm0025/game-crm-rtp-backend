@@ -32,7 +32,19 @@ export const gameData = [
         2
      ],
      "stickyBonusCount":[1, 2 , 3,4, 5 , 6,7, 8 , 9],
-     "stickySymbolCountProb": [10, 20, 30, 40, 50, 10, 15, 25, 35, 55],
+     "stickySymbolCountProb": [10, 20, 30, 40, 50, 10, 15, 25, 35],
+     "prizeValue":[1, 2 , 3,4, 5 , 6,7, 8 , 9, 10, 12, 13 , 14 ,15],
+     "prizeValueProb": [10, 20, 30, 40, 50, 10, 15, 25, 35, 55, 65, 75, 85, 95],
+     "mysteryValues":[10, 14, 15, 16],
+     "mysteryValueProb":[10, 20, 30, 40],
+     "moonMysteryValues":[10, 14, 15, 16, 17],
+     "moonMysteryValueProb":[10, 20, 30, 40, 50],
+     "miniMultiplier":20,
+     "minorMultiplier":50,
+     "majorMultiplier":150,
+     "grandMultiplier":1000,
+     "moonMultiplier":2500,
+     "freeSpinCount":3,
      "gamble":{
         "type":"card",
         "isEnabled":true
@@ -242,8 +254,33 @@ export const gameData = [
            ]
         },
         {
+         "Name":"PlaceHolder",
+         "Id":8,
+         "useWildSub":false,
+         "isBonusGameSymbol":true,
+         "isSpecialSymbol":false,
+         "isFreeSpinMultiplier":false,
+         "reelInstance":{
+            "0":8,
+            "1":8,
+            "2":8,
+            "3":8
+         },
+         "multiplier":[
+            [0,0],
+            [0,0],
+            [0,0],
+            [0,0],
+            [0,0],
+            [0,0],
+            [0,0],
+            [0,0],
+            [0,0]
+         ]
+      },
+        {
            "Name":"Wild",
-           "Id":8,
+           "Id":9,
            "useWildSub":false,
            "isBonusGameSymbol":false,
            "isSpecialSymbol":false,
@@ -259,26 +296,26 @@ export const gameData = [
         },
         {
            "Name":"Bonus",
-           "Id":9,
+           "Id":10,
            "useWildSub":false,
            "isBonusGameSymbol":true,
            "isSpecialSymbol":true,
            "isFreeSpinMultiplier":false,
            "reelInstance":{
               "0":5,
-              "1":5,
-              "2":5,
-              "3":5
+              "1":50,
+              "2":50,
+              "3":50
            },
            "multiplier":[]
   
         },
         {
            "Name":"StickyBonus",
-           "Id":10,
+           "Id":11,
            "useWildSub":false,
-           "isBonusGameSymbol":true,
-           "isSpecialSymbol":true,
+           "isBonusGameSymbol":false,
+           "isSpecialSymbol":false,
            "isFreeSpinMultiplier":false,
            "reelInstance":{
               "0":5,
@@ -291,22 +328,6 @@ export const gameData = [
         },
         {
            "Name":"Mystery",
-           "Id":11,
-           "useWildSub":false,
-           "isBonusGameSymbol":true,
-           "isSpecialSymbol":false,
-           "isFreeSpinMultiplier":false,
-           "reelInstance":{
-              "0":5,
-              "1":5,
-              "2":5,
-              "3":5
-           },
-           "multiplier":[
-           ]
-        },
-        {
-           "Name":"MoonMystery",
            "Id":12,
            "useWildSub":false,
            "isBonusGameSymbol":true,
@@ -322,7 +343,7 @@ export const gameData = [
            ]
         },
         {
-           "Name":"mini",
+           "Name":"MoonMystery",
            "Id":13,
            "useWildSub":false,
            "isBonusGameSymbol":true,
@@ -338,7 +359,7 @@ export const gameData = [
            ]
         },
         {
-           "Name":"minor",
+           "Name":"mini",
            "Id":14,
            "useWildSub":false,
            "isBonusGameSymbol":true,
@@ -354,7 +375,7 @@ export const gameData = [
            ]
         },
         {
-           "Name":"major",
+           "Name":"minor",
            "Id":15,
            "useWildSub":false,
            "isBonusGameSymbol":true,
@@ -370,7 +391,7 @@ export const gameData = [
            ]
         },
         {
-           "Name":"MOON",
+           "Name":"major",
            "Id":16,
            "useWildSub":false,
            "isBonusGameSymbol":true,
@@ -381,6 +402,22 @@ export const gameData = [
               "1":5,
               "2":5,
               "3":5
+           },
+           "multiplier":[
+           ]
+        },
+        {
+           "Name":"MOON",
+           "Id":17,
+           "useWildSub":false,
+           "isBonusGameSymbol":true,
+           "isSpecialSymbol":false,
+           "isFreeSpinMultiplier":false,
+           "reelInstance":{
+              "0":0,
+              "1":0,
+              "2":0,
+              "3":0
            },
            "multiplier":[
            ]
