@@ -137,6 +137,8 @@ const handlePlayerConnection = async (socket: Socket, decoded: DecodedToken, use
         testPlayer.platformData.platformId = `test-platform-${username}`;
         await testPlayer.updateGameSocket(socket);
         return;
+
+
     }
 
     // Invalid connection attempt
