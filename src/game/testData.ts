@@ -257,7 +257,7 @@ export const gameData = [
                 "Id": 9,
                 "reelInstance": {
                     "0": 10,
-                    "1": 50,
+                    "1": 10,
                     "2": 10,
                     "3": 10,
                     "4": 10

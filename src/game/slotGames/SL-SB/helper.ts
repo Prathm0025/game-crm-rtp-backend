@@ -117,7 +117,7 @@ function checkLineSymbols(
         isWild = true
       }
       if (symbol === undefined) {
-        console.error(`Symbol at position [${rowIndex}, ${i}] is undefined.`);
+        // console.error(`Symbol at position [${rowIndex}, ${i}] is undefined.`);
         return { isWinningLine: false, matchCount: 0, matchedIndices: [], isWild };
       }
       switch (true) {
@@ -217,7 +217,7 @@ function accessData(symbol, matchCount, gameInstance: SLSB) {
     }
     return 0;
   } catch (error) {
-    // console.error("Error in accessData:");
+    console.error("Error in accessData:");
     return 0;
   }
 }
@@ -298,8 +298,8 @@ export function checkForWin(gameInstance: SLSB) {
           settings.resultSymbolMatrix[rowIndex][columnIndex] = settings.wild.SymbolID
         })
       })
-      console.info("after swap:");
-      console.info(settings.resultSymbolMatrix);
+      // console.info("after swap:");
+      // console.info(settings.resultSymbolMatrix);
     }
 
 
@@ -344,13 +344,13 @@ export function checkForWin(gameInstance: SLSB) {
             (index) => index.length > 2
           );
           if (validIndices.length > 0) {
-            console.log(validIndices);
+            // console.log(validIndices);
             settings._winData.winningSymbols.push(validIndices);
             settings._winData.totalWinningAmount = totalPayout * settings.BetPerLines;
-            console.log(settings._winData.totalWinningAmount)
+            // console.log(settings._winData.totalWinningAmount)
           }
-          console.log(`Line ${index + 1} (LTR):`, line);
-          console.log(`Payout for LTR Line ${index + 1}:`, "payout", payout);
+          // console.log(`Line ${index + 1} (LTR):`, line);
+          // console.log(`Payout for LTR Line ${index + 1}:`, "payout", payout);
           return;
         }
       }
@@ -376,13 +376,13 @@ export function checkForWin(gameInstance: SLSB) {
             (index) => index.length > 2
           );
           if (validIndices.length > 0) {
-            console.log(validIndices);
+            // console.log(validIndices);
             settings._winData.winningSymbols.push(validIndices);
             settings._winData.totalWinningAmount = totalPayout * settings.BetPerLines;
-            console.log(settings._winData.totalWinningAmount)
+            // console.log(settings._winData.totalWinningAmount)
           }
-          console.log(`Line ${index + 1} (RTL):`, line);
-          console.log(`Payout for RTL Line ${index + 1}:`, "payout", payout);
+          // console.log(`Line ${index + 1} (RTL):`, line);
+          // console.log(`Payout for RTL Line ${index + 1}:`, "payout", payout);
         }
       }
     });
@@ -404,6 +404,10 @@ export function checkForWin(gameInstance: SLSB) {
         linesToEmit: settings._winData.winningLines,
         payout: totalPayout
       })
+      //FIX:  clearing redundant data .remove it later maybe 
+      settings.resultSymbolMatrix = []
+      settings._winData.winningLines = []
+      settings._winData.winningSymbols = []
 
       makeResultJson(gameInstance)
 
