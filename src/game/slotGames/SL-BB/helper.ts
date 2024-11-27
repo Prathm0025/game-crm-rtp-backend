@@ -247,7 +247,7 @@ export function getRandomValue(gameInstance: SLBB, type: 'coin' | 'freespin' | '
   let probabilities: number[];
 
   if (type === 'coin') {
-    values = currentGameData.gameSettings.coinsvalue;
+    values = currentGameData.gameSettings.coinsvalue.map((value: number) => value*settings.BetPerLines*settings.lineData.length);
     probabilities = currentGameData.gameSettings.coinsvalueprob;
   } else if (type === 'freespin') {
     values = settings.freeSpin.LPValues;
@@ -256,7 +256,7 @@ export function getRandomValue(gameInstance: SLBB, type: 'coin' | 'freespin' | '
     values = settings.jackpot.payout
     probabilities = settings.jackpot.payoutProbs
   } else if(type === 'mega') {
-    values = settings.bonus.megaLinkCoinValue;
+    values = settings.bonus.megaLinkCoinValue.map((value: number) => value*settings.BetPerLines*settings.lineData.length);
     probabilities = settings.bonus.megaLinkCoinProb
   } else {
     throw new Error("Invalid type, expected 'coin' or 'freespin'");
@@ -689,14 +689,14 @@ export function makeResultJson(gameInstance: SLBB) {
     };
 
     gameInstance.sendMessage('ResultData', sendData);
-    // console.log(sendData);
-    // console.log("coins", sendData.GameData.winData.coinValues);
-    // console.log("Bonus coins", sendData.GameData.bonus.coins);
-    // console.log("cc", settings.cashCollect.values);
-    //
-    // console.log("lp", sendData.GameData.winData.losPollos);
-    // console.log("symbolsToEmit", sendData.GameData.symbolsToEmit);
-    //
+    console.log(sendData);
+    console.log("coins", sendData.GameData.winData.coinValues);
+    console.log("Bonus coins", sendData.GameData.bonus.coins);
+    console.log("cc", settings.cashCollect.values);
+
+    console.log("lp", sendData.GameData.winData.losPollos);
+    console.log("symbolsToEmit", sendData.GameData.symbolsToEmit);
+
   } catch (error) {
     console.error("Error generating result JSON or sending message:", error);
   }
