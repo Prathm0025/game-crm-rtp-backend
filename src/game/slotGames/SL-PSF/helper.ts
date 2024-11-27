@@ -114,7 +114,7 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLPSF) {
 //CHECK WINS ON PAYLINES WITH OR WITHOUT WILD
 export function checkForWin(gameInstance: SLPSF) {
   try {
-    const { settings } = gameInstance;
+    const { settings, playerData } = gameInstance;
     const winningLines = [];
     let totalPayout = 0;
     settings.lineData.forEach((line, index) => {
@@ -168,6 +168,7 @@ export function checkForWin(gameInstance: SLPSF) {
               if (validIndices.length > 0) {
                 settings._winData.winningSymbols.push(validIndices);
                 settings._winData.totalWinningAmount = totalPayout * settings.BetPerLines;
+                playerData.haveWon += settings._winData.totalWinningAmount
               }
               break;
             default:
@@ -317,7 +318,7 @@ export function checkForFreeSpin(gameInstance: SLPSF): void {
       settings.freeSpin.freeSpinCount += freeSpins;
       playerData.totalSpin += freeSpins;
       // uncomment only for testing purpose 
-      // playerData.rtpSpinCount += freeSpins;
+      playerData.rtpSpinCount += freeSpins;
       settings._winData.winningSymbols.push(freeSpinsSymbol);
       return
     }
@@ -363,9 +364,6 @@ export function sendInitData(gameInstance: SLPSF) {
     UIData: UiInitData,
     PlayerData: {
       Balance: gameInstance.getPlayerData().credits,
-      haveWon: gameInstance.playerData.haveWon,
-      currentWining: gameInstance.playerData.currentWining,
-      totalbet: gameInstance.playerData.totalbet,
     },
   };
   gameInstance.sendMessage("InitData", dataToSend);
@@ -381,7 +379,6 @@ export function makeResultJson(gameInstance: SLPSF) {
         resultSymbols: settings.resultSymbolMatrix,
         linesToEmit: settings._winData.winningLines,
         symbolsToEmit: settings._winData.winningSymbols,
-        jackpot: settings._winData.jackpotwin,
         freeSpins: {
           count: settings.freeSpin.freeSpinCount,
           isNewAdded: settings.freeSpin.freeSpinsAdded
@@ -391,6 +388,7 @@ export function makeResultJson(gameInstance: SLPSF) {
         Balance: Balance,
         totalbet: playerData.totalbet,
         haveWon: playerData.haveWon,
+        currentWining: settings._winData.totalWinningAmount
       }
     };
     gameInstance.sendMessage('ResultData', sendData);
