@@ -13,13 +13,15 @@ import { getRandomValue } from "./helper";
 export class RandomBonusGenerator {
     constructor(current: SLSM) {
         let matrix: string[][] = [];
+
+        // map of frozen indices and it symbols as key value pair
         let frozenIndicesMap = new Map(
             current.settings.frozenIndices.map((frozenIndex) => [
                 `${frozenIndex.position[1]},${frozenIndex.position[0]}`,
                 frozenIndex.symbol,
             ])
         );
-
+        // Generate the bonus reel matrix with random positions, considering frozen indices
         for (let x = 0; x < current.settings.currentGamedata.matrix.x; x++) {
             const startPosition = this.getRandomIndex(current.settings.bonusReels[x].length - 1);
             for (let y = 0; y < current.settings.currentGamedata.matrix.y; y++) {
@@ -27,6 +29,7 @@ export class RandomBonusGenerator {
                 matrix[y][x] = current.settings.bonusReels[x][(startPosition + y) % current.settings.bonusReels[x].length];
                 const frozenKey = `${y},${x}`;
                 if (frozenIndicesMap.has(frozenKey)) {
+                    // freeze with frozen symbol if the current position is frozen
                     matrix[y][x] = frozenIndicesMap.get(frozenKey)!.toString();
                 }
             }
@@ -49,9 +52,12 @@ export class RandomBonusGenerator {
  */
 
 export function handleBonusGameSpin(gameInstance: SLSM) {
+    // generate a random bonus reel matrix based on the current game settings
     new RandomBonusGenerator(gameInstance);
     const { settings } = gameInstance;
+    // handle bonus symbol occurrences in the bonus game
     checkOcurrenceOfSymbols(gameInstance);
+    // add the grand prize if applicable
     if (settings.isGrandPrize) {
         const payoutOfBonusGame = calculatePayoutOfBonusGame(gameInstance);
         settings.freeSpin.freeSpinPayout = payoutOfBonusGame;
@@ -72,11 +78,15 @@ export function handleBonusGameSpin(gameInstance: SLSM) {
 
 function checkOcurrenceOfSymbols(gameInstance: SLSM) {
     const { settings } = gameInstance;
+
+    //Ids of symbols to freeze, excluding placeholders
     const symbolsToFridge = gameInstance.settings.BonusSymbols.filter((value) => value.Name !== "PlaceHolder").map((symbol) => symbol.Id)
     // console.log(symbolsToFridge, "SYMBOL TO FRIDGE");
+    //already frozen positions
     const frozenPositions = settings.frozenIndices.map(
         (frozenIndex) => `${frozenIndex.position[0]},${frozenIndex.position[1]}`
     );
+    //to track the length and rewared freespin
     const tempFrozenIndicesLength = settings.frozenIndices.length;
     // console.log(tempFrozenIndicesLength, "frozenInidcesLength");
 
@@ -200,7 +210,8 @@ function checkOcurrenceOfSymbols(gameInstance: SLSM) {
 export function calculatePayoutOfBonusGame(gameInstance: SLSM) {
     const { settings } = gameInstance;
     let totalPayout = 0;
-
+    //handle moon jackpot
+    //return i fmoon jackpot(max winning is moon jackpot)
     if (settings.isMoonJackpot) {
         // console.log("MOON JACKPOT");
         gameInstance.playerData.currentWining = 0
@@ -211,11 +222,13 @@ export function calculatePayoutOfBonusGame(gameInstance: SLSM) {
         totalPayout = payout;
         return totalPayout;
     }
-
+    //handle grand prize
     if ((settings.isGrandPrize) && (!settings.isMoonJackpot)) {
         const payout = settings.grandMultiplier * settings.currentBet;
         totalPayout += payout;
     }
+
+    //payout from frozen indices
     const frozenIndicesPayout = settings.frozenIndices.reduce((accumulator, frozenIndex) => {
         const prizeValue = frozenIndex.prizeValue || 0;
         return accumulator + prizeValue * settings.currentBet;
