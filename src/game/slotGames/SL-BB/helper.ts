@@ -524,7 +524,7 @@ export function checkForWin(gameInstance: SLBB) {
     const hasLosPollosSymbols = hasSymbolInMatrix(resultSymbolMatrix, losPollosId);
     const hasPrizeCoinSymbols = hasSymbolInMatrix(resultSymbolMatrix, prizeCoinId);
 
-    console.log("Result Matrix", gameInstance.settings.resultSymbolMatrix);
+    // console.log("Result Matrix", gameInstance.settings.resultSymbolMatrix);
 
 
     //NOTE: freespin lp
@@ -551,12 +551,12 @@ export function checkForWin(gameInstance: SLBB) {
         const { isWinningLine, matchCount, matchedIndices } = checkLineSymbols(firstSymbol, line, gameInstance);
         if (isWinningLine && matchCount >= 3) {
           const symbolMultiplier = accessData(firstSymbol, matchCount, gameInstance);
-          console.log(matchedIndices)
+          // console.log(matchedIndices)
           if (symbolMultiplier > 0) {
             totalWin += symbolMultiplier * settings.BetPerLines;
             settings._winData.winningLines.push(index);
-            console.log(`Line ${index + 1}:`, line);
-            console.log(`Payout multiplier for Line ${index + 1}:`, 'payout', symbolMultiplier);
+            // console.log(`Line ${index + 1}:`, line);
+            // console.log(`Payout multiplier for Line ${index + 1}:`, 'payout', symbolMultiplier);
             const formattedIndices = matchedIndices.map(({ col, row }) => `${col},${row}`);
             const validIndices = formattedIndices.filter(index => index.length > 2);
             if (validIndices.length > 0) {
@@ -566,11 +566,11 @@ export function checkForWin(gameInstance: SLBB) {
         }
       });
 
-      console.log(totalWin, "Total win before coins ");
+      // console.log(totalWin, "Total win before coins ");
       if (hasCoinSymbols && hasCashCollect && !settings.bonus.isBonus) {
         //check if cc is in 1st or 
         coinWins = handleCoinsAndCashCollect(gameInstance, "result");
-        console.log(coinWins, "coin collected");
+        // console.log(coinWins, "coin collected");
         totalWin += coinWins;
         if(coinWins>0){
           settings.isCoinCollect = true
@@ -689,14 +689,14 @@ export function makeResultJson(gameInstance: SLBB) {
     };
 
     gameInstance.sendMessage('ResultData', sendData);
-    console.log(sendData);
-    console.log("coins", sendData.GameData.winData.coinValues);
-    console.log("Bonus coins", sendData.GameData.bonus.coins);
-    console.log("cc", settings.cashCollect.values);
-
-    console.log("lp", sendData.GameData.winData.losPollos);
-    console.log("symbolsToEmit", sendData.GameData.symbolsToEmit);
-
+    // console.log(sendData);
+    // console.log("coins", sendData.GameData.winData.coinValues);
+    // console.log("Bonus coins", sendData.GameData.bonus.coins);
+    // console.log("cc", settings.cashCollect.values);
+    //
+    // console.log("lp", sendData.GameData.winData.losPollos);
+    // console.log("symbolsToEmit", sendData.GameData.symbolsToEmit);
+    //
   } catch (error) {
     console.error("Error generating result JSON or sending message:", error);
   }
