@@ -20,32 +20,17 @@ export interface SLPSFSETTINGS {
     bets: number[];
     reels: any[][];
     Symbols: Symbol[];
-    isWining: boolean;
-    freeSpin: {
-        SymbolName: string,
-        SymbolID: string,
-        freeSpinMuiltiplier: any[],
-        freeSpinStarted: boolean,
-        freeSpinCount: number,
-        noOfFreeSpins: number,
-        useFreeSpin: boolean,
-        freeSpinsAdded: boolean,
-    };
+    isWildExpandedReels: any[]
+    isWildExpanded: boolean;
+    isWildExpandedCount: number;
     wild: {
         SymbolName: string;
         SymbolID: number;
         useWild: boolean
     },
-    trumpFreeSpin: {
-        SymbolName: string;
-        SymbolID: number;
-
-    }
 }
 
 
 export enum specialIcons {
-    trumpFreeSpin = "TrumpFreeSpin",
     wild = "Wild",
-    freeSpin = "FreeSpin"
 }

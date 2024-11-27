@@ -14,15 +14,17 @@ import { SLBT } from "./SL-BT/buffaloTrailBase"
 import { SLTM } from "./SL-TM/TimeMachineBase";
 import { SLSM } from "./SL-SM/sizzlingMoonBase";
 import { SLPSF } from "./SL-PSF/president45Base";
+import { SLSB } from "./SL-SB/Starburst"
 export default class SlotGameManager {
   public currentGame: any;
 
   gameClassMapping: { [key: string]: any } = {
     "SL-CM": SLCM, "SL-CRZ": SLCRZ, "SL-WOF": SLWOF, "SL-PM": SLPM, "SL-BE": SLBE,
-    "SL-ONE": SLONE, "SL-LOL": SLLOL, "SL-SR": SLSR, "SL-BB": SLBB, "SL-Z3": SLZEUS, "SL-SM":SLSM,
+    "SL-ONE": SLONE, "SL-LOL": SLLOL, "SL-SR": SLSR, "SL-BB": SLBB, "SL-Z3": SLZEUS, "SL-SM": SLSM,
     "SL-TM": SLTM,
     "SL-BT": SLBT,
-    "SL-PSF": SLPSF
+    "SL-PSF": SLPSF,
+    "SL-SB": SLSB
   };
 
   constructor(public currentGameData: currentGamedata) {
