@@ -36,6 +36,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLPSF) {
       freeSpinCount: 0,
       noOfFreeSpins: 0,
       useFreeSpin: false,
+      winingSymbols: []
     },
     wild: {
       SymbolName: "",
@@ -319,7 +320,7 @@ export function checkForFreeSpin(gameInstance: SLPSF): void {
       playerData.totalSpin += freeSpins;
       // uncomment only for testing purpose 
       playerData.rtpSpinCount += freeSpins;
-      settings._winData.winningSymbols.push(freeSpinsSymbol);
+      settings.freeSpin.winingSymbols.push(freeSpinsSymbol);
       return
     }
   } catch (error) {
@@ -338,7 +339,7 @@ export function checkForTrumpFreeSpin(gameInstance: SLPSF): void {
       settings.freeSpin.freeSpinStarted = true;
       settings.freeSpin.freeSpinsAdded = true;
       settings.freeSpin.freeSpinCount += TrumpFreeSpinSymbol.length;
-      settings._winData.winningSymbols.push(TrumpFreeSpinSymbol);
+      settings.freeSpin.winingSymbols.push(TrumpFreeSpinSymbol);
       return
     }
   } catch (error) {
@@ -381,7 +382,8 @@ export function makeResultJson(gameInstance: SLPSF) {
         symbolsToEmit: settings._winData.winningSymbols,
         freeSpins: {
           count: settings.freeSpin.freeSpinCount,
-          isNewAdded: settings.freeSpin.freeSpinsAdded
+          isNewAdded: settings.freeSpin.freeSpinsAdded,
+          winingSymbols: settings.freeSpin.winingSymbols
         },
       },
       PlayerData: {
