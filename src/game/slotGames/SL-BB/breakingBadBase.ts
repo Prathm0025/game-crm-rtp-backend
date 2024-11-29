@@ -106,10 +106,10 @@ export class SLBB {
         freeSpin.count--;
 
         this.settings.currentBet = 0;
-        console.log(
-          freeSpin.count,
-          "this.settings.freeSpinCount"
-        );
+        // console.log(
+        //   freeSpin.count,
+        //   "this.settings.freeSpinCount"
+        // );
       }
       // !( this.settings.bonus.count>0 ) || !( this.settings.freeSpin.count>0 )
       // this.incrementPlayerBalance(this.playerData.currentWining)
