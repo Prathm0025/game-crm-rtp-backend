@@ -30,7 +30,8 @@ export interface SLPSFSETTINGS {
         noOfFreeSpins: number,
         useFreeSpin: boolean,
         freeSpinsAdded: boolean,
-        winingSymbols: any[]
+        jokerSymbols: any[],
+        trumpSymbols: any[]
     };
     wild: {
         SymbolName: string;
