@@ -89,34 +89,13 @@ export class SLBB {
         this.decrementPlayerBalance(this.settings.currentBet);
         this.playerData.totalbet += this.settings.currentBet;
       }
-      // if (!bonus.isTriggered) {
-      //   this.decrementPlayerBalance(this.settings.currentBet);
-      // }
-      // if (heisenberg.freeSpin.freeSpinCount === 1) {
-      //   heisenberg.isTriggered= false;
-      // }
-      // if (freeSpin.count === 1) {
-      //   freeSpin.isFreeSpin = false;
-      // }
       if (
-        // freeSpin.isFreeSpin &&
         freeSpin.count > 0 &&
         !this.settings.bonus.isBonus
       ) {
         freeSpin.count--;
-
         this.settings.currentBet = 0;
-        // console.log(
-        //   freeSpin.count,
-        //   "this.settings.freeSpinCount"
-        // );
       }
-      // !( this.settings.bonus.count>0 ) || !( this.settings.freeSpin.count>0 )
-      // this.incrementPlayerBalance(this.playerData.currentWining)
-      // console.log("bonus", this.settings.bonus.count);
-      // console.log("free", this.settings.freeSpin.count);
-      // console.log("bool", !( this.settings.bonus.count>0 ) || !( this.settings.freeSpin.count>0 ));
-      //
 
       const spinId = platformSession.currentGameSession.createSpin();
       platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
@@ -146,23 +125,17 @@ export class SLBB {
         await this.spinResult();
         spend = this.playerData.totalbet;
         won = this.playerData.haveWon;
-        // console.log(`Spin ${i + 1} completed. ${this.playerData.totalbet} , ${won}`);
+        console.log(`Spin ${i + 1} completed. ${this.playerData.totalbet} , ${won}`);
       }
       let rtp = 0;
       if (spend > 0) {
         rtp = won / spend;
       }
-      // console.log('RTP calculated:', rtp * 100);
+      console.log('RTP calculated:', rtp * 100);
       return;
     } catch (error) {
       console.error("Failed to calculate RTP:", error);
       this.sendError("RTP calculation error");
     }
   }
-
-
-
-
-
-
 }
