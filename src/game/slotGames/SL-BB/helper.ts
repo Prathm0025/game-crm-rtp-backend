@@ -692,7 +692,7 @@ export function makeResultJson(gameInstance: SLBB) {
     };
 
     gameInstance.sendMessage('ResultData', sendData);
-    // console.log(sendData);
+    // console.log(JSON.stringify(sendData));
     // console.log("coins", sendData.GameData.winData.coinValues);
     // console.log("Bonus coins", sendData.GameData.bonus.coins);
     // console.log("cc", settings.cashCollect.values);
