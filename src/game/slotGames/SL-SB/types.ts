@@ -7,6 +7,12 @@ interface Symbol {
     payout: number;
     reelInstance: { [key: string]: number };
 }
+export interface starBurstResponse {
+  resultMatrix: any[];
+  symbolsToEmit: any[];
+  linesToEmit: any[];
+  payout: number
+}
 export interface SLPSFSETTINGS {
     id: string;
     matrix: { x: number, y: number };
@@ -20,9 +26,10 @@ export interface SLPSFSETTINGS {
     bets: number[];
     reels: any[][];
     Symbols: Symbol[];
-    isWildExpandedReels: any[]
-    isWildExpanded: boolean;
-    isWildExpandedCount: number;
+    // isWildExpandedReels: any[]
+    isStarBurst: boolean;
+    starBurstReel: number[];
+    starBurstResponse: starBurstResponse[]
     wild: {
         SymbolName: string;
         SymbolID: number;
