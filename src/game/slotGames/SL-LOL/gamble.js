@@ -12,7 +12,7 @@ exports.getRandomCard = getRandomCard;
  * */
 const CARD_ARRAY = ["HEARTS", "DIAMONDS", "CLUBS", "SPADES"];
 function sendInitGambleData() {
-    console.log("gamble init");
+    // console.log("gamble init");
     let gambleData = {
         blCard: {
             suit: 'Spades',
@@ -26,7 +26,7 @@ function sendInitGambleData() {
     return gambleData;
 }
 function getGambleResult(response) {
-    console.log("gamble result", response);
+    // console.log("gamble result", response);
     const result = getRandomCard();
     switch (response.selected === result) {
         case true:
