@@ -248,7 +248,7 @@ export function getRandomValue(gameInstance: SLBB, type: 'coin' | 'freespin' | '
   let probabilities: number[];
 
   if (type === 'coin') {
-    values = currentGameData.gameSettings.coinsvalue.map((value: number) =>precisionRound( value * settings.BetPerLines * settings.lineData.length,3));
+    values = currentGameData.gameSettings.coinsvalue.map((value: number) => precisionRound(value * settings.BetPerLines * settings.lineData.length, 3));
     probabilities = currentGameData.gameSettings.coinsvalueprob;
   } else if (type === 'freespin') {
     values = settings.freeSpin.LPValues;
@@ -257,7 +257,7 @@ export function getRandomValue(gameInstance: SLBB, type: 'coin' | 'freespin' | '
     values = settings.jackpot.payout
     probabilities = settings.jackpot.payoutProbs
   } else if (type === 'mega') {
-    values = settings.bonus.megaLinkCoinValue.map((value: number) =>precisionRound( value * settings.BetPerLines * settings.lineData.length,3));
+    values = settings.bonus.megaLinkCoinValue.map((value: number) => precisionRound(value * settings.BetPerLines * settings.lineData.length, 3));
     probabilities = settings.bonus.megaLinkCoinProb
   } else {
     throw new Error("Invalid type, expected 'coin' or 'freespin'");
@@ -310,10 +310,10 @@ export function getCoinsValues(gameInstance: SLBB, matrixType: 'result' | 'bonus
             settings.bonus.count = 3
 
             //NOTE: add rtpcount 
+            // gameInstance.playerData.rtpSpinCount += 3
           }
 
         } else if (matrixType === 'mega') {
-          //TODO:
           coinValue = getRandomValue(gameInstance, "mega")
           // Check if index already exists in settings.coins.bonusValues
 
@@ -327,6 +327,7 @@ export function getCoinsValues(gameInstance: SLBB, matrixType: 'result' | 'bonus
             settings.bonus.count = 3
 
             //NOTE: add rtpcount 
+            // gameInstance.playerData.rtpSpinCount += 3
           }
 
           // Only add the new value if the index does not already exist
@@ -409,6 +410,8 @@ function handleFreeSpin(gameInstance: SLBB) {
   settings.freeSpin.isFreeSpin = true
   settings.freeSpin.count += count
   //NOTE: add rtpcount 
+
+  // gameInstance.playerData.rtpSpinCount += count
 }
 function accessData(symbol, matchCount, gameInstance: SLBB): number {
   const { settings } = gameInstance;
