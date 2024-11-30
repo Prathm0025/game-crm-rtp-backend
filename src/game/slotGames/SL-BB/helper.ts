@@ -3,6 +3,7 @@ import { SLBB } from "./breakingBadBase";
 import { convertSymbols, UiInitData } from "../../Utils/gameUtils";
 import { specialIcons } from "./types";
 import { checkForBonus, handleBonusSpin } from "./bonus";
+import { precisionRound } from "../../../utils/utils";
 
 export function initializeGameSettings(gameData: any, gameInstance: SLBB) {
   // const getSymbolIdByName = (name: string) => {
@@ -606,8 +607,8 @@ export function checkForWin(gameInstance: SLBB) {
       totalWin += settings.jackpot.win
     }
 
-    gameInstance.playerData.currentWining = totalWin;
-    gameInstance.playerData.haveWon += totalWin;
+    gameInstance.playerData.currentWining = precisionRound(totalWin,3);
+    gameInstance.playerData.haveWon += gameInstance.playerData.currentWining;
     gameInstance.incrementPlayerBalance(gameInstance.playerData.currentWining)
     makeResultJson(gameInstance)
 

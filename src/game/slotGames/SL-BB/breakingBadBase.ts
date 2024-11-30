@@ -3,6 +3,7 @@ import { SLBBSETTINGS } from "./types";
 import { initializeGameSettings, generateInitialReel, checkForWin, sendInitData, generateInitialBonusReel, makePayLines, } from "./helper";
 import { RandomResultGenerator } from "../RandomResultGenerator";
 import { sessionManager } from "../../../dashboard/session/sessionManager";
+import { precisionRound } from "../../../utils/utils";
 
 export class SLBB {
   public settings: SLBBSETTINGS;
@@ -69,7 +70,7 @@ export class SLBB {
   private prepareSpin(data: any) {
     this.settings.currentLines = data.currentLines;
     this.settings.BetPerLines = this.settings.currentGamedata.bets[data.currentBet];
-    this.settings.currentBet = this.settings.BetPerLines * this.settings.currentLines;
+    this.settings.currentBet =precisionRound(this.settings.BetPerLines * this.settings.currentLines,3);
   }
 
 
