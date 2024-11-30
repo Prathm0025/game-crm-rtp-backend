@@ -608,7 +608,7 @@ export function checkForWin(gameInstance: SLBB) {
     }
 
     gameInstance.playerData.currentWining = precisionRound(totalWin,3);
-    gameInstance.playerData.haveWon += gameInstance.playerData.currentWining;
+    gameInstance.playerData.haveWon += precisionRound(gameInstance.playerData.currentWining,3)
     gameInstance.incrementPlayerBalance(gameInstance.playerData.currentWining)
     makeResultJson(gameInstance)
 
