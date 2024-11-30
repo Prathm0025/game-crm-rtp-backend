@@ -51,11 +51,10 @@ export function checkForBonus(gameInstance: SLBB, hasCC: boolean, hasL: boolean,
     settings.bonus.isTriggered = true
     settings.bonus.isBonus = true
     settings.bonus.count = 3
-    gameInstance.playerData.rtpSpinCount += 3
     //TODO: also init bonus 
     // 1. set coins and cc to []
     // 2. freeze cc and swapped coins at link
-    if (hasML && hasCC) {
+    if (hasML) {
       settings.bonus.isMegaLink = true
     }
 
@@ -83,6 +82,8 @@ export function checkForBonus(gameInstance: SLBB, hasCC: boolean, hasL: boolean,
         }
       })
     })
+    // console.log("bonus coins",settings.coins.bonusValues);
+    // console.log("cc",settings.cashCollect.values);
 
     return true
   }
@@ -140,4 +141,8 @@ export function handleBonusSpin(gameInstance: SLBB) {
     const bonusPayout = handleCoinsAndCashCollect(gameInstance, "bonus")
     settings.bonus.payout += bonusPayout
   }
+
+
+
+
 }
