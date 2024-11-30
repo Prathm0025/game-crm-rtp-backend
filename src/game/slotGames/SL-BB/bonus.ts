@@ -51,6 +51,9 @@ export function checkForBonus(gameInstance: SLBB, hasCC: boolean, hasL: boolean,
     settings.bonus.isTriggered = true
     settings.bonus.isBonus = true
     settings.bonus.count = 3
+
+    //NOTE: add rtpcount 
+    //
     //TODO: also init bonus 
     // 1. set coins and cc to []
     // 2. freeze cc and swapped coins at link

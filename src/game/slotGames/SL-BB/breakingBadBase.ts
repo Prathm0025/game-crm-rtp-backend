@@ -70,7 +70,7 @@ export class SLBB {
   private prepareSpin(data: any) {
     this.settings.currentLines = data.currentLines;
     this.settings.BetPerLines = this.settings.currentGamedata.bets[data.currentBet];
-    this.settings.currentBet =precisionRound(this.settings.BetPerLines * this.settings.currentLines,3);
+    this.settings.currentBet =precisionRound((this.settings.BetPerLines * this.settings.currentLines),3);
   }
 
 
@@ -90,34 +90,14 @@ export class SLBB {
         this.decrementPlayerBalance(this.settings.currentBet);
         this.playerData.totalbet += this.settings.currentBet;
       }
-      // if (!bonus.isTriggered) {
-      //   this.decrementPlayerBalance(this.settings.currentBet);
-      // }
-      // if (heisenberg.freeSpin.freeSpinCount === 1) {
-      //   heisenberg.isTriggered= false;
-      // }
-      // if (freeSpin.count === 1) {
-      //   freeSpin.isFreeSpin = false;
-      // }
       if (
-        // freeSpin.isFreeSpin &&
         freeSpin.count > 0 &&
         !this.settings.bonus.isBonus
       ) {
         freeSpin.count--;
 
         this.settings.currentBet = 0;
-        // console.log(
-        //   freeSpin.count,
-        //   "this.settings.freeSpinCount"
-        // );
       }
-      // !( this.settings.bonus.count>0 ) || !( this.settings.freeSpin.count>0 )
-      // this.incrementPlayerBalance(this.playerData.currentWining)
-      // console.log("bonus", this.settings.bonus.count);
-      // console.log("free", this.settings.freeSpin.count);
-      // console.log("bool", !( this.settings.bonus.count>0 ) || !( this.settings.freeSpin.count>0 ));
-      //
 
       const spinId = platformSession.currentGameSession.createSpin();
       platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
