@@ -1,10 +1,10 @@
 import { sessionManager } from "../../../dashboard/session/sessionManager";
 import { currentGamedata } from "../../../Player";
 import { RandomResultGenerator } from "../RandomResultGenerator";
-import { initializeGameSettings, generateInitialReel, sendInitData, makePayLines, checkForWin, checkForFreeSpin, makeResultJson, checkForTrumpFreeSpin } from "./helper";
+import { initializeGameSettings, generateInitialReel, sendInitData, makePayLines, checkForWin, makeResultJson } from "./helper";
 import { SLPSFSETTINGS } from "./types";
 
-export class SLPSF {
+export class SLSB {
     public settings: SLPSFSETTINGS;
     playerData = {
         haveWon: 0,
@@ -79,39 +79,22 @@ export class SLPSF {
                 this.sendError("Low Balance");
                 return;
             }
-            const { freeSpin, currentBet } = this.settings;
-            if (!freeSpin.freeSpinStarted && freeSpin.freeSpinCount === 0) {
-                this.playerData.totalbet += currentBet
-                await this.deductPlayerBalance(currentBet);
-            } else if (freeSpin.freeSpinStarted && freeSpin.freeSpinCount > 0) {
-                freeSpin.freeSpinCount--;
-                freeSpin.freeSpinsAdded = false;
-                console.log(freeSpin.freeSpinCount, "Remaining Free Spins");
-                if (freeSpin.freeSpinCount === 0) {
-                    Object.assign(freeSpin, {
-                        freeSpinStarted: false,
-                        freeSpinsAdded: false,
-                        freeSpinCount: 0
-                    });
-                }
-            }
+            const { currentBet } = this.settings;
+
+            await this.deductPlayerBalance(currentBet);
+
 
             const spinId = platformSession.currentGameSession.createSpin();
             platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
 
             await new RandomResultGenerator(this);
             checkForWin(this)
-            checkForFreeSpin(this)
-            checkForTrumpFreeSpin(this)
             const winAmount = this.playerData.currentWining;
             platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
-            makeResultJson(this)
             //clear json
             this.settings.resultSymbolMatrix = [];
             this.settings._winData.winningLines = [];
-            this.settings._winData.winningSymbols = [];
-            this.settings.freeSpin.jokerSymbols = [];
-            this.settings.freeSpin.trumpSymbols = [];
+            this.settings._winData.winningSymbols = []
         } catch (error) {
             this.sendError("Spin error");
             console.error("Failed to generate spin results:", error);

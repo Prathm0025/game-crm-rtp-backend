@@ -7,6 +7,12 @@ interface Symbol {
     payout: number;
     reelInstance: { [key: string]: number };
 }
+export interface starBurstResponse {
+  resultMatrix: any[];
+  symbolsToEmit: any[];
+  linesToEmit: any[];
+  payout: number
+}
 export interface SLPSFSETTINGS {
     id: string;
     matrix: { x: number, y: number };
@@ -20,34 +26,18 @@ export interface SLPSFSETTINGS {
     bets: number[];
     reels: any[][];
     Symbols: Symbol[];
-    isWining: boolean;
-    freeSpin: {
-        SymbolName: string,
-        SymbolID: string,
-        freeSpinMuiltiplier: any[],
-        freeSpinStarted: boolean,
-        freeSpinCount: number,
-        noOfFreeSpins: number,
-        useFreeSpin: boolean,
-        freeSpinsAdded: boolean,
-        jokerSymbols: any[],
-        trumpSymbols: any[]
-    };
+    // isWildExpandedReels: any[]
+    isStarBurst: boolean;
+    starBurstReel: number[];
+    starBurstResponse: starBurstResponse[]
     wild: {
         SymbolName: string;
         SymbolID: number;
         useWild: boolean
     },
-    trumpFreeSpin: {
-        SymbolName: string;
-        SymbolID: number;
-
-    }
 }
 
 
 export enum specialIcons {
-    trumpFreeSpin = "TrumpFreeSpin",
     wild = "Wild",
-    freeSpin = "FreeSpin"
 }

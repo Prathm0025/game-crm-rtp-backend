@@ -130,7 +130,7 @@ export function makeResultJson(gameInstance: SLLOL) {
       }
     };
 
-    console.log("Sending result JSON:", sendData);
+    // console.log("Sending result JSON:", sendData);
     gameInstance.sendMessage('ResultData', sendData);
   } catch (error) {
     console.error("Error generating result JSON or sending message:", error);
@@ -315,7 +315,7 @@ export function checkWin(gameInstance: SLLOL): { payout: number; winningCombinat
   }
 
   const bool = checkForFreespin(gameInstance)
-  console.log("isFreespin", bool);
+  // console.log("isFreespin", bool);
 
   //reset multiplers for freespin when its over 
   if (settings.freeSpinCount <= 0 && settings.isFreeSpin === false) {

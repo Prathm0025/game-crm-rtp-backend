@@ -225,13 +225,13 @@ export function checkForWin(gameInstance: SLBE) {
             (index) => index.length > 2
           );
           if (validIndices.length > 0) {
-            console.log(validIndices);
+            // console.log(validIndices);
             settings._winData.winningSymbols.push(validIndices);
             settings._winData.totalWinningAmount = totalPayout * settings.BetPerLines;
-            console.log(settings._winData.totalWinningAmount)
+            // console.log(settings._winData.totalWinningAmount)
           }
-          console.log(`Line ${index + 1} (LTR):`, line);
-          console.log(`Payout for LTR Line ${index + 1}:`, "payout", payout);
+          // console.log(`Line ${index + 1} (LTR):`, line);
+          // console.log(`Payout for LTR Line ${index + 1}:`, "payout", payout);
           return;
         }
       }
@@ -257,13 +257,13 @@ export function checkForWin(gameInstance: SLBE) {
             (index) => index.length > 2
           );
           if (validIndices.length > 0) {
-            console.log(validIndices);
+            // console.log(validIndices);
             settings._winData.winningSymbols.push(validIndices);
             settings._winData.totalWinningAmount = totalPayout * settings.BetPerLines;
-            console.log(settings._winData.totalWinningAmount)
+            // console.log(settings._winData.totalWinningAmount)
           }
-          console.log(`Line ${index + 1} (RTL):`, line);
-          console.log(`Payout for RTL Line ${index + 1}:`, "payout", payout);
+          // console.log(`Line ${index + 1} (RTL):`, line);
+          // console.log(`Payout for RTL Line ${index + 1}:`, "payout", payout);
         }
       }
     });
@@ -292,7 +292,7 @@ export function checkForWin(gameInstance: SLBE) {
         const tempId = swapPositions(settings.resultSymbolMatrix, positions, symId)
         settings.freeSpin.substitutions.bloodSplash[i].symbolId = tempId
       }
-      console.log("after blood splash swapback", settings.resultSymbolMatrix);
+      // console.log("after blood splash swapback", settings.resultSymbolMatrix);
     }
     const { found, positions } = checkForFreeSpin(gameInstance)
     settings.freeSpin.newVampHumanPositions.push(...positions)
@@ -306,7 +306,7 @@ export function checkForWin(gameInstance: SLBE) {
     }
 
     // Log and update game state after all lines are checked
-    console.log("Total Winning", gameInstance.playerData.currentWining);
+    // console.log("Total Winning", gameInstance.playerData.currentWining);
     // console.log("Total Free Spins Won:", gameInstance.settings.freeSpin.freeSpinCount);
 
     // console.log("freespin", settings.freeSpin);
@@ -361,7 +361,7 @@ function checkLineSymbols(
       }
 
       if (symbol === undefined) {
-        console.error(`Symbol at position [${rowIndex}, ${i}] is undefined.`);
+        // console.error(`Symbol at position [${rowIndex}, ${i}] is undefined.`);
         return { isWinningLine: false, matchCount: 0, matchedIndices: [],isWild };
       }
 
@@ -593,13 +593,13 @@ function handleFreeSpin(gameInstance: SLBE) {
     const { settings } = gameInstance;
     // vampHuman positions 
     const vampireHumanPositions = settings.freeSpin.substitutions.vampHuman.flatMap((item) => item);
-    console.log("vampireHumanPositions", vampireHumanPositions);
+    // console.log("vampireHumanPositions", vampireHumanPositions);
 
     //swap positions in vampHuman with wild 
     vampireHumanPositions.forEach((position) => {
       swapPositions(settings.resultSymbolMatrix, position, settings.wild.SymbolID.toString())
     })
-    console.log("after vh swap", settings.resultSymbolMatrix);
+    // console.log("after vh swap", settings.resultSymbolMatrix);
 
     //bloodSplash swap , if vamp human union found can get upto 8 slpashes or 4 splashes if not
     const splashes: number = getRandomFromProbability(
@@ -607,7 +607,7 @@ function handleFreeSpin(gameInstance: SLBE) {
         settings.freeSpin.bloodSplash.countProb :
         settings.freeSpin.bloodSplash.countProb.slice(0, 2),
     )
-    console.log("bloodSplash", splashes);
+    // console.log("bloodSplash", splashes);
     //now we need to swap random positions in matrix with wild other than the ones that are already wild 
     const positions = getNRandomEmptyPositions(
       settings.resultSymbolMatrix,
@@ -620,7 +620,7 @@ function handleFreeSpin(gameInstance: SLBE) {
       ],
       splashes
     )
-    console.log("splash positions", positions);
+    // console.log("splash positions", positions);
 
 
     for (let i = 0; i < splashes; i++) {
@@ -630,8 +630,8 @@ function handleFreeSpin(gameInstance: SLBE) {
         symbolId: symId
       })
     }
-    console.log("after bs swap", settings.resultSymbolMatrix);
-    console.log("splash ", settings.freeSpin.substitutions.bloodSplash);
+    // console.log("after bs swap", settings.resultSymbolMatrix);
+    // console.log("splash ", settings.freeSpin.substitutions.bloodSplash);
   } catch (e) {
     console.log("Error in handleFreeSpin", e)
   }
@@ -717,10 +717,10 @@ export function makeResultJson(gameInstance: SLBE) {
       }
     };
 
-    console.log("sendData", sendData);
+    // console.log("sendData", sendData);
     // console.log("_winData lines", settings._winData.winningLines);
-    console.log("_winData symbols", settings._winData.winningSymbols);
-    console.log("res", settings.resultSymbolMatrix);
+    // console.log("_winData symbols", settings._winData.winningSymbols);
+    // console.log("res", settings.resultSymbolMatrix);
 
 
     gameInstance.sendMessage('ResultData', sendData);

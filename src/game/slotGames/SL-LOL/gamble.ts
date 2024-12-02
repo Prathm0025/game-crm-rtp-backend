@@ -15,7 +15,7 @@ export interface gambleResponse {
  * */
 const CARD_ARRAY = ["HEARTS", "DIAMONDS", "CLUBS", "SPADES"];
 export function sendInitGambleData() {
-  console.log("gamble init");
+  // console.log("gamble init");
   let gambleData: {
     blCard: Card,
     rdCard: Card
@@ -36,7 +36,7 @@ export function getGambleResult(response: {
   selected: "BLACK" | "RED"
 })
   : gambleResponse {
-  console.log("gamble result", response);
+  // console.log("gamble result", response);
   const result = getRandomCard()
 
 
