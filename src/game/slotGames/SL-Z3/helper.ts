@@ -143,7 +143,7 @@ export function checkForWin(gameInstance: SLZEUS) {
         settings.resultSymbolMatrix = reduceMatrix(gameInstance);
         handleFullReelOfZeus(gameInstance);
 
-        console.log(settings.resultSymbolMatrix, "result symbol matrix column replace to wild(10)");
+        // console.log(settings.resultSymbolMatrix, "result symbol matrix column replace to wild(10)");
         // Subsitute full reel of zeus with wild
 
         const winningLines = [];
@@ -193,7 +193,7 @@ export function checkForWin(gameInstance: SLZEUS) {
                     // console.log(settings.lastReel, 'lastReel')
                     switch (true) {
                         case symbolMultiplierLTR > 0:
-                            const payout = symbolMultiplierLTR * settings.BetPerLines;
+                            const payout = symbolMultiplierLTR * settings.currentBet;
                             totalPayout += payout;
 
                             settings._winData.winningLines.push(index + 1);
@@ -238,7 +238,7 @@ export function checkForWin(gameInstance: SLZEUS) {
                     // console.log(settings.lastReel, 'lastReel')
                     switch (true) {
                         case symbolMultiplierRTL > 0:
-                            const payout = symbolMultiplierRTL * settings.BetPerLines;
+                            const payout = symbolMultiplierRTL * settings.currentBet;
                             totalPayout += payout;
                             settings._winData.winningLines.push(index + 1);
                             winningLines.push({
@@ -518,7 +518,7 @@ function handleFreeSpins(freeSpinCount: number, gameInstance: SLZEUS) {
     }
     console.log(freeSpinCount);
     
-    console.log(settings.freeSpinSymbol.multiplier, "MULTIPLIER");
+    // console.log(settings.freeSpinSymbol.multiplier, "MULTIPLIER");
     
     switch (true) {
         case freeSpinCount >= 5:
@@ -606,7 +606,7 @@ export function makeResultJson(gameInstance: SLZEUS) {
             }
         };
         gameInstance.sendMessage('ResultData', sendData);        
-        // console.log(sendData.GameData.symbolsToEmit, "send Data");
+        // console.log(sendData, "send Data");
 
     } catch (error) {
         console.error("Error generating result JSON or sending message:", error);

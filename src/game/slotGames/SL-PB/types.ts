@@ -46,7 +46,6 @@ export interface SLSMSETTINGS {
     bonusReels: any[][];
     Symbols: Symbol[];
     BonusSymbols: Symbol[];
-    stickyBonusValue:FrozenIndex[],
     stickySymbolCount: number [],
     stickySymbolCountProb :number [],
     prizeValue:number [],
@@ -84,17 +83,22 @@ export interface SLSMSETTINGS {
         SymbolID: number;
         useWild: boolean
     },
-    stickyBonus:{
+    coins:{
         SymbolName: string;
         SymbolID: number;
         useWild: boolean
     },
-    mystery:{
+    arthurBonus:{
         SymbolName: string;
         SymbolID: number;
         useWild: boolean
     },
-    moonMystery:{
+    tomBonus:{
+        SymbolName: string;
+        SymbolID: number;
+        useWild: boolean
+    },
+    pollyBonus:{
         SymbolName: string;
         SymbolID: number;
         useWild: boolean
@@ -104,17 +108,17 @@ export interface SLSMSETTINGS {
         SymbolID: number;
         useWild: boolean
     },
-    minor:{
-        SymbolName: string;
-        SymbolID: number;
-        useWild: boolean
-    },
     major:{    
         SymbolName: string;
         SymbolID: number;
         useWild: boolean
     },
-    moon:{    
+    mega:{    
+        SymbolName: string;
+        SymbolID: number;
+        useWild: boolean
+    },
+    thomas:{    
         SymbolName: string;
         SymbolID: number;
         useWild: boolean
@@ -125,11 +129,12 @@ export interface SLSMSETTINGS {
 export enum specialIcons {
     wild = "Wild",
     bonus = "Bonus",
-    stickyBonus = "StickyBonus",
-    mystery = "Mystery",
-    moonMystery = "MoonMystery",
-    mini = "mini",
-    minor = "minor",
-    major = "major",
-    moon = "MOON"
+    coins = "Coins",
+    mini = "Mini",
+    major = "Major",
+    mega = "Mega",
+    arthurBonus = "ArthurBonus",
+    tomBonus = "TomBonus",
+    pollyBonus =  "PollyBonus",
+    thomas = "Thomas"
 }
