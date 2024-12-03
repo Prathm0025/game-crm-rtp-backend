@@ -374,7 +374,7 @@ export function sendInitData(gameInstance: SLPSF) {
 export function makeResultJson(gameInstance: SLPSF) {
   try {
     const { settings, playerData } = gameInstance;
-    const credits = gameInstance.getPlayerData().credits
+    const credits = gameInstance.getPlayerData().credits + settings._winData.totalWinningAmount
     const Balance = credits.toFixed(2)
     const sendData = {
       GameData: {
