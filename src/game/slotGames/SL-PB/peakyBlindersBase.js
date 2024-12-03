@@ -9,12 +9,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SLSM = void 0;
-const sessionManager_1 = require("../../../dashboard/session/sessionManager");
+exports.SLPB = void 0;
 const RandomResultGenerator_1 = require("../RandomResultGenerator");
-const gamble_1 = require("./gamble");
 const helper_1 = require("./helper");
-class SLSM {
+class SLPB {
     constructor(currentGameData) {
         this.currentGameData = currentGameData;
         this.playerData = {
@@ -32,9 +30,7 @@ class SLSM {
     }
     get initSymbols() {
         const Symbols = [];
-        //filter symbols which appear only in base game
-        const baseGameSymbol = this.currentGameData.gameSettings.Symbols.filter((symbol) => !symbol.isBonusGameSymbol || symbol.isSpecialSymbol);
-        baseGameSymbol.forEach((Element) => {
+        this.currentGameData.gameSettings.Symbols.forEach((Element) => {
             Symbols.push(Element);
         });
         return Symbols;
@@ -72,40 +68,6 @@ class SLSM {
                 this.prepareSpin(response.data);
                 this.getRTP(response.data.spins || 1);
                 break;
-            case "GAMBLEINIT":
-                this.deductPlayerBalance(this.playerData.currentWining);
-                this.playerData.haveWon -= this.playerData.currentWining;
-                // this.sendMessage("gambleInitData", sendData);
-                break;
-            case "GAMBLERESULT":
-                let result = (0, gamble_1.getGambleResult)({ selected: response.cardType });
-                //calculate payout
-                switch (result.playerWon) {
-                    case true:
-                        this.playerData.currentWining *= 2;
-                        result.balance = this.getPlayerData().credits + this.playerData.currentWining;
-                        result.currentWinning = this.playerData.currentWining;
-                        break;
-                    case false:
-                        result.currentWinning = 0;
-                        result.balance = this.getPlayerData().credits;
-                        this.playerData.currentWining = 0;
-                        break;
-                }
-                this.sendMessage("GambleResult", result); // result card 
-                break;
-            case "GAMBLECOLLECT":
-                this.playerData.haveWon += this.playerData.currentWining;
-                this.updatePlayerBalance(this.playerData.currentWining);
-                this.sendMessage("GambleCollect", {
-                    currentWinning: this.playerData.currentWining,
-                    balance: this.getPlayerData().credits
-                }); // balance , currentWinning
-                break;
-            default:
-                console.warn(`Unhandled message ID: ${response.id}`);
-                this.sendError(`Unhandled message ID: ${response.id}`);
-                break;
         }
     }
     prepareSpin(data) {
@@ -117,7 +79,6 @@ class SLSM {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const playerData = this.getPlayerData();
-                const platformSession = sessionManager_1.sessionManager.getPlayerPlatform(playerData.username);
                 if (this.settings.currentBet > playerData.credits) {
                     console.log(this.settings.currentBet + playerData.credits);
                     this.sendError("Low Balance");
@@ -127,12 +88,8 @@ class SLSM {
                     yield this.deductPlayerBalance(this.settings.currentBet);
                     this.playerData.totalbet += this.settings.currentBet;
                 }
-                const spinId = platformSession.currentGameSession.createSpin();
-                platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
                 yield new RandomResultGenerator_1.RandomResultGenerator(this);
                 (0, helper_1.checkForWin)(this);
-                const winAmount = this.playerData.currentWining;
-                platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
             }
             catch (error) {
                 this.sendError("Spin error");
@@ -166,4 +123,4 @@ class SLSM {
         });
     }
 }
-exports.SLSM = SLSM;
+exports.SLPB = SLPB;
