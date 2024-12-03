@@ -114,6 +114,7 @@ export class SLPSF {
             this.settings.freeSpin.jokerSymbols = [];
             this.settings.freeSpin.trumpSymbols = [];
             this.settings.isWining = false;
+            this.playerData.currentWining = 0
         } catch (error) {
             this.sendError("Spin error");
             console.error("Failed to generate spin results:", error);
