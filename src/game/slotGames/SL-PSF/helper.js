@@ -350,7 +350,7 @@ function sendInitData(gameInstance) {
 function makeResultJson(gameInstance) {
     try {
         const { settings, playerData } = gameInstance;
-        const credits = gameInstance.getPlayerData().credits;
+        const credits = gameInstance.getPlayerData().credits + settings._winData.totalWinningAmount;
         const Balance = credits.toFixed(2);
         const sendData = {
             GameData: {
