@@ -102,6 +102,7 @@ class SLPSF {
                 const winAmount = this.playerData.currentWining;
                 platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
                 (0, helper_1.makeResultJson)(this);
+                this.updatePlayerBalance(this.playerData.currentWining);
                 //clear json
                 this.settings.resultSymbolMatrix = [];
                 this.settings._winData.winningLines = [];
