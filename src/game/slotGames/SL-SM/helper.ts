@@ -215,7 +215,7 @@ export function sendInitData(gameInstance: SLSM) {
         gameInstance.settings.currentGamedata.linesApiData;
     UiInitData.paylines = convertSymbols(gameInstance.settings.Symbols);
     const reels = generateInitialReel(gameInstance.settings);
-    // const bonusReels = generateInitialBonusReel(gameInstance.settings);
+    const bonusReels = generateInitialBonusReel(gameInstance.settings);
     const bonusMulipliers = getMultipliersForBonusSymbols(gameInstance);
     gameInstance.settings.reels = reels;
     const dataToSend = {
