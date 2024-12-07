@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import {
   AuthRequest,
+  getAllPlayerSubordinateIds,
+  getAllSubordinateIds,
   updateCredits,
   updatePassword,
   updateStatus,
@@ -16,14 +18,19 @@ import Transaction from "../transactions/transactionModel";
 import { QueryParams } from "../../utils/globalTypes";
 import { IPlayer, IUser } from "./userType";
 import { sessionManager } from "../session/sessionManager";
+import { IAdmin } from "../admin/adminType";
+import { Admin } from "../admin/adminModel";
+import { hasPermission, isAdmin, isSubordinate } from "../../utils/permissions";
 
 interface ActivePlayer {
   username: string;
   currentGame: string;
 }
+
 export class UserController {
   private userService: UserService;
   private static rolesHierarchy = {
+    admin: ["company", "master", "distributor", "subdistributor", "store", "player"],
     company: ["master", "distributor", "subdistributor", "store", "player"],
     master: ["distributor"],
     distributor: ["subdistributor"],
@@ -47,6 +54,26 @@ export class UserController {
       this.getCurrentUserSubordinates.bind(this);
     this.generatePassword = this.generatePassword.bind(this);
     this.logoutUser = this.logoutUser.bind(this)
+  }
+
+
+
+  private async checkUser(username: string, role: string): Promise<IAdmin | IUser | IPlayer | null> {
+    let user: IAdmin | IUser | IPlayer | null = null;
+
+    if (role === "admin") {
+      user = await this.userService.findAdminByUsername(username);
+    } else if (role === "player") {
+      user = await this.userService.findPlayerByUsername(username);
+    } else {
+      user = await this.userService.findUserByUsername(username);
+    }
+
+    if (!user) {
+      return null; // User not found
+    }
+
+    return user;
   }
 
   public static getSubordinateRoles(role: string): string[] {
@@ -121,7 +148,7 @@ export class UserController {
         throw createHttpError(400, "Username, password are required");
       }
 
-      let user: IUser | IPlayer = await User.findOne({ username }) || await PlayerModel.findOne({ username })
+      let user: IAdmin | IUser | IPlayer = await Admin.findOne({ username }) || await User.findOne({ username }) || await PlayerModel.findOne({ username })
 
 
       if (!user) {
@@ -215,7 +242,7 @@ export class UserController {
     try {
       const _req = req as AuthRequest;
       const { user } = req.body;
-      const { username, role } = _req.user; // ADMIN
+      const { username, role } = _req.user;
 
       if (
         !user ||
@@ -227,18 +254,20 @@ export class UserController {
       ) {
         throw createHttpError(400, "All required fields must be provided");
       }
-
-      if (role !== "company" && !UserController.isRoleValid(role, user.role)) {
-        throw createHttpError(403, `A ${role} cannot create a ${user.role}`);
+      let currentUser: IUser | IAdmin;
+      if (role === "admin") {
+        currentUser = await this.userService.findAdminByUsername(username, session);
+      } else {
+        currentUser = await this.userService.findUserByUsername(username, session);
       }
 
-      const admin = await this.userService.findUserByUsername(
-        username,
-        session
-      );
-      if (!admin) {
-        throw createHttpError(404, "Admin not found");
+      if (!currentUser) {
+        throw createHttpError(404, "Current User not found");
       }
+
+      // if (!UserController.hasAccess(currentUser, user.role)) {
+      //   throw createHttpError(403, `You cannot create a ${user.role}`);
+      // }
 
       let existingUser =
         (await this.userService.findPlayerByUsername(user.username, session)) ||
@@ -253,14 +282,14 @@ export class UserController {
 
       if (user.role === "player") {
         newUser = await this.userService.createPlayer(
-          { ...user, createdBy: admin._id },
+          { ...user, createdBy: currentUser._id },
           0,
           hashedPassword,
           session
         );
       } else {
         newUser = await this.userService.createUser(
-          { ...user, createdBy: admin._id },
+          { ...user, createdBy: currentUser._id },
           0,
           hashedPassword,
           session
@@ -270,19 +299,19 @@ export class UserController {
       if (user.credits > 0) {
         const transaction = await this.userService.createTransaction(
           "recharge",
-          admin,
+          currentUser,
           newUser,
           user.credits,
           session
         );
         newUser.transactions.push(transaction._id as mongoose.Types.ObjectId);
-        admin.transactions.push(transaction._id as mongoose.Types.ObjectId);
+        currentUser.transactions.push(transaction._id as mongoose.Types.ObjectId);
       }
 
       await newUser.save({ session });
-      admin.subordinates.push(newUser._id);
+      currentUser.subordinates.push(newUser._id);
 
-      await admin.save({ session });
+      await currentUser.save({ session });
 
       await session.commitTransaction();
       res.status(201).json(newUser);
@@ -298,18 +327,9 @@ export class UserController {
       const _req = req as AuthRequest;
       const { username, role } = _req.user;
 
-      // throw createHttpError(404, "Access Denied")`
-
-      let user;
-
-      if (role === "player") {
-        user = await this.userService.findPlayerByUsername(username);
-      } else {
-        user = await this.userService.findUserByUsername(username);
-      }
-
+      let user: IUser | IPlayer | IAdmin = await this.checkUser(username, role);
       if (!user) {
-        throw createHttpError(404, "User not found");
+        throw createHttpError(404, `${username} not found`);
       }
 
       res.status(200).json(user);
@@ -321,21 +341,12 @@ export class UserController {
   async getAllSubordinates(req: Request, res: Response, next: NextFunction) {
     try {
       const _req = req as AuthRequest;
-      const { username: loggedUserName, role: loggedUserRole } = _req.user;
+      const { username: currentUsername, role: currentUserRole } = _req.user;
 
-      const loggedUser = await this.userService.findUserByUsername(
-        loggedUserName
-      );
+      const currentUser = await this.checkUser(currentUsername, currentUserRole);
 
-      if (!loggedUser) {
+      if (!currentUser) {
         throw createHttpError(404, "User not found");
-      }
-
-      if (loggedUser.role !== "company") {
-        throw createHttpError(
-          403,
-          "Access denied. Only users with the role 'company' can access this resource."
-        );
       }
 
       const page = parseInt(req.query.page as string) || 1;
@@ -376,9 +387,9 @@ export class UserController {
         query.username = { $regex: filter, $options: "i" };
       }
       if (role) {
-        query.role = { $ne: "company", $eq: role };
+        query.role = { $ne: currentUser.role, $eq: role };
       } else if (!role) {
-        query.role = { $ne: "company" };
+        query.role = { $ne: currentUser.role };
       }
       if (status) {
         query.status = status;
@@ -402,6 +413,14 @@ export class UserController {
           $gte: parsedData.credits.From,
           $lte: parsedData.credits.To,
         };
+      }
+
+      console.log("Current User: ", currentUser);
+
+      // If the user is not an admin, fetch all direct and indirect subordinates
+      if (!isAdmin(currentUser)) {
+        const allSubordinateIds = await getAllSubordinateIds(currentUser._id as mongoose.Types.ObjectId, currentUser.role);
+        query._id = { $in: allSubordinateIds };
       }
 
       // Aggregation pipeline for User collection
@@ -469,8 +488,6 @@ export class UserController {
         subordinates
       });
 
-
-
     } catch (error) {
       next(error);
     }
@@ -484,19 +501,12 @@ export class UserController {
       });
 
       const _req = req as AuthRequest;
-      const { username: loggedUserName, role: loggedUserRole } = _req.user;
+      const { username: currentUsername, role: currentUserRole } = _req.user;
 
-      const loggedUser = await this.userService.findUserByUsername(loggedUserName);
+      const currentUser = await this.checkUser(currentUsername, currentUserRole);
 
-      if (!loggedUser) {
+      if (!currentUser) {
         throw createHttpError(404, "User not found");
-      }
-
-      if (loggedUser.role !== "company") {
-        throw createHttpError(
-          403,
-          "Access denied. Only users with the role 'company' can access this resource."
-        );
       }
 
       const page = parseInt(req.query.page as string) || 1;
@@ -563,6 +573,12 @@ export class UserController {
         };
       }
 
+      // If the user is not an admin, fetch all direct and indirect players
+      if (!isAdmin(currentUser)) {
+        const allPlayerSubordinateIds = await getAllPlayerSubordinateIds(currentUser._id as mongoose.Types.ObjectId, currentUser.role);
+        query.createdBy = { $in: allPlayerSubordinateIds };
+      }
+
       const playerCount = await PlayerModel.countDocuments(query);
       const totalPages = Math.ceil(playerCount / limit);
 
@@ -597,8 +613,6 @@ export class UserController {
         };
       });
 
-
-
       res.status(200).json({
         totalSubordinates: playerCount,
         totalPages,
@@ -611,8 +625,6 @@ export class UserController {
   }
 
 
-
-
   async getCurrentUserSubordinates(
     req: Request,
     res: Response,
@@ -623,7 +635,7 @@ export class UserController {
       const { username, role } = _req.user;
       const { id } = req.query;
 
-      const currentUser = await User.findOne({ username });
+      const currentUser = await this.checkUser(username, role);
       if (!currentUser) {
         throw createHttpError(401, "User not found");
       }
@@ -635,16 +647,18 @@ export class UserController {
 
 
       let userToCheck = currentUser;
+      console.log("userToCheck: ", userToCheck);
+      console.log("ID : ", id);
 
       if (id) {
-        userToCheck = await User.findById(id);
+        userToCheck = await Admin.findById(id) || await User.findById(id) || await PlayerModel.findById(id);
+
         if (!userToCheck) {
-          userToCheck = await PlayerModel.findById(id);
-          if (!userToCheck) {
-            return res.status(404).json({ message: "User not found" });
-          }
+          return res.status(404).json({ message: "User not found" });
         }
+
       }
+
       let filterRole, status, redeem, recharge, credits;
       const filter = req.query.filter || "";
       const search = req.query.search as string;
@@ -676,9 +690,9 @@ export class UserController {
         query.username = { $regex: filter, $options: "i" };
       }
       if (filterRole) {
-        query.role = { $ne: "company", $eq: filterRole };
+        query.role = { $ne: currentUser.role, $eq: filterRole };
       } else if (!filterRole) {
-        query.role = { $ne: "company" };
+        query.role = { $ne: currentUser.role };
       }
       if (status) {
         query.status = status;
@@ -728,6 +742,8 @@ export class UserController {
 
       // Execute the aggregation
       const subordinates = await User.aggregate(combinedPipeline);
+
+      console.log("Subordinates: ", subordinates);
 
       // Total counts
       const userCount = await User.countDocuments(query);
@@ -783,9 +799,11 @@ export class UserController {
 
       const clientObjectId = new mongoose.Types.ObjectId(clientId);
 
-      const admin = await this.userService.findUserByUsername(username);
+      let admin: IAdmin | IUser = await this.userService.findAdminByUsername(username) ||
+        await this.userService.findUserByUsername(username);
+
       if (!admin) {
-        throw createHttpError(404, "Admin Not Found");
+        throw createHttpError(404, "User Not Found");
       }
 
       const client =
@@ -796,32 +814,19 @@ export class UserController {
         throw createHttpError(404, "User not found");
       }
 
-      if (
-        role != "company" &&
-        !admin.subordinates.some((id) => id.equals(clientObjectId))
-      ) {
+      if (!hasPermission(admin, `${client.role}s`, 'x')) {
+        throw createHttpError(403, `Access denied. You don't have permission to delete ${client.username}.`);
+      }
+
+      if (!isSubordinate(admin, client)) {
         throw createHttpError(403, "Client does not belong to the creator");
       }
 
-      const clientRole = client.role;
-      if (
-        !UserController.rolesHierarchy[role] ||
-        !UserController.rolesHierarchy[role].includes(clientRole)
-      ) {
-        throw createHttpError(403, `A ${role} cannot delete a ${clientRole}`);
-      }
-
       if (client instanceof User) {
-
-
         await this.userService.deleteUserById(clientObjectId);
       } else if (client instanceof Player) {
-
-        await
-          await this.userService.deletePlayerById(clientObjectId);
+        await this.userService.deletePlayerById(clientObjectId);
       }
-
-
 
       admin.subordinates = admin.subordinates.filter(
         (id) => !id.equals(clientObjectId)
@@ -847,28 +852,22 @@ export class UserController {
 
       const clientObjectId = new mongoose.Types.ObjectId(clientId);
 
-      let admin;
+      let admin: IAdmin | IUser | IPlayer = await this.userService.findAdminByUsername(username) || await this.userService.findUserByUsername(username) || await this.userService.findPlayerByUsername(username);
 
-      admin = await this.userService.findUserByUsername(username);
       if (!admin) {
-        admin = await this.userService.findPlayerByUsername(username);
-
-        if (!admin) {
-          throw createHttpError(404, "Creator not found");
-        }
+        throw createHttpError(404, "User not found");
       }
 
-      const client =
-        (await this.userService.findUserById(clientObjectId)) ||
-        (await this.userService.findPlayerById(clientObjectId));
+      const client = await this.userService.findAdminById(clientObjectId) || await this.userService.findUserById(clientObjectId) || await this.userService.findPlayerById(clientObjectId);
 
       if (!client) {
         throw createHttpError(404, "Client not found");
       }
 
-      // if (role != "company" && !admin.subordinates.some((id) => id.equals(clientObjectId))) {
-      //   throw createHttpError(403, "Client does not belong to the creator");
-      // }
+      if (!hasPermission(admin, `${client.role}s`, "w")) {
+        throw createHttpError(403, "Access denied. You don't have permission to update users.");
+      }
+
 
       if (status) {
         updateStatus(client, status);
@@ -900,31 +899,25 @@ export class UserController {
       const { username: loggedUserName, role: loggedUserRole } = _req.user;
 
       const subordinateObjectId = new mongoose.Types.ObjectId(subordinateId);
-      const loggedUser = await this.userService.findUserByUsername(
-        loggedUserName
-      );
+      const loggedUser = await this.userService.findAdminByUsername(loggedUserName) || await this.userService.findUserByUsername(loggedUserName);
 
       let user;
 
-      user = await this.userService.findUserById(subordinateObjectId);
+      user = await this.userService.findUserById(subordinateObjectId) || await this.userService.findPlayerById(subordinateObjectId);
 
       if (!user) {
-        user = await this.userService.findPlayerById(subordinateObjectId);
-
-        if (!user) {
-          throw createHttpError(404, "User not found");
-        }
+        throw createHttpError(404, "User not found");
       }
 
       if (
-        loggedUserRole === "company" ||
+        loggedUserRole === "admin" ||
         loggedUser.subordinates.includes(subordinateObjectId) ||
         user._id.toString() == loggedUser._id.toString()
       ) {
         let client;
 
         switch (user.role) {
-          case "company":
+          case "admin":
             client = await User.findById(subordinateId).populate({
               path: "transactions",
               model: Transaction,
@@ -962,8 +955,6 @@ export class UserController {
           throw createHttpError(404, "Client not found");
         }
 
-
-
         res.status(200).json(client);
       } else {
         throw createHttpError(
@@ -985,6 +976,7 @@ export class UserController {
         type as string
       );
       const allowedAdmins = [
+        "admin",
         "company",
         "master",
         "distributor",
@@ -992,7 +984,7 @@ export class UserController {
         "store",
       ];
 
-      const currentUser = await User.findOne({ username });
+      const currentUser = await Admin.findOne({ username }) || await User.findOne({ username });
 
       if (!currentUser) {
         throw createHttpError(401, "User not found");
@@ -1005,7 +997,7 @@ export class UserController {
       let targetUser = currentUser;
 
       if (userId) {
-        let subordinate = await User.findById(userId);
+        let subordinate = await Admin.findById(userId) || await User.findById(userId);
 
         if (!subordinate) {
           subordinate = await PlayerModel.findById(userId);
@@ -1018,7 +1010,7 @@ export class UserController {
         targetUser = subordinate;
       }
 
-      if (targetUser.role === "company") {
+      if (targetUser.role === "admin") {
         // Total Recharge Amount
         const totalRechargedAmt = await Transaction.aggregate([
           {
@@ -1271,7 +1263,7 @@ export class UserController {
       const subordinateObjectId = new mongoose.Types.ObjectId(subordinateId);
 
       // Fetch subordinate details
-      let subordinate = await User.findById(subordinateObjectId);
+      let subordinate = await Admin.findById(subordinateObjectId) || await User.findById(subordinateObjectId);
 
       if (!subordinate) {
         subordinate = await PlayerModel.findById(subordinateObjectId);

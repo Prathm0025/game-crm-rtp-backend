@@ -2,11 +2,11 @@ import { NextFunction, Request, Response } from "express";
 import createHttpError from "http-errors";
 import bcrypt from "bcrypt";
 import mongoose from "mongoose";
-import { User, Player } from "../users/userModel";
 import { generateOTP, sendOTP } from "./otpUtils";
 import { config } from "../../config/config";
+import { Admin } from "./adminModel";
 
-export class CompanyController {
+export class AdminController {
     private static otpStore: Map<string, { otp: string; expiresAt: Date }> = new Map();
 
     constructor() {
@@ -26,8 +26,7 @@ export class CompanyController {
         const otp = generateOTP();
 
         // Store OTP with an expiration time
-        CompanyController.otpStore.set(email, { otp, expiresAt: new Date(Date.now() + 10 * 60 * 1000) });
-        console.log(CompanyController.otpStore)
+        AdminController.otpStore.set(email, { otp, expiresAt: new Date(Date.now() + 10 * 60 * 1000) });
         try {
             console.time('sendOTP');
             await sendOTP(email, otp);
@@ -43,7 +42,7 @@ export class CompanyController {
     public async verifyOTPAndCreateUser(req: Request, res: Response, next: NextFunction) {
         const { otp, user } = req.body;
         const receiverEmail = config.sentToemail;
-        const storedOTP = CompanyController.otpStore.get(receiverEmail);
+        const storedOTP = AdminController.otpStore.get(receiverEmail);
 
         if (!otp || !user) {
             return next(createHttpError(400, 'OTP and user details are required'));
@@ -58,7 +57,7 @@ export class CompanyController {
         }
 
         // Clear OTP after successful verification
-        CompanyController.otpStore.delete(receiverEmail);
+        AdminController.otpStore.delete(receiverEmail);
 
         const session = await mongoose.startSession();
         session.startTransaction();
@@ -68,21 +67,18 @@ export class CompanyController {
                 throw createHttpError(400, "All required fields must be provided");
             }
 
-            const existingUser = await User.findOne({ username: user.username }).session(session);
-            const existingPlayer = await Player.findOne({ username: user.username }).session(session);
+            const existingAdmin = await Admin.findOne({ username: user.username }).session(session);
 
-            if (existingUser || existingPlayer) {
-                throw createHttpError(409, 'User already exists');
+            if (existingAdmin) {
+                throw createHttpError(409, 'Admin already exists');
             }
 
-            const createdById = new mongoose.Types.ObjectId();
             const hashedPassword = await bcrypt.hash(user.password, 10);
 
-            const newUser = new User({
+            const newUser = new Admin({
                 ...user,
-                role: 'company',
-                credits: Infinity,
-                createdBy: createdById,
+                credits: Infinity, // Ensure credits are set to infinite
+                createdBy: null, // No one can be above the admin
                 password: hashedPassword,
             });
 

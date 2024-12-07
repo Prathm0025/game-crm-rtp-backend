@@ -9,8 +9,9 @@ import { v2 as cloudinary } from "cloudinary";
 import { config } from "../config/config";
 import bcrypt from "bcrypt";
 import { sessionManager } from "../dashboard/session/sessionManager";
-import { Player } from "../dashboard/users/userModel";
+import { Player, User } from "../dashboard/users/userModel";
 import { Socket } from "socket.io";
+import { IAdmin } from "../dashboard/admin/adminType";
 
 
 const transactionController = new TransactionController()
@@ -102,7 +103,7 @@ export interface CustomJwtPayload extends JwtPayload {
   role: string;
 }
 
-export const updateStatus = (client: IUser | IPlayer, status: string) => {
+export const updateStatus = (client: IAdmin | IUser | IPlayer, status: string) => {
   // Destroy SlotGame instance if we update user to inactive && the client is currently in a game
   const validStatuses = ["active", "inactive"];
   if (!validStatuses.includes(status)) {
@@ -124,7 +125,7 @@ export const updateStatus = (client: IUser | IPlayer, status: string) => {
 };
 
 export const updatePassword = async (
-  client: IUser | IPlayer,
+  client: IAdmin | IUser | IPlayer,
   password: string,
 ) => {
   try {
@@ -138,8 +139,8 @@ export const updatePassword = async (
 
 
 export const updateCredits = async (
-  client: IUser | IPlayer,
-  creator: IUser,
+  client: IAdmin | IUser | IPlayer,
+  creator: IAdmin | IUser | IPlayer,
   credits: { type: string; amount: number }
 ) => {
   const session = await mongoose.startSession();
@@ -275,4 +276,63 @@ export const getManagerName = async (username: string): Promise<string | null> =
 export function precisionRound(number, precision) {
   var factor = Math.pow(10, precision);
   return Math.round(number * factor) / factor;
+}
+
+export async function getAllSubordinateIds(userId: mongoose.Types.ObjectId, role: string): Promise<mongoose.Types.ObjectId[]> {
+  let allSubordinateIds: mongoose.Types.ObjectId[] = [];
+
+  if (role === "store") {
+    // Fetch subordinates from the Player collection
+    const directSubordinates = await Player.find({ createdBy: userId }, { _id: 1 });
+    const directSubordinateIds = directSubordinates.map(sub => sub._id as mongoose.Types.ObjectId);
+    allSubordinateIds = [...directSubordinateIds];
+  } else {
+    // Fetch subordinates from the User collection
+    const directSubordinates = await User.find({ createdBy: userId }, { _id: 1, role: 1 });
+    const directSubordinateIds = directSubordinates.map(sub => sub._id as mongoose.Types.ObjectId);
+    allSubordinateIds = [...directSubordinateIds];
+
+    // If the role is company, also fetch subordinates from the Player collection
+    if (role === "company") {
+      const directPlayerSubordinates = await Player.find({ createdBy: userId }, { _id: 1 });
+      const directPlayerSubordinateIds = directPlayerSubordinates.map(sub => sub._id as mongoose.Types.ObjectId);
+      allSubordinateIds = [...allSubordinateIds, ...directPlayerSubordinateIds];
+    }
+
+    for (const sub of directSubordinates) {
+      const subSubordinateIds = await this.getAllSubordinateIds(sub._id as mongoose.Types.ObjectId, sub.role);
+      allSubordinateIds = [...allSubordinateIds, ...subSubordinateIds];
+    }
+  }
+
+  return allSubordinateIds;
+}
+
+export async function getAllPlayerSubordinateIds(userId: mongoose.Types.ObjectId, role: string): Promise<mongoose.Types.ObjectId[]> {
+  let allPlayerSubordinateIds: mongoose.Types.ObjectId[] = [];
+
+  if (role === "store") {
+    // Fetch subordinates from the Player collection
+    const directSubordinates = await Player.find({ createdBy: userId }, { _id: 1 });
+    const directSubordinateIds = directSubordinates.map(sub => sub._id as mongoose.Types.ObjectId);
+    allPlayerSubordinateIds = [...directSubordinateIds];
+  } else {
+    // Fetch subordinates from the User collection
+    const directSubordinates = await User.find({ createdBy: userId }, { _id: 1, role: 1 });
+    const directSubordinateIds = directSubordinates.map(sub => sub._id as mongoose.Types.ObjectId);
+
+    // If the role is company, also fetch subordinates from the Player collection
+    if (role === "company") {
+      const directPlayerSubordinates = await Player.find({ createdBy: userId }, { _id: 1 });
+      const directPlayerSubordinateIds = directPlayerSubordinates.map(sub => sub._id as mongoose.Types.ObjectId);
+      allPlayerSubordinateIds = [...allPlayerSubordinateIds, ...directPlayerSubordinateIds];
+    }
+
+    for (const sub of directSubordinates) {
+      const subSubordinateIds = await this.getAllPlayerSubordinateIds(sub._id as mongoose.Types.ObjectId, sub.role);
+      allPlayerSubordinateIds = [...allPlayerSubordinateIds, ...subSubordinateIds];
+    }
+  }
+
+  return allPlayerSubordinateIds;
 }

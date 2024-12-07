@@ -2,16 +2,26 @@ import mongoose from "mongoose";
 import { Player, User } from "./userModel";
 import { IPlayer, IUser } from "./userType";
 import { TransactionController } from "../transactions/transactionController";
+import { IAdmin } from "../admin/adminType";
+import { Admin } from "../admin/adminModel";
 
 const transactionController = new TransactionController()
 
 export default class UserService {
+  async findAdminByUsername(username: string, session: mongoose.ClientSession | null = null): Promise<IAdmin | null> {
+    return Admin.findOne({ username }).session(session || null);
+  }
+
   async findUserByUsername(username: string, session?: mongoose.ClientSession) {
     return await User.findOne({ username }).session(session || null);
   }
 
   async findPlayerByUsername(username: string, session?: mongoose.ClientSession) {
     return await Player.findOne({ username }).session(session || null);
+  }
+
+  async findAdminById(id: mongoose.Types.ObjectId, session?: mongoose.ClientSession) {
+    return await Admin.findById(id).session(session || null);
   }
 
   async findUserById(id: mongoose.Types.ObjectId, session?: mongoose.ClientSession) {
@@ -79,4 +89,6 @@ export default class UserService {
     }
     return arr.join("");
   }
+
+
 }

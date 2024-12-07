@@ -7,6 +7,7 @@ import { messageType } from "./game/Utils/gameUtils";
 import Manager from "./Manager";
 import { sessionManager } from "./dashboard/session/sessionManager";
 import { IUser } from "./dashboard/users/userType";
+import { Admin } from "./dashboard/admin/adminModel";
 
 
 interface DecodedToken {
@@ -47,7 +48,7 @@ const getPlayerDetails = async (username: string) => {
 };
 
 const getManagerDetails = async (username: string) => {
-    const manager = await User.findOne({ username });
+    const manager = await Admin.findOne({ username }) || await User.findOne({ username });
     if (manager) {
         return { credits: manager.credits, status: manager.status }
     }
@@ -204,7 +205,7 @@ const socketController = (io: Server) => {
 
             if (role === "player") {
                 await handlePlayerConnection(socket, decoded, userAgent);
-            } else if (['company', 'master', 'distributor', 'subdistributor', 'store'].includes(role)) {
+            } else if (['admin', 'company', 'master', 'distributor', 'subdistributor', 'store'].includes(role)) {
                 await handleManagerConnection(socket, decoded, userAgent)
             } else {
                 console.error("Unsupported role : ", role);
