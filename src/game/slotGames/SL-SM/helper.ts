@@ -325,6 +325,7 @@ export function checkForWin(gameInstance: SLSM) {
         settings.freeSpin.freeSpinsAdded = false;
         gameInstance.settings.bonusSymbolValue = []
         settings.isGrandPrize = false;
+        settings.moonMysteryData = [];
     } catch (error) {
         console.error("Error in checkForWin", error);
         return [];
