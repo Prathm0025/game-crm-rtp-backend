@@ -668,7 +668,7 @@ export function makeResultJson(gameInstance: SLSM) {
                 isGrandPrize: settings.isGrandPrize,
                 isMoonJackpot: settings.isMoonJackpot,
                 moonMysteryData: settings.moonMysteryData,
-                isStickyBonus: settings.isStickyBonusSymbol,
+                isStickyBonus: settings.isStickyBonus,
                 stickyBonusValue: settings.stickyBonusValue,
 
             },
