@@ -127,8 +127,9 @@ export function convertSymbols(data) {
 
 export function shuffleArray(array: any[]) {
     for (let i = array.length - 1; i > 0; i--) {
-        let j = Math.floor(Math.random() * (i + 1));
-        let k = array[i];
+     let seed = Date.now() + Math.random() * 1000 ; 
+        let j=  generateRandomNumber(seed, (i+1));
+    let k = array[i];
         array[i] = array[j];
         array[j] = k;
     }
@@ -146,3 +147,42 @@ export async function getPlayerCredits(playerName: string) {
         return `An error occurred while fetching credits for player ${playerName}.`;
     }
 }
+
+
+
+
+function newtonRng(seed, maxIterations = 10) {
+    let x = seed;
+    const constant = 71; 
+
+    const epsilon = 1e-10;
+
+    for (let i = 0; i < maxIterations; i++) {
+        let fx = Math.sin(x * x) - constant; 
+        let fpx = 2 * x * Math.cos(x);
+
+        let nextX = x - fx / (fpx + epsilon);
+      
+        if (Math.abs(nextX - x) < epsilon) {
+            break;
+        }
+        
+        x = nextX + Math.random();
+    }
+    
+    return Math.abs(x % 1);
+}
+
+function generateBetRng(seed, number,  maxIterations = 20,) {    
+    const randomValue = newtonRng(seed, maxIterations);    
+    return Math.floor(randomValue * number); 
+}
+
+export function generateRandomNumber(seed, number) {
+         
+        let randomNum = generateBetRng(seed, number);        
+        seed = (seed * Math.random() * Math.sin(seed) + Date.now()) % (1e10 * Math.random()) + Math.random();
+    return randomNum;
+}
+
+

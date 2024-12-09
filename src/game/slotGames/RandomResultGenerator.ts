@@ -1,3 +1,4 @@
+import { generateRandomNumber } from "../Utils/gameUtils";
 
 export class RandomResultGenerator {
   constructor(current) {
@@ -23,7 +24,10 @@ export class RandomResultGenerator {
 
   }
   getRandomIndex(maxValue: number): number {
-    return Math.floor(Math.random() * (maxValue + 1));
+    let seed = Date.now() + Math.random() * 1000 ; 
+
+    
+    return Math.floor(generateRandomNumber(seed, (maxValue + 1)));
   }
 
 }
