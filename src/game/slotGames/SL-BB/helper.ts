@@ -611,7 +611,7 @@ export function checkForWin(gameInstance: SLBB) {
       totalWin += settings.jackpot.win
     }
     gameInstance.playerData.currentWining = precisionRound(totalWin, 3);
-    gameInstance.playerData.haveWon += gameInstance.playerData.currentWining
+    gameInstance.playerData.haveWon =precisionRound( ( gameInstance.playerData.currentWining + gameInstance.playerData.haveWon ),3)
     gameInstance.incrementPlayerBalance(gameInstance.playerData.currentWining)
     makeResultJson(gameInstance)
 
@@ -698,7 +698,8 @@ export function makeResultJson(gameInstance: SLBB) {
     gameInstance.sendMessage('ResultData', sendData);
     console.log(JSON.stringify(sendData));
     // console.log("coins", sendData.GameData.winData.coinValues);
-    // console.log("Bonus coins", sendData.GameData.bonus.coins);
+    console.info("Bonus coins", sendData.GameData.bonus);
+    console.info("freespin", sendData.GameData.freeSpins);
     // console.log("cc", settings.cashCollect.values);
     // console.log("lp", sendData.GameData.winData.losPollos);
     // console.log("symbolsToEmit", sendData.GameData.symbolsToEmit);
