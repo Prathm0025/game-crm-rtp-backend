@@ -72,13 +72,15 @@ export class SLPB {
 
     messageHandler(response: any) {
         switch (response.id) {
-            case "SPIN":
+            case "SPIN":                
                 this.prepareSpin(response.data);
                 this.getRTP(response.data.spins || 1);
                 break;
         }
     }
     private prepareSpin(data: any) {
+        console.log(data, "DATA");
+        
         this.settings.currentLines = data.currentLines;
         this.settings.BetPerLines = this.settings.currentGamedata.bets[data.currentBet];
         this.settings.currentBet = this.settings.BetPerLines;

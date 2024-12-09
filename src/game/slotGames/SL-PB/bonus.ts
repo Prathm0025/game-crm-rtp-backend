@@ -37,8 +37,6 @@ export class RandomBonusGenerator {
 
         matrix.forEach((row) => console.log(row.join(" ")));
         current.settings.bonusResultMatrix = matrix;
-        console.log(matrix, "ddd");
-        
     }
 
     getRandomIndex(maxValue: number): number {
@@ -61,12 +59,12 @@ export function handleBonusGameSpin(gameInstance: SLPB) {
     checkOcurrenceOfSymbols(gameInstance);
     // add the grand prize if applicable
     if (settings.isGrandPrize) {
-        const payoutOfBonusGame = calculatePayoutOfBonusGame(gameInstance);        
+        const payoutOfBonusGame = calculatePayoutOfBonusGame(gameInstance);
         settings.thunderBonus.thunderSpinPayout = payoutOfBonusGame;
         settings.thunderBonus.thunderSpinCount = 0;
         settings.thunderBonus.isThunderBonus = false;
         settings.thunderBonus.thunderSpinsAdded = false;
-        gameInstance.playerData.currentWining += payoutOfBonusGame;     
+        gameInstance.playerData.currentWining += payoutOfBonusGame;
     }
 
 }
@@ -88,30 +86,30 @@ function checkOcurrenceOfSymbols(gameInstance: SLPB) {
     //already frozen positions
     const frozenPositions = settings.frozenIndices.map(
         (frozenIndex) => `${frozenIndex.position[0]},${frozenIndex.position[1]}`
-    );    
+    );
     //to track the length and rewared freespin
     const tempFrozenIndicesLength = settings.frozenIndices.length;
-    console.log(tempFrozenIndicesLength, "frozenInidcesLength");
+    // console.log(tempFrozenIndicesLength, "frozenInidcesLength");
 
 
     settings.bonusResultMatrix.forEach((row, rowIndex) => {
         row.forEach((symbol, colIndex) => {
             symbolsToFridge.forEach((symbolID) => {
-                if (symbol == symbolID) {                    
+                if (symbol == symbolID) {
                     const positionKey = `${colIndex},${rowIndex}`;
                     if (!frozenPositions.includes(positionKey)) {
-                        console.log(positionKey, "position key to freeze");
-                       console.log(symbol, settings.coins.SymbolID);
-                       
+                        // console.log(positionKey, "position key to freeze");
+                        console.log(symbol, settings.coins.SymbolID);
+
                         let coinsvalue = 0;
                         switch (true) {
                             case symbol == settings.coins.SymbolID:
-                                if(settings.freeSpin.useFreeSpin){
+                                if (settings.freeSpin.useFreeSpin) {
                                     coinsvalue = getRandomValue(gameInstance, 'coinsValueDuringFreeSpin');
-                                   }else{
-                                     coinsvalue = getRandomValue(gameInstance, 'coinsValue');
-                                   }                                
-                                   break;
+                                } else {
+                                    coinsvalue = getRandomValue(gameInstance, 'coinsValue');
+                                }
+                                break;
                             case symbol == settings.mini.SymbolID:
                                 coinsvalue = settings.miniMultiplier;
                                 break;
@@ -144,14 +142,14 @@ function checkOcurrenceOfSymbols(gameInstance: SLPB) {
     })
 
     if (settings.frozenIndices.length === 15) {
-        console.log("JACKPOT");
+        // console.log("JACKPOT");
         settings.isGrandPrize = true;
     }
-    if(settings.isGrandPrize){
-      
+    if (settings.isGrandPrize) {
+
     }
-    console.log(settings.frozenIndices.length);
-    
+    // console.log(settings.frozenIndices.length);
+
     if (settings.frozenIndices.length > tempFrozenIndicesLength) {
         if (settings.thunderBonus.isThunderBonus === true) {
             settings.thunderBonus.thunderSpinsAdded = true;
@@ -163,7 +161,6 @@ function checkOcurrenceOfSymbols(gameInstance: SLPB) {
 /**
  * Calculates the total payout for the bonus game based on various conditions.
  * The payout is calculated depending on whether a Moon Jackpot, Grand Prize, or regular frozen indices payout applies.
- * - If the Moon Jackpot is triggered, the payout is calculated using the moon multiplier and current bet.
  * - If the Grand Prize is triggered, the payout is calculated using the grand multiplier and current bet.
  * - Additional payout is calculated based on frozen indices, each having a prize value multiplied by the current bet.
  *
@@ -174,7 +171,7 @@ function checkOcurrenceOfSymbols(gameInstance: SLPB) {
 export function calculatePayoutOfBonusGame(gameInstance: SLPB) {
     const { settings } = gameInstance;
     let totalPayout = 0;
-  
+
     //handle grand prize
     if ((settings.isGrandPrize)) {
         const payout = settings.grandMultiplier * settings.currentBet;
@@ -187,7 +184,7 @@ export function calculatePayoutOfBonusGame(gameInstance: SLPB) {
         return accumulator + coinsvalue * settings.currentBet;
     }, 0);
 
-    totalPayout += frozenIndicesPayout;    
+    totalPayout += frozenIndicesPayout;
     return totalPayout;
 
 }
