@@ -107,7 +107,7 @@ export class GameController {
             return res.status(200).json({ featured, others });
           }
 
-        case "company":
+        default:
           const platformDoc = await Platform.aggregate([
             {
               $match: category !== "all" ? { name: category } : {},
@@ -128,13 +128,9 @@ export class GameController {
             []
           );
           return res.status(200).json(allGames);
-
-        default:
-          return next(
-            createHttpError(403, "Access denied: You don't have permission to access this resource.")
-          );
       }
     } catch (error) {
+      console.error("Error fetching games:", error);
       next(error);
     }
   }
@@ -143,15 +139,13 @@ export class GameController {
   async getGameBySlug(req: Request, res: Response, next: NextFunction) {
 
     try {
-
-
       const _req = req as AuthRequest;
       const { username, role } = _req.user;
 
       const { gameId: slug } = req.params;
 
       const currentPlayer = await Player.aggregate([
-        { $match: { username: username, status: "active" } },
+        { $match: { username: username, role: role, status: "active" } },
         { $limit: 1 }
       ]);
 
@@ -223,16 +217,6 @@ export class GameController {
     let thumbnailUploadResult: cloudinary.UploadApiResponse | undefined;
 
     try {
-      const _req = req as AuthRequest;
-      const { role } = _req.user;
-
-      if (role != "company") {
-        throw createHttpError(
-          401,
-          "Access denied: You don't have permission to add games"
-        );
-      }
-
       const {
         name,
         url,
@@ -243,9 +227,6 @@ export class GameController {
         slug,
         platform: platformName,
       } = req.body;
-
-
-
 
       if (
         !name ||
@@ -392,16 +373,6 @@ export class GameController {
   // POST : Add Platform
   async addPlatform(req: Request, res: Response, next: NextFunction) {
     try {
-      const _req = req as AuthRequest;
-      const { role } = _req.user;
-
-      if (role != "company") {
-        throw createHttpError(
-          401,
-          "Access denied: You don't have permission to add games"
-        );
-      }
-
       const { name } = req.body;
 
       if (!name) {
@@ -428,16 +399,6 @@ export class GameController {
   // GET : Get all Platform
   async getPlatforms(req: Request, res: Response, next: NextFunction) {
     try {
-      const _req = req as AuthRequest;
-      const { role } = _req.user;
-
-      if (role != "company") {
-        throw createHttpError(
-          401,
-          "Access denied: You don't have permission to add games"
-        );
-      }
-
       const platforms = await Platform.find().select("name");
       res.status(200).json(platforms);
     } catch (error) {
@@ -454,8 +415,6 @@ export class GameController {
     let thumbnailUploadResult: cloudinary.UploadApiResponse | undefined;
 
     try {
-      const _req = req as AuthRequest;
-      const { username, role } = _req.user;
       const { gameId } = req.params;
       const { status, slug, platformName, ...updateFields } = req.body;
 
@@ -466,13 +425,6 @@ export class GameController {
 
       if (!mongoose.Types.ObjectId.isValid(gameId)) {
         throw createHttpError(400, "Invalid Game ID format");
-      }
-
-      if (role !== "company") {
-        throw createHttpError(
-          401,
-          "Access denied: You don't have permission to update games"
-        );
       }
 
       const existingGame = await Platform.aggregate([
@@ -628,8 +580,6 @@ export class GameController {
     session.startTransaction();
 
     try {
-      const _req = req as AuthRequest;
-      const { role } = _req.user;
       const { gameId } = req.params;
       const { platformName } = req.query;
 
@@ -639,13 +589,6 @@ export class GameController {
 
       if (!mongoose.Types.ObjectId.isValid(gameId)) {
         throw createHttpError(400, "Invalid Game ID format");
-      }
-
-      if (role !== "company") {
-        throw createHttpError(
-          401,
-          "Access denied: You don't have permission to delete games"
-        );
       }
 
       const platform = await Platform.findOne({ name: platformName });
@@ -700,6 +643,8 @@ export class GameController {
   // PUT : Fav Game
   async addFavouriteGame(req: Request, res: Response, next: NextFunction) {
     try {
+      const _req = req as AuthRequest;
+      const { username } = _req.user;
       const { playerId } = req.params;
       const { gameId, type } = req.body;
 
@@ -722,6 +667,10 @@ export class GameController {
 
       if (!player) {
         throw createHttpError(404, "Player not found");
+      }
+
+      if (player.username !== username) {
+        throw createHttpError(403, "You are not authorized to perform this action");
       }
 
       let message;

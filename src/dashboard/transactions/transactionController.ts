@@ -63,9 +63,6 @@ export class TransactionController {
       const filter = req.query.filter || "";
       const sortOrder = req.query.sort === "desc" ? -1 : 1; // Default to ascending order
 
-      console.log("getTransactions : ")
-      console.log(username + " : " + req.query.sort)
-
       let parsedData: QueryParams = {
         role: "",
         status: "",

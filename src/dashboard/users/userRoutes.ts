@@ -1,5 +1,4 @@
 import express from "express";
-import { extractRoleFromCookie } from "../middleware/middlware";
 import { UserController } from "./userController";
 import { checkUser } from "../middleware/checkUser";
 import { checkLoginToggle } from "../middleware/checkToggle";
