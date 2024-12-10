@@ -128,7 +128,8 @@ export function convertSymbols(data) {
 export function shuffleArray(array: any[]) {
     for (let i = array.length - 1; i > 0; i--) {
      let seed = Date.now() + Math.random() * 1000 ; 
-        let j=  generateRandomNumber(seed, (i+1));
+        // let j=  generateRandomNumber(seed, (i+1));
+        let j = generateChaoticRandomNumbers(seed, (i+1));
     let k = array[i];
         array[i] = array[j];
         array[j] = k;
@@ -149,7 +150,7 @@ export async function getPlayerCredits(playerName: string) {
 }
 
 
-
+//RNG1
 
 function newtonRng(seed, maxIterations = 10) {
     let x = seed;
@@ -185,4 +186,21 @@ export function generateRandomNumber(seed, number) {
     return randomNum;
 }
 
+
+//RNG2
+
+function chaoticRandom(seed) {
+    const noise = Math.sin(seed) * 10000; 
+    const randomValue = (Math.random() + noise) % 1;
+
+    return Math.abs(randomValue); 
+}
+
+export function generateChaoticRandomNumbers(seed, count) {
+    seed = (seed * Math.random() * Math.sin(Date.now())) | 0; 
+        const randomValue = chaoticRandom(seed);
+        const randomNumber  = Math.round(randomValue * count);
+
+    return randomNumber;
+}
 
