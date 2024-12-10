@@ -1,6 +1,7 @@
 
 import { Player } from "../../dashboard/users/userModel";
 import { UserData } from "../../utils/globalTypes";
+import crypto from 'crypto'
 export enum specialIcons {
     bonus = "Bonus",
     scatter = "Scatter",
@@ -129,7 +130,7 @@ export function shuffleArray(array: any[]) {
     for (let i = array.length - 1; i > 0; i--) {
      let seed = Date.now() + Math.random() * 1000 ; 
         // let j=  generateRandomNumber(seed, (i+1));
-        let j = generateChaoticRandomNumbers(seed, (i+1));
+        let j = generatetrueRandomNumber((i+1));
     let k = array[i];
         array[i] = array[j];
         array[j] = k;
@@ -215,9 +216,25 @@ function lcg(seed) {
     return seed / m; 
 }
 
-export function generateChaoticRandomNumbers(seed, count) {
+export function generatelcgRandomNumbers(seed, count) {
     seed = Math.abs(seed + Math.random() * 1000); 
     const randomValue = lcg(seed >>> 0);
     const randomNumber = Math.round(randomValue * count);
     return randomNumber;
 }
+
+
+//RNG4 - TRUE RANDOM
+
+function trueRandom(min, max) {
+    const randomBytes = crypto.randomBytes(4); 
+    const randomValue = randomBytes.readUInt32BE(0); 
+    return min + (randomValue % (max - min));
+}
+
+export function generatetrueRandomNumber(max) {    
+    // Generate a single random number in the range [0, max)
+    const randomNumber = trueRandom(0, max);
+    return randomNumber;
+}
+

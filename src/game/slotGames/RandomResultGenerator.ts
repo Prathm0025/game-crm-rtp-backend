@@ -1,4 +1,4 @@
-import { generateChaoticRandomNumbers, generateRandomNumber } from "../Utils/gameUtils";
+import {  generateRandomNumber, generatetrueRandomNumber } from "../Utils/gameUtils";
 
 export class RandomResultGenerator {
   constructor(current) {
@@ -28,7 +28,7 @@ export class RandomResultGenerator {
 
     
     // return Math.floor(generateRandomNumber(seed, (maxValue + 1)));
-    return Math.floor(generateChaoticRandomNumbers(seed, (maxValue + 1)));
+    return Math.floor(generatetrueRandomNumber (maxValue + 1));
 
   }
 
