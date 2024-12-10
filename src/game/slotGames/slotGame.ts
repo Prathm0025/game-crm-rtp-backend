@@ -15,6 +15,7 @@ import { SLTM } from "./SL-TM/TimeMachineBase";
 import { SLSM } from "./SL-SM/sizzlingMoonBase";
 import { SLPSF } from "./SL-PSF/president45Base";
 import { SLSB } from "./SL-SB/Starburst"
+import { SLPB } from "./SL-PB/peakyBlindersBase";
 import { SLBOD } from "./SL-BOD/BookOfDeadBase";
 export default class SlotGameManager {
   public currentGame: any;
@@ -22,7 +23,8 @@ export default class SlotGameManager {
   gameClassMapping: { [key: string]: any } = {
     "SL-CM": SLCM, "SL-CRZ": SLCRZ, "SL-WOF": SLWOF, "SL-PM": SLPM, "SL-BE": SLBE,
     "SL-ONE": SLONE, "SL-LOL": SLLOL, "SL-SR": SLSR, "SL-BB": SLBB, "SL-Z3": SLZEUS,
-    "SL-SM": SLSM, "SL-TM": SLTM, "SL-BT": SLBT, "SL-PSF": SLPSF, "SL-SB": SLSB, "SL-BOD": SLBOD
+    "SL-SM": SLSM, "SL-TM": SLTM, "SL-BT": SLBT, "SL-PSF": SLPSF, "SL-SB": SLSB, "SL-BOD": SLBOD,
+    "SL-PB":SLPB
   };
 
   constructor(public currentGameData: currentGamedata) {
