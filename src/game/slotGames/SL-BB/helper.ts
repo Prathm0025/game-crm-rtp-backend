@@ -698,8 +698,8 @@ export function makeResultJson(gameInstance: SLBB) {
     gameInstance.sendMessage('ResultData', sendData);
     console.log(JSON.stringify(sendData));
     // console.log("coins", sendData.GameData.winData.coinValues);
-    console.info("Bonus coins", sendData.GameData.bonus);
-    console.info("freespin", sendData.GameData.freeSpins);
+    // console.info("Bonus coins", sendData.GameData.bonus);
+    // console.info("freespin", sendData.GameData.freeSpins);
     // console.log("cc", settings.cashCollect.values);
     // console.log("lp", sendData.GameData.winData.losPollos);
     // console.log("symbolsToEmit", sendData.GameData.symbolsToEmit);
