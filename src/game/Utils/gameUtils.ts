@@ -196,11 +196,28 @@ function chaoticRandom(seed) {
     return Math.abs(randomValue); 
 }
 
-export function generateChaoticRandomNumbers(seed, count) {
-    seed = (seed * Math.random() * Math.sin(Date.now())) | 0; 
-        const randomValue = chaoticRandom(seed);
-        const randomNumber  = Math.round(randomValue * count);
+// export function generateChaoticRandomNumbers(seed, count) {
+//     seed = (seed * Math.random() * Math.sin(Date.now())) | 0; 
+//         const randomValue = chaoticRandom(seed);
+//         const randomNumber  = Math.round(randomValue * count);
 
-    return randomNumber;
+//     return randomNumber;
+// }
+
+//RNG3 -lcg
+function lcg(seed) {
+    const a = 1664525; 
+    const c = 1013904223;
+    const m = Math.pow(2, 32); 
+
+    seed = (a * seed + c) % m;
+
+    return seed / m; 
 }
 
+export function generateChaoticRandomNumbers(seed, count) {
+    seed = Math.abs(seed + Math.random() * 1000); 
+    const randomValue = lcg(seed >>> 0);
+    const randomNumber = Math.round(randomValue * count);
+    return randomNumber;
+}
