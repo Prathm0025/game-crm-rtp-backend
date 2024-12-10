@@ -23,7 +23,9 @@ export class SLPB {
 
     get initSymbols() {
         const Symbols = [];
-        this.currentGameData.gameSettings.Symbols.forEach((Element: Symbol) => {
+        //filter symbols which appear only in base game
+        const baseGameSymbol = this.currentGameData.gameSettings.Symbols.filter((symbol) => !symbol.isBonusSymbol || symbol.isSpecialSymbol)
+        baseGameSymbol.forEach((Element: Symbol) => {
             Symbols.push(Element);
         });
         return Symbols;
@@ -34,12 +36,15 @@ export class SLPB {
     get initBonusSymbols() {
         const Symbols = [];
         //filter symbols which appear only in base game
-        const bonusGameSymbol = this.currentGameData.gameSettings.Symbols.filter((symbol)=> symbol.isBonusGameSymbol || symbol.isSpecialSymbol)        
+        const bonusGameSymbol = this.currentGameData.gameSettings.Symbols.filter((symbol)=> symbol.isBonusSymbol || symbol.isSpecialSymbol)        
         bonusGameSymbol.forEach((Element: Symbol) => {
             Symbols.push(Element);
         });    
+        
         return Symbols;
     }
+
+    
 
     sendMessage(action: string, message: any) {
         this.currentGameData.sendMessage(action, message, true);
@@ -67,13 +72,15 @@ export class SLPB {
 
     messageHandler(response: any) {
         switch (response.id) {
-            case "SPIN":
+            case "SPIN":                
                 this.prepareSpin(response.data);
                 this.getRTP(response.data.spins || 1);
                 break;
         }
     }
     private prepareSpin(data: any) {
+        console.log(data, "DATA");
+        
         this.settings.currentLines = data.currentLines;
         this.settings.BetPerLines = this.settings.currentGamedata.bets[data.currentBet];
         this.settings.currentBet = this.settings.BetPerLines;
