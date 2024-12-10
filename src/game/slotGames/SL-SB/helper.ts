@@ -6,6 +6,7 @@ import {
 import { SLSB } from "./Starburst";
 import { specialIcons } from "./types";
 import { RandomResultGenerator } from "../RandomResultGenerator";
+import { precisionRound } from "../../../utils/utils";
 
 /**
  * Initializes the game settings using the provided game data and game instance.
@@ -27,6 +28,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLSB) {
     currentLines: 0,
     BetPerLines: 0,
     reels: [],
+    starBurstTriggerMatrix: [],
     isStarBurst: false,
     starBurstReel: [],
     starBurstResponse: [],
@@ -157,50 +159,6 @@ function findFirstNonWildSymbol(line: number[], gameInstance: SLSB, direction: '
   return wildSymbol;
 }
 
-// export function wildExpansion(gameInstance: SLSB): void {
-//     const { settings } = gameInstance;
-//     if (settings.isWildExpandedReels.length === 2) {
-//         console.log("Wild expansion limit reache");
-//         return;
-//     }
-//     const originalReels: Record<number, string[]> = {};
-//     console.log("Original Matrix ", JSON.stringify(settings.resultSymbolMatrix));
-//     for (let reelIndex = 1; reelIndex <= 3; reelIndex++) {
-//         if (settings.isWildExpandedReels.includes(reelIndex)) {
-//             continue;
-//         }
-//
-//         if (settings.resultSymbolMatrix.some(row => row[reelIndex] === settings.wild.SymbolID)) {
-//             settings.isWildExpanded = true;
-//
-//             originalReels[reelIndex] = settings.resultSymbolMatrix.map(row => row[reelIndex]);
-//             settings.resultSymbolMatrix.forEach(row => {
-//                 row[reelIndex] = settings.wild.SymbolID;
-//             });
-//
-//             console.log(`Reel ${reelIndex} changed to all wild symbols.`);
-//             settings.isWildExpandedReels.push(reelIndex);
-//             if (settings.isWildExpandedReels.length === 2) {
-//                 console.log("limit reached ");
-//                 break;
-//             }
-//         } else {
-//             console.log(`No wild detected ${reelIndex}.`);
-//         }
-//     }
-//     if (!settings.isWildExpanded) {
-//         console.log("No wild symbols detected or expanded.");
-//         return;
-//     }
-//
-//     checkForWin(gameInstance);
-//     makeResultJson(gameInstance);
-// }
-
-
-
-
-
 
 //payouts to user according to symbols count in matched lines
 function accessData(symbol, matchCount, gameInstance: SLSB) {
@@ -250,14 +208,13 @@ export function sendInitData(gameInstance: SLSB) {
 export function checkForWin(gameInstance: SLSB) {
   try {
     const { settings } = gameInstance;
-    // if (settings.isWildExpandedReels.length === 2 && settings.isWildExpanded) {
-    //   console.log("Wild expansion limit reached. No further win checks will occur.");
-    //   return;
-    // }
 
     const winningLines = [];
     let totalPayout = 0;
 
+    //NOTE: make a temp copy 
+    //
+    settings.starBurstTriggerMatrix = JSON.parse(JSON.stringify(settings.resultSymbolMatrix));
 
     //NOTE: if starburst is true check if starBurstReel can be increased
     if (settings.isStarBurst) {
@@ -287,8 +244,6 @@ export function checkForWin(gameInstance: SLSB) {
       })
     }
 
-
-
     //NOTE: swap wild in resMatrix
     //
     if (settings.starBurstReel.length > 0) {
@@ -302,11 +257,6 @@ export function checkForWin(gameInstance: SLSB) {
       // console.info(settings.resultSymbolMatrix);
     }
 
-
-    // if (settings.isWildExpandedReels.length < 2) {
-    //     wildExpansion(gameInstance);
-    //     console.log("CHECKING ON REEL", JSON.stringify(settings.resultSymbolMatrix));
-    // }
     settings.lineData.forEach((line, index) => {
       const firstSymbolPositionLTR = line[0];
       const firstSymbolPositionRTL = line[line.length - 1];
@@ -389,14 +339,21 @@ export function checkForWin(gameInstance: SLSB) {
     //NOTE: not starburst
     if (!settings.isStarBurst && settings.starBurstReel.length === 0) {
 
-      gameInstance.playerData.currentWining = totalPayout;
+      gameInstance.playerData.currentWining = precisionRound(totalPayout,5)
+      gameInstance.playerData.haveWon = precisionRound((
+        gameInstance.playerData.haveWon + totalPayout), 5)
       makeResultJson(gameInstance)
+      gameInstance.updatePlayerBalance(gameInstance.playerData.currentWining)
 
       settings.starBurstReel = []
       settings.isStarBurst = false
       settings.starBurstResponse = []
       //NOTE: starburst last spin
     } else if (!settings.isStarBurst && settings.starBurstReel.length > 0) {
+      //swapback
+      settings.resultSymbolMatrix = settings.starBurstTriggerMatrix
+
+
 
       settings.starBurstResponse.push({
         resultMatrix: settings.resultSymbolMatrix,
@@ -404,8 +361,20 @@ export function checkForWin(gameInstance: SLSB) {
         linesToEmit: settings._winData.winningLines,
         payout: totalPayout
       })
+
+      let starBurstPayout = 0
+      settings.starBurstResponse.forEach((response) => {
+        starBurstPayout += response.payout
+      })
+
+      gameInstance.playerData.currentWining = precisionRound((
+         starBurstPayout ), 5)
+      gameInstance.playerData.haveWon = precisionRound((
+        gameInstance.playerData.haveWon + gameInstance.playerData.currentWining), 5)
+
+      gameInstance.updatePlayerBalance(gameInstance.playerData.currentWining)
       //FIX:  clearing redundant data .remove it later maybe 
-      settings.resultSymbolMatrix = []
+      settings.resultSymbolMatrix = settings.starBurstTriggerMatrix
       settings._winData.winningLines = []
       settings._winData.winningSymbols = []
 
@@ -416,6 +385,10 @@ export function checkForWin(gameInstance: SLSB) {
       settings.starBurstResponse = []
       //NOTE: starburst spins
     } else {
+
+      //swapback
+      settings.resultSymbolMatrix = settings.starBurstTriggerMatrix
+
       settings.starBurstResponse.push({
         resultMatrix: settings.resultSymbolMatrix,
         symbolsToEmit: settings._winData.winningSymbols,
@@ -431,6 +404,7 @@ export function checkForWin(gameInstance: SLSB) {
     }
     settings._winData.winningLines = []
     settings._winData.winningSymbols = []
+    settings.starBurstTriggerMatrix = []
 
     return winningLines;
   } catch (error) {
@@ -439,7 +413,8 @@ export function checkForWin(gameInstance: SLSB) {
   }
 }
 
-//MAKERESULT JSON FOR FRONTENT SIDE
+
+//MAKERESULT JSON FOR FRONTEND 
 export function makeResultJson(gameInstance: SLSB) {
   try {
     const { settings, playerData } = gameInstance;
@@ -458,7 +433,7 @@ export function makeResultJson(gameInstance: SLSB) {
         Balance: Balance,
         totalbet: playerData.totalbet,
         haveWon: playerData.haveWon,
-        currentWining: settings._winData.totalWinningAmount
+        currentWining: playerData.currentWining
       }
     };
     console.log(JSON.stringify(sendData));
