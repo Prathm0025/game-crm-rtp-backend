@@ -640,6 +640,7 @@ function checkForFreeSpin(gameInstance: SLSM) {
         freeSpin.useFreeSpin = true;
         freeSpin.freeSpinCount += freeSpin.freeSpinAwarded
         gameInstance.settings.frozenIndices = gameInstance.settings.bonusSymbolValue;
+        gameInstance.settings.isStickyBonus = false;
         // console.log(gameInstance.settings.tempResultSymbolMatrix);
     }
     // console.log(`bonus symbol Count: ${bonusSymbolCount}`);
