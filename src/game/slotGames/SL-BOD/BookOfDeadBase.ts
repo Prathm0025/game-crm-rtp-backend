@@ -124,15 +124,15 @@ export class SLBOD {
 
       if (!(this.settings.freeSpinCount > 0)) {
 
-        await this.deductPlayerBalance(currentBet);
-        this.playerData.totalbet =precisionRound(this.playerData.totalbet + currentBet, 3);
+        this.deductPlayerBalance(currentBet);
+        this.playerData.totalbet =precisionRound(this.playerData.totalbet + currentBet, 5);
       }
 
 
       const spinId = platformSession.currentGameSession.createSpin();
       platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
 
-      await new RandomResultGenerator(this);
+       new RandomResultGenerator(this);
       checkForWin(this)
       const winAmount = this.playerData.currentWining;
       platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);

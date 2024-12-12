@@ -335,9 +335,9 @@ export function checkForWin(gameInstance: SLBOD) {
     });
 
 
-    gameInstance.playerData.currentWining = precisionRound(totalPayout, 4);
+    gameInstance.playerData.currentWining = precisionRound(totalPayout, 5);
     gameInstance.playerData.haveWon = precisionRound(gameInstance.playerData.haveWon +
-      gameInstance.playerData.currentWining, 4)
+      gameInstance.playerData.currentWining, 5)
     makeResultJson(gameInstance)
     settings.isFreeSpin = false
     settings.expandedReels = []
