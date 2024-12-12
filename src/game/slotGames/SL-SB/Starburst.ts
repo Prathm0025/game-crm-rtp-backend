@@ -18,9 +18,12 @@ export class SLSB {
 
   constructor(public currentGameData: currentGamedata) {
     this.settings = initializeGameSettings(currentGameData, this);
+    console.log("Initialized game settings SL-SB");
     generateInitialReel(this.settings)
     sendInitData(this)
     makePayLines(this)
+
+    console.log("balance",this.getPlayerData().credits);
   }
 
   get initSymbols() {
@@ -83,8 +86,7 @@ export class SLSB {
       const { currentBet } = this.settings;
 
       this.deductPlayerBalance(currentBet);
-      this.playerData.totalbet = precisionRound((this.playerData.totalbet + currentBet), 4);
-
+      this.playerData.totalbet = precisionRound((this.playerData.totalbet + currentBet), 5);
 
 
       const spinId = platformSession.currentGameSession.createSpin();
