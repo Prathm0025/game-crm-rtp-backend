@@ -32,16 +32,11 @@ export function initializeGameSettings(gameData: any, gameInstance: SLAOG) {
     freeSpinCount: 0,
     expandedReels: [],
     previousGambleResult: [],
-    scatter: {
+    wild: {
       SymbolName: "",
       SymbolID: -1,
       useWild: false,
     },
-    expand: {
-      SymbolName: "",
-      SymbolID: -1,
-      useWild: false,
-    }
   };
 }
 /**
@@ -90,15 +85,10 @@ export function makePayLines(gameInstance: SLAOG) {
 }
 function handleSpecialSymbols(symbol: any, gameInstance: SLAOG) {
   switch (symbol.Name) {
-    case specialIcons.scatter:
-      gameInstance.settings.scatter.SymbolName = symbol.Name;
-      gameInstance.settings.scatter.SymbolID = symbol.Id;
-      gameInstance.settings.scatter.useWild = false
-      break;
-    case specialIcons.expand:
-      gameInstance.settings.expand.SymbolName = symbol.Name;
-      gameInstance.settings.expand.SymbolID = symbol.Id;
-      gameInstance.settings.expand.useWild = true
+    case specialIcons.wild:
+      gameInstance.settings.wild.SymbolName = symbol.Name;
+      gameInstance.settings.wild.SymbolID = symbol.Id;
+      gameInstance.settings.wild.useWild = false
       break;
     default:
       break;
@@ -124,7 +114,7 @@ function checkLineSymbols(
 ): CheckLineResult {
   try {
     const { settings } = gameInstance;
-    const wildSymbol = settings.scatter.SymbolID || "";
+    const wildSymbol = settings.wild.SymbolID || "";
     let matchCount = 1;
     let currentSymbol = firstSymbol;
     let isWild = firstSymbol === wildSymbol
@@ -166,7 +156,7 @@ function checkLineSymbols(
 //checking first non wild symbol in lines which start with wild symbol
 function findFirstNonWildSymbol(line: number[], gameInstance: SLAOG, direction: 'LTR' | 'RTL' = 'LTR') {
   const { settings } = gameInstance;
-  const wildSymbol = settings.scatter.SymbolID;
+  const wildSymbol = settings.wild.SymbolID;
   const start = direction === 'LTR' ? 0 : line.length - 1;
   const end = direction === 'LTR' ? line.length : -1;
   const step = direction === 'LTR' ? 1 : -1;
@@ -240,19 +230,19 @@ export function checkForWin(gameInstance: SLAOG) {
 
     settings.lineData.forEach((line, index) => {
       const firstSymbolPositionLTR = line[0];
-      const firstSymbolPositionRTL = line[line.length - 1];
+      // const firstSymbolPositionRTL = line[line.length - 1];
 
       // Get first symbols for both directions
       let firstSymbolLTR = settings.resultSymbolMatrix[firstSymbolPositionLTR][0];
-      let firstSymbolRTL = settings.resultSymbolMatrix[firstSymbolPositionRTL][line.length - 1];
+      // let firstSymbolRTL = settings.resultSymbolMatrix[firstSymbolPositionRTL][line.length - 1];
 
       // Handle wild symbols for both directions
-      if (firstSymbolLTR === settings.scatter.SymbolID) {
+      if (firstSymbolLTR === settings.wild.SymbolID) {
         firstSymbolLTR = findFirstNonWildSymbol(line, gameInstance);
       }
-      if (firstSymbolRTL === settings.scatter.SymbolID) {
-        firstSymbolRTL = findFirstNonWildSymbol(line, gameInstance, 'RTL');
-      }
+      // if (firstSymbolRTL === settings.wild.SymbolID) {
+      //   firstSymbolRTL = findFirstNonWildSymbol(line, gameInstance, 'RTL');
+      // }
 
       // Left-to-right check
       const LTRResult = checkLineSymbols(firstSymbolLTR, line, gameInstance, 'LTR');

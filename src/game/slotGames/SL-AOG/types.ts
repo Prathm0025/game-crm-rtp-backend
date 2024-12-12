@@ -24,14 +24,7 @@ export interface SLAOGSETTINGS {
   freeSpinIncrement: number
   isFreeSpin: boolean;
   freeSpinCount: number;
-  // expandedReels: number[]
-  // previousGambleResult: CardSuits[]
-  scatter: {
-    SymbolName: string;
-    SymbolID: number;
-    useWild: boolean
-  },
-  expand: {
+  wild: {
     SymbolName: string;
     SymbolID: number;
     useWild: boolean
@@ -40,6 +33,6 @@ export interface SLAOGSETTINGS {
 
 
 export enum specialIcons {
-  scatter = "Scatter",
+  wild = "Wild",
   expand = "Expand"
 }
