@@ -2,7 +2,6 @@ import { NextFunction, Request, Response } from "express";
 import {
   AuthRequest,
   getAllPlayerSubordinateIds,
-  getAllSubordinateIds,
   updateCredits,
   updatePassword,
   updateStatus,
@@ -340,6 +339,7 @@ export class UserController {
 
   async getAllSubordinates(req: Request, res: Response, next: NextFunction) {
     try {
+      console.log("GET ALL SUBORDINATES");
       const _req = req as AuthRequest;
       const { username: currentUsername, role: currentUserRole } = _req.user;
 
@@ -415,11 +415,10 @@ export class UserController {
         };
       }
 
-      console.log("Current User: ", currentUser);
 
       // If the user is not an admin, fetch all direct and indirect subordinates
       if (!isAdmin(currentUser)) {
-        const allSubordinateIds = await getAllSubordinateIds(currentUser._id as mongoose.Types.ObjectId, currentUser.role);
+        const allSubordinateIds = await this.userService.getAllSubordinateIds(currentUser._id as mongoose.Types.ObjectId, currentUser.role);
         query._id = { $in: allSubordinateIds };
       }
 
@@ -647,8 +646,7 @@ export class UserController {
 
 
       let userToCheck = currentUser;
-      console.log("userToCheck: ", userToCheck);
-      console.log("ID : ", id);
+
 
       if (id) {
         userToCheck = await Admin.findById(id) || await User.findById(id) || await PlayerModel.findById(id);
@@ -743,7 +741,6 @@ export class UserController {
       // Execute the aggregation
       const subordinates = await User.aggregate(combinedPipeline);
 
-      console.log("Subordinates: ", subordinates);
 
       // Total counts
       const userCount = await User.countDocuments(query);

@@ -90,5 +90,34 @@ export default class UserService {
     return arr.join("");
   }
 
+  async getAllSubordinateIds(userId: mongoose.Types.ObjectId, role: string): Promise<mongoose.Types.ObjectId[]> {
+    let allSubordinateIds: mongoose.Types.ObjectId[] = [];
+
+    if (role === "store") {
+      // Fetch subordinates from the Player collection
+      const directSubordinates = await Player.find({ createdBy: userId }, { _id: 1 });
+      const directSubordinateIds = directSubordinates.map(sub => sub._id as mongoose.Types.ObjectId);
+      allSubordinateIds = [...directSubordinateIds];
+    } else {
+      // Fetch subordinates from the User collection
+      const directSubordinates = await User.find({ createdBy: userId }, { _id: 1, role: 1 });
+      const directSubordinateIds = directSubordinates.map(sub => sub._id as mongoose.Types.ObjectId);
+      allSubordinateIds = [...directSubordinateIds];
+
+      // If the role is company, also fetch subordinates from the Player collection
+      if (role === "company") {
+        const directPlayerSubordinates = await Player.find({ createdBy: userId }, { _id: 1 });
+        const directPlayerSubordinateIds = directPlayerSubordinates.map(sub => sub._id as mongoose.Types.ObjectId);
+        allSubordinateIds = [...allSubordinateIds, ...directPlayerSubordinateIds];
+      }
+
+      for (const sub of directSubordinates) {
+        const subSubordinateIds = await this.getAllSubordinateIds(sub._id as mongoose.Types.ObjectId, sub.role);
+        allSubordinateIds = [...allSubordinateIds, ...subSubordinateIds];
+      }
+    }
+
+    return allSubordinateIds;
+  }
 
 }

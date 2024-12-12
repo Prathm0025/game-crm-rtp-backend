@@ -9,7 +9,7 @@ import { checkRole } from "../middleware/checkRole";
 const transactionController = new TransactionController()
 const transactionRoutes = express.Router();
 
-transactionRoutes.get("/all", checkUser, checkRole(["admin"]), transactionController.getAllTransactions)
+transactionRoutes.get("/all", checkUser, checkRole(["admin", "company"]), transactionController.getAllTransactions)
 transactionRoutes.get("/", checkUser, checkRole(["admin", "company", "master", "distributor", "subdistributor", "store"]), transactionController.getTransactions);
 transactionRoutes.get("/:subordinateId", checkUser, transactionController.getTransactionsBySubId);
 
