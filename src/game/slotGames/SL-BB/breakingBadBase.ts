@@ -65,14 +65,12 @@ export class SLBB {
       default:
         this.sendMessage(response.id, "invalid request");
     }
-
   }
   private prepareSpin(data: any) {
     this.settings.currentLines = data.currentLines;
     this.settings.BetPerLines = this.settings.currentGamedata.bets[data.currentBet];
-    this.settings.currentBet =precisionRound((this.settings.BetPerLines * this.settings.currentLines),3);
+    this.settings.currentBet = this.settings.BetPerLines * this.settings.currentLines
   }
-
 
   public async spinResult(): Promise<void> {
     try {
@@ -87,8 +85,9 @@ export class SLBB {
       }
 
       if (!(this.settings.bonus.count > 0) && !(this.settings.freeSpin.count > 0)) {
+
         this.decrementPlayerBalance(this.settings.currentBet);
-        this.playerData.totalbet = precisionRound((this.settings.currentBet + this.playerData.totalbet),5)
+        this.playerData.totalbet = precisionRound((this.settings.currentBet + this.playerData.totalbet), 5)
       }
       if (
         freeSpin.count > 0 &&
@@ -96,7 +95,6 @@ export class SLBB {
       ) {
         freeSpin.count--;
 
-        this.settings.currentBet = 0;
       }
 
       const spinId = platformSession.currentGameSession.createSpin();
