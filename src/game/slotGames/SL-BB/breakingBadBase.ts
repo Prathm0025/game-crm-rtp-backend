@@ -88,7 +88,7 @@ export class SLBB {
 
       if (!(this.settings.bonus.count > 0) && !(this.settings.freeSpin.count > 0)) {
         this.decrementPlayerBalance(this.settings.currentBet);
-        this.playerData.totalbet = precisionRound((this.settings.currentBet + this.playerData.totalbet),3)
+        this.playerData.totalbet = precisionRound((this.settings.currentBet + this.playerData.totalbet),5)
       }
       if (
         freeSpin.count > 0 &&
