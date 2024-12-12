@@ -14,33 +14,40 @@ const rolesHierarchy: Record<string, string[]> = {
 const permissions: Record<string, Record<string, string[]>> = {
     admin: {
         games: ["r", "w", "x"],
-        users: ["r", "w", "x"],
+        companys: ["r", "w", "x"],
+        masters: ["r", "w", "x"],
+        distributors: ["r", "w", "x"],
+        subdistributors: ["r", "w", "x"],
+        stores: ["r", "w", "x"],
         players: ["r", "w", "x"],
     },
     company: {
-        games: ["r", "w"],
-        users: ["r", "w"],
+        masters: ["r", "w", "x"],
+        distributors: ["r", "w", "x"],
+        subdistributors: ["r", "w", "x"],
+        stores: ["r", "w", "x"],
         players: ["r", "w", "x"],
     },
     master: {
-        games: ["r"],
-        users: ["r", "w"],
-        players: [],
+        distributors: ["r", "w", "x"],
+        subdistributors: ["r", "w", "x"],
+        stores: ["r", "w", "x"],
+        players: ["r", "w", "x"],
     },
     distributor: {
-        games: ["r"],
-        users: ["r"],
-        players: [],
+        subdistributors: ["r", "w", "x"],
+        stores: ["r", "w", "x"],
+        players: ["r", "w", "x"],
     },
     subdistributor: {
-        games: ["r"],
-        users: ["r"],
-        players: [],
+        stores: ["r", "w", "x"],
+        players: ["r", "w", "x"],
     },
     store: {
+        players: ["r", "w", "x"],
+    },
+    player: {
         games: ["r"],
-        users: [],
-        players: ['r', 'w', 'x'],
     },
 };
 

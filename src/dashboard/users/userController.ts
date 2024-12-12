@@ -815,9 +815,6 @@ export class UserController {
         throw createHttpError(403, `Access denied. You don't have permission to delete ${client.username}.`);
       }
 
-      if (!isSubordinate(admin, client)) {
-        throw createHttpError(403, "Client does not belong to the creator");
-      }
 
       if (client instanceof User) {
         await this.userService.deleteUserById(clientObjectId);
