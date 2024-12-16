@@ -16,6 +16,7 @@ import { SLSM } from "./SL-SM/sizzlingMoonBase";
 import { SLPSF } from "./SL-PSF/president45Base";
 import { SLSB } from "./SL-SB/Starburst"
 import { SLPB } from "./SL-PB/peakyBlindersBase";
+import { SLSG } from "./SL-SG/spartacusGladitaorBase";
 export default class SlotGameManager {
   public currentGame: any;
 
@@ -26,7 +27,8 @@ export default class SlotGameManager {
     "SL-BT": SLBT,
     "SL-PSF": SLPSF,
     "SL-SB": SLSB,
-    "SL-PB":SLPB
+    "SL-PB":SLPB,
+    "SL-SG":SLSG
   };
 
   constructor(public currentGameData: currentGamedata) {
