@@ -26,7 +26,7 @@ export interface SLPSFSETTINGS {
     bets: number[];
     reels: any[][];
     Symbols: Symbol[];
-    // isWildExpandedReels: any[]
+    starBurstTriggerMatrix : any[]
     isStarBurst: boolean;
     starBurstReel: number[];
     starBurstResponse: starBurstResponse[]
