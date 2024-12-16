@@ -2,7 +2,6 @@
 import { Player } from "../../dashboard/users/userModel";
 import { UserData } from "../../utils/globalTypes";
 import crypto from 'crypto';
-import crypto from 'crypto'
 export enum specialIcons {
     bonus = "Bonus",
     scatter = "Scatter",
