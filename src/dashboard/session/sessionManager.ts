@@ -114,16 +114,8 @@ class SessionManager {
     }
 
     private async notifyManagers(manager: Manager, eventType: string, payload: any) {
-        manager.notifyManager({ type: eventType, payload });
 
-        if (manager.role === 'company') {
-            // Notify both admin and company
-            const admin = this.getActiveManagerByRole('admin');
-            if (admin) {
-                admin.notifyManager({ type: eventType, payload });
-            }
-            manager.notifyManager({ type: eventType, payload });
-        } else if (manager.role === 'store') {
+        if (manager.role === 'store') {
             // Get top hierarchy user until company and notify company, store, and admin
             const topUser = await this.getTopUserUntilCompany(manager.username);
             if (topUser) {
@@ -132,14 +124,18 @@ class SessionManager {
                     companyManager.notifyManager({ type: eventType, payload });
                 }
             }
-            const admin = this.getActiveManagerByRole('admin');
-            if (admin) {
-                admin.notifyManager({ type: eventType, payload });
-            }
             manager.notifyManager({ type: eventType, payload });
-        } else {
-            manager.notifyManager({ type: eventType, payload });
+            return;
         }
+
+        manager.notifyManager({ type: eventType, payload });
+
+        const admin = this.getActiveManagerByRole('admin');
+        if (admin) {
+            admin.notifyManager({ type: eventType, payload });
+        }
+
+
     }
 
 
