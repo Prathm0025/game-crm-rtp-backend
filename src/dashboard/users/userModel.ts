@@ -24,7 +24,7 @@ export const UserSchema: Schema = new Schema<IUser>(
 
 UserSchema.virtual("subordinateModel").get(function (this: IUser) {
   const rolesHierarchy: Record<string, string> = {
-    admin: "Admin",
+    admin: "User",
     company: "User",
     master: "User",
     distributor: "User",

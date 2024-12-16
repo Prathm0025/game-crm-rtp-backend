@@ -15,6 +15,7 @@ class SessionManager {
         this.platformSessions.set(player.playerData.username, player);
         try {
             const platformSessionData = new PlatformSessionModel(player.getSummary())
+            console.log(`PLATFORM STARTED : `, platformSessionData)
             await platformSessionData.save();
 
             await this.notifyManagers(player.managerName, eventType.ENTERED_PLATFORM, player.getSummary());

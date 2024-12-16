@@ -4,7 +4,8 @@ import bcrypt from "bcrypt";
 import mongoose from "mongoose";
 import { generateOTP, sendOTP } from "./otpUtils";
 import { config } from "../../config/config";
-import { Admin } from "./adminModel";
+import { User } from "../users/userModel";
+
 
 export class AdminController {
     private static otpStore: Map<string, { otp: string; expiresAt: Date }> = new Map();
@@ -67,7 +68,7 @@ export class AdminController {
                 throw createHttpError(400, "All required fields must be provided");
             }
 
-            const existingAdmin = await Admin.findOne({ username: user.username }).session(session);
+            const existingAdmin = await User.findOne({ username: user.username }).session(session);
 
             if (existingAdmin) {
                 throw createHttpError(409, 'Admin already exists');
@@ -75,7 +76,7 @@ export class AdminController {
 
             const hashedPassword = await bcrypt.hash(user.password, 10);
 
-            const newUser = new Admin({
+            const newUser = new User({
                 ...user,
                 credits: Infinity, // Ensure credits are set to infinite
                 createdBy: null, // No one can be above the admin

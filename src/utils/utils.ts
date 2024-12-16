@@ -11,7 +11,6 @@ import bcrypt from "bcrypt";
 import { sessionManager } from "../dashboard/session/sessionManager";
 import { Player, User } from "../dashboard/users/userModel";
 import { Socket } from "socket.io";
-import { IAdmin } from "../dashboard/admin/adminType";
 
 
 const transactionController = new TransactionController()
@@ -103,7 +102,7 @@ export interface CustomJwtPayload extends JwtPayload {
   role: string;
 }
 
-export const updateStatus = (client: IAdmin | IUser | IPlayer, status: string) => {
+export const updateStatus = (client: IUser | IPlayer, status: string) => {
   // Destroy SlotGame instance if we update user to inactive && the client is currently in a game
   const validStatuses = ["active", "inactive"];
   if (!validStatuses.includes(status)) {
@@ -125,7 +124,7 @@ export const updateStatus = (client: IAdmin | IUser | IPlayer, status: string) =
 };
 
 export const updatePassword = async (
-  client: IAdmin | IUser | IPlayer,
+  client: IUser | IPlayer,
   password: string,
 ) => {
   try {
@@ -139,8 +138,8 @@ export const updatePassword = async (
 
 
 export const updateCredits = async (
-  client: IAdmin | IUser | IPlayer,
-  creator: IAdmin | IUser | IPlayer,
+  client: IUser | IPlayer,
+  creator: IUser | IPlayer,
   credits: { type: string; amount: number }
 ) => {
   const session = await mongoose.startSession();

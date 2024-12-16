@@ -7,7 +7,6 @@ import { messageType } from "./game/Utils/gameUtils";
 import Manager from "./Manager";
 import { sessionManager } from "./dashboard/session/sessionManager";
 import { IUser } from "./dashboard/users/userType";
-import { Admin } from "./dashboard/admin/adminModel";
 
 
 interface DecodedToken {
@@ -48,7 +47,7 @@ const getPlayerDetails = async (username: string) => {
 };
 
 const getManagerDetails = async (username: string) => {
-    const manager = await Admin.findOne({ username }) || await User.findOne({ username });
+    const manager = await User.findOne({ username });
     if (manager) {
         return { credits: manager.credits, status: manager.status }
     }

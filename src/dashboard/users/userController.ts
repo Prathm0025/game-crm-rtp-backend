@@ -17,8 +17,6 @@ import Transaction from "../transactions/transactionModel";
 import { QueryParams } from "../../utils/globalTypes";
 import { IPlayer, IUser } from "./userType";
 import { sessionManager } from "../session/sessionManager";
-import { IAdmin } from "../admin/adminType";
-import { Admin } from "../admin/adminModel";
 import { hasPermission, isAdmin, isSubordinate } from "../../utils/permissions";
 
 interface ActivePlayer {
@@ -57,12 +55,10 @@ export class UserController {
 
 
 
-  private async checkUser(username: string, role: string): Promise<IAdmin | IUser | IPlayer | null> {
-    let user: IAdmin | IUser | IPlayer | null = null;
+  private async checkUser(username: string, role: string): Promise<IUser | IPlayer | null> {
+    let user: IUser | IPlayer | null = null;
 
-    if (role === "admin") {
-      user = await this.userService.findAdminByUsername(username);
-    } else if (role === "player") {
+    if (role === "player") {
       user = await this.userService.findPlayerByUsername(username);
     } else {
       user = await this.userService.findUserByUsername(username);
@@ -147,7 +143,7 @@ export class UserController {
         throw createHttpError(400, "Username, password are required");
       }
 
-      let user: IAdmin | IUser | IPlayer = await Admin.findOne({ username }) || await User.findOne({ username }) || await PlayerModel.findOne({ username })
+      let user: IUser | IPlayer = await User.findOne({ username }) || await PlayerModel.findOne({ username })
 
 
       if (!user) {
@@ -253,12 +249,7 @@ export class UserController {
       ) {
         throw createHttpError(400, "All required fields must be provided");
       }
-      let currentUser: IUser | IAdmin;
-      if (role === "admin") {
-        currentUser = await this.userService.findAdminByUsername(username, session);
-      } else {
-        currentUser = await this.userService.findUserByUsername(username, session);
-      }
+      let currentUser: IUser = await this.userService.findUserByUsername(username, session);
 
       if (!currentUser) {
         throw createHttpError(404, "Current User not found");
@@ -326,7 +317,7 @@ export class UserController {
       const _req = req as AuthRequest;
       const { username, role } = _req.user;
 
-      let user: IUser | IPlayer | IAdmin = await this.checkUser(username, role);
+      let user: IUser | IPlayer = await this.checkUser(username, role);
       if (!user) {
         throw createHttpError(404, `${username} not found`);
       }
@@ -649,7 +640,7 @@ export class UserController {
 
 
       if (id) {
-        userToCheck = await Admin.findById(id) || await User.findById(id) || await PlayerModel.findById(id);
+        userToCheck = await User.findById(id) || await PlayerModel.findById(id);
 
         if (!userToCheck) {
           return res.status(404).json({ message: "User not found" });
@@ -796,8 +787,7 @@ export class UserController {
 
       const clientObjectId = new mongoose.Types.ObjectId(clientId);
 
-      let admin: IAdmin | IUser = await this.userService.findAdminByUsername(username) ||
-        await this.userService.findUserByUsername(username);
+      let admin: IUser = await this.userService.findUserByUsername(username);
 
       if (!admin) {
         throw createHttpError(404, "User Not Found");
@@ -846,13 +836,13 @@ export class UserController {
 
       const clientObjectId = new mongoose.Types.ObjectId(clientId);
 
-      let admin: IAdmin | IUser | IPlayer = await this.userService.findAdminByUsername(username) || await this.userService.findUserByUsername(username) || await this.userService.findPlayerByUsername(username);
+      let admin: IUser | IPlayer = await this.userService.findUserByUsername(username) || await this.userService.findPlayerByUsername(username);
 
       if (!admin) {
         throw createHttpError(404, "User not found");
       }
 
-      const client = await this.userService.findAdminById(clientObjectId) || await this.userService.findUserById(clientObjectId) || await this.userService.findPlayerById(clientObjectId);
+      const client = await this.userService.findUserById(clientObjectId) || await this.userService.findPlayerById(clientObjectId);
 
       if (!client) {
         throw createHttpError(404, "Client not found");
@@ -893,7 +883,7 @@ export class UserController {
       const { username: loggedUserName, role: loggedUserRole } = _req.user;
 
       const subordinateObjectId = new mongoose.Types.ObjectId(subordinateId);
-      const loggedUser = await this.userService.findAdminByUsername(loggedUserName) || await this.userService.findUserByUsername(loggedUserName);
+      const loggedUser = await this.userService.findUserByUsername(loggedUserName);
 
       let user;
 
@@ -970,7 +960,7 @@ export class UserController {
         type as string
       );
 
-      const currentUser = await Admin.findOne({ username }) || await User.findOne({ username });
+      const currentUser = await User.findOne({ username });
 
       if (!currentUser) {
         throw createHttpError(401, "User not found");
@@ -979,7 +969,7 @@ export class UserController {
       let targetUser = currentUser;
 
       if (userId) {
-        let subordinate = await Admin.findById(userId) || await User.findById(userId);
+        let subordinate = await User.findById(userId);
 
         if (!subordinate) {
           subordinate = await PlayerModel.findById(userId);
@@ -1252,7 +1242,7 @@ export class UserController {
       const subordinateObjectId = new mongoose.Types.ObjectId(subordinateId);
 
       // Fetch subordinate details
-      let subordinate = await Admin.findById(subordinateObjectId) || await User.findById(subordinateObjectId) || await PlayerModel.findById(subordinateObjectId);
+      let subordinate = await User.findById(subordinateObjectId) || await PlayerModel.findById(subordinateObjectId);
 
       if (!subordinate) {
         throw createHttpError(404, "Subordinate not found");

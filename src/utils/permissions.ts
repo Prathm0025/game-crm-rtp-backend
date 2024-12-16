@@ -1,5 +1,4 @@
 import mongoose, { mongo } from "mongoose";
-import { IAdmin } from "../dashboard/admin/adminType";
 import { IPlayer, IUser } from "../dashboard/users/userType";
 
 const rolesHierarchy: Record<string, string[]> = {
@@ -51,7 +50,7 @@ const permissions: Record<string, Record<string, string[]>> = {
     },
 };
 
-function hasPermission(user: IUser | IAdmin | IPlayer, resource: string, action: string): boolean {
+function hasPermission(user: IUser | IPlayer, resource: string, action: string): boolean {
     if (user.role === "admin") return true;
 
     const userPermissions = permissions[user.role];
@@ -60,7 +59,7 @@ function hasPermission(user: IUser | IAdmin | IPlayer, resource: string, action:
     return userPermissions[resource].includes(action);
 }
 
-function isSubordinate(user: IAdmin | IUser, targetUser: IUser | IPlayer): boolean {
+function isSubordinate(user: IUser, targetUser: IUser | IPlayer): boolean {
     if (user.role === "admin") return true;
 
     const allowedRoles = rolesHierarchy[user.role];
@@ -71,7 +70,7 @@ function isSubordinate(user: IAdmin | IUser, targetUser: IUser | IPlayer): boole
     return isRoleAllowed && isDirectSubordinate;
 }
 
-function isAdmin(user: IUser | IAdmin | IPlayer): boolean {
+function isAdmin(user: IUser | IPlayer): boolean {
     return user.role === "admin";
 }
 

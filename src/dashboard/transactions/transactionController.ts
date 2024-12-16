@@ -8,9 +8,7 @@ import { IPlayer, IUser } from "../users/userType";
 import { ITransaction } from "./transactionType";
 import TransactionService from "./transactionService";
 import { QueryParams } from "../../utils/globalTypes";
-import { IAdmin } from "../admin/adminType";
 import { isAdmin } from "../../utils/permissions";
-import { Admin } from "../admin/adminModel";
 export class TransactionController {
   private transactionService: TransactionService;
 
@@ -28,8 +26,8 @@ export class TransactionController {
    */
   async createTransaction(
     type: string,
-    debtor: IUser | IAdmin | IPlayer,
-    creditor: IUser | IPlayer | IAdmin,
+    debtor: IUser | IPlayer,
+    creditor: IUser | IPlayer,
     amount: number,
     session: mongoose.ClientSession
   ): Promise<ITransaction> {
@@ -239,7 +237,7 @@ export class TransactionController {
       const _req = req as AuthRequest;
       const { username, role } = _req.user;
 
-      const currentUser = await Admin.findOne({ username: username, role: role }) || await User.findOne({ username: username, role: role });
+      const currentUser = await User.findOne({ username: username, role: role });
 
 
       const page = parseInt(req.query.page as string) || 1;

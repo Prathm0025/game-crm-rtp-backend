@@ -7,7 +7,6 @@ import { Player, User } from "../users/userModel";
 import { QueryParams } from "../../utils/globalTypes";
 import { messageType } from "../../game/Utils/gameUtils";
 import { sessionManager } from "../session/sessionManager";
-import { Admin } from "../admin/adminModel";
 import { hasPermission } from "../../utils/permissions";
 
 export class TransactionService {
@@ -78,7 +77,7 @@ export class TransactionService {
   ) {
     const skip = (page - 1) * limit;
 
-    const user = await Admin.findOne({ username }) || await User.findOne({ username }) || await Player.findOne({ username });
+    const user = await User.findOne({ username }) || await Player.findOne({ username });
 
     if (!user) {
       throw new Error("User not found");
