@@ -17,10 +17,7 @@ class SessionManager {
             const platformSessionData = new PlatformSessionModel(player.getSummary())
             await platformSessionData.save();
 
-            const manager = this.getActiveManagerByUsername(player.managerName);
-            if (manager) {
-                this.notifyManagers(manager, eventType.ENTERED_PLATFORM, player.getSummary());
-            }
+            await this.notifyManagers(player.managerName, eventType.ENTERED_PLATFORM, player.getSummary());
         } catch (error) {
             console.error(`Failed to save platform session for player: ${player.playerData.username}`, error);
         } finally {
@@ -35,10 +32,7 @@ class SessionManager {
                 platformSession.setExitTime();
                 this.platformSessions.delete(playerId);
 
-                const manager = this.getActiveManagerByUsername(platformSession.managerName);
-                if (manager) {
-                    this.notifyManagers(manager, eventType.EXITED_PLATFORM, platformSession.getSummary());
-                }
+                await this.notifyManagers(platformSession.managerName, eventType.EXITED_PLATFORM, platformSession.getSummary());
 
                 await PlatformSessionModel.updateOne(
                     { playerId: playerId, entryTime: platformSession.entryTime },
@@ -57,27 +51,18 @@ class SessionManager {
         if (platformSession) {
             platformSession.currentGameSession = new GameSession(playerId, gameId, credits);
 
-            platformSession.currentGameSession.on("spinUpdated", (summary) => {
-                const currentManager = this.getActiveManagerByUsername(platformSession.managerName);
-                if (currentManager) {
-                    this.notifyManagers(currentManager, eventType.UPDATED_SPIN, summary);
-                }
+            platformSession.currentGameSession.on("spinUpdated", async (summary) => {
+                await this.notifyManagers(platformSession.managerName, eventType.UPDATED_SPIN, summary);
             });
 
-            platformSession.currentGameSession.on("sessionEnded", (summary) => {
-                const currentManager = this.getActiveManagerByUsername(platformSession.managerName);
-                if (currentManager) {
-                    currentManager.notifyManager({ type: eventType.EXITED_GAME, payload: summary })
-                }
+            platformSession.currentGameSession.on("sessionEnded", async (summary) => {
+                await this.notifyManagers(platformSession.managerName, eventType.EXITED_GAME, summary);
             });
 
             const gameSummary = platformSession.currentGameSession?.getSummary();
 
             if (gameSummary) {
-                const currentManager = this.getActiveManagerByUsername(platformSession.managerName)
-                if (currentManager) {
-                    this.notifyManagers(currentManager, eventType.ENTERED_GAME, gameSummary);
-                }
+                await this.notifyManagers(platformSession.managerName, eventType.ENTERED_GAME, gameSummary);
             } else {
                 console.error(`No active platform session found for player: ${playerId}`);
             }
@@ -94,10 +79,7 @@ class SessionManager {
                 platformSession.currentGameSession.endSession(platformSession.playerData.credits);
                 const gameSessionData = platformSession.currentGameSession.getSummary();
 
-                const manager = this.getActiveManagerByUsername(platformSession.managerName);
-                if (manager) {
-                    this.notifyManagers(manager, eventType.EXITED_GAME, gameSessionData);
-                }
+                await this.notifyManagers(platformSession.managerName, eventType.EXITED_GAME, gameSessionData);
 
                 await PlatformSessionModel.updateOne(
                     { playerId: playerId, entryTime: platformSession.entryTime },
@@ -113,7 +95,15 @@ class SessionManager {
 
     }
 
-    private async notifyManagers(manager: Manager, eventType: string, payload: any) {
+    private async notifyManagers(managerName: string, eventType: string, payload: any) {
+
+        const admin = this.getActiveManagerByRole('admin');
+        if (admin) {
+            admin.notifyManager({ type: eventType, payload });
+        }
+
+        const manager = this.getActiveManagerByUsername(managerName);
+        if (!manager) return;
 
         if (manager.role === 'store') {
             // Get top hierarchy user until company and notify company, store, and admin
@@ -125,17 +115,9 @@ class SessionManager {
                 }
             }
             manager.notifyManager({ type: eventType, payload });
-            return;
+        } else {
+            manager.notifyManager({ type: eventType, payload });
         }
-
-        manager.notifyManager({ type: eventType, payload });
-
-        const admin = this.getActiveManagerByRole('admin');
-        if (admin) {
-            admin.notifyManager({ type: eventType, payload });
-        }
-
-
     }
 
 
