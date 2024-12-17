@@ -23,6 +23,8 @@ export interface SLAOGSETTINGS {
   Symbols: Symbol[];
   freeSpinIncrement: number
   isFreeSpin: boolean;
+  wheelProb:number[];
+  goldSymbolProb:number[];
   freeSpinCount: number;
   wild: {
     SymbolName: string;

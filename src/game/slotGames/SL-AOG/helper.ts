@@ -28,10 +28,10 @@ export function initializeGameSettings(gameData: any, gameInstance: SLAOG) {
     BetPerLines: 0,
     reels: [],
     freeSpinIncrement: gameData.gameSettings.freespinIncrement || 10,
+    wheelProb: gameData.gameSettings.wheelProb,
+    goldSymbolProb: gameData.gameSettings.goldSymbolProb,
     isFreeSpin: false,
     freeSpinCount: 0,
-    expandedReels: [],
-    previousGambleResult: [],
     wild: {
       SymbolName: "",
       SymbolID: -1,
@@ -213,7 +213,98 @@ export function sendInitData(gameInstance: SLAOG) {
   };
   gameInstance.sendMessage("InitData", dataToSend);
 }
+// Helper function to get N random positions
+function getNRandomPositions(matrix: string[][], count: number): {
+  row: number;
+  col: number;
+}[] {
+  const emptyPositions = getRandomPositions(matrix);
+  return emptyPositions.slice(0, count);
+}
+function getRandomPositions(matrix: string[][]): {
+  row: number;
+  col: number;
+}[] {
+  try {
+    // Get all positions
+    const positions: {
+      row: number;
+      col: number;
+    }[] = [];
+    // Collect all positions 
+    for (let row = 0; row < matrix.length; row++) {
+      for (let col = 0; col < matrix[row].length; col++) {
+        positions.push({ row, col });
+      }
+    }
+    // Shuffle the empty positions array using Fisher-Yates algorithm
+    for (let i = positions.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [positions[i], positions[j]] = [positions[j], positions[i]];
+    }
+    return positions;
+  } catch (e) {
+    console.log("error in getRandomPositions", e);
+    return []; // Return empty array in case of error
+  }
+}
 
+
+export function getRandomValue(gameInstance: SLAOG, type:
+  'wheelType' |
+  'index' |
+  'goldForNoWheel' |
+  'goldForSmallWheel' |
+  'goldForMediumWheel' |
+  'goldForLargeWheel'
+): number {
+  const { settings } = gameInstance;
+
+  let values: number[];
+  let probabilities: number[];
+
+  if (type === 'wheelType') {
+    values = [0, 1, 2, 3]
+    probabilities = settings.wheelProb
+  } else if (type === 'index') {
+    values = [3, 4, 5, 6, 7, 8]
+    probabilities = settings.wheelProb.slice(3)
+  } else if (type === 'goldForSmallWheel') {
+    values = [3, 4, 5, 6, 7, 8]
+    probabilities = settings.wheelProb.slice(3)
+  } else if (type === 'goldForMediumWheel') {
+    values = [4, 5, 6, 7, 8]
+    probabilities = settings.wheelProb.slice(4)
+  } else if (type === 'goldForLargeWheel') {
+    values = [5, 6, 7, 8]
+    probabilities = settings.wheelProb.slice(5)
+  } else if (type === 'goldForNoWheel') {
+    values = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+    probabilities = settings.wheelProb
+  } else {
+    throw new Error("Invalid type, expected 'coin' or 'freespin'");
+  }
+  const totalProbability = probabilities.reduce((sum, prob) => sum + prob, 0);
+  const randomValue = Math.random() * totalProbability;
+
+  let cumulativeProbability = 0;
+  for (let i = 0; i < probabilities.length; i++) {
+    cumulativeProbability += probabilities[i];
+    if (randomValue < cumulativeProbability) {
+      return values[i];
+    }
+  }
+  return values[0];
+}
+
+//check if wheel of fortune will be triggered
+function checkForWheelOfFortune(gameInstance: SLAOG): number {
+  return getRandomValue(gameInstance, 'wheelType')
+}
+//check how many gold symbols will be spawned
+function checkForGoldSymbols(gameInstance: SLAOG, wheelType: 'No' | 'Small' | 'Medium' | 'Large'): number {
+  return getRandomValue(gameInstance, `goldFor${wheelType}Wheel`)
+}
 
 //CHECK WINS ON PAYLINES WITH OR WITHOUT WILD
 export function checkForWin(gameInstance: SLAOG) {

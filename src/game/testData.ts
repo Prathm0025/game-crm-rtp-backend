@@ -57,6 +57,8 @@ export const gameData = [
       2
     ],
     "freespinIncrement": 10,
+    "wheelProb":[15,3,2,1], // probability of NO wheel of fortune on idx #1 , small wheel of fortune on idx #2, medium wheel of fortune on idx #3, big wheel of fortune on idx  #4
+    "goldSymbolProb":[12,1,1,3,4,5,4,4,4], // just for visuals . wheelProb will determine if feature will be triggered .idx#1 prob for NO gold symbols , idx#2 prob for 1 gold symbol and so on
     "Symbols": [
       {
         "Name": "0",
@@ -354,7 +356,7 @@ export const gameData = [
           "3": 10,
           "4": 10
         },
-        "description": "Substitutes for all symbols and Freespin .",
+        "description": "Substitutes for all symbols .",
         "useWildSub": false,
         "multiplier": [
           [
