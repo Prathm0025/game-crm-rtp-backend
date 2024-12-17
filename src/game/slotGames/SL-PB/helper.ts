@@ -936,6 +936,7 @@ export function makeResultJson(gameInstance: SLPB) {
                 freeSpinCount: settings.freeSpin.freeSpinCount,
                 freeSpinAdded: settings.freeSpin.freeSpinsAdded,
                 frozenIndices: settings.frozenIndices,
+                freeSpinIndices:settings.freeSpinIndices,
                 isArthurBonus: settings.isArthurBonus,
                 isTomBonus: settings.isTomBonus,
                 isPollyBonus: settings.isPollyBonus,
