@@ -59,6 +59,7 @@ export interface SLSMSETTINGS {
     colossalMergeProbability: number,
     bonusSymbolValue: bonusSymbol[],
     frozenIndices: bonusSymbol[],
+    freeSpinIndices:any [][],
     miniMultiplier: number,
     megaMultiplier: number,
     majorMultiplier: number,
