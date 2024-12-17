@@ -103,8 +103,7 @@ class SessionManager {
             admin.notifyManager({ type: eventType, payload });
         }
 
-        const manager = this.getActiveManagerByUsername(managerName);
-        if (!manager) return;
+        const manager = await User.findOne({ username: managerName }).exec();
 
         if (manager.role === 'store') {
             // Get top hierarchy user until company and notify company, store, and admin
@@ -115,9 +114,11 @@ class SessionManager {
                     companyManager.notifyManager({ type: eventType, payload });
                 }
             }
-            manager.notifyManager({ type: eventType, payload });
-        } else {
-            manager.notifyManager({ type: eventType, payload });
+
+            const storeManager = this.getActiveManagerByUsername(manager.username);
+            if (storeManager) {
+                storeManager.notifyManager({ type: eventType, payload });
+            }
         }
     }
 
