@@ -7,6 +7,8 @@ interface Symbol {
   payout: number;
   reelInstance: { [key: string]: number };
 }
+export type WheelType = "SMALL" | "MEDIUM" | "LARGE" | "NONE";
+export type FeatureType = "LEVELUP" | "MULTIPLIER" | "FREESPIN" | "WILD" | "NONE";
 // export type CardSuits = "Hearts" | "Diamonds" | "Spades" | "Clubs";
 export interface SLAOGSETTINGS {
   id: string;
@@ -25,6 +27,11 @@ export interface SLAOGSETTINGS {
   isFreeSpin: boolean;
   wheelProb:number[];
   goldSymbolProb:number[];
+  wheelFeature:{
+    isTriggered:boolean,
+    wheelType: WheelType;
+    featureType: FeatureType
+  },
   freeSpinCount: number;
   wild: {
     SymbolName: string;

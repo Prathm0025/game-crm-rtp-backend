@@ -3,7 +3,7 @@ import {
   convertSymbols,
   UiInitData,
 } from "../../Utils/gameUtils";
-import { specialIcons } from "./types";
+import { FeatureType, specialIcons, WheelType } from "./types";
 import { precisionRound } from "../../../utils/utils";
 import { SLAOG } from "./AgeOfGodsBase";
 
@@ -32,6 +32,11 @@ export function initializeGameSettings(gameData: any, gameInstance: SLAOG) {
     goldSymbolProb: gameData.gameSettings.goldSymbolProb,
     isFreeSpin: false,
     freeSpinCount: 0,
+    wheelFeature: {
+      isTriggered: false,
+      wheelType: "NONE" as WheelType,
+      featureType: "NONE" as FeatureType
+    },
     wild: {
       SymbolName: "",
       SymbolID: -1,
@@ -249,11 +254,32 @@ function getRandomPositions(matrix: string[][]): {
   }
 }
 
+const SMALLWHEELPOSITIONS = [
+  [0, 0], [0, 1], [0, 2],
+  [1, 0], [1, 1], [1, 2],
+  [2, 0], [2, 1], [2, 2]
+]
+const MEDIUMWHEELPOSITIONS = [
+  [0, 0], [0, 1],
+  [1, 0], [1, 1],
+  [2, 0], [2, 1]
+]
+const LARGEWHEELPOSITIONS = [
+  [0, 0],
+  [1, 0],
+  [2, 0]
+]
+// function 
+
+function checkIfCorrectGoldPosition(gameInstance: SLAOG, wheelType: 'No' | 'Small' | 'Medium' | 'Large'): boolean {
+  return true
+}
 
 export function getRandomValue(gameInstance: SLAOG, type:
   'wheelType' |
-  'index' |
-  'goldForNoWheel' |
+  'index'
+  |
+  // 'goldForNoWheel' |
   'goldForSmallWheel' |
   'goldForMediumWheel' |
   'goldForLargeWheel'
@@ -269,18 +295,19 @@ export function getRandomValue(gameInstance: SLAOG, type:
   } else if (type === 'index') {
     values = [3, 4, 5, 6, 7, 8]
     probabilities = settings.wheelProb.slice(3)
-  } else if (type === 'goldForSmallWheel') {
-    values = [3, 4, 5, 6, 7, 8]
-    probabilities = settings.wheelProb.slice(3)
+  }
+  else if (type === 'goldForSmallWheel') {
+    values = Array.from({ length: SMALLWHEELPOSITIONS.length }, (v, i) => i);
+    probabilities = Array.from({ length: SMALLWHEELPOSITIONS.length }, (p) => 1);
   } else if (type === 'goldForMediumWheel') {
-    values = [4, 5, 6, 7, 8]
-    probabilities = settings.wheelProb.slice(4)
+    values = Array.from({ length: MEDIUMWHEELPOSITIONS.length }, (v, i) => i);
+    probabilities = Array.from({ length: MEDIUMWHEELPOSITIONS.length }, (p) => 1);
   } else if (type === 'goldForLargeWheel') {
-    values = [5, 6, 7, 8]
-    probabilities = settings.wheelProb.slice(5)
-  } else if (type === 'goldForNoWheel') {
-    values = [0, 1, 2, 3, 4, 5, 6, 7, 8]
-    probabilities = settings.wheelProb
+    values = Array.from({ length: LARGEWHEELPOSITIONS.length }, (v, i) => i);
+    probabilities = Array.from({ length: LARGEWHEELPOSITIONS.length }, (p) => 1);
+    // }  else if (type === 'goldForNoWheel') {
+    //   values = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+    //   probabilities = settings.wheelProb
   } else {
     throw new Error("Invalid type, expected 'coin' or 'freespin'");
   }
@@ -302,9 +329,9 @@ function checkForWheelOfFortune(gameInstance: SLAOG): number {
   return getRandomValue(gameInstance, 'wheelType')
 }
 //check how many gold symbols will be spawned
-function checkForGoldSymbols(gameInstance: SLAOG, wheelType: 'No' | 'Small' | 'Medium' | 'Large'): number {
-  return getRandomValue(gameInstance, `goldFor${wheelType}Wheel`)
-}
+// function checkForGoldSymbols(gameInstance: SLAOG, wheelType: 'No' | 'Small' | 'Medium' | 'Large'): number {
+//   return getRandomValue(gameInstance, `goldFor${wheelType}Wheel`)
+// }
 
 //CHECK WINS ON PAYLINES WITH OR WITHOUT WILD
 export function checkForWin(gameInstance: SLAOG) {
@@ -317,6 +344,8 @@ export function checkForWin(gameInstance: SLAOG) {
     if (settings.freeSpinCount > 0) {
       settings.freeSpinCount--
     }
+
+
 
 
     settings.lineData.forEach((line, index) => {
