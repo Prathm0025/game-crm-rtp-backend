@@ -610,8 +610,8 @@ export function checkForWin(gameInstance: SLBB) {
     if (settings.jackpot.win > 0) {
       totalWin += settings.jackpot.win
     }
-    gameInstance.playerData.currentWining = precisionRound(totalWin, 3);
-    gameInstance.playerData.haveWon =precisionRound( ( gameInstance.playerData.currentWining + gameInstance.playerData.haveWon ),3)
+    gameInstance.playerData.currentWining = precisionRound(totalWin, 4);
+    gameInstance.playerData.haveWon =precisionRound( ( gameInstance.playerData.currentWining + gameInstance.playerData.haveWon ),4)
     gameInstance.incrementPlayerBalance(gameInstance.playerData.currentWining)
     makeResultJson(gameInstance)
 
