@@ -311,9 +311,9 @@ function checkForWin(gameInstance) {
                 }
             }
         });
-        gameInstance.playerData.currentWining = (0, utils_1.precisionRound)(totalPayout, 4);
+        gameInstance.playerData.currentWining = (0, utils_1.precisionRound)(totalPayout, 5);
         gameInstance.playerData.haveWon = (0, utils_1.precisionRound)(gameInstance.playerData.haveWon +
-            gameInstance.playerData.currentWining, 4);
+            gameInstance.playerData.currentWining, 5);
         makeResultJson(gameInstance);
         settings.isFreeSpin = false;
         settings.expandedReels = [];

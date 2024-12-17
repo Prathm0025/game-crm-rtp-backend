@@ -67,7 +67,7 @@ class SLBB {
     prepareSpin(data) {
         this.settings.currentLines = data.currentLines;
         this.settings.BetPerLines = this.settings.currentGamedata.bets[data.currentBet];
-        this.settings.currentBet = (0, utils_1.precisionRound)((this.settings.BetPerLines * this.settings.currentLines), 3);
+        this.settings.currentBet = this.settings.BetPerLines * this.settings.currentLines;
     }
     spinResult() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -81,12 +81,11 @@ class SLBB {
                 }
                 if (!(this.settings.bonus.count > 0) && !(this.settings.freeSpin.count > 0)) {
                     this.decrementPlayerBalance(this.settings.currentBet);
-                    this.playerData.totalbet = (0, utils_1.precisionRound)((this.settings.currentBet + this.playerData.totalbet), 3);
+                    this.playerData.totalbet = (0, utils_1.precisionRound)((this.settings.currentBet + this.playerData.totalbet), 4);
                 }
                 if (freeSpin.count > 0 &&
                     !this.settings.bonus.isBonus) {
                     freeSpin.count--;
-                    this.settings.currentBet = 0;
                 }
                 const spinId = platformSession.currentGameSession.createSpin();
                 platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);

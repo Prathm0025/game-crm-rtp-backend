@@ -26,9 +26,11 @@ class SLSB {
             currentPayout: 0,
         };
         this.settings = (0, helper_1.initializeGameSettings)(currentGameData, this);
+        console.log("Initialized game settings SL-SB");
         (0, helper_1.generateInitialReel)(this.settings);
         (0, helper_1.sendInitData)(this);
         (0, helper_1.makePayLines)(this);
+        console.log("balance", this.getPlayerData().credits);
     }
     get initSymbols() {
         const Symbols = [];
@@ -79,7 +81,7 @@ class SLSB {
                 }
                 const { currentBet } = this.settings;
                 this.deductPlayerBalance(currentBet);
-                this.playerData.totalbet = (0, utils_1.precisionRound)((this.playerData.totalbet + currentBet), 4);
+                this.playerData.totalbet = (0, utils_1.precisionRound)((this.playerData.totalbet + currentBet), 5);
                 const spinId = platformSession.currentGameSession.createSpin();
                 platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
                 new RandomResultGenerator_1.RandomResultGenerator(this);
