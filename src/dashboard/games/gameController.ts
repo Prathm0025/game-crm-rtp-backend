@@ -104,6 +104,8 @@ export class GameController {
             const games = platformDoc[0].games;
             const featured = games.slice(0, 5);
             const others = platformDoc[0].games;
+
+
             return res.status(200).json({ featured, others });
           }
 
@@ -127,6 +129,7 @@ export class GameController {
             (acc, platform) => acc.concat(platform.games),
             []
           );
+
           return res.status(200).json(allGames);
       }
     } catch (error) {
@@ -400,6 +403,7 @@ export class GameController {
   async getPlatforms(req: Request, res: Response, next: NextFunction) {
     try {
       const platforms = await Platform.find().select("name");
+      console.log("platforms", platforms);
       res.status(200).json(platforms);
     } catch (error) {
       console.error("Error fetching platforms:", error);

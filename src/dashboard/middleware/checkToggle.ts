@@ -21,6 +21,7 @@ export const checkLoginToggle = async (req: Request, res: Response, next: NextFu
       }
     }
   } catch (error) {
+
     next(error);
   }
 };
@@ -28,9 +29,15 @@ export const checkLoginToggle = async (req: Request, res: Response, next: NextFu
 export const checkGamesToggle = async (req: Request, res: Response, next: NextFunction) => {
   try {
 
+    const _req = req as AuthRequest;
+    const { username } = _req.user;
+
     const companyUsers = await User.find({ role: 'admin' });
+
     //check if company users exist ,then pass through
-    if (companyUsers?.find(user => user.username === req.body.username)) {
+    if (companyUsers?.find(user => user.username === username)) {
+      console.log("checkGamesToggle : ", companyUsers)
+
       next()
     } else {
       const { underMaintenance, availableAt } = await isAvaiable();
@@ -42,6 +49,7 @@ export const checkGamesToggle = async (req: Request, res: Response, next: NextFu
       }
     }
   } catch (error) {
+    console.log("checkGameToggle : ", error)
     next(error);
   }
 }
