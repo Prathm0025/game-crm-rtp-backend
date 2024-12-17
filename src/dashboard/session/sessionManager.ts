@@ -15,7 +15,6 @@ class SessionManager {
         this.platformSessions.set(player.playerData.username, player);
         try {
             const platformSessionData = new PlatformSessionModel(player.getSummary())
-            console.log(`PLATFORM STARTED : `, platformSessionData)
             await platformSessionData.save();
 
             await this.notifyManagers(player.managerName, eventType.ENTERED_PLATFORM, player.getSummary());
@@ -118,6 +117,11 @@ class SessionManager {
             const storeManager = this.getActiveManagerByUsername(manager.username);
             if (storeManager) {
                 storeManager.notifyManager({ type: eventType, payload });
+            }
+        } else {
+            const company = this.getActiveManagerByUsername(manager.username);
+            if (company) {
+                company.notifyManager({ type: eventType, payload });
             }
         }
     }
