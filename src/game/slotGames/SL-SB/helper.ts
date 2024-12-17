@@ -342,8 +342,8 @@ export function checkForWin(gameInstance: SLSB) {
       gameInstance.playerData.currentWining = precisionRound(totalPayout,5)
       gameInstance.playerData.haveWon = precisionRound((
         gameInstance.playerData.haveWon + totalPayout), 5)
-      makeResultJson(gameInstance)
       gameInstance.updatePlayerBalance(gameInstance.playerData.currentWining)
+      makeResultJson(gameInstance)
 
       settings.starBurstReel = []
       settings.isStarBurst = false
@@ -419,7 +419,7 @@ export function makeResultJson(gameInstance: SLSB) {
   try {
     const { settings, playerData } = gameInstance;
     const credits = gameInstance.getPlayerData().credits
-    const Balance = credits.toFixed(2)
+    const Balance = credits.toFixed(4)
     const sendData = {
       GameData: {
         resultSymbols: settings.resultSymbolMatrix,
