@@ -37,6 +37,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLAOG) {
       wheelType: "NONE" as WheelType,
       featureType: "NONE" as FeatureType
     },
+    goldIndices: [],
     wild: {
       SymbolName: "",
       SymbolID: -1,
@@ -219,14 +220,18 @@ export function sendInitData(gameInstance: SLAOG) {
   gameInstance.sendMessage("InitData", dataToSend);
 }
 // Helper function to get N random positions
-function getNRandomPositions(matrix: string[][], count: number): {
+function getNRandomPositions(matrix: string[][], count: number, goldIndices: string[]): {
   row: number;
   col: number;
 }[] {
-  const emptyPositions = getRandomPositions(matrix);
-  return emptyPositions.slice(0, count);
+  try {
+    const emptyPositions = getRandomPositions(matrix, goldIndices);
+    return emptyPositions.slice(0, count);
+  } catch (error) {
+    console.error("Error in getNRandomPositions:", error);
+  }
 }
-function getRandomPositions(matrix: string[][]): {
+function getRandomPositions(matrix: string[][], goldIndices: string[]): {
   row: number;
   col: number;
 }[] {
@@ -239,7 +244,11 @@ function getRandomPositions(matrix: string[][]): {
     // Collect all positions 
     for (let row = 0; row < matrix.length; row++) {
       for (let col = 0; col < matrix[row].length; col++) {
-        positions.push({ row, col });
+        //dnt add gold indices
+
+        if (!goldIndices.includes(`${row},${col}`)) {
+          positions.push({ row, col });
+        }
       }
     }
     // Shuffle the empty positions array using Fisher-Yates algorithm
@@ -269,15 +278,116 @@ const LARGEWHEELPOSITIONS = [
   [1, 0],
   [2, 0]
 ]
-// function 
+function isInARow(indices: [number, number][]): boolean {
+  if (indices.length < 3) return false;
 
-function checkIfCorrectGoldPosition(gameInstance: SLAOG, wheelType: 'No' | 'Small' | 'Medium' | 'Large'): boolean {
-  return true
+  const rowGroups = new Map<number, number[]>();
+
+  indices.forEach(([row, col]) => {
+    if (!rowGroups.has(row)) {
+      rowGroups.set(row, []);
+    }
+    rowGroups.get(row)!.push(col);
+  });
+
+  for (const columns of rowGroups.values()) {
+    columns.sort((a, b) => a - b);
+
+    let consecutiveCount = 1;
+    let prevCol = columns[0];
+
+    for (let i = 1; i < columns.length; i++) {
+      if (columns[i] === prevCol + 1) {
+        consecutiveCount++;
+        if (consecutiveCount >= 3) {
+          return true;
+        }
+      } else {
+        consecutiveCount = 1;
+      }
+      prevCol = columns[i];
+    }
+  }
+
+  return false;
+}
+
+
+function populateGoldIndices(gameInstance: SLAOG) {
+  const { settings } = gameInstance;
+  //extra golds
+  const extraGold = getRandomValue(gameInstance, "extraGold")
+  let extraGoldPos = []
+  console.log("extra golds", extraGold);
+  let copyGoldIndices
+
+  let startPos
+  switch (settings.wheelFeature.wheelType) {
+    case 'SMALL':
+      startPos = SMALLWHEELPOSITIONS[getRandomValue(gameInstance, "goldForSmallWheel")]
+      settings.goldIndices.push([startPos[0], startPos[1]])
+      settings.goldIndices.push([startPos[0], startPos[1] + 1])
+      settings.goldIndices.push([startPos[0], startPos[1] + 2])
+      copyGoldIndices = settings.goldIndices.map((i) => `${i[0]},${i[1]}`)
+      copyGoldIndices.push(`${startPos[0]},${startPos[1] + 3}`)
+      do {
+
+        extraGoldPos = getNRandomPositions(settings.resultSymbolMatrix, extraGold, copyGoldIndices).map((i) => [i.row, i.col])
+        // console.log("extra gold pos", extraGoldPos);
+
+      } while (isInARow(extraGoldPos))
+
+      break;
+    case 'MEDIUM':
+
+      startPos = MEDIUMWHEELPOSITIONS[getRandomValue(gameInstance, "goldForMediumWheel")]
+      settings.goldIndices.push([startPos[0], startPos[1]])
+      settings.goldIndices.push([startPos[0], startPos[1] + 1])
+      settings.goldIndices.push([startPos[0], startPos[1] + 2])
+      settings.goldIndices.push([startPos[0], startPos[1] + 3])
+
+      copyGoldIndices = settings.goldIndices.map((i) => `${i[0]},${i[1]}`)
+      copyGoldIndices.push(`${startPos[0]},${startPos[1] + 4}`)
+      do {
+        extraGoldPos = getNRandomPositions(settings.resultSymbolMatrix, extraGold, copyGoldIndices).map((i) => [i.row, i.col])
+        // console.log("extra gold pos", extraGoldPos);
+      } while (isInARow(extraGoldPos))
+      break;
+    case 'LARGE':
+      startPos = LARGEWHEELPOSITIONS[getRandomValue(gameInstance, "goldForLargeWheel")]
+      settings.goldIndices.push([startPos[0], startPos[1]])
+      settings.goldIndices.push([startPos[0], startPos[1] + 1])
+      settings.goldIndices.push([startPos[0], startPos[1] + 2])
+      settings.goldIndices.push([startPos[0], startPos[1] + 3])
+      settings.goldIndices.push([startPos[0], startPos[1] + 4])
+
+      copyGoldIndices = settings.goldIndices.map((i) => `${i[0]},${i[1]}`)
+      do {
+        extraGoldPos = getNRandomPositions(settings.resultSymbolMatrix, extraGold, copyGoldIndices).map((i) => [i.row, i.col])
+        // console.log("extra gold pos", extraGoldPos.map((i) => [i.row, i.col]));
+
+      } while (isInARow(extraGoldPos))
+      break;
+    case "NONE":
+
+      copyGoldIndices = settings.goldIndices.map((i) => `${i[0]},${i[1]}`)
+      do {
+        extraGoldPos = getNRandomPositions(settings.resultSymbolMatrix, extraGold, copyGoldIndices).map((i) => [i.row, i.col])
+        // console.log("extra gold pos", extraGoldPos.map((i) => [i.row, i.col]));
+
+      } while (isInARow(extraGoldPos))
+      break;
+    default:
+      console.error("error in populateGoldIndices");
+      break;
+  }
+
+  settings.goldIndices.push(...extraGoldPos)
 }
 
 export function getRandomValue(gameInstance: SLAOG, type:
   'wheelType' |
-  'index'
+  'extraGold'
   |
   // 'goldForNoWheel' |
   'goldForSmallWheel' |
@@ -292,9 +402,11 @@ export function getRandomValue(gameInstance: SLAOG, type:
   if (type === 'wheelType') {
     values = [0, 1, 2, 3]
     probabilities = settings.wheelProb
-  } else if (type === 'index') {
-    values = [3, 4, 5, 6, 7, 8]
-    probabilities = settings.wheelProb.slice(3)
+  } else if (type === 'extraGold') {
+    let len = settings.wheelFeature.wheelType == "NONE" ? settings.goldSymbolProb.length - 1 : settings.goldSymbolProb.length - 2
+
+    values = Array.from({ length: len }, (v, i) => i);
+    probabilities = settings.goldSymbolProb.slice(0, len)
   }
   else if (type === 'goldForSmallWheel') {
     values = Array.from({ length: SMALLWHEELPOSITIONS.length }, (v, i) => i);
@@ -328,11 +440,6 @@ export function getRandomValue(gameInstance: SLAOG, type:
 function checkForWheelOfFortune(gameInstance: SLAOG): number {
   return getRandomValue(gameInstance, 'wheelType')
 }
-//check how many gold symbols will be spawned
-// function checkForGoldSymbols(gameInstance: SLAOG, wheelType: 'No' | 'Small' | 'Medium' | 'Large'): number {
-//   return getRandomValue(gameInstance, `goldFor${wheelType}Wheel`)
-// }
-
 //CHECK WINS ON PAYLINES WITH OR WITHOUT WILD
 export function checkForWin(gameInstance: SLAOG) {
   try {
@@ -346,6 +453,38 @@ export function checkForWin(gameInstance: SLAOG) {
     }
 
 
+
+    let wheelType = checkForWheelOfFortune(gameInstance);
+
+    console.log("wheeltype");
+    console.log(wheelType);
+
+    switch (wheelType) {
+      case 0:
+        settings.wheelFeature.isTriggered = false;
+        settings.wheelFeature.wheelType = 'NONE';
+        break;
+      case 1:
+        settings.wheelFeature.isTriggered = true;
+        settings.wheelFeature.wheelType = 'SMALL';
+        break;
+      case 2:
+        settings.wheelFeature.isTriggered = true;
+        settings.wheelFeature.wheelType = 'MEDIUM';
+        break;
+      case 3:
+        settings.wheelFeature.isTriggered = true;
+        settings.wheelFeature.wheelType = 'LARGE';
+        break;
+      default:
+        console.error('Invalid wheel type from checkForWheelOfFortune');
+        // settings.wheelFeature.isTriggered = false;
+        // settings.wheelFeature.wheelType = 'NONE';
+        break;
+    }
+    populateGoldIndices(gameInstance)
+    console.log("gldIndices");
+    console.log(settings.goldIndices);
 
 
     settings.lineData.forEach((line, index) => {
@@ -398,6 +537,11 @@ export function checkForWin(gameInstance: SLAOG) {
       gameInstance.playerData.currentWining, 5)
     makeResultJson(gameInstance)
     settings.isFreeSpin = false
+    //reset feature settings 
+    settings.wheelFeature.isTriggered = false;
+    settings.wheelFeature.wheelType = "NONE"
+    settings.wheelFeature.featureType = "NONE"
+    settings.goldIndices = []
 
     settings._winData.winningLines = []
     settings._winData.winningSymbols = []

@@ -27,6 +27,7 @@ export interface SLAOGSETTINGS {
   isFreeSpin: boolean;
   wheelProb:number[];
   goldSymbolProb:number[];
+  goldIndices:[number,number][]
   wheelFeature:{
     isTriggered:boolean,
     wheelType: WheelType;
