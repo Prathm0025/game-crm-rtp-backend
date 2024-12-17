@@ -243,7 +243,7 @@ function getRandomValue(gameInstance, type) {
     let values;
     let probabilities;
     if (type === 'coin') {
-        values = currentGameData.gameSettings.coinsvalue.map((value) => (0, utils_1.precisionRound)(value * settings.BetPerLines * settings.lineData.length, 3));
+        values = currentGameData.gameSettings.coinsvalue.map((value) => (0, utils_1.precisionRound)(value * settings.BetPerLines, 5));
         probabilities = currentGameData.gameSettings.coinsvalueprob;
     }
     else if (type === 'freespin') {
@@ -255,7 +255,7 @@ function getRandomValue(gameInstance, type) {
         probabilities = settings.jackpot.payoutProbs;
     }
     else if (type === 'mega') {
-        values = settings.bonus.megaLinkCoinValue.map((value) => (0, utils_1.precisionRound)(value * settings.BetPerLines * settings.lineData.length, 3));
+        values = settings.bonus.megaLinkCoinValue.map((value) => (0, utils_1.precisionRound)(value * settings.BetPerLines, 5));
         probabilities = settings.bonus.megaLinkCoinProb;
     }
     else {
@@ -558,8 +558,8 @@ function checkForWin(gameInstance) {
         if (settings.jackpot.win > 0) {
             totalWin += settings.jackpot.win;
         }
-        gameInstance.playerData.currentWining = (0, utils_1.precisionRound)(totalWin, 3);
-        gameInstance.playerData.haveWon = (0, utils_1.precisionRound)((gameInstance.playerData.currentWining + gameInstance.playerData.haveWon), 3);
+        gameInstance.playerData.currentWining = (0, utils_1.precisionRound)(totalWin, 4);
+        gameInstance.playerData.haveWon = (0, utils_1.precisionRound)((gameInstance.playerData.currentWining + gameInstance.playerData.haveWon), 4);
         gameInstance.incrementPlayerBalance(gameInstance.playerData.currentWining);
         makeResultJson(gameInstance);
         if (settings.freeSpin.count <= 0) {

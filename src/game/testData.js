@@ -3,159 +3,44 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.gameData = void 0;
 exports.gameData = [
     {
-        "id": "SL-VIK",
+        "id": "SL-AOG",
         "matrix": {
             "x": 5,
             "y": 3
         },
         "linesApiData": [
-            [
-                1,
-                1,
-                1,
-                1,
-                1
-            ],
-            [
-                0,
-                0,
-                0,
-                0,
-                0
-            ],
-            [
-                2,
-                2,
-                2,
-                2,
-                2
-            ],
-            [
-                0,
-                1,
-                2,
-                1,
-                0
-            ],
-            [
-                2,
-                1,
-                0,
-                1,
-                2
-            ],
-            [
-                1,
-                0,
-                1,
-                0,
-                1
-            ],
-            [
-                1,
-                2,
-                1,
-                2,
-                1
-            ],
-            [
-                0,
-                0,
-                1,
-                2,
-                2
-            ],
-            [
-                2,
-                2,
-                1,
-                0,
-                0
-            ],
-            [
-                1,
-                2,
-                1,
-                0,
-                1
-            ],
-            [
-                1,
-                0,
-                1,
-                2,
-                1
-            ],
-            [
-                0,
-                1,
-                1,
-                1,
-                0
-            ],
-            [
-                2,
-                1,
-                1,
-                1,
-                2
-            ],
-            [
-                0,
-                1,
-                0,
-                1,
-                0
-            ],
-            [
-                2,
-                1,
-                2,
-                1,
-                2
-            ],
-            [
-                1,
-                1,
-                0,
-                1,
-                1
-            ],
-            [
-                1,
-                1,
-                2,
-                1,
-                1
-            ],
-            [
-                0,
-                0,
-                2,
-                0,
-                0
-            ],
-            [
-                2,
-                2,
-                0,
-                2,
-                2
-            ],
-            [
-                0,
-                2,
-                2,
-                2,
-                0
-            ]
+            [1, 1, 1, 1, 1],
+            [0, 0, 0, 0, 0],
+            [2, 2, 2, 2, 2],
+            [0, 1, 2, 1, 0],
+            [2, 1, 0, 1, 2],
+            [0, 0, 1, 0, 0],
+            [2, 2, 1, 2, 2],
+            [1, 2, 2, 2, 1],
+            [1, 0, 0, 0, 1],
+            [2, 0, 0, 0, 2],
+            [0, 2, 2, 2, 0],
+            [2, 1, 2, 1, 2],
+            [0, 1, 0, 1, 0],
+            [1, 1, 2, 1, 1],
+            [1, 1, 0, 1, 1],
+            [1, 0, 1, 0, 1],
+            [1, 2, 1, 2, 1],
+            [2, 1, 1, 1, 2],
+            [0, 1, 1, 1, 0],
+            [1, 0, 2, 0, 1],
+            [2, 2, 0, 2, 2],
+            [0, 0, 2, 0, 0],
+            [0, 2, 0, 2, 0],
+            [2, 0, 2, 0, 2],
+            [1, 2, 0, 2, 1],
+            [0, 1, 2, 2, 2],
+            [2, 1, 0, 0, 0],
+            [0, 0, 0, 1, 2],
+            [2, 2, 2, 1, 0],
+            [0, 0, 1, 2, 2]
         ],
-        "linesCount": [
-            1,
-            5,
-            15,
-            20
-        ],
+        "linesCount": [1, 5, 15, 20, 25, 30],
         "bets": [
             0.0005,
             0.0025,
@@ -174,35 +59,9 @@ exports.gameData = [
             1.5,
             2
         ],
-        "bonus": {
-            "type": "spin",
-            "isEnabled": true,
-            "noOfItem": 8,
-            "payOut": [
-                200,
-                100,
-                70,
-                50,
-                30,
-                20,
-                10,
-                5
-            ],
-            "payOutProb": [
-                0.05,
-                0.5,
-                1,
-                3,
-                10,
-                20,
-                25,
-                39.4
-            ]
-        },
-        "gamble": {
-            "type": "card",
-            "isEnabled": false
-        },
+        "freespinIncrement": 10,
+        "wheelProb": [15, 3, 2, 1], // probability of NO wheel of fortune on idx #1 , small wheel of fortune on idx #2, medium wheel of fortune on idx #3, big wheel of fortune on idx  #4
+        "goldSymbolProb": [12, 1, 1, 3, 4, 5, 4, 4, 4], // just for visuals . wheelProb will determine if feature will be triggered .idx#1 prob for NO gold symbols , idx#2 prob for 1 gold symbol and so on
         "Symbols": [
             {
                 "Name": "0",
@@ -338,11 +197,11 @@ exports.gameData = [
                 "Name": "5",
                 "Id": 5,
                 "reelInstance": {
-                    "0": 4,
-                    "1": 4,
-                    "2": 4,
-                    "3": 4,
-                    "4": 4
+                    "0": 10,
+                    "1": 10,
+                    "2": 10,
+                    "3": 10,
+                    "4": 10
                 },
                 "useWildSub": true,
                 "multiplier": [
@@ -364,11 +223,11 @@ exports.gameData = [
                 "Name": "6",
                 "Id": 6,
                 "reelInstance": {
-                    "0": 4,
-                    "1": 4,
-                    "2": 4,
-                    "3": 4,
-                    "4": 4
+                    "0": 10,
+                    "1": 10,
+                    "2": 10,
+                    "3": 10,
+                    "4": 10
                 },
                 "useWildSub": true,
                 "multiplier": [
@@ -390,11 +249,11 @@ exports.gameData = [
                 "Name": "7",
                 "Id": 7,
                 "reelInstance": {
-                    "0": 4,
-                    "1": 4,
-                    "2": 4,
-                    "3": 4,
-                    "4": 4
+                    "0": 10,
+                    "1": 10,
+                    "2": 10,
+                    "3": 10,
+                    "4": 10
                 },
                 "useWildSub": true,
                 "multiplier": [
@@ -416,11 +275,11 @@ exports.gameData = [
                 "Name": "8",
                 "Id": 8,
                 "reelInstance": {
-                    "0": 4,
-                    "1": 4,
-                    "2": 4,
-                    "3": 4,
-                    "4": 4
+                    "0": 10,
+                    "1": 10,
+                    "2": 10,
+                    "3": 10,
+                    "4": 10
                 },
                 "useWildSub": true,
                 "multiplier": [
@@ -439,103 +298,83 @@ exports.gameData = [
                 ]
             },
             {
-                "Name": "FreeSpin",
+                "Name": "9",
                 "Id": 9,
                 "reelInstance": {
-                    "0": 3,
-                    "1": 3,
-                    "2": 3,
-                    "3": 3,
-                    "4": 3
+                    "0": 10,
+                    "1": 10,
+                    "2": 10,
+                    "3": 10,
+                    "4": 10
                 },
-                "description": "Activates 3, 5, or 10 free spins when 3, 4, or 5 symbols appear anywhere on the result matrix.",
-                "useWildSub": false,
+                "useWildSub": true,
                 "multiplier": [
                     [
-                        0,
-                        10
+                        125,
+                        0
                     ],
                     [
-                        0,
-                        5
+                        75,
+                        0
                     ],
                     [
-                        0,
-                        3
+                        25,
+                        0
+                    ]
+                ]
+            },
+            {
+                "Name": "10",
+                "Id": 10,
+                "reelInstance": {
+                    "0": 10,
+                    "1": 10,
+                    "2": 10,
+                    "3": 10,
+                    "4": 10
+                },
+                "useWildSub": true,
+                "multiplier": [
+                    [
+                        200,
+                        0
+                    ],
+                    [
+                        150,
+                        0
+                    ],
+                    [
+                        50,
+                        0
                     ]
                 ]
             },
             {
                 "Name": "Wild",
-                "Id": 10,
-                "reelInstance": {
-                    "0": 5,
-                    "1": 5,
-                    "2": 5,
-                    "3": 5,
-                    "4": 5
-                },
-                "description": "Substitutes for all symbols except Jackpot, Free Spin, Bonus, and Scatter.",
-                "useWildSub": false,
-                "multiplier": []
-            },
-            {
-                "Name": "Scatter",
                 "Id": 11,
                 "reelInstance": {
-                    "0": 2,
-                    "1": 2,
-                    "2": 2,
-                    "3": 2,
-                    "4": 2
+                    "0": 10,
+                    "1": 5,
+                    "2": 10,
+                    "3": 10,
+                    "4": 10
                 },
-                "description": "Scatter: Offers higher pay outs when 3 or more symbols appear anywhere on the result matrix. Payout: 5x - 1000, 4x - 700, 3x - 500",
+                "description": "Substitutes for all symbols .",
                 "useWildSub": false,
                 "multiplier": [
                     [
-                        1000,
+                        200,
                         0
                     ],
                     [
-                        700,
+                        150,
                         0
                     ],
                     [
-                        500,
+                        50,
                         0
                     ]
                 ]
-            },
-            {
-                "Name": "Jackpot",
-                "Id": 12,
-                "reelInstance": {
-                    "0": 1,
-                    "1": 1,
-                    "2": 1,
-                    "3": 1,
-                    "4": 1
-                },
-                "description": "Mega win triggered by 5 Jackpot symbols appearing anywhere on the result matrix. Payout: 5000x",
-                "useWildSub": false,
-                "multiplier": [],
-                "defaultAmount": 5000,
-                "symbolsCount": 5,
-                "increaseValue": 5
-            },
-            {
-                "Name": "Bonus",
-                "Id": 13,
-                "reelInstance": {
-                    "0": 3,
-                    "1": 3,
-                    "2": 3,
-                    "3": 3,
-                    "4": 3
-                },
-                "description": "Starts a spinning wheel game for a pay out when 3 or more symbols appear anywhere on the result matrix.",
-                "useWildSub": false,
-                "symbolCount": 3
             }
         ]
     }
