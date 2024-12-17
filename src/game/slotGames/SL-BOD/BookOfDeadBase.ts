@@ -2,11 +2,12 @@ import { sessionManager } from "../../../dashboard/session/sessionManager";
 import { currentGamedata } from "../../../Player";
 import { precisionRound } from "../../../utils/utils";
 import { RandomResultGenerator } from "../RandomResultGenerator";
+import { getGambleResult } from "./gamble";
 import { initializeGameSettings, generateInitialReel, sendInitData, makePayLines, checkForWin, makeResultJson } from "./helper";
-import { SLPSFSETTINGS } from "./types";
+import { SLBODSETTINGS } from "./types";
 
-export class SLSB {
-  public settings: SLPSFSETTINGS;
+export class SLBOD {
+  public settings: SLBODSETTINGS;
   playerData = {
     haveWon: 0,
     currentWining: 0,
@@ -18,12 +19,9 @@ export class SLSB {
 
   constructor(public currentGameData: currentGamedata) {
     this.settings = initializeGameSettings(currentGameData, this);
-    console.log("Initialized game settings SL-SB");
     generateInitialReel(this.settings)
     sendInitData(this)
     makePayLines(this)
-
-    console.log("balance",this.getPlayerData().credits);
   }
 
   get initSymbols() {
@@ -65,6 +63,45 @@ export class SLSB {
         this.prepareSpin(response.data);
         this.getRTP(response.data.spins || 1);
         break;
+      case "GAMBLEINIT":
+        // const sendData = sendInitGambleData();
+
+        this.deductPlayerBalance(this.playerData.currentWining);
+        this.playerData.haveWon -= this.playerData.currentWining;
+        // this.sendMessage("gambleInitData", sendData);
+        break;
+
+      case "GAMBLERESULT":
+        let result = getGambleResult({ selected: response.cardType  });
+        //calculate payout
+        switch (result.playerWon) {
+          case true:
+            this.playerData.currentWining *= (response.cardType === "RED" || response.cardType === "BLACK") ? 2 : 4
+            result.balance = this.getPlayerData().credits + this.playerData.currentWining
+            result.currentWinning = this.playerData.currentWining
+            break;
+          case false:
+            result.currentWinning = 0;
+            result.balance = this.getPlayerData().credits;
+            this.playerData.currentWining = 0;
+            break;
+        }
+
+        this.sendMessage("GambleResult", result) // result card 
+
+        break;
+      case "GAMBLECOLLECT":
+        this.playerData.haveWon += this.playerData.currentWining;
+        this.updatePlayerBalance(this.playerData.currentWining);
+        this.sendMessage("GambleCollect", {
+          currentWinning: this.playerData.currentWining,
+          balance: this.getPlayerData().credits
+        }) // balance , currentWinning
+        break;
+      default:
+        console.warn(`Unhandled message ID: ${response.id}`);
+        this.sendError(`Unhandled message ID: ${response.id}`);
+        break;
     }
   }
   private prepareSpin(data: any) {
@@ -85,14 +122,17 @@ export class SLSB {
       }
       const { currentBet } = this.settings;
 
-      this.deductPlayerBalance(currentBet);
-      this.playerData.totalbet = precisionRound((this.playerData.totalbet + currentBet), 5);
+      if (!(this.settings.freeSpinCount > 0)) {
+
+        this.deductPlayerBalance(currentBet);
+        this.playerData.totalbet =precisionRound(this.playerData.totalbet + currentBet, 5);
+      }
 
 
       const spinId = platformSession.currentGameSession.createSpin();
       platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
 
-      new RandomResultGenerator(this);
+       new RandomResultGenerator(this);
       checkForWin(this)
       const winAmount = this.playerData.currentWining;
       platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
