@@ -1,12 +1,11 @@
 import { WinData } from "../BaseSlotGame/WinData";
 import {
-    betMultiplier,
     convertSymbols,
     UiInitData,
 } from "../../Utils/gameUtils";
 import { SLSM } from "./sizzlingMoonBase";
-import { specialIcons } from "./types";
-import { freezeIndex } from "../SL-CM/helper";
+import { FrozenIndex, specialIcons } from "./types";
+import { calculatePayoutOfBonusGame, handleBonusGameSpin } from "./bonus";
 
 /**
  * Initializes the game settings using the provided game data and game instance.
@@ -14,6 +13,7 @@ import { freezeIndex } from "../SL-CM/helper";
  * @param gameInstance - The instance of the SLCM class that manages the game logic.
  * @returns An object containing initialized game settings.
  */
+
 export function initializeGameSettings(gameData: any, gameInstance: SLSM) {
     return {
         id: gameData.gameSettings.id,
@@ -21,9 +21,11 @@ export function initializeGameSettings(gameData: any, gameInstance: SLSM) {
         bets: gameData.gameSettings.bets,
         baseBet: gameData.gameSettings.baseBet,
         BetMultiplier: gameData.gameSettings.betMultiplier,
-        frozenIndices:[],
         Symbols: gameInstance.initSymbols,
+        BonusSymbols: gameInstance.initBonusSymbols,
         resultSymbolMatrix: [],
+        bonusResultMatrix: [],
+        tempResultSymbolMatrix: [],
         currentGamedata: gameData.gameSettings,
         lineData: [],
         _winData: new WinData(gameInstance),
@@ -32,13 +34,35 @@ export function initializeGameSettings(gameData: any, gameInstance: SLSM) {
         currentLines: 0,
         BetPerLines: 0,
         reels: [],
+        bonusReels: [],
+        stickyBonusValue: [],
+        stickySymbolCount: gameData.gameSettings.stickyBonusCount,
+        stickySymbolCountProb: gameData.gameSettings.stickySymbolCountProb,
+        prizeValue: gameData.gameSettings.prizeValue,
+        prizeValueProb: gameData.gameSettings.prizeValueProb,
+        mysteryValues: gameData.gameSettings.mysteryValues,
+        mysteryValueProb: gameData.gameSettings.mysteryValueProb,
+        moonMysteryValues: gameData.gameSettings.moonMysteryValues,
+        moonMysteryValueProb: gameData.gameSettings.moonMysteryValueProb,
+        bonusSymbolValue: [],
+        frozenIndices: [],
+        miniMultiplier: gameData.gameSettings.miniMultiplier,
+        minorMultiplier: gameData.gameSettings.minorMultiplier,
+        majorMultiplier: gameData.gameSettings.majorMultiplier,
+        grandMultiplier: gameData.gameSettings.grandMultiplier,
+        moonMultiplier: gameData.gameSettings.moonMultiplier,
+        moonMysteryData: [],
+        isMoonJackpot: false,
+        isStickyBonusSymbol: false,
+        isGrandPrize: false,
+        isStickyBonus: false,
         freeSpin: {
-            symbolID: "-1",
             freeSpinsAdded: false,
+            freeSpinAwarded: gameData.gameSettings.freeSpinCount,
             freeSpinCount: 0,
             useFreeSpin: false,
+            freeSpinPayout: 0
         },
-        replacedToWildIndices: [],
         wild: {
             SymbolName: "",
             SymbolID: -1,
@@ -88,11 +112,13 @@ export function initializeGameSettings(gameData: any, gameInstance: SLSM) {
 
     };
 }
+
 /**
  * Generates the initial reel setup based on the game settings.
  * @param gameSettings - The settings used to generate the reel setup.
  * @returns A 2D array representing the reels, where each sub-array corresponds to a reel.
  */
+
 export function generateInitialReel(gameSettings: any): string[][] {
     const reels = [[], [], [], [], [], [], []];
     gameSettings.Symbols.forEach((symbol) => {
@@ -109,14 +135,36 @@ export function generateInitialReel(gameSettings: any): string[][] {
     return reels;
 }
 
+/**
+ * Generates the initial configuration for bonus reels based on game settings.
+ * @param gameSettings - The settings containing the bonus symbols and their reel configurations.
+ * @returns A 2D array representing the shuffled bonus reels.
+ */
 
+export function generateInitialBonusReel(gameSettings: any): string[][] {
+    const reels = [[], [], [], [], [], [], []];
+    gameSettings.BonusSymbols.forEach((symbol) => {
+        for (let i = 0; i < 4; i++) {
+            const count = symbol.reelInstance[i] || 0;
+            for (let j = 0; j < count; j++) {
+                reels[i].push(symbol.Id);
+            }
+        }
+    });
+    reels.forEach((reel) => {
+        shuffleArray(reel);
+    });
 
+    gameSettings.bonusReels = reels;
+    return reels;
+}
 
 
 /**
  * Shuffles the elements of an array in place using the Fisher-Yates algorithm.
  * @param array - The array to be shuffled.
  */
+
 function shuffleArray(array: any[]) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -139,6 +187,25 @@ export function makePayLines(gameInstance: SLSM) {
 }
 
 /**
+ * Retrieves the multipliers associated with bonus symbols from the game instance.
+ * @param gameInstance - The instance of the SLCM class that manages the game logic.
+ * @returns An array of objects, each containing the name and value of a bonus symbol multiplier.
+ */
+
+function getMultipliersForBonusSymbols(gameInstance: SLSM) {
+    const { settings } = gameInstance;
+    const multipliers = [
+        { name: "Mini Multiplier", value: settings.miniMultiplier },
+        { name: "Minor Multiplier", value: settings.minorMultiplier },
+        { name: "Major Multiplier", value: settings.majorMultiplier },
+        { name: "Grand Multiplier", value: settings.grandMultiplier },
+        { name: "Moon Multiplier", value: settings.moonMultiplier },
+    ];
+
+    return multipliers;
+}
+
+/**
  * Sends initial game and player data to the client.
  * @param gameInstance - The instance of the game containing settings and player data.
  */
@@ -146,16 +213,22 @@ export function makePayLines(gameInstance: SLSM) {
 export function sendInitData(gameInstance: SLSM) {
     gameInstance.settings.lineData =
         gameInstance.settings.currentGamedata.linesApiData;
-    UiInitData.paylines = convertSymbols(gameInstance.settings.Symbols);
+    const symbols = [...gameInstance.settings.Symbols, ...gameInstance.settings.BonusSymbols ]        
+    UiInitData.paylines = convertSymbols(symbols);
     const reels = generateInitialReel(gameInstance.settings);
+    const bonusReels = generateInitialBonusReel(gameInstance.settings);
+    const bonusMulipliers = getMultipliersForBonusSymbols(gameInstance);
     gameInstance.settings.reels = reels;
     const dataToSend = {
         GameData: {
             Reel: reels,
+            // BonusReel: bonusReels,
             linesApiData: gameInstance.settings.currentGamedata.linesApiData,
             Bets: gameInstance.settings.currentGamedata.bets,
             baseBet: gameInstance.settings.baseBetAmount,
-            betMultiplier: gameInstance.settings.currentGamedata.betMultiplier
+            betMultiplier: gameInstance.settings.currentGamedata.betMultiplier,
+            specialBonusSymbolMulipliers: bonusMulipliers,
+
         },
         UIData: UiInitData,
         PlayerData: {
@@ -165,13 +238,20 @@ export function sendInitData(gameInstance: SLSM) {
             totalbet: gameInstance.playerData.totalbet,
         },
     };
+
     gameInstance.sendMessage("InitData", dataToSend);
 }
-
 /**
- * Checks for wins on paylines, processes free spins, and updates game state.
- * @param gameInstance - The instance of the game.
- * @returns An array of winning lines.
+ * Checks for a win in the game and handles various game mechanics such as sticky bonuses, free spins, and base game wins.
+ * The function performs the following tasks:
+ * 1. **Sticky Bonus**: If there are sticky bonus symbols, it decrements their value and freezes the symbol on the grid.
+ * 2. **Free Spin Logic**: If free spins are active, it reduces the free spin count and calculates the payout for free spins once they are exhausted.
+ * 3. **Base Game Logic**: If free spins are not active, it checks for occurrences of winning symbols on the grid, calculates the corresponding payout, and updates the total payout.
+ * 4. **Payout Calculation**: Based on the game state, it calculates the total payout for both free spins and base game wins.
+ * 5. **Player Data Update**: Updates the player's current winnings and adds the win amount to the player's balance.
+ * 6. **Game State Reset**: Resets relevant game settings and variables to prepare for the next round.
+ * 
+ * @param gameInstance - The instance of the SLSM class managing the game logic.
  */
 
 export function checkForWin(gameInstance: SLSM) {
@@ -180,51 +260,85 @@ export function checkForWin(gameInstance: SLSM) {
 
         const winningLines = [];
         let totalPayout = 0;
-        handleStickyBonus(gameInstance);
-
-        const { isFreeSpin, scatterCount } = checkForFreeSpin(gameInstance);
-        if (isFreeSpin) {
-            handleFreeSpins(scatterCount, gameInstance);
-        }
-
-        const validWinSymbols = countOccurenceOfSymbolsAndIndices(gameInstance);
-        validWinSymbols.map(([symbol, matchCount]) => {
-            const multiplier =
-                accessData(symbol, matchCount, gameInstance)
-            const payout = multiplier * settings.BetPerLines;
-            totalPayout += payout;
-        })
-        if (settings.freeSpin.useFreeSpin && settings.freeSpin.freeSpinCount > 0) {
-            settings.freeSpin.freeSpinCount -= 1;
-            if (settings.freeSpin.freeSpinCount <= 0) {
-                settings.freeSpin.useFreeSpin = false;
+        if (!settings.freeSpin.useFreeSpin) {
+            // handle stickybonussymbol and freeze
+            if (settings.stickyBonusValue.length > 0) {
+                settings.stickyBonusValue[0].value--;
+                freezeSymbolonSpecificIndex(gameInstance);
+                if (settings.stickyBonusValue[0].value <= 0) {
+                    //remove stickyBonusSymbol
+                    settings.stickyBonusValue.splice(0, 1);
+                    // console.log("After Decrementedto zero:", settings.stickyBonusValue.length);
+                }
+                // console.log("After Decrement:", settings.stickyBonusValue[0]?.value);
+            } else {
+                settings.isStickyBonus = false;
+                handleStickyBonus(gameInstance);
             }
+            //check for free spin trigger
+            const { isFreeSpin } = checkForFreeSpin(gameInstance);
+            if (!isFreeSpin) {
+                // BASE GAME LOGIC: Count occurrences of symbols and calculate payout
+                const validWinSymbols = countOccurenceOfSymbolsAndIndices(gameInstance);
+                validWinSymbols.map(([symbol, matchCount]) => {
+                    const multiplier =
+                        accessData(symbol, matchCount, gameInstance)
+                    const payout = multiplier * settings.currentBet;
+                    totalPayout += payout;
+                })
+            }
+        } else {
+             // Handle logic for free spins
+            if (settings.freeSpin.useFreeSpin && settings.freeSpin.freeSpinCount > 0) {
+                settings.freeSpin.freeSpinCount -= 1;
+                if (settings.freeSpin.freeSpinCount <= 0) {
+                    const payoutOfBonusGame = calculatePayoutOfBonusGame(gameInstance);
+                    // console.log(payoutOfBonusGame, "Payout");
+                    settings.freeSpin.freeSpinPayout = payoutOfBonusGame;
+                    settings.freeSpin.useFreeSpin = false;
+                    settings.frozenIndices = [];
+                    return;
+                }
+            }
+            handleBonusGameSpin(gameInstance);
         }
-        if (isFreeSpin) {
-            settings.freeSpin.useFreeSpin = true;
 
-        }
+        // console.log(gameInstance.settings.bonusSymbolValue, "bonus symbol value");
+        // console.log(gameInstance.settings.stickyBonusValue, "stcky symbol value");
+        
+        // Add free spin payout to total payout
+        totalPayout += settings.freeSpin.freeSpinPayout;
 
+        // Update player's current winnings and balance
         gameInstance.playerData.currentWining += totalPayout;
-        gameInstance.playerData.haveWon += gameInstance.playerData.currentWining;
-        gameInstance.updatePlayerBalance(gameInstance.playerData.currentWining);
-
+        gameInstance.playerData.haveWon = parseFloat(
+            (gameInstance.playerData.haveWon + parseFloat(gameInstance.playerData.currentWining.toFixed(4))).toFixed(4)
+        );
+      gameInstance.updatePlayerBalance(gameInstance.playerData.currentWining);
+       
+        // Reset game state after payout
         makeResultJson(gameInstance)
         settings._winData.totalWinningAmount = 0;
         gameInstance.playerData.currentWining = 0;
-        settings._winData.winningLines = []
+        settings.freeSpin.freeSpinPayout = 0;
         settings._winData.winningSymbols = []
-        settings.replacedToWildIndices = [];
         settings.freeSpin.freeSpinsAdded = false;
-
-
-
-        return winningLines;
+        gameInstance.settings.bonusSymbolValue = []
+        settings.isGrandPrize = false;
+        settings.moonMysteryData = [];
     } catch (error) {
         console.error("Error in checkForWin", error);
         return [];
     }
 }
+
+/**
+ * Counts the occurrences of symbols and their indices in the result symbol matrix, including handling wild symbol substitutions.
+ * Determines valid winning symbols based on their counts and combines indices for symbols to emit winnings.
+ * 
+ * @param gameInstance - The instance of the SLCM class that manages the game logic.
+ * @returns An array of valid winning symbols where each entry is a tuple of the symbol ID and its count.
+ */
 
 function countOccurenceOfSymbolsAndIndices(gameInstance: SLSM) {
     const { settings } = gameInstance;
@@ -247,12 +361,10 @@ function countOccurenceOfSymbolsAndIndices(gameInstance: SLSM) {
             }
         });
     });
-
-
     /**
      * substitute wild symbol with every symbol
-     * wild can substitute more than one symbol and give winnigs
-     * for each symbol whose count is greater or equal to 8 combined with wild symbols
+     * wild can substitute more than one symbol and give winnigs if
+     * (symbol count + wild count) is greater or equal to 8.
     */
     settings.Symbols.forEach((symbol: any) => {
         if (symbol.useWildSub && symbol.Id in counts) {
@@ -276,7 +388,7 @@ function countOccurenceOfSymbolsAndIndices(gameInstance: SLSM) {
 
     const formattedIndices = Array.from(combinedIndices);
     settings._winData.winningSymbols = formattedIndices;
-    console.log(settings._winData.winningSymbols);
+    // console.log(settings._winData.winningSymbols);
 
     return validWinSymbols;
 }
@@ -312,12 +424,12 @@ function accessData(symbol, matchCount, gameInstance: SLSM) {
 }
 
 /**
- * Sends the initial game and player data to the client.
- * @param gameInstance - The instance of the SLCM class containing the game settings and player data.
+ * Configures game settings based on the special symbol provided.
+ * Updates the relevant symbol properties in the game instance based on the type of the special symbol.
+ * 
+ * @param symbol - The symbol object containing details such as name and ID.
+ * @param gameInstance - The instance of the SLSM class that manages the game logic.
  */
-
-
-
 
 function handleSpecialSymbols(symbol: any, gameInstance: SLSM) {
     switch (symbol.Name) {
@@ -336,11 +448,9 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLSM) {
             gameInstance.settings.stickyBonus.SymbolID = symbol.Id;
             gameInstance.settings.stickyBonus.useWild = true;
             break;
-            //TO DO: FIX INITIALISATION
         case specialIcons.mystery:
             gameInstance.settings.mystery.SymbolName = symbol.Name;
             gameInstance.settings.mystery.SymbolID = symbol.Id;
-            gameInstance.settings.mystery.useWild = false;
             break;
         case specialIcons.moonMystery:
             gameInstance.settings.moonMystery.SymbolName = symbol.Name;
@@ -372,80 +482,173 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLSM) {
     }
 }
 
-
-//handle sticky bonus
+/**
+ * Handles the logic for sticky bonus symbols in the game.
+ * Identifies sticky bonus symbols in the result symbol matrix, assigns random sticky counts and prize values,
+ * and updates the game settings with the highest sticky bonus object.
+ * 
+ * @param gameInstance - The instance of the SLSM class that manages the game logic.
+ */
 
 function handleStickyBonus(gameInstance: SLSM) {
     const { settings } = gameInstance;
-    const { resultSymbolMatrix, stickyBonus, frozenIndices } = settings;
-
+    const { resultSymbolMatrix, stickyBonus, stickyBonusValue } = settings;
+    let stickyBonusIndices: FrozenIndex[] = [];
+    
+     // check if the sticky bonus symbol is defined
     if (!stickyBonus?.SymbolID) {
         console.warn("Sticky Bonus SymbolID is not defined.");
         return;
     }
-
+    // Iterate through the result symbol matrix to identify sticky bonus symbols
     resultSymbolMatrix.forEach((row, rowIndex) => {
         row.forEach((symbol, colIndex) => {
-            if (symbol === stickyBonus.SymbolID) {                
-                frozenIndices.push([colIndex, rowIndex])
+            if (symbol === stickyBonus.SymbolID) {
+                const stickyCount = getRandomValue(gameInstance, 'sticky');
+                const prizeValue = getRandomValue(gameInstance, 'prize')
+                stickyBonusIndices.push({ position: [colIndex, rowIndex], prizeValue: prizeValue, value: stickyCount, symbol: symbol });
             }
         });
     });
 
-    console.log(frozenIndices);
-    
+    // if sticky bonus symbols is there, find highest sticky bonus
+    if (stickyBonusIndices.length > 0) {
+        const maxFrozenObject = stickyBonusIndices.reduce((max, frozenObject) =>
+            frozenObject.value > max.value ? frozenObject : max,
+            stickyBonusIndices[0]
+        );
+        stickyBonusValue.push(maxFrozenObject);
+        settings.isStickyBonus = true;
+    }
+    // console.log(stickyBonusValue, "FROZEN INDEX");    
 }
 
 /**
- * Checks if there are enough scatter symbols in the reels to trigger free spins.
- * @param gameInstance - The instance of the SLSM class containing the game state and settings.
- * @returns An object indicating whether free spins are triggered and the count of scatter symbols.
+ * Retrieves a random value based on the specified type and its associated probabilities.
+ * The function uses weighted probabilities to select a value from a predefined set.
+ * 
+ * @param gameInstance - The instance of the SLSM class that manages the game logic.
+ * @param type - The type of random value to retrieve, such as 'sticky', 'prize', 'mystery', or 'moonMystery'.
+ * @returns A randomly selected value based on the weighted probabilities for the specified type.
+ * @throws An error if an invalid type is provided.
+ */
+
+export function getRandomValue(gameInstance: SLSM, type: 'sticky' | 'prize' | 'mystery' | 'moonMystery'): number {
+    const { settings } = gameInstance;
+
+    let values: number[];
+    let probabilities: number[];
+    
+    // determine the values and probabilities based on the type
+    if (type === 'sticky') {
+        values = settings?.stickySymbolCount;
+        probabilities = settings?.stickySymbolCountProb;
+    } else if (type === 'prize') {
+        values = settings?.prizeValue;
+        probabilities = settings?.prizeValueProb;
+    } else if (type === 'mystery') {
+        values = settings?.mysteryValues;
+        probabilities = settings?.mysteryValueProb;
+    } else if (type === 'moonMystery') {
+        values = settings?.moonMysteryValues;
+        probabilities = settings?.moonMysteryValueProb;
+    }
+    else {
+        throw new Error("Invalid type, expected 'coin' or 'freespin'");
+    }
+
+
+    // Calculate the total probability and select a random value
+    const totalProbability = probabilities.reduce((sum, prob) => sum + prob, 0);
+    const randomValue = Math.random() * totalProbability;
+
+    let cumulativeProbability = 0;
+    for (let i = 0; i < probabilities.length; i++) {
+        cumulativeProbability += probabilities[i];
+        if (randomValue < cumulativeProbability) {
+            return values[i];
+        }
+    }
+
+    //default to first value
+    return values[0];
+}
+
+/**
+ * Freezes a sticky bonus symbol at a specific index in the result symbol matrix.
+ * Updates the matrix to place the sticky bonus symbol at the position defined in the game settings.
+ * 
+ * @param gameInstance - The instance of the SLSM class that manages the game logic.
+ */
+
+function freezeSymbolonSpecificIndex(gameInstance: SLSM) {
+    const { settings } = gameInstance;
+    const index = settings.stickyBonusValue[0].position;
+    const row = index[1];
+    const col = index[0];
+    //freeze or replace spicky bonus at specifc index
+    settings.resultSymbolMatrix[row][col] = settings.stickyBonus.SymbolID;
+}
+
+/**
+ * Checks if free spins are triggered based on the occurrence of bonus symbols in the result symbol matrix.
+ * Updates the game settings with bonus symbol values and manages the sticky bonus logic for free spins.
+ * 
+ * @param gameInstance - The instance of the SLSM class that manages the game logic.
+ * @returns An object containing the free spin status and the count of bonus symbols.
  */
 
 function checkForFreeSpin(gameInstance: SLSM) {
-    const { resultSymbolMatrix } = gameInstance.settings;
+    const { resultSymbolMatrix, bonus, stickyBonusValue, freeSpin } = gameInstance.settings;
+    // reset frozen indices and count bonus symbols
+    gameInstance.settings.frozenIndices = [];
+    let bonusSymbolCount = 0
 
-    let scatterCount = 0;
+   // count bonusSymbols in the resultSymbolMatrix and store their values
+    resultSymbolMatrix.forEach((row, rowIndex) => {
+        row.forEach((num: number, colIndex: number) => {
+            if (num === bonus.SymbolID) {
+                const bonusSymbolValue = getRandomValue(gameInstance, "prize");
+                gameInstance.settings.bonusSymbolValue.push({ position: [colIndex, rowIndex], prizeValue: bonusSymbolValue, symbol: num })
+                bonusSymbolCount++;
+            }
+        });
+    });
+    
+    // includes stickyBonusSymbol in the count
+    if (stickyBonusValue.length > 0) {
+        bonusSymbolCount += 1;
+    }
 
-    // for (let i = 0; i <= 6; i++) {
-    //     const reel = resultSymbolMatrix[i];
-    //     scatterCount += reel.filter(symbol => symbol === scatter.symbolID).length;
-    // }
-    const isFreeSpin = scatterCount >= 3;
-    console.log(`Scatter Count: ${scatterCount}`);
-    console.log(`Free Spin Triggered: ${isFreeSpin}`);
-    return { isFreeSpin, scatterCount };
+    // determine if free spins are triggered
+    const isFreeSpin = bonusSymbolCount >= 6;
+
+
+    if (isFreeSpin) {
+        // handle sticky bonus symbol if it exists
+        if (stickyBonusValue.length > 0) {
+            const index = stickyBonusValue[0].position;
+            const bonusSymbolValue = stickyBonusValue[0].prizeValue;
+            const row = index[1];
+            const col = index[0];
+            const symbol = stickyBonusValue[0].symbol
+            gameInstance.settings.bonusSymbolValue.push({ position: [col, row], prizeValue: bonusSymbolValue, symbol: symbol })
+        }
+        //gameSettings update for freespins
+        gameInstance.settings.tempResultSymbolMatrix = resultSymbolMatrix
+        stickyBonusValue.splice(0, 1);
+        freeSpin.useFreeSpin = true;
+        freeSpin.freeSpinCount += freeSpin.freeSpinAwarded
+        gameInstance.settings.frozenIndices = gameInstance.settings.bonusSymbolValue;
+        gameInstance.settings.isStickyBonus = false;
+        // console.log(gameInstance.settings.tempResultSymbolMatrix);
+    }
+    // console.log(`bonus symbol Count: ${bonusSymbolCount}`);
+    // console.log(`Free Spin Triggered: ${isFreeSpin}`);
+    return { isFreeSpin, bonusSymbolCount };
 }
 
-/**
- * Handles the logic for awarding free spins based on the number of scatter symbols.
- * Updates the free spin count and optionally awards winnings based on the current bet.
- * @param scatterCount - The number of scatter symbols found.
- * @param gameInstance - The instance of the SLSM class containing the game state and settings.
- */
 
-function handleFreeSpins(scatterCount: number, gameInstance: SLSM) {
-    const { settings, playerData } = gameInstance;
-    if (settings.freeSpin.useFreeSpin === true) {
-        settings.freeSpin.freeSpinsAdded = true;
-    }
-    switch (true) {
-        case scatterCount >= 5:
-            settings.freeSpin.freeSpinCount += 50;
-            playerData.currentWining += settings.currentBet * 50;
-            break;
-        case scatterCount === 4:
-            settings.freeSpin.freeSpinCount += 25;
-            playerData.currentWining += settings.currentBet * 10;
-            break;
-        case scatterCount === 3:
-            settings.freeSpin.freeSpinCount += 10;
-            break;
-        default:
-            // No Free Spins awarded or case not handled
-            break;
-    }
-}
 
 /**
  * Prepares and sends the result data for the current game state to the client.
@@ -457,16 +660,20 @@ export function makeResultJson(gameInstance: SLSM) {
     try {
         const { settings, playerData } = gameInstance;
         const credits = gameInstance.getPlayerData().credits + playerData.currentWining
-        const Balance = credits.toFixed(2)
         const sendData = {
             GameData: {
                 ResultReel: settings.resultSymbolMatrix,
-                linesToEmit: settings._winData.winningLines,
+                BonusResultReel:settings.bonusResultMatrix,
                 symbolsToEmit: settings._winData.winningSymbols,
-                wildSymbolIndices: settings.replacedToWildIndices,
                 isFreeSpin: settings.freeSpin.useFreeSpin,
                 freeSpinCount: settings.freeSpin.freeSpinCount,
-                freeSpinAdded: settings.freeSpin.freeSpinsAdded
+                freeSpinAdded: settings.freeSpin.freeSpinsAdded,
+                frozenIndices: settings.frozenIndices,
+                isGrandPrize: settings.isGrandPrize,
+                isMoonJackpot: settings.isMoonJackpot,
+                moonMysteryData: settings.moonMysteryData,
+                isStickyBonus: settings.isStickyBonus,
+                stickyBonusValue: settings.stickyBonusValue,
 
             },
             PlayerData: {

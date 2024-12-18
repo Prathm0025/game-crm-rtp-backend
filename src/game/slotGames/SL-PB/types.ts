@@ -10,22 +10,22 @@ interface Symbol {
 
 export interface FrozenIndex {
     position: [number, number];
-    prizeValue?:number;
+    coinsvalue?: number;
     value: number;
-    symbol:number|string;
-  }
+    symbol: number | string;
+}
 
- 
+
 export interface bonusSymbol {
     position: [number, number];
-    prizeValue:number;
-    symbol:number|string;
+    coinsvalue: number;
+    symbol: number | string;
 
-  } 
+}
 
 //  export interface mysterySymbol {
 //     position: [number, number];
-//     prizeValue?:number;
+//     coinsvalue?:number;
 //     symbol: number;
 //  } 
 export interface SLSMSETTINGS {
@@ -33,12 +33,12 @@ export interface SLSMSETTINGS {
     matrix: { x: number, y: number };
     currentGamedata: GameData;
     resultSymbolMatrix: any[];
-    tempResultSymbolMatrix:any[];
-    bonusResultMatrix:any[];
+    tempResultSymbolMatrix: any[];
+    bonusResultMatrix: any[];
     lineData: any[],
     _winData: WinData | undefined;
     currentBet: number;
-    baseBetAmount:number;
+    baseBetAmount: number;
     currentLines: number;
     BetPerLines: number;
     bets: number[];
@@ -46,75 +46,88 @@ export interface SLSMSETTINGS {
     bonusReels: any[][];
     Symbols: Symbol[];
     BonusSymbols: Symbol[];
-    stickyBonusValue:FrozenIndex[],
-    stickySymbolCount: number [],
-    stickySymbolCountProb :number [],
-    prizeValue:number [],
-    prizeValueProb: number [], 
-    mysteryValues: number [],
-    mysteryValueProb :number [],
-    moonMysteryValues:number [],
-    moonMysteryValueProb: number [], 
+    pollyAdjacentColumn: number[],
+    pollyAdjacentColumnProb: number[],
+    coinsvalue: number[],
+    coinsvalueProb: number[],
+    coinsvalueDuringFreeSpins: number[],
+    coinsvalueDuringFreeSpinsProb: number[],
+    pollyAdjacentSymbol: number[],
+    pollyAdjacentSymbolProb: number[],
+    tommyColossalSymbol: number[],
+    tommyColossalSymbolProb: number[],
+    colossalMergeProbability: number,
     bonusSymbolValue: bonusSymbol[],
-    frozenIndices:bonusSymbol[],
-    miniMultiplier:number,
-    minorMultiplier:number,
-    majorMultiplier:number,
-    grandMultiplier:number,
-    moonMultiplier:number,
-    moonMysteryData:bonusSymbol[],
-    isMoonJackpot:boolean,
-    isStickyBonusSymbol:boolean,
-    isGrandPrize:boolean,
-    isStickyBonus:boolean,
+    frozenIndices: bonusSymbol[],
+    freeSpinIndices:any [][],
+    miniMultiplier: number,
+    megaMultiplier: number,
+    majorMultiplier: number,
+    grandMultiplier: number,
+    isGrandPrize: boolean,
+    isArthurBonus: boolean,
+    isTomBonus: boolean,
+    isPollyBonus: boolean,
+    thunderBonus: {
+        thunderSpinCount: number,
+        thunderSpinAwardedCount: number,
+        isThunderBonus: boolean,
+        thunderSpinsAdded: boolean,
+        thunderSpinPayout: number
+    };
     freeSpin: {
         freeSpinCount: number,
-        freeSpinAwarded: number,
+        freeSpinAwardedCount: number,
         useFreeSpin: boolean,
         freeSpinsAdded: boolean,
-        freeSpinPayout:number
+        freeSpinPayout: number
     };
     wild: {
         SymbolName: string;
         SymbolID: number;
         useWild: boolean
     },
-    bonus:{
+    bonus: {
         SymbolName: string;
         SymbolID: number;
         useWild: boolean
     },
-    stickyBonus:{
+    coins: {
         SymbolName: string;
         SymbolID: number;
         useWild: boolean
     },
-    mystery:{
+    arthurBonus: {
         SymbolName: string;
         SymbolID: number;
         useWild: boolean
     },
-    moonMystery:{
+    tomBonus: {
         SymbolName: string;
         SymbolID: number;
         useWild: boolean
     },
-    mini:{
+    pollyBonus: {
         SymbolName: string;
         SymbolID: number;
         useWild: boolean
     },
-    minor:{
+    mini: {
         SymbolName: string;
         SymbolID: number;
         useWild: boolean
     },
-    major:{    
+    major: {
         SymbolName: string;
         SymbolID: number;
         useWild: boolean
     },
-    moon:{    
+    mega: {
+        SymbolName: string;
+        SymbolID: number;
+        useWild: boolean
+    },
+    thomas: {
         SymbolName: string;
         SymbolID: number;
         useWild: boolean
@@ -125,11 +138,12 @@ export interface SLSMSETTINGS {
 export enum specialIcons {
     wild = "Wild",
     bonus = "Bonus",
-    stickyBonus = "StickyBonus",
-    mystery = "Mystery",
-    moonMystery = "MoonMystery",
-    mini = "mini",
-    minor = "minor",
-    major = "major",
-    moon = "MOON"
+    coins = "Coins",
+    mini = "Mini",
+    major = "Major",
+    mega = "Mega",
+    arthurBonus = "ArthurBonus",
+    tomBonus = "TomBonus",
+    pollyBonus = "PollyBonus",
+    thomas = "Thomas"
 }

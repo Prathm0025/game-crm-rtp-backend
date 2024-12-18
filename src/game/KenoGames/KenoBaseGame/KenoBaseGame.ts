@@ -19,7 +19,7 @@ export default class KenoBaseGame implements RequiredSocketMethods {
   }
 
   public initialize(data: any) {
-    console.log("CHANED PARSHEET IN KENO ");
+    console.log("INITIALIZED PARSHEET IN KENO ");
 
   }
   sendMessage(action: string, message: any) {

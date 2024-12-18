@@ -1,4 +1,4 @@
-import { SLSM } from "./sizzlingMoonBase";
+import { SLPB } from "./peakyBlindersBase";
 import { getRandomValue } from "./helper";
 
 /**
@@ -7,11 +7,11 @@ import { getRandomValue } from "./helper";
  * It also considers any frozen indices that may have been locked during gameplay.
  * 
  * @class RandomBonusGenerator
- * @param current - The current instance of the SLSM class that manages the game logic.
+ * @param current - The current instance of the SLPB class that manages the game logic.
  */
 
 export class RandomBonusGenerator {
-    constructor(current: SLSM) {
+    constructor(current: SLPB) {
         let matrix: string[][] = [];
 
         // map of frozen indices and it symbols as key value pair
@@ -48,10 +48,10 @@ export class RandomBonusGenerator {
  * Handles the spin of the bonus game by generating a random bonus reel matrix, checking symbol occurrences, 
  * and processing the grand prize if applicable. Updates the game settings with the outcome of the bonus game spin.
  * 
- * @param gameInstance - The instance of the SLSM class that manages the game logic.
+ * @param gameInstance - The instance of the SLPB class that manages the game logic.
  */
 
-export function handleBonusGameSpin(gameInstance: SLSM) {
+export function handleBonusGameSpin(gameInstance: SLPB) {
     // generate a random bonus reel matrix based on the current game settings
     new RandomBonusGenerator(gameInstance);
     const { settings } = gameInstance;
@@ -60,10 +60,11 @@ export function handleBonusGameSpin(gameInstance: SLSM) {
     // add the grand prize if applicable
     if (settings.isGrandPrize) {
         const payoutOfBonusGame = calculatePayoutOfBonusGame(gameInstance);
-        settings.freeSpin.freeSpinPayout = payoutOfBonusGame;
-        settings.freeSpin.freeSpinCount = 0;
-        settings.freeSpin.useFreeSpin = false;
-        settings.freeSpin.freeSpinsAdded = false;
+        settings.thunderBonus.thunderSpinPayout = payoutOfBonusGame;
+        settings.thunderBonus.thunderSpinCount = 0;
+        settings.thunderBonus.isThunderBonus = false;
+        settings.thunderBonus.thunderSpinsAdded = false;
+        gameInstance.playerData.currentWining += payoutOfBonusGame;
     }
 
 }
@@ -73,14 +74,14 @@ export function handleBonusGameSpin(gameInstance: SLSM) {
  * Symbols that match the defined bonus symbols are "frozen" and assigned prize values based on their type.
  * Updates frozen indices, prize values, and handles special cases like grand prizes or free spins.
  *
- * @param gameInstance - The instance of the SLSM class that manages the game logic.
+ * @param gameInstance - The instance of the SLPB class that manages the game logic.
  */
 
-function checkOcurrenceOfSymbols(gameInstance: SLSM) {
+function checkOcurrenceOfSymbols(gameInstance: SLPB) {
     const { settings } = gameInstance;
 
     //Ids of symbols to freeze, excluding placeholders
-    const symbolsToFridge = gameInstance.settings.BonusSymbols.filter((value) => value.Name !== "PlaceHolder").map((symbol) => symbol.Id)
+    const symbolsToFridge = gameInstance.settings.BonusSymbols.filter((value) => value.Name !== "Placeholder").map((symbol) => symbol.Id)
     // console.log(symbolsToFridge, "SYMBOL TO FRIDGE");
     //already frozen positions
     const frozenPositions = settings.frozenIndices.map(
@@ -98,71 +99,27 @@ function checkOcurrenceOfSymbols(gameInstance: SLSM) {
                     const positionKey = `${colIndex},${rowIndex}`;
                     if (!frozenPositions.includes(positionKey)) {
                         // console.log(positionKey, "position key to freeze");
+                        console.log(symbol, settings.coins.SymbolID);
 
-                        let prizeValue = 0;
-                        let transformedSymbol;
+                        let coinsvalue = 0;
                         switch (true) {
-                            case symbol == settings.bonus.SymbolID:
-                                prizeValue = getRandomValue(gameInstance, 'prize')
-                                break;
-
-                            case symbol == settings.mystery.SymbolID:
-                                transformedSymbol = getRandomValue(gameInstance, 'mystery')
-                                switch (true) {
-                                    case transformedSymbol == settings.bonus.SymbolID:
-                                        prizeValue = getRandomValue(gameInstance, 'prize');
-                                        break;
-                                    case transformedSymbol == settings.mini.SymbolID:
-                                        prizeValue = settings.miniMultiplier;
-                                        break;
-                                    case transformedSymbol == settings.minor.SymbolID:
-                                        prizeValue = settings.minorMultiplier;
-                                        break;
-                                    case transformedSymbol == settings.major.SymbolID:
-                                        prizeValue = settings.majorMultiplier;
-                                        break;
-                                    default:
-                                        break;
+                            case symbol == settings.coins.SymbolID:
+                                if (settings.freeSpin.useFreeSpin) {
+                                    coinsvalue = getRandomValue(gameInstance, 'coinsValueDuringFreeSpin');
+                                } else {
+                                    coinsvalue = getRandomValue(gameInstance, 'coinsValue');
                                 }
-
-                                settings.moonMysteryData.push({ position: [colIndex, rowIndex], prizeValue: prizeValue, symbol: transformedSymbol })
                                 break;
-
-                            case symbol == settings.moonMystery.SymbolID:
-                                transformedSymbol = getRandomValue(gameInstance, 'moonMystery')
-                                switch (true) {
-                                    case transformedSymbol == settings.bonus.SymbolID:
-                                        prizeValue = getRandomValue(gameInstance, 'prize');
-                                        break;
-                                    case transformedSymbol == settings.mini.SymbolID:
-                                        prizeValue = settings.miniMultiplier;
-                                        break;
-                                    case transformedSymbol == settings.minor.SymbolID:
-                                        prizeValue = settings.minorMultiplier;
-                                        break;
-                                    case transformedSymbol == settings.major.SymbolID:
-                                        prizeValue = settings.majorMultiplier;
-                                        break;
-                                    case transformedSymbol == settings.moon.SymbolID:
-                                        settings.isMoonJackpot = true;
-                                        prizeValue = settings.moonMultiplier;
-                                        break;
-                                    default:
-                                        break;
-                                }
-                                settings.moonMysteryData.push({ position: [colIndex, rowIndex], prizeValue: prizeValue, symbol: transformedSymbol })
-                                break;
-
                             case symbol == settings.mini.SymbolID:
-                                prizeValue = settings.miniMultiplier;
-                                break;
-
-                            case symbol == settings.minor.SymbolID:
-                                prizeValue = settings.minorMultiplier;
+                                coinsvalue = settings.miniMultiplier;
                                 break;
 
                             case symbol == settings.major.SymbolID:
-                                prizeValue = settings.majorMultiplier;
+                                coinsvalue = settings.majorMultiplier;
+                                break;
+
+                            case symbol == settings.mega.SymbolID:
+                                coinsvalue = settings.megaMultiplier;
                                 break;
 
                             default:
@@ -173,7 +130,7 @@ function checkOcurrenceOfSymbols(gameInstance: SLSM) {
                         // Add to frozenIndices
                         settings.frozenIndices.push({
                             position: [colIndex, rowIndex],
-                            prizeValue: prizeValue,
+                            coinsvalue: coinsvalue,
                             symbol: symbol
                         });
 
@@ -184,14 +141,19 @@ function checkOcurrenceOfSymbols(gameInstance: SLSM) {
         })
     })
 
-    if (settings.frozenIndices.length === 16) {
+    if (settings.frozenIndices.length === 15) {
         // console.log("JACKPOT");
         settings.isGrandPrize = true;
     }
+    if (settings.isGrandPrize) {
+
+    }
+    // console.log(settings.frozenIndices.length);
+
     if (settings.frozenIndices.length > tempFrozenIndicesLength) {
-        if (settings.freeSpin.useFreeSpin === true) {
-            settings.freeSpin.freeSpinsAdded = true;
-            settings.freeSpin.freeSpinCount = settings.freeSpin.freeSpinAwarded;
+        if (settings.thunderBonus.isThunderBonus === true) {
+            settings.thunderBonus.thunderSpinsAdded = true;
+            settings.thunderBonus.thunderSpinCount = settings.thunderBonus.thunderSpinAwardedCount;
         }
     }
 }
@@ -199,39 +161,27 @@ function checkOcurrenceOfSymbols(gameInstance: SLSM) {
 /**
  * Calculates the total payout for the bonus game based on various conditions.
  * The payout is calculated depending on whether a Moon Jackpot, Grand Prize, or regular frozen indices payout applies.
- * - If the Moon Jackpot is triggered, the payout is calculated using the moon multiplier and current bet.
  * - If the Grand Prize is triggered, the payout is calculated using the grand multiplier and current bet.
  * - Additional payout is calculated based on frozen indices, each having a prize value multiplied by the current bet.
  *
- * @param gameInstance - The instance of the SLSM class that manages the game logic.
+ * @param gameInstance - The instance of the SLPB class that manages the game logic.
  * @returns The total payout of the bonus game.
  */
 
-export function calculatePayoutOfBonusGame(gameInstance: SLSM) {
+export function calculatePayoutOfBonusGame(gameInstance: SLPB) {
     const { settings } = gameInstance;
     let totalPayout = 0;
-    //handle moon jackpot
-    //return i fmoon jackpot(max winning is moon jackpot)
-    if (settings.isMoonJackpot) {
-        // console.log("MOON JACKPOT");
-        gameInstance.playerData.currentWining = 0
-        settings.freeSpin.useFreeSpin = false;
-        settings.freeSpin.freeSpinCount = 0;
-        settings.freeSpin.freeSpinsAdded = false;
-        const payout = settings.moonMultiplier * settings.currentBet;
-        totalPayout = payout;
-        return totalPayout;
-    }
+
     //handle grand prize
-    if ((settings.isGrandPrize) && (!settings.isMoonJackpot)) {
+    if ((settings.isGrandPrize)) {
         const payout = settings.grandMultiplier * settings.currentBet;
         totalPayout += payout;
     }
 
     //payout from frozen indices
     const frozenIndicesPayout = settings.frozenIndices.reduce((accumulator, frozenIndex) => {
-        const prizeValue = frozenIndex.prizeValue || 0;
-        return accumulator + prizeValue * settings.currentBet;
+        const coinsvalue = frozenIndex.coinsvalue || 0;
+        return accumulator + coinsvalue * settings.currentBet;
     }, 0);
 
     totalPayout += frozenIndicesPayout;

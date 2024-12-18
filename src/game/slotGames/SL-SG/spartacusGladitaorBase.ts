@@ -1,12 +1,11 @@
 import { sessionManager } from "../../../dashboard/session/sessionManager";
 import { currentGamedata } from "../../../Player";
 import { RandomResultGenerator } from "../RandomResultGenerator";
-import { getGambleResult } from "./gamble";
 import { initializeGameSettings, generateInitialReel, sendInitData, makePayLines, checkForWin } from "./helper";
-import { SLSMSETTINGS } from "./types";
+import { SLSGSETTINGS } from "./types";
 
-export class SLSM {
-    public settings: SLSMSETTINGS;
+export class SLSG {
+    public settings: SLSGSETTINGS;
     playerData = {
         haveWon: 0,
         currentWining: 0,
@@ -25,24 +24,12 @@ export class SLSM {
 
     get initSymbols() {
         const Symbols = [];
-        //filter symbols which appear only in base game
-        const baseGameSymbol = this.currentGameData.gameSettings.Symbols.filter((symbol) => !symbol.isBonusGameSymbol || symbol.isSpecialSymbol)
-        baseGameSymbol.forEach((Element: Symbol) => {
+        this.currentGameData.gameSettings.Symbols.forEach((Element: Symbol) => {
             Symbols.push(Element);
         });
         return Symbols;
     }
 
-
-    get initBonusSymbols() {
-        const Symbols = [];
-        //filter symbols which appear only in base game
-        const bonusGameSymbol = this.currentGameData.gameSettings.Symbols.filter((symbol) => symbol.isBonusGameSymbol || symbol.isSpecialSymbol)
-        bonusGameSymbol.forEach((Element: Symbol) => {
-            Symbols.push(Element);
-        });
-        return Symbols;
-    }
 
     sendMessage(action: string, message: any) {
         this.currentGameData.sendMessage(action, message, true);
@@ -74,49 +61,12 @@ export class SLSM {
                 this.prepareSpin(response.data);
                 this.getRTP(response.data.spins || 1);
                 break;
-            case "GAMBLEINIT":
-                this.deductPlayerBalance(this.playerData.currentWining);
-                this.playerData.haveWon -= this.playerData.currentWining;
-                // this.sendMessage("gambleInitData", sendData);
-                break;
-
-            case "GAMBLERESULT":
-                let result = getGambleResult({ selected: response.cardType });
-                //calculate payout
-                switch (result.playerWon) {
-                    case true:
-                        this.playerData.currentWining *= 2
-                        result.balance = this.getPlayerData().credits + this.playerData.currentWining
-                        result.currentWinning = this.playerData.currentWining
-                        break;
-                    case false:
-                        result.currentWinning = 0;
-                        result.balance = this.getPlayerData().credits;
-                        this.playerData.currentWining = 0;
-                        break;
-                }
-
-                this.sendMessage("GambleResult", result) // result card 
-
-                break;
-            case "GAMBLECOLLECT":
-                this.playerData.haveWon += this.playerData.currentWining;
-                this.updatePlayerBalance(this.playerData.currentWining);
-                this.sendMessage("GambleCollect", {
-                    currentWinning: this.playerData.currentWining,
-                    balance: this.getPlayerData().credits
-                }) // balance , currentWinning
-                break;
-            default:
-                console.warn(`Unhandled message ID: ${response.id}`);
-                this.sendError(`Unhandled message ID: ${response.id}`);
-                break;
         }
     }
     private prepareSpin(data: any) {
         this.settings.currentLines = data.currentLines;
         this.settings.BetPerLines = this.settings.currentGamedata.bets[data.currentBet];
-        this.settings.currentBet = this.settings.BetPerLines;
+        this.settings.currentBet = this.settings.BetPerLines * this.settings.currentLines;
     }
 
 
@@ -132,21 +82,14 @@ export class SLSM {
             }
             if (!this.settings.freeSpin.useFreeSpin) {
                 await this.deductPlayerBalance(this.settings.currentBet);
-                
-                // Ensure the totalbet is limited to 4 decimal places
-                this.playerData.totalbet = parseFloat(
-                    (this.playerData.totalbet + this.settings.currentBet).toFixed(4)
-                );
-            
+                this.playerData.totalbet += this.settings.currentBet;
             }
-            
 
             const spinId = platformSession.currentGameSession.createSpin();
             platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
 
-
             await new RandomResultGenerator(this);
-            checkForWin(this)
+            checkForWin(this);
 
             const winAmount = this.playerData.currentWining;
             platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);

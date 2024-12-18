@@ -2,9 +2,10 @@ import { WinData } from "../BaseSlotGame/WinData";
 import {
     betMultiplier,
     convertSymbols,
+    generateRandomNumber,
     UiInitData,
 } from "../../Utils/gameUtils";
-import { SLZEUS } from "./zeusBase";
+import { SLSG } from "./spartacusGladitaorBase";
 import { specialIcons } from "./types";
 
 /**
@@ -13,7 +14,7 @@ import { specialIcons } from "./types";
  * @param gameInstance - The instance of the SLCM class that manages the game logic.
  * @returns An object containing initialized game settings.
  */
-export function initializeGameSettings(gameData: any, gameInstance: SLZEUS) {
+export function initializeGameSettings(gameData: any, gameInstance: SLSG) {
     return {
         id: gameData.gameSettings.id,
         matrix: gameData.gameSettings.matrix,
@@ -21,8 +22,14 @@ export function initializeGameSettings(gameData: any, gameInstance: SLZEUS) {
         baseBet: gameData.gameSettings.baseBet,
         BetMultiplier: gameData.gameSettings.betMultiplier,
         Symbols: gameInstance.initSymbols,
+        symbolsSetCollosal: gameData.gameSettings.symbolsSetCollosal,
+        symbolsSetCollosalProb: gameData.gameSettings.symbolsSetCollosalProb,
+        symbolsSet: gameData.gameSettings.symbolsSet,
+        symbolsSetProb: gameData.gameSettings.symbolsSetProb,
         resultSymbolMatrix: [],
-        resultSymbolMatrixWithoutNull:[],
+        resultSymbolMatrixWithoutNull: [],
+        mainReelMatrix: [],
+        colossalReelMatrix: [],
         currentGamedata: gameData.gameSettings,
         lineData: [],
         matchCountOfLines: [],
@@ -45,7 +52,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLZEUS) {
         },
         freeSpinSymbol: {
             symbolID: "-1",
-            multiplier:[],
+            multiplier: [],
         }
     };
 }
@@ -57,7 +64,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLZEUS) {
 export function generateInitialReel(gameSettings: any): string[][] {
     const reels = [[], [], [], [], [], [], []];
     gameSettings.Symbols.forEach((symbol) => {
-        for (let i = 0; i < 7; i++) {
+        for (let i = 0; i < 5; i++) {
             const count = symbol.reelInstance[i] || 0;
             for (let j = 0; j < count; j++) {
                 reels[i].push(symbol.Id);
@@ -90,7 +97,7 @@ function shuffleArray(array: any[]) {
  * @param gameInstance - The instance of the game.
  */
 
-export function makePayLines(gameInstance: SLZEUS) {
+export function makePayLines(gameInstance: SLSG) {
     const { settings } = gameInstance;
     settings.currentGamedata.Symbols.forEach((element) => {
         if (!element.useWildSub) {
@@ -104,7 +111,7 @@ export function makePayLines(gameInstance: SLZEUS) {
  * @param gameInstance - The instance of the game containing settings and player data.
  */
 
-export function sendInitData(gameInstance: SLZEUS) {
+export function sendInitData(gameInstance: SLSG) {
     gameInstance.settings.lineData =
         gameInstance.settings.currentGamedata.linesApiData;
     UiInitData.paylines = convertSymbols(gameInstance.settings.Symbols);
@@ -135,16 +142,16 @@ export function sendInitData(gameInstance: SLZEUS) {
  * @returns An array of winning lines.
  */
 
-export function checkForWin(gameInstance: SLZEUS) {
+export function checkForWin(gameInstance: SLSG) {
     try {
         const { settings } = gameInstance;
-        settings.resultSymbolMatrixWithoutNull = settings.resultSymbolMatrix.map(row => [...row]);
-        // Remove elements from each reel in the specified sequence: 5, 4, 3, 2, 1, 0
-        settings.resultSymbolMatrix = reduceMatrix(gameInstance);
-        handleFullReelOfZeus(gameInstance);
+        settings.mainReelMatrix = reduceMatrix(gameInstance, 'main');
+        settings.colossalReelMatrix = reduceMatrix(gameInstance, 'collosal');
+        handleFullReelOfWild(gameInstance, settings.wild.SymbolID)
+        const combinedMatrix = [...settings.mainReelMatrix, ...settings.colossalReelMatrix];
+        console.log(combinedMatrix, 'combined');
+        settings.resultSymbolMatrix = combinedMatrix;
 
-        // console.log(settings.resultSymbolMatrix, "result symbol matrix column replace to wild(10)");
-        // Subsitute full reel of zeus with wild
 
         const winningLines = [];
         let totalPayout = 0;
@@ -156,41 +163,26 @@ export function checkForWin(gameInstance: SLZEUS) {
 
         settings.lineData.forEach((line, index) => {
             //RTL for free spins
-            const direction = settings.freeSpin.useFreeSpin ? 'RTL' : 'LTR';            
             const firstSymbolPositionLTR = line[0];
-            const firstSymbolPositionRTL = line[line.length - 1];
 
             let firstSymbolLTR = settings.resultSymbolMatrix[firstSymbolPositionLTR][0];
-            let firstSymbolRTL = settings.resultSymbolMatrix[firstSymbolPositionRTL][line.length - 1];            
-            const firstSymbol = settings.freeSpin.useFreeSpin ? firstSymbolRTL : firstSymbolLTR;
-            if (settings.wild.useWild && firstSymbolLTR === settings.wild.SymbolID) {                
+            const firstSymbol = firstSymbolLTR;
+            if (settings.wild.useWild && firstSymbolLTR === settings.wild.SymbolID) {
                 firstSymbolLTR = findFirstNonWildSymbol(line, gameInstance);
             }
-
-            if (settings.wild.useWild && firstSymbolRTL === settings.wild.SymbolID) {
-                firstSymbolRTL = findFirstNonWildSymbol(line, gameInstance, 'RTL');                
-            }
-
-            if(settings.freeSpin.useFreeSpin){
-                settings.resultSymbolMatrix 
-            }
-
             const { isWinningLine, matchCount, matchedIndices } = checkLineSymbols(
                 firstSymbol,
                 line,
                 gameInstance,
-                direction
+                'LTR'
             );
             switch (true) {
                 case isWinningLine && matchCount >= 4 && !settings.freeSpin.useFreeSpin:
-                    // console.log("NOT FREE SPIN");
-
                     const symbolMultiplierLTR = accessData(
                         firstSymbolLTR,
                         matchCount,
                         gameInstance
                     );
-                    // console.log(settings.lastReel, 'lastReel')
                     switch (true) {
                         case symbolMultiplierLTR > 0:
                             const payout = symbolMultiplierLTR * settings.currentBet;
@@ -220,49 +212,6 @@ export function checkForWin(gameInstance: SLZEUS) {
                                 settings._winData.winningSymbols.push(validIndices);
                                 settings._winData.totalWinningAmount = totalPayout;
 
-                                console.log(settings._winData.totalWinningAmount)
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                    break;
-                case isWinningLine && matchCount >= 4 && settings.freeSpin.useFreeSpin:
-                    // console.log("FREE SPIN");
-
-                    const symbolMultiplierRTL = accessData(
-                        firstSymbolRTL,
-                        matchCount,
-                        gameInstance
-                    );
-                    // console.log(settings.lastReel, 'lastReel')
-                    switch (true) {
-                        case symbolMultiplierRTL > 0:
-                            const payout = symbolMultiplierRTL * settings.currentBet;
-                            totalPayout += payout;
-                            settings._winData.winningLines.push(index + 1);
-                            winningLines.push({
-                                line,
-                                symbol: firstSymbolLTR,
-                                multiplier: symbolMultiplierRTL,
-                                matchCount,
-                            });
-                            settings.matchCountOfLines.push([index + 1, matchCount]);
-                            console.log(`Line ${index + 1}:`, line);
-                            console.log(
-                                `Payout for Line ${index + 1}:`,
-                                "payout",
-                                symbolMultiplierRTL
-                            );
-                            const formattedIndices = matchedIndices.map(({ col, row }) => `${col},${row}`);
-                            const validIndices = formattedIndices.filter(
-                                (index) => index.length > 2
-                            );
-                            if (validIndices.length > 0) {
-                                // console.log(settings.lastReel, 'settings.lastReel')
-                                console.log(validIndices);
-                                settings._winData.winningSymbols.push(validIndices);
-                                settings._winData.totalWinningAmount = totalPayout;
                                 console.log(settings._winData.totalWinningAmount)
                             }
                             break;
@@ -314,7 +263,7 @@ type CheckLineResult = { isWinningLine: boolean; matchCount: number; matchedIndi
 function checkLineSymbols(
     firstSymbol: string,
     line: number[],
-    gameInstance: SLZEUS,
+    gameInstance: SLSG,
     direction: 'LTR' | 'RTL' = 'LTR'
 ): CheckLineResult {
     try {
@@ -368,7 +317,7 @@ function checkLineSymbols(
  * @param direction - The direction to scan ('LTR' or 'RTL').
  * @returns The first non-wild symbol found, or the wild symbol if none are found.
  */
-function findFirstNonWildSymbol(line: number[], gameInstance: SLZEUS, direction: 'LTR' | 'RTL' = 'LTR') {
+function findFirstNonWildSymbol(line: number[], gameInstance: SLSG, direction: 'LTR' | 'RTL' = 'LTR') {
     const { settings } = gameInstance;
     const wildSymbol = settings.wild.SymbolID;
     const start = direction === 'LTR' ? 0 : line.length - 1;
@@ -393,7 +342,7 @@ function findFirstNonWildSymbol(line: number[], gameInstance: SLZEUS, direction:
  * @returns The multiplier value or 0 if no data is found.
  */
 
-function accessData(symbol, matchCount, gameInstance: SLZEUS) {
+function accessData(symbol, matchCount, gameInstance: SLSG) {
     const { settings } = gameInstance;
     try {
         const symbolData = settings.currentGamedata.Symbols.find(
@@ -420,13 +369,12 @@ function accessData(symbol, matchCount, gameInstance: SLZEUS) {
 
 
 
-function handleSpecialSymbols(symbol: any, gameInstance: SLZEUS) {
+function handleSpecialSymbols(symbol: any, gameInstance: SLSG) {
     switch (symbol.Name) {
         case specialIcons.wild:
             gameInstance.settings.wild.SymbolName = symbol.Name;
             gameInstance.settings.wild.SymbolID = symbol.Id;
             gameInstance.settings.wild.useWild = true;
-
             break;
         case specialIcons.FreeSpin:
             gameInstance.settings.freeSpinSymbol.symbolID = symbol.Id;
@@ -439,39 +387,37 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLZEUS) {
 
 /**
  * Replaces all symbols in a column with wild symbols if the entire column matches the specified symbol.
- * @param gameInstance - The instance of the SLZEUS class containing the game state and settings.
+ * @param gameInstance - The instance of the SLSG class containing the game state and settings.
  * @param symbolIdToCheck - The symbol ID to check for a full column match. Defaults to 0.
  */
 
-function handleFullReelOfZeus(gameInstance: SLZEUS, symbolIdToCheck = 0) {
+function handleFullReelOfWild(gameInstance: SLSG, symbolIdToCheck = 11) {
     try {
         const { settings } = gameInstance;
-        const resultSymbolMatrix = settings.resultSymbolMatrix;
-
+        const resultSymbolMatrix = settings.mainReelMatrix;
         for (let col = 0; col < resultSymbolMatrix[0].length; col++) {
             const isFullColumn = resultSymbolMatrix.every(row => row[col] === symbolIdToCheck || row[col] === null);
 
             if (isFullColumn) {
-                for (let row = 0; row < resultSymbolMatrix.length; row++) {
-                    resultSymbolMatrix[row][col] = settings.wild.SymbolID;
+                for (let row = 0; row < settings.colossalReelMatrix.length; row++) {
+                    settings.colossalReelMatrix[row][col] = settings.wild.SymbolID;
                 }
-
                 settings.replacedToWildIndices.push(col);
             }
         }
     } catch (error) {
-        console.error("Error handling full reel of Zeus:", error);
+        console.error("Error handling full reel of Wild:", error);
     }
 }
 
 /**
  * Checks if there are enough freeSpin symbols in the reels to trigger free spins.
- * @param gameInstance - The instance of the SLZEUS class containing the game state and settings.
+ * @param gameInstance - The instance of the SLSG class containing the game state and settings.
  * @returns An object indicating whether free spins are triggered and the count of freeSpin symbols.
  */
 
-function checkForFreeSpin(gameInstance: SLZEUS) {
-    const { resultSymbolMatrix, freeSpinSymbol, _winData } = gameInstance.settings;
+function checkForFreeSpin(gameInstance: SLSG) {
+    const { resultSymbolMatrix, freeSpinSymbol } = gameInstance.settings;
 
     let freeSpinSymbolCount = 0;
     const freeSpinIndices: { col: number; row: number }[] = [];
@@ -487,15 +433,7 @@ function checkForFreeSpin(gameInstance: SLZEUS) {
     }
 
     const isFreeSpin = freeSpinSymbolCount >= 3;
-    const formattedIndices = freeSpinIndices.map(({ col, row }) => `${row},${col}`);
-                            const validIndices = formattedIndices.filter(
-                                (index) => index.length > 2
-                            );
-                            if (validIndices.length > 0 && isFreeSpin) {
-                                // console.log(validIndices);
-                                _winData.winningSymbols.push(validIndices);
 
-                            }
     // console.log(`Freespin Count: ${freeSpinSymbolCount}`);
     // console.log(`FreeSpin Indices:`, freeSpinIndices);
     // console.log(`Free Spin Triggered: ${isFreeSpin}`);
@@ -508,29 +446,29 @@ function checkForFreeSpin(gameInstance: SLZEUS) {
  * Handles the logic for awarding free spins based on the number of freespin symbols.
  * Updates the free spin count and optionally awards winnings based on the current bet.
  * @param freeSpinCount - The number of freespin symbols found.
- * @param gameInstance - The instance of the SLZEUS class containing the game state and settings.
+ * @param gameInstance - The instance of the SLSG class containing the game state and settings.
  */
 
-function handleFreeSpins(freeSpinCount: number, gameInstance: SLZEUS) {
+function handleFreeSpins(freeSpinCount: number, gameInstance: SLSG) {
     const { settings, playerData } = gameInstance;
     if (settings.freeSpin.useFreeSpin === true) {
         settings.freeSpin.freeSpinsAdded = true;
     }
     console.log(freeSpinCount);
-    
+
     // console.log(settings.freeSpinSymbol.multiplier, "MULTIPLIER");
-    
+
     switch (true) {
         case freeSpinCount >= 5:
             settings.freeSpin.freeSpinCount += settings.freeSpinSymbol.multiplier[0][1];
             playerData.currentWining += settings.currentBet * settings.freeSpinSymbol.multiplier[0][0];
             break;
         case freeSpinCount === 4:
-            settings.freeSpin.freeSpinCount +=  settings.freeSpinSymbol.multiplier[1][1];
-            playerData.currentWining += settings.currentBet *  settings.freeSpinSymbol.multiplier[1][0];
+            settings.freeSpin.freeSpinCount += settings.freeSpinSymbol.multiplier[1][1];
+            playerData.currentWining += settings.currentBet * settings.freeSpinSymbol.multiplier[1][0];
             break;
         case freeSpinCount === 3:
-            settings.freeSpin.freeSpinCount +=  settings.freeSpinSymbol.multiplier[2][1];;
+            settings.freeSpin.freeSpinCount += settings.freeSpinSymbol.multiplier[2][1];;
             break;
         default:
             // No Free Spins awarded or case not handled
@@ -545,52 +483,112 @@ function handleFreeSpins(freeSpinCount: number, gameInstance: SLZEUS) {
  * @returns The updated matrix with specified symbols removed.
  */
 
-function reduceMatrix(gameInstance:SLZEUS) {
+function reduceMatrix(gameInstance: SLSG, type: 'main' | 'collosal') {
     const { settings } = gameInstance;
     const matrix = settings.resultSymbolMatrix;
-    const removeCounts = [5, 4, 3, 2, 1];
-    if (settings.freeSpin.useFreeSpin) {
-        const validSymbols = settings?.Symbols?.filter(symbol => symbol?.Id !== settings.wild.SymbolID);     
-        const sixthColumnIndex = 5; 
-        for (let row = 0; row < matrix.length; row++) {
-            if (matrix[row][sixthColumnIndex] === settings.wild.SymbolID) {
-                const randomIndex = Math.floor(Math.random() * validSymbols.length);
-                const randomSymbol = validSymbols[randomIndex];                                
-                matrix[row][sixthColumnIndex] = randomSymbol?.Id;
-            }
+    const rowLength = type === 'main' ? 4 : 12;
+    const newMatrix: number[][] = Array.from({ length: rowLength }, () => Array(5).fill(0));
+
+    for (let colIndex = 0; colIndex < 5; colIndex++) {
+        let columnSymbols;
+        const maxRows = type === 'main' ? 3 : 4;
+        const totalRows = matrix.length
+        const shuffledRows = Array.from({ length: totalRows }, (_, i) => i).sort(() => Math.random() - 0.5);
+        const selectedRows = shuffledRows.slice(0, maxRows);
+        columnSymbols = selectedRows.map(rowIndex => matrix[rowIndex][colIndex]);
+        const newColumn = generateColumn(columnSymbols, gameInstance, type);
+        for (let rowIndex = 0; rowIndex < rowLength; rowIndex++) {
+            newMatrix[rowIndex][colIndex] = newColumn[rowIndex];
         }
     }
 
-    for (let col = 0; col < removeCounts.length && col < matrix[0].length; col++) {
-        let countToRemove = removeCounts[col];
-        let rows = matrix.length;
-
-        for (let row = rows - 1; row >= 0 && countToRemove > 0; row--) {
-            matrix[row][col] = null;
-            countToRemove--;
-        }
-    }
-
-    // matrix = matrix.map(row => row.filter(element => element !== null));
-    return matrix;
+        console.log(newMatrix);
+    return newMatrix;
 }
 
+function generateColumn(symbols: number[], gameInstance: SLSG, type: 'main' | 'collosal'): number[] {
+    const column = [];
+    const availableSymbols = [...symbols];
+    // console.log(availableSymbols, "avai");
+    
+    const columnLength = type === 'main' ? 4 : 12;
+    let selectedSymbolIndex = type === 'main' ? 0 : 2;
+
+    while (column.length < columnLength) {
+        const symbolCount = getRandomValue(gameInstance, type);
+        // console.log(symbolCount, "symbol counr");
+        
+        const selectedSymbol = availableSymbols[(selectedSymbolIndex) % availableSymbols.length];
+        // console.log(selectedSymbol,);
+        
+        for (let i = 0; i < symbolCount && column.length < columnLength; i++) {
+            column.push(selectedSymbol);            
+        }
+        selectedSymbolIndex+=1;
+
+    }
+
+    return column.slice(0, columnLength);
+}
+
+
+
+export function getRandomValue(gameInstance: SLSG, type: 'main' | 'collosal' | 'mystery' | 'moonMystery'): number {
+    const { settings } = gameInstance;
+
+    let values: number[];
+    let probabilities: number[];
+
+    // determine the values and probabilities based on the type
+    if (type === 'main') {
+        values = settings?.symbolsSet;
+        probabilities = settings?.symbolsSetProb;
+    } else if (type === 'collosal') {
+        values = settings?.symbolsSetCollosal;
+        probabilities = settings?.symbolsSetCollosalProb;
+        // } else if (type === 'mystery') {
+        //     values = settings?.mysteryValues;
+        //     probabilities = settings?.mysteryValueProb;
+        // } else if (type === 'moonMystery') {
+        //     values = settings?.moonMysteryValues;
+        //     probabilities = settings?.moonMysteryValueProb;
+    }
+    else {
+        throw new Error("Invalid type, expected 'coin' or 'freespin'");
+    }
+
+
+    // Calculate the total probability and select a random value
+    const totalProbability = probabilities.reduce((sum, prob) => sum + prob, 0);
+    const randomValue = Math.random() * totalProbability;
+
+    let cumulativeProbability = 0;
+    for (let i = 0; i < probabilities.length; i++) {
+        cumulativeProbability += probabilities[i];
+        if (randomValue < cumulativeProbability) {
+            return values[i];
+        }
+    }
+
+    //default to first value
+    return values[0];
+}
 /**
  * Prepares and sends the result data for the current game state to the client.
  * Includes game data, player data, and details of any free spins or winnings.
- * @param gameInstance - The instance of the SLZEUS class containing the game state and settings.
+ * @param gameInstance - The instance of the SLSG class containing the game state and settings.
  */
 
-export function makeResultJson(gameInstance: SLZEUS) {
+export function makeResultJson(gameInstance: SLSG) {
     try {
         const { settings, playerData } = gameInstance;
         const credits = gameInstance.getPlayerData().credits + playerData.currentWining
         const Balance = credits.toFixed(2)
         const sendData = {
             GameData: {
-                ResultReel: settings.resultSymbolMatrixWithoutNull,
+                ResultReel: settings.resultSymbolMatrix,
                 linesToEmit: settings._winData.winningLines,
-                matchCountofLines:settings.matchCountOfLines,
+                matchCountofLines: settings.matchCountOfLines,
                 symbolsToEmit: settings._winData.winningSymbols,
                 wildSymbolIndices: settings.replacedToWildIndices,
                 isFreeSpin: settings.freeSpin.useFreeSpin,
@@ -605,8 +603,8 @@ export function makeResultJson(gameInstance: SLZEUS) {
                 haveWon: playerData.haveWon,
             }
         };
-        gameInstance.sendMessage('ResultData', sendData);        
-        // console.log(sendData, "send Data");
+        gameInstance.sendMessage('ResultData', sendData);
+        console.log(sendData, "send Data");
 
     } catch (error) {
         console.error("Error generating result JSON or sending message:", error);
