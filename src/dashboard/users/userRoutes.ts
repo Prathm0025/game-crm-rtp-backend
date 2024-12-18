@@ -1,14 +1,14 @@
 import express from "express";
-import { extractRoleFromCookie } from "../middleware/middlware";
 import { UserController } from "./userController";
 import { checkUser } from "../middleware/checkUser";
 import { checkLoginToggle } from "../middleware/checkToggle";
+import { checkRole } from "../middleware/checkRole";
 
 const userController = new UserController();
 const userRoutes = express.Router();
 
 // LOGIN
-userRoutes.post("/login",checkLoginToggle, userController.loginUser);
+userRoutes.post("/login", checkLoginToggle, userController.loginUser);
 
 // LOGOUT
 userRoutes.post("/logout", checkUser, userController.logoutUser)
@@ -22,9 +22,11 @@ userRoutes.get("/generatePassword", checkUser, userController.generatePassword);
 userRoutes.get("/", checkUser, userController.getCurrentUser);
 
 // // GET all subordinates
-userRoutes.get("/all", checkUser, userController.getAllSubordinates);
+userRoutes.get("/all", checkUser, checkRole(["admin", "company"]), userController.getAllSubordinates);
+
 // // GET all Players
-userRoutes.get('/allPlayer', checkUser, userController.getAllPlayers)
+userRoutes.get('/allPlayer', checkUser, checkRole(["admin", "company"]), userController.getAllPlayers);
+
 // GET Current User subordinate
 userRoutes.get(
   "/subordinates",

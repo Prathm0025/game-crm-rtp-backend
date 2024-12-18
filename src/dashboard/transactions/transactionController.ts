@@ -3,11 +3,12 @@ import { Player, User } from "../users/userModel";
 import Transaction from "./transactionModel";
 import createHttpError from "http-errors";
 import mongoose from "mongoose";
-import { AuthRequest } from "../../utils/utils";
+import { AuthRequest, getAllSubordinateIds } from "../../utils/utils";
 import { IPlayer, IUser } from "../users/userType";
 import { ITransaction } from "./transactionType";
 import TransactionService from "./transactionService";
 import { QueryParams } from "../../utils/globalTypes";
+import { isAdmin } from "../../utils/permissions";
 export class TransactionController {
   private transactionService: TransactionService;
 
@@ -25,7 +26,7 @@ export class TransactionController {
    */
   async createTransaction(
     type: string,
-    debtor: IUser,
+    debtor: IUser | IPlayer,
     creditor: IUser | IPlayer,
     amount: number,
     session: mongoose.ClientSession
@@ -59,9 +60,6 @@ export class TransactionController {
       const search = req.query.search as string;
       const filter = req.query.filter || "";
       const sortOrder = req.query.sort === "desc" ? -1 : 1; // Default to ascending order
-
-      console.log("getTransactions : ")
-      console.log(username + " : " + req.query.sort)
 
       let parsedData: QueryParams = {
         role: "",
@@ -170,7 +168,6 @@ export class TransactionController {
       const sortOrder = req.query.sort === "desc" ? -1 : 1; // Default to ascending order
 
       console.log("getTransactionsBySubId : ")
-      console.log(username + " : " + req.query.sort)
 
 
       const user = await User.findOne({ username });
@@ -240,13 +237,8 @@ export class TransactionController {
       const _req = req as AuthRequest;
       const { username, role } = _req.user;
 
+      const currentUser = await User.findOne({ username: username, role: role });
 
-      if (role != "company") {
-        throw createHttpError(
-          403,
-          "Access denied. Only users with the role 'company' can access this resource."
-        );
-      }
 
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
@@ -311,6 +303,15 @@ export class TransactionController {
         };
       }
 
+      // If the user is not an admin, only return transactions that involve the user or their subordinates
+      if (!isAdmin(currentUser)) {
+        const allSubordinateIds = await this.getAllSubordinateIds(currentUser._id as mongoose.Types.ObjectId, currentUser.role);
+        query.$or = [
+          { creditor: { $in: [currentUser.username, ...allSubordinateIds] } },
+          { debtor: { $in: [currentUser.username, ...allSubordinateIds] } },
+        ];
+      }
+
       const totalTransactions = await Transaction.countDocuments(query);
       const totalPages = Math.ceil(totalTransactions / limit);
 
@@ -337,38 +338,11 @@ export class TransactionController {
         currentPage: page,
         transactions,
       });
-
-
-      // const skip = (page - 1) * limit;
-
-      // const totalTransactions = await Transaction.countDocuments(query);
-      // const totalPages = Math.ceil(totalTransactions / limit);
-
-      // // Check if the requested page is out of range
-      // if (page > totalPages && totalPages !== 0) {
-      //   return res.status(400).json({
-      //     message: `Page number ${page} is out of range. There are only ${totalPages} pages available.`,
-      //     totalTransactions,
-      //     totalPages,
-      //     currentPage: page,
-      //     transactions: [],
-      //   });
-      // }
-
-      // const transactions = await Transaction.find(query)
-      //   .skip(skip)
-      //   .limit(limit);
-
-      // res.status(200).json({
-      //   totalTransactions,
-      //   totalPages,
-      //   currentPage: page,
-      //   transactions,
-      // });
     } catch (error) {
       console.error(
-        `Error fetching transactions by client ID: ${error.message}`
+        `Error fetching all transactions by client ID: ${error}`
       );
+      console.log(error)
       next(error);
     }
   }
@@ -405,5 +379,35 @@ export class TransactionController {
       console.error(`Error deleting transaction: ${error.message}`);
       next(error);
     }
+  }
+
+  async getAllSubordinateIds(userId: mongoose.Types.ObjectId, role: string): Promise<mongoose.Types.ObjectId[]> {
+    let allSubordinateIds: mongoose.Types.ObjectId[] = [];
+
+    if (role === "store") {
+      // Fetch subordinates from the Player collection
+      const directSubordinates = await Player.find({ createdBy: userId }, { _id: 1 });
+      const directSubordinateIds = directSubordinates.map(sub => sub._id as mongoose.Types.ObjectId);
+      allSubordinateIds = [...directSubordinateIds];
+    } else {
+      // Fetch subordinates from the User collection
+      const directSubordinates = await User.find({ createdBy: userId }, { _id: 1, role: 1 });
+      const directSubordinateIds = directSubordinates.map(sub => sub._id as mongoose.Types.ObjectId);
+      allSubordinateIds = [...directSubordinateIds];
+
+      // If the role is company, also fetch subordinates from the Player collection
+      if (role === "company") {
+        const directPlayerSubordinates = await Player.find({ createdBy: userId }, { _id: 1 });
+        const directPlayerSubordinateIds = directPlayerSubordinates.map(sub => sub._id as mongoose.Types.ObjectId);
+        allSubordinateIds = [...allSubordinateIds, ...directPlayerSubordinateIds];
+      }
+
+      for (const sub of directSubordinates) {
+        const subSubordinateIds = await this.getAllSubordinateIds(sub._id as mongoose.Types.ObjectId, sub.role);
+        allSubordinateIds = [...allSubordinateIds, ...subSubordinateIds];
+      }
+    }
+
+    return allSubordinateIds;
   }
 }

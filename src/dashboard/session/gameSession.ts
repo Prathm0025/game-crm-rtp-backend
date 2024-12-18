@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { EventEmitter } from "events";
-import { ISpinData } from "./sessionTypes";
+import { ISpecialFeatures, ISpinData } from "./sessionTypes";
 
 export class GameSession extends EventEmitter {
     playerId: string;
@@ -42,16 +42,38 @@ export class GameSession extends EventEmitter {
 
     public updateSpinField<T extends keyof ISpinData>(spinId: string, field: T, value: ISpinData[T]): boolean {
         const spin = this.getSpinById(spinId);
-        if (spin) {
-            spin[field] = value;
+        if (!spin) return false;
 
-            if (field === "betAmount") this.totalBetAmount += value as number;
-            if (field === "winAmount") this.totalWinAmount += value as number;
+        switch (field) {
+            case "betAmount":
+                if (typeof value === "number") {
+                    spin.betAmount = value;
+                    this.totalBetAmount += value;
+                }
+                break;
 
-            this.emit("spinUpdated", this.getSummary());
-            return true;
+            case "winAmount":
+                if (typeof value === "number") {
+                    spin.winAmount = value;
+                    this.totalWinAmount += value;
+                }
+                break;
+
+            case "specialFeatures":
+                if (typeof value === "object") {
+                    spin.specialFeatures = {
+                        ...spin.specialFeatures,
+                        ...(value as ISpecialFeatures),
+                    };
+                }
+                break;
+
+            default:
+                spin[field] = value;
         }
-        return false;
+
+        this.emit("spinUpdated", this.getSummary());
+        return true;
     }
 
     public endSession(creditsAtExit: number) {

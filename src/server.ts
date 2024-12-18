@@ -3,7 +3,7 @@ import cors from "cors";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import globalErrorHandler from "./dashboard/middleware/globalHandler";
-import companyRoutes from "./dashboard/company/companyRoutes";
+import adminRoutes from "./dashboard/admin/adminRoutes";
 import userRoutes from "./dashboard/users/userRoutes";
 import transactionRoutes from "./dashboard/transactions/transactionRoutes";
 import gameRoutes from "./dashboard/games/gameRoutes";
@@ -18,6 +18,7 @@ import payoutRoutes from "./dashboard/payouts/payoutRoutes";
 import { checkUser } from "./dashboard/middleware/checkUser";
 import { Platform } from "./dashboard/games/gameModel";
 import toggleRoutes from "./dashboard/Toggle/ToggleRoutes";
+import { checkRole } from "./dashboard/middleware/checkRole";
 declare module "express-session" {
   interface Session {
     captcha?: string;
@@ -76,12 +77,12 @@ app.get("/captcha", async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-app.use("/api/company", companyRoutes);
+app.use("/api/company", adminRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/transactions", transactionRoutes);
 app.use("/api/games", gameRoutes);
-app.use("/api/payouts", checkUser, checkAdmin, payoutRoutes)
-app.use("/api/toggle",checkUser,checkAdmin, toggleRoutes);
+app.use("/api/payouts", checkUser, checkRole(["admin"]), payoutRoutes)
+app.use("/api/toggle", checkUser, checkRole(["admin"]), toggleRoutes);
 
 const io = new Server(server, {
   cors: {

@@ -2,19 +2,15 @@ import mongoose, { Model, Schema } from "mongoose";
 import { IBonus, IGameSession, IJackpot, IScatter, ISpecialFeatures, ISpinData } from "./sessionTypes";
 
 const JackpotSchema: Schema<IJackpot> = new Schema({
-    triggered: { type: Boolean, required: true },
     amountWon: { type: Number, required: true }
 }, { _id: false });
 
 const ScatterSchema: Schema<IScatter> = new Schema({
-    triggered: { type: Boolean, required: true },
     amountWon: { type: Number, required: true },
 }, { _id: false });
 
 const BonusSchema: Schema<IBonus> = new Schema({
-    triggered: { type: Boolean, required: true },
-    bonusGameRounds: { type: Number, required: true },
-    totalBonusWin: { type: Number, required: true },
+    amountWon: { type: Number, required: true },
 }, { _id: false });
 
 const SpecialFeaturesSchema: Schema<ISpecialFeatures> = new Schema({
