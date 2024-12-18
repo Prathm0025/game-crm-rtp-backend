@@ -28,17 +28,13 @@ export interface ISpecialFeatures {
 
 
 export interface IJackpot {
-    triggered: boolean;       // Whether the jackpot was triggered
     amountWon: number;        // Amount won from the jackpot
 }
 
 export interface IScatter {
-    triggered: boolean;       // Whether scatter was triggered
     amountWon: number;        // Amount won from the scatter
 }
 
 export interface IBonus {
-    triggered: boolean;        // Whether a bonus game was triggered
-    bonusGameRounds: number;   // Number of bonus rounds played
-    totalBonusWin: number;     // Total winnings from the bonus game
+    amountWon: number;     // Total winnings from the bonus game
 }
