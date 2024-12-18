@@ -844,10 +844,10 @@ function handleTomBonus(gameInstance: SLPB) {
     // }
 
     const tommyAdjacentColumn = getRandomValue(gameInstance, 'tommy');
-
+   const symbolValue =  getRandomValue(gameInstance, 'tomCollosal');
     settings.resultSymbolMatrix.map((row, rowIndex) => {
 
-        row[tommyAdjacentColumn] = getRandomValue(gameInstance, 'tomCollosal');
+        row[tommyAdjacentColumn] = symbolValue;
         
         if(row[tommyAdjacentColumn] === settings.bonus.SymbolID|| settings.tomBonus.SymbolID || settings.arthurBonus.SymbolID || settings.pollyBonus.SymbolID){            
             settings.freeSpin.freeSpinCount += 5
