@@ -845,14 +845,23 @@ function handleTomBonus(gameInstance: SLPB) {
 
     const tommyAdjacentColumn = getRandomValue(gameInstance, 'tommy');
    const symbolValue =  getRandomValue(gameInstance, 'tomCollosal');
+   console.log(symbolValue);
+   
+   if (
+    symbolValue === settings.bonus.SymbolID ||
+    symbolValue === settings.tomBonus.SymbolID ||
+    symbolValue === settings.arthurBonus.SymbolID ||
+    symbolValue === settings.pollyBonus.SymbolID
+) {    console.log("true");
+    
+    settings.freeSpin.freeSpinCount += 5
+        settings.freeSpin.freeSpinsAdded = true;
+}
     settings.resultSymbolMatrix.map((row, rowIndex) => {
 
         row[tommyAdjacentColumn] = symbolValue;
         
-        if(row[tommyAdjacentColumn] === settings.bonus.SymbolID|| settings.tomBonus.SymbolID || settings.arthurBonus.SymbolID || settings.pollyBonus.SymbolID){            
-            settings.freeSpin.freeSpinCount += 5
-                settings.freeSpin.freeSpinsAdded = true;
-        }
+       
         row.fill(row[tommyAdjacentColumn], tommyAdjacentColumn + 1,tommyAdjacentColumn + 3);
 
         console.log(row[tommyAdjacentColumn]);
