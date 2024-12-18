@@ -56,9 +56,50 @@ export const gameData = [
       1.5,
       2
     ],
-    "freespinIncrement": 10,
-    "wheelProb":[10,3,2,3], // probability of NO wheel of fortune on idx #1 , small wheel of fortune on idx #2, medium wheel of fortune on idx #3, big wheel of fortune on idx  #4
+    "wheelProb":[10,3,3,3], // probability of NO wheel of fortune on idx #1 , small wheel of fortune on idx #2, medium wheel of fortune on idx #3, big wheel of fortune on idx  #4
     "goldSymbolProb":[1,5,5,5,5,5], // just for visuals extra gold symbols. WHEELPROB will determine if feature will be triggered .idx#1 prob for NO extra gold symbols , idx#2 prob for 1 extra gold symbol and so on
+    "smallWheelFeature": {
+      "featureValues":[
+        1,1,//levelup
+        5,4,//wilds
+        5,8,//freespin
+        20,40,//multiplier
+      ],
+      "featureProbs":[
+        2,2, //levelup
+        2,2, //wild
+        2,2, //freespin
+        2,2, //multiplier
+      ]
+    },
+    "mediumWheelFeature": {
+      "featureValues":[
+        1,1,//levelup
+        6,3,//wilds
+        9,11,//freespin
+        25,45,//multiplier
+      ],
+      "featureProbs":[
+        2,2, //levelup
+        2,2, //wild
+        2,2, //freespin
+        2,2, //multiplier
+      ]
+    },
+    "largeWheelFeature": {
+      "featureValues":[
+        0,0, //levelup KEEP this 0
+        8,12,//wilds
+        15,21,//freespin
+        35,55,//multiplier
+      ],
+      "featureProbs":[
+        0,0, //levelup KEEP this 0
+        2,2, //wild
+        2,2, //freespin
+        2,2, //multiplier
+      ]
+    },
     "Symbols": [
       {
         "Name": "0",

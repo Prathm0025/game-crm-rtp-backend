@@ -27,15 +27,27 @@ export function initializeGameSettings(gameData: any, gameInstance: SLAOG) {
     currentLines: 0,
     BetPerLines: 0,
     reels: [],
-    freeSpinIncrement: gameData.gameSettings.freespinIncrement || 10,
     wheelProb: gameData.gameSettings.wheelProb,
     goldSymbolProb: gameData.gameSettings.goldSymbolProb,
     isFreeSpin: false,
     freeSpinCount: 0,
+    smallWheelFeature: {
+      featureValues: gameData.gameSettings.smallWheelFeature.featureValues,
+      featureProbs: gameData.gameSettings.smallWheelFeature.featureProbs
+    },
+    mediumWheelFeature: {
+      featureValues: gameData.gameSettings.mediumWheelFeature.featureValues,
+      featureProbs: gameData.gameSettings.mediumWheelFeature.featureProbs
+    },
+    largeWheelFeature: {
+      featureValues: gameData.gameSettings.largeWheelFeature.featureValues,
+      featureProbs: gameData.gameSettings.largeWheelFeature.featureProbs
+    },
     wheelFeature: {
       isTriggered: false,
       wheelType: "NONE" as WheelType,
-      featureType: "NONE" as FeatureType
+      featureType: "NONE" as FeatureType,
+      featureValue: 0
     },
     goldIndices: [],
     wild: {
@@ -387,9 +399,10 @@ function populateGoldIndices(gameInstance: SLAOG) {
 
 export function getRandomValue(gameInstance: SLAOG, type:
   'wheelType' |
-  'extraGold'
-  |
-  // 'goldForNoWheel' |
+  'extraGold' |
+  'smallWheelFeature' |
+  'mediumWheelFeature' |
+  'largeWheelFeature' |
   'goldForSmallWheel' |
   'goldForMediumWheel' |
   'goldForLargeWheel'
@@ -404,11 +417,9 @@ export function getRandomValue(gameInstance: SLAOG, type:
     probabilities = settings.wheelProb
   } else if (type === 'extraGold') {
     let len = settings.wheelFeature.wheelType == "NONE" ? settings.goldSymbolProb.length - 1 : settings.goldSymbolProb.length - 2
-
     values = Array.from({ length: len }, (v, i) => i);
     probabilities = settings.goldSymbolProb.slice(0, len)
-  }
-  else if (type === 'goldForSmallWheel') {
+  } else if (type === 'goldForSmallWheel') {
     values = Array.from({ length: SMALLWHEELPOSITIONS.length }, (v, i) => i);
     probabilities = Array.from({ length: SMALLWHEELPOSITIONS.length }, (p) => 1);
   } else if (type === 'goldForMediumWheel') {
@@ -417,9 +428,15 @@ export function getRandomValue(gameInstance: SLAOG, type:
   } else if (type === 'goldForLargeWheel') {
     values = Array.from({ length: LARGEWHEELPOSITIONS.length }, (v, i) => i);
     probabilities = Array.from({ length: LARGEWHEELPOSITIONS.length }, (p) => 1);
-    // }  else if (type === 'goldForNoWheel') {
-    //   values = [0, 1, 2, 3, 4, 5, 6, 7, 8]
-    //   probabilities = settings.wheelProb
+  } else if (type === 'smallWheelFeature') {
+    values = Array.from({ length: settings.smallWheelFeature.featureValues.length }, (v, i) => i);
+    probabilities = settings.smallWheelFeature.featureProbs
+  } else if (type === 'mediumWheelFeature') {
+    values = Array.from({ length: settings.mediumWheelFeature.featureValues.length }, (v, i) => i);
+    probabilities = settings.mediumWheelFeature.featureProbs
+  } else if (type === 'largeWheelFeature') {
+    values = Array.from({ length: settings.largeWheelFeature.featureValues.length }, (v, i) => i);
+    probabilities = settings.largeWheelFeature.featureProbs
   } else {
     throw new Error("Invalid type, expected 'coin' or 'freespin'");
   }
@@ -440,6 +457,127 @@ export function getRandomValue(gameInstance: SLAOG, type:
 function checkForWheelOfFortune(gameInstance: SLAOG): number {
   return getRandomValue(gameInstance, 'wheelType')
 }
+function handleSmallWheel(gameInstance: SLAOG) {
+  const { settings } = gameInstance;
+  console.log("handleSmallWheel");
+  const featureIdx = getRandomValue(gameInstance, 'smallWheelFeature')
+  if (featureIdx == 0 || featureIdx == 1) {
+    settings.wheelFeature.featureType = "LEVELUP"
+    handleLevelUp(gameInstance)
+  } else if (featureIdx == 2 || featureIdx == 3) {
+    settings.wheelFeature.featureType = "WILD"
+    settings.wheelFeature.featureValue = settings.smallWheelFeature.featureValues[featureIdx]
+    handleWildInit(gameInstance)
+  } else if (featureIdx == 4 || featureIdx == 5) {
+    settings.wheelFeature.featureType = "FREESPIN"
+    settings.wheelFeature.featureValue = settings.smallWheelFeature.featureValues[featureIdx]
+    handleFreespin(gameInstance)
+  } else if (featureIdx == 6 || featureIdx == 7) {
+    settings.wheelFeature.featureType = "MULTIPLIER"
+    settings.wheelFeature.featureValue = settings.smallWheelFeature.featureValues[featureIdx]
+  }
+  console.log("small wheel feature", settings.wheelFeature);
+}
+
+
+function handleMediumWheel(gameInstance: SLAOG) {
+  const { settings } = gameInstance;
+  console.log("handleMediumWheel");
+  const featureIdx = getRandomValue(gameInstance, 'mediumWheelFeature')
+  if (featureIdx == 0 || featureIdx == 1) {
+    settings.wheelFeature.featureType = "LEVELUP"
+    handleLevelUp(gameInstance)
+  } else if (featureIdx == 2 || featureIdx == 3) {
+    settings.wheelFeature.featureType = "WILD"
+    settings.wheelFeature.featureValue = settings.mediumWheelFeature.featureValues[featureIdx]
+    handleWildInit(gameInstance)
+  } else if (featureIdx == 4 || featureIdx == 5) {
+    settings.wheelFeature.featureType = "FREESPIN"
+    settings.wheelFeature.featureValue = settings.mediumWheelFeature.featureValues[featureIdx]
+    handleFreespin(gameInstance)
+  } else if (featureIdx == 6 || featureIdx == 7) {
+    settings.wheelFeature.featureType = "MULTIPLIER"
+    settings.wheelFeature.featureValue = settings.mediumWheelFeature.featureValues[featureIdx]
+  }
+  console.log("medium wheel feature", settings.wheelFeature);
+}
+function handleLargeWheel(gameInstance: SLAOG) {
+  const { settings } = gameInstance;
+  console.log("handleLargeWheel");
+  const featureIdx = getRandomValue(gameInstance, 'largeWheelFeature')
+  if (featureIdx == 0 || featureIdx == 1) {
+    settings.wheelFeature.featureType = "LEVELUP"
+  } else if (featureIdx == 2 || featureIdx == 3) {
+    settings.wheelFeature.featureType = "WILD"
+    settings.wheelFeature.featureValue = settings.largeWheelFeature.featureValues[featureIdx]
+    handleWildInit(gameInstance)
+  } else if (featureIdx == 4 || featureIdx == 5) {
+    settings.wheelFeature.featureType = "FREESPIN"
+    settings.wheelFeature.featureValue = settings.largeWheelFeature.featureValues[featureIdx]
+    handleFreespin(gameInstance)
+  } else if (featureIdx == 6 || featureIdx == 7) {
+    settings.wheelFeature.featureType = "MULTIPLIER"
+    settings.wheelFeature.featureValue = settings.largeWheelFeature.featureValues[featureIdx]
+  }
+  console.log("large wheel feature", settings.wheelFeature);
+}
+function handleLevelUp(gameInstance: SLAOG) {
+  const { settings } = gameInstance;
+  console.log("handleLevelUp");
+  if (settings.wheelFeature.featureType != "LEVELUP") {
+    console.error("featureType is not LEVELUP")
+    return
+  }
+  switch (settings.wheelFeature.wheelType) {
+    case 'SMALL':
+      settings.wheelFeature.wheelType = 'MEDIUM'
+      handleMediumWheel(gameInstance)
+      break;
+    case 'MEDIUM':
+      settings.wheelFeature.wheelType = 'LARGE'
+      handleLargeWheel(gameInstance)
+      break;
+    case 'LARGE':
+      console.error("wheelType is already LARGE")
+      break;
+    default:
+      console.error("wheelType is not valid")
+      break;
+  }
+}
+function handleWildInit(gameInstance: SLAOG) {
+  const { settings } = gameInstance;
+  if (settings.wheelFeature.featureType != "WILD") {
+    console.error("featureType is not WILD")
+    return
+  }
+  settings.freeSpinCount = 1
+}
+function handleWildSub(gameInstance: SLAOG) {
+  const { settings } = gameInstance;
+  console.log("handleWildSub");
+  
+  if (settings.wheelFeature.featureType != "WILD") {
+    console.error("featureType is not WILD")
+    return
+  }
+  const wildPos = getNRandomPositions(settings.resultSymbolMatrix, settings.wheelFeature.featureValue, [])
+  for (let pos of wildPos) {
+    settings.resultSymbolMatrix[pos.row][pos.col] = settings.wild.SymbolID
+  }
+  
+}
+function handleFreespin(gameInstance: SLAOG) {
+  const { settings } = gameInstance;
+  console.log("handleFreespin");
+  if (settings.wheelFeature.featureType != "FREESPIN") {
+    console.error("featureType is not FREESPIN")
+    return
+  }
+  settings.isFreeSpin = true
+  settings.freeSpinCount += settings.wheelFeature.featureValue
+}
+
 //CHECK WINS ON PAYLINES WITH OR WITHOUT WILD
 export function checkForWin(gameInstance: SLAOG) {
   try {
@@ -448,43 +586,13 @@ export function checkForWin(gameInstance: SLAOG) {
     const winningLines = [];
     let totalPayout = 0;
 
-    if (settings.freeSpinCount > 0) {
-      settings.freeSpinCount--
+    // if (settings.freeSpinCount > 0) {
+    //   settings.freeSpinCount--
+    // }
+    //NOTE: wild sub
+    if (settings.wheelFeature.featureType == "WILD") {
+      handleWildSub(gameInstance)
     }
-
-
-
-    let wheelType = checkForWheelOfFortune(gameInstance);
-
-    console.log("wheeltype");
-    console.log(wheelType);
-
-    switch (wheelType) {
-      case 0:
-        settings.wheelFeature.isTriggered = false;
-        settings.wheelFeature.wheelType = 'NONE';
-        break;
-      case 1:
-        settings.wheelFeature.isTriggered = true;
-        settings.wheelFeature.wheelType = 'SMALL';
-        break;
-      case 2:
-        settings.wheelFeature.isTriggered = true;
-        settings.wheelFeature.wheelType = 'MEDIUM';
-        break;
-      case 3:
-        settings.wheelFeature.isTriggered = true;
-        settings.wheelFeature.wheelType = 'LARGE';
-        break;
-      default:
-        console.error('Invalid wheel type from checkForWheelOfFortune');
-        // settings.wheelFeature.isTriggered = false;
-        // settings.wheelFeature.wheelType = 'NONE';
-        break;
-    }
-    populateGoldIndices(gameInstance)
-    console.log("gldIndices");
-    console.log(settings.goldIndices);
 
 
     settings.lineData.forEach((line, index) => {
@@ -531,6 +639,43 @@ export function checkForWin(gameInstance: SLAOG) {
       }
     });
 
+    //NOTE: wheel of olympus
+    //
+
+    let wheelType = checkForWheelOfFortune(gameInstance);
+
+    console.log("wheeltype");
+    console.log(wheelType);
+
+    switch (wheelType) {
+      case 0:
+        settings.wheelFeature.isTriggered = false;
+        settings.wheelFeature.wheelType = 'NONE';
+        break;
+      case 1:
+        settings.wheelFeature.isTriggered = true;
+        settings.wheelFeature.wheelType = 'SMALL';
+        handleSmallWheel(gameInstance)
+        break;
+      case 2:
+        settings.wheelFeature.isTriggered = true;
+        settings.wheelFeature.wheelType = 'MEDIUM';
+        handleMediumWheel(gameInstance)
+        break;
+      case 3:
+        settings.wheelFeature.isTriggered = true;
+        settings.wheelFeature.wheelType = 'LARGE';
+        handleLargeWheel(gameInstance)
+        break;
+      default:
+        console.error('Invalid wheel type from checkForWheelOfFortune');
+        // settings.wheelFeature.isTriggered = false;
+        // settings.wheelFeature.wheelType = 'NONE';
+        break;
+    }
+    populateGoldIndices(gameInstance)
+    console.log("gldIndices");
+    console.log(settings.goldIndices);
 
     gameInstance.playerData.currentWining = precisionRound(totalPayout, 5);
     gameInstance.playerData.haveWon = precisionRound(gameInstance.playerData.haveWon +
@@ -538,9 +683,15 @@ export function checkForWin(gameInstance: SLAOG) {
     makeResultJson(gameInstance)
     settings.isFreeSpin = false
     //reset feature settings 
+    if (settings.wheelFeature.featureType != "WILD" || (
+      settings.wheelFeature.featureType == "WILD" &&
+        !settings.wheelFeature.isTriggered
+    )) {
+      settings.wheelFeature.featureType = "NONE"
+      settings.wheelFeature.featureValue = 0
+    }
     settings.wheelFeature.isTriggered = false;
     settings.wheelFeature.wheelType = "NONE"
-    settings.wheelFeature.featureType = "NONE"
     settings.goldIndices = []
 
     settings._winData.winningLines = []
