@@ -59,7 +59,11 @@ export class TransactionController {
       const limit = parseInt(req.query.limit as string) || 10;
       const search = req.query.search as string;
       const filter = req.query.filter || "";
-      const sortOrder = req.query.sort === "desc" ? -1 : 1; // Default to ascending order
+      const sortOrder = req.query.sort === "desc" ? -1 : 1;
+      const typeQuery = req.query.type as string;
+
+
+
 
       let parsedData: QueryParams = {
         role: "",
@@ -68,9 +72,10 @@ export class TransactionController {
         totalRedeemed: { From: 0, To: 0 },
         credits: { From: 0, To: 0 },
         updatedAt: { From: new Date(), To: new Date() },
-        type: "",
+        type: req.query.type as string,
         amount: { From: 0, To: Infinity },
       };
+
 
       let type, updatedAt, amount;
 
@@ -84,9 +89,10 @@ export class TransactionController {
       }
 
       let query: any = {};
-      if (type) {
-        query.type = type;
+      if (type || typeQuery) {
+        query.type = type || typeQuery;
       }
+
       if (filter) {
         query.$or = [
           { creditor: { $regex: filter, $options: "i" } },
