@@ -45,7 +45,7 @@ export interface socketConnectionData {
 }
 
 export const rolesHierarchy = {
-  company: ["master", "distributor", "subdistributor", "store", "player"],
+  supermaster: ["master", "distributor", "subdistributor", "store", "player"],
   master: ["distributor"],
   distributor: ["subdistributor"],
   subdistributor: ["store"],
@@ -239,7 +239,7 @@ export const uploadImage = (image) => {
 
 export const getSubordinateModel = (role: string) => {
   const rolesHierarchy: Record<string, string> = {
-    company: "User",
+    supermaster: "User",
     master: "User",
     distributor: "User",
     subdistributor: "User",
@@ -292,7 +292,7 @@ export async function getAllSubordinateIds(userId: mongoose.Types.ObjectId, role
     allSubordinateIds = [...directSubordinateIds];
 
     // If the role is company, also fetch subordinates from the Player collection
-    if (role === "company") {
+    if (role === "supermaster") {
       const directPlayerSubordinates = await Player.find({ createdBy: userId }, { _id: 1 });
       const directPlayerSubordinateIds = directPlayerSubordinates.map(sub => sub._id as mongoose.Types.ObjectId);
       allSubordinateIds = [...allSubordinateIds, ...directPlayerSubordinateIds];
@@ -321,7 +321,7 @@ export async function getAllPlayerSubordinateIds(userId: mongoose.Types.ObjectId
     const directSubordinateIds = directSubordinates.map(sub => sub._id as mongoose.Types.ObjectId);
 
     // If the role is company, also fetch subordinates from the Player collection
-    if (role === "company") {
+    if (role === "supermaster") {
       const directPlayerSubordinates = await Player.find({ createdBy: userId }, { _id: 1 });
       const directPlayerSubordinateIds = directPlayerSubordinates.map(sub => sub._id as mongoose.Types.ObjectId);
       allPlayerSubordinateIds = [...allPlayerSubordinateIds, ...directPlayerSubordinateIds];

@@ -99,7 +99,7 @@ export default class UserService {
       allSubordinateIds = [...directSubordinateIds];
 
       // If the role is company, also fetch subordinates from the Player collection
-      if (role === "company") {
+      if (role === "supermaster") {
         const directPlayerSubordinates = await Player.find({ createdBy: userId }, { _id: 1 });
         const directPlayerSubordinateIds = directPlayerSubordinates.map(sub => sub._id as mongoose.Types.ObjectId);
         allSubordinateIds = [...allSubordinateIds, ...directPlayerSubordinateIds];

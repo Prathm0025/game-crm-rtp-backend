@@ -27,8 +27,8 @@ interface ActivePlayer {
 export class UserController {
   private userService: UserService;
   private static rolesHierarchy = {
-    admin: ["company", "master", "distributor", "subdistributor", "store", "player"],
-    company: ["master", "distributor", "subdistributor", "store", "player"],
+    admin: ["supermaster", "master", "distributor", "subdistributor", "store", "player"],
+    supermaster: ["master", "distributor", "subdistributor", "store", "player"],
     master: ["distributor"],
     distributor: ["subdistributor"],
     subdistributor: ["store"],

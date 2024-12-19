@@ -22,10 +22,10 @@ userRoutes.get("/generatePassword", checkUser, userController.generatePassword);
 userRoutes.get("/", checkUser, userController.getCurrentUser);
 
 // // GET all subordinates
-userRoutes.get("/all", checkUser, checkRole(["admin", "company"]), userController.getAllSubordinates);
+userRoutes.get("/all", checkUser, checkRole(["admin", "supermaster"]), userController.getAllSubordinates);
 
 // // GET all Players
-userRoutes.get('/allPlayer', checkUser, checkRole(["admin", "company"]), userController.getAllPlayers);
+userRoutes.get('/allPlayer', checkUser, checkRole(["admin", "supermaster"]), userController.getAllPlayers);
 
 // GET Current User subordinate
 userRoutes.get(

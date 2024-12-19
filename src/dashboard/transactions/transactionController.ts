@@ -59,7 +59,9 @@ export class TransactionController {
       const limit = parseInt(req.query.limit as string) || 10;
       const search = req.query.search as string;
       const filter = req.query.filter || "";
-      const sortOrder = req.query.sort === "desc" ? -1 : 1; // Default to ascending order
+      const sortOrder = req.query.sort === "desc" ? -1 : 1;
+      const typeQuery = req.query.type as string;
+
 
       let parsedData: QueryParams = {
         role: "",
@@ -71,6 +73,7 @@ export class TransactionController {
         type: "",
         amount: { From: 0, To: Infinity },
       };
+
 
       let type, updatedAt, amount;
 
@@ -84,15 +87,33 @@ export class TransactionController {
       }
 
       let query: any = {};
-      if (type) {
-        query.type = type;
-      }
-      if (filter) {
-        query.$or = [
-          { creditor: { $regex: filter, $options: "i" } },
-          { debtor: { $regex: filter, $options: "i" } },
+
+
+      if (role !== 'admin' || !typeQuery) {
+        query.$and = [
+          {
+            $or: [{ debtor: username }, { creditor: username }],
+          },
         ];
+      } else {
+        query.$and = [];
       }
+
+      if (typeQuery) {
+        query.$and.push({ type: typeQuery });
+      } else if (type) {
+        query.$and.push({ type: type });
+      }
+
+      if (filter) {
+        query.$and.push({
+          $or: [
+            { creditor: { $regex: filter, $options: "i" } },
+            { debtor: { $regex: filter, $options: "i" } },
+          ],
+        });
+      }
+
       if (updatedAt) {
         const fromDate = new Date(parsedData.updatedAt.From);
         const toDate = new Date(parsedData.updatedAt.To) || new Date();
@@ -100,35 +121,39 @@ export class TransactionController {
         fromDate.setHours(0, 0, 0, 0);
         toDate.setHours(23, 59, 59, 999);
 
-        query.updatedAt = {
-          $gte: fromDate,
-          $lte: toDate,
-        };
+        query.$and.push({
+          updatedAt: {
+            $gte: fromDate,
+            $lte: toDate,
+          },
+        });
       }
 
       if (amount) {
-        query.amount = {
-          $gte: parsedData.amount.From,
-          $lte: parsedData.amount.To,
-        };
+        query.$and.push({
+          amount: {
+            $gte: parsedData.amount.From,
+            $lte: parsedData.amount.To,
+          },
+        });
       }
 
-      const {
-        transactions,
-        totalTransactions,
-        totalPages,
-        currentPage,
-        outOfRange,
-      } = await this.transactionService.getTransactions(
-        username,
-        page,
-        limit,
-        query,
-        "createdAt",
-        sortOrder
-      );
 
-      if (outOfRange) {
+      const totalTransactions = await Transaction.countDocuments(query);
+
+      const totalPages = Math.ceil(totalTransactions / limit);
+
+      if (totalTransactions === 0) {
+        return res.status(200).json({
+          transactions: [],
+          totalTransactions: 0,
+          totalPages: 0,
+          currentPage: 0,
+          outOfRange: false,
+        });
+      }
+
+      if (page > totalPages && totalPages !== 0) {
         return res.status(400).json({
           message: `Page number ${page} is out of range. There are only ${totalPages} pages available.`,
           totalTransactions,
@@ -138,10 +163,16 @@ export class TransactionController {
         });
       }
 
+      const transactions = await Transaction.find(query)
+        .sort({ createdAt: sortOrder })
+        .skip((page - 1) * limit)
+        .limit(limit);
+
+
       res.status(200).json({
         totalTransactions,
         totalPages,
-        currentPage,
+        currentPage: page,
         transactions,
       });
     } catch (error) {
@@ -184,7 +215,7 @@ export class TransactionController {
       }
       let query: any = {};
       if (
-        user.role === "company" ||
+        user.role === "supermaster" ||
         user.subordinates.includes(new mongoose.Types.ObjectId(subordinateId))
       ) {
         const {
@@ -396,7 +427,7 @@ export class TransactionController {
       allSubordinateIds = [...directSubordinateIds];
 
       // If the role is company, also fetch subordinates from the Player collection
-      if (role === "company") {
+      if (role === "supermaster") {
         const directPlayerSubordinates = await Player.find({ createdBy: userId }, { _id: 1 });
         const directPlayerSubordinateIds = directPlayerSubordinates.map(sub => sub._id as mongoose.Types.ObjectId);
         allSubordinateIds = [...allSubordinateIds, ...directPlayerSubordinateIds];
