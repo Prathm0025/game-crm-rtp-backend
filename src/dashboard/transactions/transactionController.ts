@@ -215,7 +215,7 @@ export class TransactionController {
       }
       let query: any = {};
       if (
-        user.role === "company" ||
+        user.role === "supermaster" ||
         user.subordinates.includes(new mongoose.Types.ObjectId(subordinateId))
       ) {
         const {
@@ -427,7 +427,7 @@ export class TransactionController {
       allSubordinateIds = [...directSubordinateIds];
 
       // If the role is company, also fetch subordinates from the Player collection
-      if (role === "company") {
+      if (role === "supermaster") {
         const directPlayerSubordinates = await Player.find({ createdBy: userId }, { _id: 1 });
         const directPlayerSubordinateIds = directPlayerSubordinates.map(sub => sub._id as mongoose.Types.ObjectId);
         allSubordinateIds = [...allSubordinateIds, ...directPlayerSubordinateIds];

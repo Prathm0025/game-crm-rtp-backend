@@ -204,7 +204,7 @@ const socketController = (io: Server) => {
 
             if (role === "player") {
                 await handlePlayerConnection(socket, decoded, userAgent);
-            } else if (['admin', 'company', 'master', 'distributor', 'subdistributor', 'store'].includes(role)) {
+            } else if (['admin', 'supermaster', 'master', 'distributor', 'subdistributor', 'store'].includes(role)) {
                 await handleManagerConnection(socket, decoded, userAgent)
             } else {
                 console.error("Unsupported role : ", role);

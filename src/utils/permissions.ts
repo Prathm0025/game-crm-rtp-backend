@@ -2,8 +2,8 @@ import mongoose, { mongo } from "mongoose";
 import { IPlayer, IUser } from "../dashboard/users/userType";
 
 const rolesHierarchy: Record<string, string[]> = {
-    admin: ["company", "master", "distributor", "subdistributor", "store"],
-    company: ["master", "distributor", "subdistributor", "store"],
+    admin: ["supermaster", "master", "distributor", "subdistributor", "store"],
+    supermaster: ["master", "distributor", "subdistributor", "store"],
     master: ["distributor"],
     distributor: ["subdistributor"],
     subdistributor: ["store"],
@@ -13,14 +13,14 @@ const rolesHierarchy: Record<string, string[]> = {
 const permissions: Record<string, Record<string, string[]>> = {
     admin: {
         games: ["r", "w", "x"],
-        companys: ["r", "w", "x"],
+        supermasters: ["r", "w", "x"],
         masters: ["r", "w", "x"],
         distributors: ["r", "w", "x"],
         subdistributors: ["r", "w", "x"],
         stores: ["r", "w", "x"],
         players: ["r", "w", "x"],
     },
-    company: {
+    supermaster: {
         masters: ["r", "w", "x"],
         distributors: ["r", "w", "x"],
         subdistributors: ["r", "w", "x"],

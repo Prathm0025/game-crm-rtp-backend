@@ -36,7 +36,6 @@ export const checkGamesToggle = async (req: Request, res: Response, next: NextFu
 
     //check if company users exist ,then pass through
     if (companyUsers?.find(user => user.username === username)) {
-      console.log("checkGamesToggle : ", companyUsers)
 
       next()
     } else {

@@ -7,16 +7,12 @@ import adminRoutes from "./dashboard/admin/adminRoutes";
 import userRoutes from "./dashboard/users/userRoutes";
 import transactionRoutes from "./dashboard/transactions/transactionRoutes";
 import gameRoutes from "./dashboard/games/gameRoutes";
-import session from "express-session"
 import { config } from "./config/config";
 import svgCaptcha from "svg-captcha";
 import createHttpError from "http-errors";
 import socketController from "./socket";
-import { checkAdmin } from "./dashboard/middleware/checkAdmin";
-import payoutController from "./dashboard/payouts/payoutController";
 import payoutRoutes from "./dashboard/payouts/payoutRoutes";
 import { checkUser } from "./dashboard/middleware/checkUser";
-import { Platform } from "./dashboard/games/gameModel";
 import toggleRoutes from "./dashboard/Toggle/ToggleRoutes";
 import { checkRole } from "./dashboard/middleware/checkRole";
 declare module "express-session" {
