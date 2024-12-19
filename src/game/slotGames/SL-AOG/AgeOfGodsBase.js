@@ -86,6 +86,9 @@ class SLAOG {
                     this.deductPlayerBalance(currentBet);
                     this.playerData.totalbet = (0, utils_1.precisionRound)(this.playerData.totalbet + currentBet, 5);
                 }
+                else {
+                    this.settings.freeSpinCount--;
+                }
                 const spinId = platformSession.currentGameSession.createSpin();
                 platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
                 new RandomResultGenerator_1.RandomResultGenerator(this);
