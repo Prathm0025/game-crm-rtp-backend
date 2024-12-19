@@ -577,6 +577,15 @@ function handleFreespin(gameInstance: SLAOG) {
   settings.isFreeSpin = true
   settings.freeSpinCount += settings.wheelFeature.featureValue
 }
+function handleMultiplier(gameInstance: SLAOG) {
+  const { settings,playerData } = gameInstance;
+  console.log("handleMultiplier");
+  if (settings.wheelFeature.featureType != "MULTIPLIER") {
+    console.error("featureType is not MULTIPLIER")
+    return
+  }
+  playerData.currentWining *= settings.wheelFeature.featureValue
+}
 
 //CHECK WINS ON PAYLINES WITH OR WITHOUT WILD
 export function checkForWin(gameInstance: SLAOG) {
@@ -678,6 +687,9 @@ export function checkForWin(gameInstance: SLAOG) {
     console.log(settings.goldIndices);
 
     gameInstance.playerData.currentWining = precisionRound(totalPayout, 5);
+    if(settings.wheelFeature.featureType == "MULTIPLIER"){
+      handleMultiplier(gameInstance)
+    }
     gameInstance.playerData.haveWon = precisionRound(gameInstance.playerData.haveWon +
       gameInstance.playerData.currentWining, 5)
     makeResultJson(gameInstance)
@@ -717,6 +729,12 @@ export function makeResultJson(gameInstance: SLAOG) {
         symbolsToEmit: settings._winData.winningSymbols,
         isFreeSpin: settings.isFreeSpin,
         freeSpinCount: settings.freeSpinCount,
+        wheel:{
+          isTriggered: settings.wheelFeature.isTriggered,
+          type: settings.wheelFeature.wheelType,
+          featureType: settings.wheelFeature.featureType,
+          featureValue: settings.wheelFeature.featureValue
+        }
       },
       PlayerData: {
         Balance: Balance,
