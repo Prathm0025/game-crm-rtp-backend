@@ -63,8 +63,6 @@ export class TransactionController {
       const typeQuery = req.query.type as string;
 
 
-
-
       let parsedData: QueryParams = {
         role: "",
         status: "",
@@ -72,7 +70,7 @@ export class TransactionController {
         totalRedeemed: { From: 0, To: 0 },
         credits: { From: 0, To: 0 },
         updatedAt: { From: new Date(), To: new Date() },
-        type: req.query.type as string,
+        type: "",
         amount: { From: 0, To: Infinity },
       };
 
@@ -88,17 +86,30 @@ export class TransactionController {
         }
       }
 
-      let query: any = {};
-      if (type || typeQuery) {
-        query.type = type || typeQuery;
+
+      let query: any = {
+        $and: [
+          {
+            $or: [{ debtor: username }, { creditor: username }],
+          },
+        ],
+      };
+
+      if (typeQuery) {
+        query.$and.push({ type: typeQuery });
+      } else if (type) {
+        query.$and.push({ type: type });
       }
 
       if (filter) {
-        query.$or = [
-          { creditor: { $regex: filter, $options: "i" } },
-          { debtor: { $regex: filter, $options: "i" } },
-        ];
+        query.$and.push({
+          $or: [
+            { creditor: { $regex: filter, $options: "i" } },
+            { debtor: { $regex: filter, $options: "i" } },
+          ],
+        });
       }
+
       if (updatedAt) {
         const fromDate = new Date(parsedData.updatedAt.From);
         const toDate = new Date(parsedData.updatedAt.To) || new Date();
@@ -106,35 +117,39 @@ export class TransactionController {
         fromDate.setHours(0, 0, 0, 0);
         toDate.setHours(23, 59, 59, 999);
 
-        query.updatedAt = {
-          $gte: fromDate,
-          $lte: toDate,
-        };
+        query.$and.push({
+          updatedAt: {
+            $gte: fromDate,
+            $lte: toDate,
+          },
+        });
       }
 
       if (amount) {
-        query.amount = {
-          $gte: parsedData.amount.From,
-          $lte: parsedData.amount.To,
-        };
+        query.$and.push({
+          amount: {
+            $gte: parsedData.amount.From,
+            $lte: parsedData.amount.To,
+          },
+        });
       }
 
-      const {
-        transactions,
-        totalTransactions,
-        totalPages,
-        currentPage,
-        outOfRange,
-      } = await this.transactionService.getTransactions(
-        username,
-        page,
-        limit,
-        query,
-        "createdAt",
-        sortOrder
-      );
 
-      if (outOfRange) {
+      const totalTransactions = await Transaction.countDocuments(query);
+
+      const totalPages = Math.ceil(totalTransactions / limit);
+
+      if (totalTransactions === 0) {
+        return res.status(200).json({
+          transactions: [],
+          totalTransactions: 0,
+          totalPages: 0,
+          currentPage: 0,
+          outOfRange: false,
+        });
+      }
+
+      if (page > totalPages && totalPages !== 0) {
         return res.status(400).json({
           message: `Page number ${page} is out of range. There are only ${totalPages} pages available.`,
           totalTransactions,
@@ -144,10 +159,16 @@ export class TransactionController {
         });
       }
 
+      const transactions = await Transaction.find(query)
+        .sort({ createdAt: sortOrder })
+        .skip((page - 1) * limit)
+        .limit(limit);
+
+
       res.status(200).json({
         totalTransactions,
         totalPages,
-        currentPage,
+        currentPage: page,
         transactions,
       });
     } catch (error) {
