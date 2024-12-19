@@ -86,14 +86,18 @@ export class TransactionController {
         }
       }
 
+      let query: any = {};
 
-      let query: any = {
-        $and: [
+
+      if (role !== 'admin' || !typeQuery) {
+        query.$and = [
           {
             $or: [{ debtor: username }, { creditor: username }],
           },
-        ],
-      };
+        ];
+      } else {
+        query.$and = [];
+      }
 
       if (typeQuery) {
         query.$and.push({ type: typeQuery });
