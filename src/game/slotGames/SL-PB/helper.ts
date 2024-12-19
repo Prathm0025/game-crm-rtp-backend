@@ -649,13 +649,14 @@ function checkForThunderBonusGame(gameInstance: SLPB) {
             }
         })
     })
+    gameInstance.settings.frozenIndices = gameInstance.settings.bonusSymbolValue;
+
 
     if (coinCount >= 6) {
         gameInstance.settings.tempResultSymbolMatrix = settings.resultSymbolMatrix
 
         settings.thunderBonus.isThunderBonus = true;
         settings.thunderBonus.thunderSpinCount = settings.thunderBonus.thunderSpinAwardedCount;
-        gameInstance.settings.frozenIndices = gameInstance.settings.bonusSymbolValue;
     }
 }
 
@@ -965,7 +966,7 @@ export function makeResultJson(gameInstance: SLPB) {
                 isFreeSpin: settings.freeSpin.useFreeSpin,
                 freeSpinCount: settings.freeSpin.freeSpinCount,
                 freeSpinAdded: settings.freeSpin.freeSpinsAdded,
-                frozenIndices: settings.frozenIndices,
+                frozenIndices: settings.frozenIndices.map((item)=> {return [...item.position,item.coinsvalue,item.symbol]}),
                 freeSpinIndices:settings.freeSpinIndices,
                 isArthurBonus: settings.isArthurBonus,
                 isTomBonus: settings.isTomBonus,
