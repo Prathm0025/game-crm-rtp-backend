@@ -20,9 +20,9 @@ export interface SLFLCSETTINGS {
   bets: number[];
   reels: any[][];
   Symbols: Symbol[];
-  isFreespin : boolean;
+  isFreespin: boolean;
   freespinCount: number;
-
+  freespinOptions: FreespinOption[]
   wild: {
     SymbolName: string;
     SymbolID: number;
@@ -31,12 +31,11 @@ export interface SLFLCSETTINGS {
   scatter: {
     SymbolName: string;
     SymbolID: number;
-
   },
   freespin: {
     SymbolName: string;
     SymbolID: number;
-    freespinMultiplier:[number,number,number]
+    freespinOption: number //index 
 
   }
 }
@@ -46,4 +45,8 @@ export enum specialIcons {
   scatter = "Scatter",
   wild = "Wild",
   freespin = "Freespin"
+}
+export type FreespinOption = {
+  count: number;
+  multiplier: number[];
 }

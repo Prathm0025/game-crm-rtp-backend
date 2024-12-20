@@ -1,7 +1,7 @@
 import { sessionManager } from "../../../dashboard/session/sessionManager";
 import { currentGamedata } from "../../../Player";
 import { RandomResultGenerator } from "../RandomResultGenerator";
-import { initializeGameSettings, generateInitialReel, sendInitData, makePayLines, checkForWin,  makeResultJson } from "./helper";
+import { initializeGameSettings, generateInitialReel, sendInitData, makePayLines, checkForWin, makeResultJson } from "./helper";
 import { SLFLCSETTINGS } from "./types";
 
 export class SLFLC {
@@ -61,6 +61,17 @@ export class SLFLC {
         this.prepareSpin(response.data);
         this.getRTP(response.data.spins || 1);
         break;
+      case "FREESPINOPTION":
+        if (response.data.option) {
+          if (response.data.option > this.settings.freespinOptions.length || response.data.option < 0) {
+            console.log("Invalid Freespin Option")
+          } else {
+            this.settings.freespin.freespinOption = Number(response.data.option);
+          }
+        }
+      default:
+        console.log("Invalid Message", response.id);
+        break;
     }
   }
   private prepareSpin(data: any) {
@@ -80,22 +91,13 @@ export class SLFLC {
         return;
       }
       //FIX: refactor
-      // const { freeSpin, currentBet } = this.settings;
-      // if (!freeSpin.freeSpinStarted && freeSpin.freeSpinCount === 0) {
-      //     this.playerData.totalbet += currentBet
-      //     this.deductPlayerBalance(currentBet);
-      // } else if (freeSpin.freeSpinStarted && freeSpin.freeSpinCount > 0) {
-      //     freeSpin.freeSpinCount--;
-      //     freeSpin.freeSpinsAdded = false;
-      //     console.log(freeSpin.freeSpinCount, "Remaining Free Spins");
-      //     if (freeSpin.freeSpinCount === 0) {
-      //         Object.assign(freeSpin, {
-      //             freeSpinStarted: false,
-      //             freeSpinsAdded: false,
-      //             freeSpinCount: 0
-      //         });
-      //     }
-      // }
+      let { freespinCount, currentBet } = this.settings;
+      if (freespinCount === 0) {
+        this.playerData.totalbet += currentBet
+        this.deductPlayerBalance(currentBet);
+      } else {
+        freespinCount--;
+      }
 
       const spinId = platformSession.currentGameSession.createSpin();
       platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
@@ -107,13 +109,11 @@ export class SLFLC {
       makeResultJson(this)
       this.updatePlayerBalance(this.playerData.currentWining)
       //clear json
-      // this.settings.resultSymbolMatrix = [];
-      // this.settings._winData.winningLines = [];
-      // this.settings._winData.winningSymbols = [];
-      // this.settings.freeSpin.jokerSymbols = [];
-      // this.settings.freeSpin.trumpSymbols = [];
-      // this.settings.isWining = false;
-      // this.playerData.currentWining = 0
+      this.settings.isFreespin = false;
+      this.settings.resultSymbolMatrix = [];
+      this.settings._winData.winningLines = [];
+      this.settings._winData.winningSymbols = [];
+      this.playerData.currentWining = 0
     } catch (error) {
       this.sendError("Spin error");
       console.error("Failed to generate spin results:", error);
