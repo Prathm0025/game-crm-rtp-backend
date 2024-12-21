@@ -18,6 +18,7 @@ import { SLSB } from "./SL-SB/Starburst"
 import { SLPB } from "./SL-PB/peakyBlindersBase";
 import { SLBOD } from "./SL-BOD/BookOfDeadBase";
 import { SLSG } from "./SL-SG/spartacusGladitaorBase";
+import { SLBS } from "./SL-BS/buffalo777Base";
 export default class SlotGameManager {
   public currentGame: any;
 
@@ -25,7 +26,7 @@ export default class SlotGameManager {
     "SL-CM": SLCM, "SL-CRZ": SLCRZ, "SL-WOF": SLWOF, "SL-PM": SLPM, "SL-BE": SLBE,
     "SL-ONE": SLONE, "SL-LOL": SLLOL, "SL-SR": SLSR, "SL-BB": SLBB, "SL-Z3": SLZEUS,
     "SL-SM": SLSM, "SL-TM": SLTM, "SL-BT": SLBT, "SL-PSF": SLPSF, "SL-SB": SLSB, "SL-BOD": SLBOD,
-    "SL-PB":SLPB, "SL-SG":SLSG
+    "SL-PB":SLPB, "SL-SG":SLSG, "SL-BS":SLBS
   };
 
   constructor(public currentGameData: currentGamedata) {

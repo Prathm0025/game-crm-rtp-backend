@@ -56,6 +56,8 @@ export function initializeGameSettings(gameData: any, gameInstance: SLSM) {
         isStickyBonusSymbol: false,
         isGrandPrize: false,
         isStickyBonus: false,
+        wildPayout:gameData.gameSettings.wildPayout,
+        isAllWild:false,
         freeSpin: {
             freeSpinsAdded: false,
             freeSpinAwarded: gameData.gameSettings.freeSpinCount,
@@ -228,6 +230,7 @@ export function sendInitData(gameInstance: SLSM) {
             baseBet: gameInstance.settings.baseBetAmount,
             betMultiplier: gameInstance.settings.currentGamedata.betMultiplier,
             specialBonusSymbolMulipliers: bonusMulipliers,
+            allWildMultiplier :gameInstance.settings.wildPayout,
 
         },
         UIData: UiInitData,
@@ -286,6 +289,12 @@ export function checkForWin(gameInstance: SLSM) {
                     const payout = multiplier * settings.currentBet;
                     totalPayout += payout;
                 })
+              const alllWild = isEverySymbolWild(gameInstance);
+              if(alllWild){
+                settings.isAllWild = true;
+                  totalPayout += settings.wildPayout & settings.currentBet;
+              }
+
             }
         } else {
              // Handle logic for free spins
@@ -326,6 +335,7 @@ export function checkForWin(gameInstance: SLSM) {
         gameInstance.settings.bonusSymbolValue = []
         settings.isGrandPrize = false;
         settings.moonMysteryData = [];
+        settings.isAllWild = false;
     } catch (error) {
         console.error("Error in checkForWin", error);
         return [];
@@ -391,6 +401,17 @@ function countOccurenceOfSymbolsAndIndices(gameInstance: SLSM) {
     // console.log(settings._winData.winningSymbols);
 
     return validWinSymbols;
+}
+
+//check if every Symbol Wild
+function isEverySymbolWild(gameInstance: SLSM): boolean {
+    const { settings } = gameInstance;
+    const { resultSymbolMatrix, wild } = settings;
+
+    // Check if all symbols are wild
+    return resultSymbolMatrix.every(row =>
+        row.every(num => num === wild.SymbolID)
+    );
 }
 
 
@@ -674,6 +695,7 @@ export function makeResultJson(gameInstance: SLSM) {
                 moonMysteryData: settings.moonMysteryData,
                 isStickyBonus: settings.isStickyBonus,
                 stickyBonusValue: settings.stickyBonusValue,
+                isAllWild: settings.isAllWild,
 
             },
             PlayerData: {
