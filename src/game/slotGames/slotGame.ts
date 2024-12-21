@@ -27,7 +27,7 @@ export default class SlotGameManager {
     "SL-CM": SLCM, "SL-CRZ": SLCRZ, "SL-WOF": SLWOF, "SL-PM": SLPM, "SL-BE": SLBE,
     "SL-ONE": SLONE, "SL-LOL": SLLOL, "SL-SR": SLSR, "SL-BB": SLBB, "SL-Z3": SLZEUS,
     "SL-SM": SLSM, "SL-TM": SLTM, "SL-BT": SLBT, "SL-PSF": SLPSF, "SL-SB": SLSB, "SL-BOD": SLBOD,
-    "SL-PB":SLPB, "SL-SG":SLSG, "SL-BS":SLBS
+    "SL-PB":SLPB, "SL-SG":SLSG, "SL-BS":SLBS,
      "SL-AOG":SLAOG
   };
 
