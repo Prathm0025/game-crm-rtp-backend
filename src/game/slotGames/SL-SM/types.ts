@@ -62,6 +62,8 @@ export interface SLSMSETTINGS {
     majorMultiplier:number,
     grandMultiplier:number,
     moonMultiplier:number,
+    minMatchCount:number,
+    freeSpinMatchCount:number,
     moonMysteryData:bonusSymbol[],
     isMoonJackpot:boolean,
     isStickyBonusSymbol:boolean,

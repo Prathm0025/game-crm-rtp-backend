@@ -51,6 +51,8 @@ export function initializeGameSettings(gameData: any, gameInstance: SLSM) {
         majorMultiplier: gameData.gameSettings.majorMultiplier,
         grandMultiplier: gameData.gameSettings.grandMultiplier,
         moonMultiplier: gameData.gameSettings.moonMultiplier,
+        minMatchCount:gameData.gameSettings.minMatchCount,
+        freeSpinMatchCount:gameData.gameSettings.freeSpinMatchCount,
         moonMysteryData: [],
         isMoonJackpot: false,
         isStickyBonusSymbol: false,
@@ -230,7 +232,7 @@ export function sendInitData(gameInstance: SLSM) {
             baseBet: gameInstance.settings.baseBetAmount,
             betMultiplier: gameInstance.settings.currentGamedata.betMultiplier,
             specialBonusSymbolMulipliers: bonusMulipliers,
-            allWildMultiplier :gameInstance.settings.wildPayout,
+            allWildMultiplier :gameInstance.settings.wildPayout
 
         },
         UIData: UiInitData,
@@ -383,7 +385,7 @@ function countOccurenceOfSymbolsAndIndices(gameInstance: SLSM) {
     });
 
     // valid winning symbols(count greater or equal to 8)
-    const validWinSymbols = Object.entries(counts).filter(([_, count]) => count >= 8);
+    const validWinSymbols = Object.entries(counts).filter(([_, count]) => count >= settings.minMatchCount);
 
     // combine indices for valid symbols and wild symbols for symbols to emit
     validWinSymbols.forEach(([symbolId]) => {
@@ -642,7 +644,7 @@ function checkForFreeSpin(gameInstance: SLSM) {
     }
 
     // determine if free spins are triggered
-    const isFreeSpin = bonusSymbolCount >= 6;
+    const isFreeSpin = bonusSymbolCount >= gameInstance.settings.freeSpinMatchCount ;
 
 
     if (isFreeSpin) {
