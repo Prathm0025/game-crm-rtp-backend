@@ -377,7 +377,9 @@ export function checkForWin(gameInstance: SLPB) {
         gameInstance.playerData.haveWon += gameInstance.playerData.currentWining;
         gameInstance.updatePlayerBalance(gameInstance.playerData.currentWining);
         makeResultJson(gameInstance);
-
+       if(!settings.thunderBonus.isThunderBonus){
+        settings.freeSpinIndices = [];
+       }
         // Reset properties after result processing
         gameInstance.playerData.currentWining = 0;
         gameInstance.settings._winData.winningLines = [];
