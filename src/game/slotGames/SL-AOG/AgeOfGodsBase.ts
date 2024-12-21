@@ -3,10 +3,10 @@ import { currentGamedata } from "../../../Player";
 import { precisionRound } from "../../../utils/utils";
 import { RandomResultGenerator } from "../RandomResultGenerator";
 import { initializeGameSettings, generateInitialReel, sendInitData, makePayLines, checkForWin, makeResultJson } from "./helper";
-import { SLPSFSETTINGS } from "./types";
+import { SLAOGSETTINGS } from "./types";
 
-export class SLSB {
-  public settings: SLPSFSETTINGS;
+export class SLAOG {
+  public settings: SLAOGSETTINGS;
   playerData = {
     haveWon: 0,
     currentWining: 0,
@@ -18,12 +18,9 @@ export class SLSB {
 
   constructor(public currentGameData: currentGamedata) {
     this.settings = initializeGameSettings(currentGameData, this);
-    console.log("Initialized game settings SL-SB");
     generateInitialReel(this.settings)
     sendInitData(this)
     makePayLines(this)
-
-    console.log("balance",this.getPlayerData().credits);
   }
 
   get initSymbols() {
@@ -65,6 +62,10 @@ export class SLSB {
         this.prepareSpin(response.data);
         this.getRTP(response.data.spins || 1);
         break;
+      default:
+        console.warn(`Unhandled message ID: ${response.id}`);
+        this.sendError(`Unhandled message ID: ${response.id}`);
+        break;
     }
   }
   private prepareSpin(data: any) {
@@ -85,14 +86,19 @@ export class SLSB {
       }
       const { currentBet } = this.settings;
 
-      this.deductPlayerBalance(currentBet);
-      this.playerData.totalbet = precisionRound((this.playerData.totalbet + currentBet), 5);
+      if (!(this.settings.freeSpinCount > 0)) {
+
+        this.deductPlayerBalance(currentBet);
+        this.playerData.totalbet =precisionRound(this.playerData.totalbet + currentBet, 5);
+      }else{
+        this.settings.freeSpinCount --
+      }
 
 
       const spinId = platformSession.currentGameSession.createSpin();
       platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
 
-      new RandomResultGenerator(this);
+       new RandomResultGenerator(this);
       checkForWin(this)
       const winAmount = this.playerData.currentWining;
       platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);

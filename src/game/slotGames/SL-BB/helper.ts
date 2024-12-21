@@ -248,7 +248,7 @@ export function getRandomValue(gameInstance: SLBB, type: 'coin' | 'freespin' | '
   let probabilities: number[];
 
   if (type === 'coin') {
-    values = currentGameData.gameSettings.coinsvalue.map((value: number) => precisionRound(value * settings.BetPerLines * settings.lineData.length, 3));
+    values = currentGameData.gameSettings.coinsvalue.map((value: number) => precisionRound(value * settings.BetPerLines , 5));
     probabilities = currentGameData.gameSettings.coinsvalueprob;
   } else if (type === 'freespin') {
     values = settings.freeSpin.LPValues;
@@ -257,7 +257,7 @@ export function getRandomValue(gameInstance: SLBB, type: 'coin' | 'freespin' | '
     values = settings.jackpot.payout
     probabilities = settings.jackpot.payoutProbs
   } else if (type === 'mega') {
-    values = settings.bonus.megaLinkCoinValue.map((value: number) => precisionRound(value * settings.BetPerLines * settings.lineData.length, 3));
+    values = settings.bonus.megaLinkCoinValue.map((value: number) => precisionRound(value * settings.BetPerLines , 5));
     probabilities = settings.bonus.megaLinkCoinProb
   } else {
     throw new Error("Invalid type, expected 'coin' or 'freespin'");
@@ -610,8 +610,8 @@ export function checkForWin(gameInstance: SLBB) {
     if (settings.jackpot.win > 0) {
       totalWin += settings.jackpot.win
     }
-    gameInstance.playerData.currentWining = precisionRound(totalWin, 3);
-    gameInstance.playerData.haveWon =precisionRound( ( gameInstance.playerData.currentWining + gameInstance.playerData.haveWon ),3)
+    gameInstance.playerData.currentWining = precisionRound(totalWin, 4);
+    gameInstance.playerData.haveWon =precisionRound( ( gameInstance.playerData.currentWining + gameInstance.playerData.haveWon ),4)
     gameInstance.incrementPlayerBalance(gameInstance.playerData.currentWining)
     makeResultJson(gameInstance)
 
@@ -657,6 +657,18 @@ export function makeResultJson(gameInstance: SLBB) {
     const { settings, playerData } = gameInstance;
     const credits = gameInstance.getPlayerData().credits
     const Balance = Number(credits.toFixed(2))
+    let copyCoins = [...settings.coins.values.map(v=>{
+      return {
+        ...v,
+        value: v.value/settings.BetPerLines
+      }
+    })]
+    let bonusCoins = [...settings.coins.bonusValues.map(v=>{
+      return {
+        ...v,
+        value: v.value/settings.BetPerLines
+      }
+    })]
     const sendData = {
       GameData: {
         ResultReel: settings.resultSymbolMatrix,
@@ -669,7 +681,8 @@ export function makeResultJson(gameInstance: SLBB) {
           isNewAdded: settings.freeSpin.isTriggered
         },
         winData: {
-          coinValues: settings.coins.values,
+          // coinValues: settings.coins.values,
+          coinValues: copyCoins,
           losPollos: settings.losPollos.values
         },
         jackpot: {
@@ -683,7 +696,8 @@ export function makeResultJson(gameInstance: SLBB) {
           BonusResult: settings.bonusResultMatrix.map(row => row.map(item => Number(item))),
           payout: settings.bonus.payout,
           spinCount: settings.bonus.count,
-          coins: settings.coins.bonusValues,
+          // coins: settings.coins.bonusValues,
+          coins: bonusCoins
         },
 
       },
