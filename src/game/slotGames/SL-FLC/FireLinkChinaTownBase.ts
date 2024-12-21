@@ -63,12 +63,18 @@ export class SLFLC {
         break;
       case "FREESPINOPTION":
         if (response.data.option) {
-          if (response.data.option > this.settings.freespinOptions.length || response.data.option < 0) {
+          if (response.data.option >= this.settings.freespin.options.length ||
+            response.data.option < 0 ||
+            isNaN(response.data.option)
+          ) {
             console.log("Invalid Freespin Option")
           } else {
-            this.settings.freespin.freespinOption = Number(response.data.option);
+            this.settings.freespin.optionIndex = parseInt(response.data.option);
           }
+        } else {
+          this.settings.freespin.optionIndex = this.settings.freespin.defaultOptionIndex;
         }
+        break;
       default:
         console.log("Invalid Message", response.id);
         break;
@@ -106,14 +112,13 @@ export class SLFLC {
       checkForWin(this)
       const winAmount = this.playerData.currentWining;
       platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
-      makeResultJson(this)
       this.updatePlayerBalance(this.playerData.currentWining)
       //clear json
-      this.settings.isFreespin = false;
-      this.settings.resultSymbolMatrix = [];
-      this.settings._winData.winningLines = [];
-      this.settings._winData.winningSymbols = [];
-      this.playerData.currentWining = 0
+      // this.settings.isFreespin = false;
+      // this.settings.resultSymbolMatrix = [];
+      // this.settings._winData.winningLines = [];
+      // this.settings._winData.winningSymbols = [];
+      // this.playerData.currentWining = 0
     } catch (error) {
       this.sendError("Spin error");
       console.error("Failed to generate spin results:", error);

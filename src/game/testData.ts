@@ -35,10 +35,31 @@ export const gameData = [
       [2, 1, 0, 0, 0],
       [0, 0, 0, 1, 2],
       [2, 2, 2, 1, 0],
+      [0, 0, 1, 2, 2],
+      [0, 2, 2, 2, 0],
+      [2, 1, 2, 1, 2],
+      [0, 1, 0, 1, 0],
+      [1, 1, 2, 1, 1],
+      [1, 1, 0, 1, 1],
+      [1, 0, 1, 0, 1],
+      [1, 2, 1, 2, 1],
+      [2, 1, 1, 1, 2],
+      [0, 1, 1, 1, 0],
+      [1, 0, 2, 0, 1],
+      [2, 2, 0, 2, 2],
+      [0, 0, 2, 0, 0],
+      [0, 2, 0, 2, 0],
+      [2, 0, 2, 0, 2],
+      [1, 2, 0, 2, 1],
+      [0, 1, 2, 2, 2],
+      [2, 1, 0, 0, 0],
+      [0, 0, 0, 1, 2],
+      [2, 2, 2, 1, 0],
       [0, 0, 1, 2, 2]
     ],
-    "linesCount": [1, 5, 15, 20, 25, 30],
+    "linesCount": [1, 5, 15, 20, 25, 30, 40, 50],
     "bets": [
+
       // 0.0005,
       // 0.0025,
       // 0.005,
@@ -56,6 +77,31 @@ export const gameData = [
       1.5,
       2
     ],
+    "scatterTrigger": [
+      {
+        "count": [4, 7],
+        "rows": 4
+      },
+      {
+        "count": [8, 10],
+        "rows": 5,
+      },
+      {
+        "count": [12, 14],
+        "rows": 6
+      },
+      {
+        "count": [16, 19],
+        "rows": 7
+      },
+      {
+        "count": [20, 40],
+        "rows": 8
+      },
+    ],
+    "scatterValues": [1, 2, 3, 4, 5, 20, 50, 1000, 10000],
+    "scatterProbs": [20, 10, 3, 2, 1, 1, 1, 1, 1],
+    "defaultFreespinOption": 0,
     "freespinOptions": [
       {
         "count": 20,
@@ -78,6 +124,7 @@ export const gameData = [
         "multiplier": [10, 15, 25]
       },
     ],
+
     "Symbols": [
       {
         "Name": "0",
@@ -90,6 +137,7 @@ export const gameData = [
           "4": 10
         },
         "useWildSub": true,
+        "useBonus": false,
         "multiplier": [
           [
             60,
@@ -116,6 +164,7 @@ export const gameData = [
           "4": 10
         },
         "useWildSub": true,
+        "useBonus": false,
         "multiplier": [
           [
             60,
@@ -142,6 +191,7 @@ export const gameData = [
           "4": 10
         },
         "useWildSub": true,
+        "useBonus": false,
         "multiplier": [
           [
             60,
@@ -168,6 +218,7 @@ export const gameData = [
           "4": 10
         },
         "useWildSub": true,
+        "useBonus": false,
         "multiplier": [
           [
             60,
@@ -194,6 +245,7 @@ export const gameData = [
           "4": 10
         },
         "useWildSub": true,
+        "useBonus": false,
         "multiplier": [
           [
             60,
@@ -220,6 +272,7 @@ export const gameData = [
           "4": 10
         },
         "useWildSub": true,
+        "useBonus": false,
         "multiplier": [
           [
             125,
@@ -246,6 +299,7 @@ export const gameData = [
           "4": 10
         },
         "useWildSub": true,
+        "useBonus": false,
         "multiplier": [
           [
             125,
@@ -272,6 +326,7 @@ export const gameData = [
           "4": 10
         },
         "useWildSub": true,
+        "useBonus": false,
         "multiplier": [
           [
             125,
@@ -298,6 +353,7 @@ export const gameData = [
           "4": 10
         },
         "useWildSub": true,
+        "useBonus": false,
         "multiplier": [
           [
             125,
@@ -324,6 +380,7 @@ export const gameData = [
           "4": 10
         },
         "useWildSub": true,
+        "useBonus": false,
         "multiplier": [
           [
             125,
@@ -350,6 +407,7 @@ export const gameData = [
           "4": 10
         },
         "useWildSub": true,
+        "useBonus": false,
         "multiplier": [
           [
             200,
@@ -365,9 +423,38 @@ export const gameData = [
           ]
         ]
       },
+
+      {
+        "Name": "Blank",
+        "Id": 11,
+        "reelInstance": {
+          "0": 10,
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 10
+        },
+        "description": "Substitutes for all symbols .",
+        "useWildSub": false,
+        "useBonus": true,
+        "multiplier": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ]
+      },
       {
         "Name": "Wild",
-        "Id": 11,
+        "Id": 12,
         "reelInstance": {
           "0": 10,
           "1": 5,
@@ -377,6 +464,7 @@ export const gameData = [
         },
         "description": "Substitutes for all symbols .",
         "useWildSub": false,
+        "useBonus": false,
         "multiplier": [
           [
             200,
@@ -395,16 +483,17 @@ export const gameData = [
 
       {
         "Name": "Scatter",
-        "Id": 12,
+        "Id": 13,
         "reelInstance": {
-          "0": 10,
+          "0": 5,
           "1": 5,
-          "2": 10,
-          "3": 10,
-          "4": 10
+          "2": 5,
+          "3": 5,
+          "4": 5,
         },
         "description": "",
         "useWildSub": false,
+        "useBonus": true,
         "multiplier": [
           [
             // 200,
@@ -425,7 +514,7 @@ export const gameData = [
       },
       {
         "Name": "Freespin",
-        "Id": 13,
+        "Id": 14,
         "reelInstance": {
           "0": 10,
           "1": 5,
@@ -435,6 +524,7 @@ export const gameData = [
         },
         "description": "",
         "useWildSub": false,
+        "useBonus": false,
         "multiplier": [
           [
             // 200,
