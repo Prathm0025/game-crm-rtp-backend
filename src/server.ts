@@ -80,7 +80,7 @@ app.use("/api/transactions", transactionRoutes);
 app.use("/api/games", gameRoutes);
 app.use("/api/payouts", checkUser, checkRole(["admin"]), payoutRoutes)
 app.use("/api/toggle", checkUser, checkRole(["admin"]), toggleRoutes);
-app.use("/api/session", sessionRoutes);
+app.use("/api/session", checkRole(["admin", "supermaster"]) , sessionRoutes);
 
 const io = new Server(server, {
   cors: {

@@ -47,6 +47,10 @@ class SessionController{
         }
 
         const totalPages = Math.ceil(totalSessions / Number(limit));
+        if (Number(page) > totalPages) {
+            throw createHttpError(404, "Number of page exceeds total pages");
+        }
+
         const platformSessionsForExcel =  await PlatformSessionModel.find(query);
         const platformSessions = await PlatformSessionModel.find(query)
             .skip((Number(page) - 1) * Number(limit))
