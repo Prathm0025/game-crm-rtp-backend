@@ -9,15 +9,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SLBE = void 0;
-const helper_1 = require("./helper");
-const RandomResultGenerator_1 = require("../RandomResultGenerator");
-const gamble_1 = require("./gamble");
+exports.SLFLC = void 0;
 const sessionManager_1 = require("../../../dashboard/session/sessionManager");
-/**
- * Represents the Blood Eternal Slot  Game Class for handling slot machine operations.
- */
-class SLBE {
+const RandomResultGenerator_1 = require("../RandomResultGenerator");
+const bonus_1 = require("./bonus");
+const helper_1 = require("./helper");
+class SLFLC {
     constructor(currentGameData) {
         this.currentGameData = currentGameData;
         this.playerData = {
@@ -25,14 +22,21 @@ class SLBE {
             currentWining: 0,
             totalbet: 0,
             rtpSpinCount: 0,
-            totalSpin: 0
+            totalSpin: 0,
+            currentPayout: 0,
         };
         this.settings = (0, helper_1.initializeGameSettings)(currentGameData, this);
+        (0, helper_1.generateInitialReel)(this.settings);
+        (0, bonus_1.generateBonusReel)(this.settings);
         (0, helper_1.sendInitData)(this);
         (0, helper_1.makePayLines)(this);
     }
     get initSymbols() {
-        return this.currentGameData.gameSettings.Symbols;
+        const Symbols = [];
+        this.currentGameData.gameSettings.Symbols.forEach((Element) => {
+            Symbols.push(Element);
+        });
+        return Symbols;
     }
     sendMessage(action, message) {
         this.currentGameData.sendMessage(action, message, true);
@@ -58,53 +62,23 @@ class SLBE {
                 this.prepareSpin(response.data);
                 this.getRTP(response.data.spins || 1);
                 break;
-            case "GAMBLEINIT":
-                const sendData = (0, gamble_1.sendInitGambleData)();
-                this.deductPlayerBalance(this.playerData.currentWining);
-                this.playerData.haveWon -= this.playerData.currentWining;
-                // this.sendMessage("gambleInitData", sendData);
-                break;
-            case "GAMBLERESULT":
-                let result = (0, gamble_1.getGambleResult)({ selected: response.data.selected });
-                let gambleOption = response.data.gambleOption;
-                //calculate payout
-                switch (result.playerWon) {
-                    case true:
-                        if (gambleOption === "ALL") {
-                            this.playerData.currentWining = this.playerData.currentWining * 2;
-                            result.currentWinning = this.playerData.currentWining;
-                        }
-                        else if (gambleOption === "HALF") {
-                            this.playerData.currentWining = (this.playerData.currentWining * 1.5);
-                            result.currentWinning = this.playerData.currentWining;
-                        }
-                        // result.Balance = this.getPlayerData().credits + this.playerData.currentWining
-                        break;
-                    case false:
-                        // result.Balance = this.getPlayerData().credits;
-                        if (gambleOption === "ALL") {
-                            this.playerData.currentWining = 0;
-                            result.currentWinning = 0;
-                        }
-                        else if (gambleOption === "HALF") {
-                            this.playerData.currentWining = (this.playerData.currentWining / 2);
-                            result.currentWinning = this.playerData.currentWining;
-                        }
-                        break;
+            case "FREESPINOPTION":
+                if (response.data.option) {
+                    if (response.data.option >= this.settings.freespin.options.length ||
+                        response.data.option < 0 ||
+                        isNaN(response.data.option)) {
+                        console.log("Invalid Freespin Option");
+                    }
+                    else {
+                        this.settings.freespin.optionIndex = parseInt(response.data.option);
+                    }
                 }
-                this.sendMessage("GambleResult", result); // result card 
-                break;
-            case "GAMBLECOLLECT":
-                this.playerData.haveWon += this.playerData.currentWining;
-                this.updatePlayerBalance(this.playerData.currentWining);
-                this.sendMessage("GambleCollect", {
-                    currentWinning: this.playerData.currentWining,
-                    balance: this.getPlayerData().credits
-                }); // balance , currentWinning
+                else {
+                    this.settings.freespin.optionIndex = this.settings.freespin.defaultOptionIndex;
+                }
                 break;
             default:
-                console.warn(`Unhandled message ID: ${response.id}`);
-                this.sendError(`Unhandled message ID: ${response.id}`);
+                console.log("Invalid Message", response.id);
                 break;
         }
     }
@@ -122,18 +96,24 @@ class SLBE {
                     this.sendError("Low Balance");
                     return;
                 }
-                //deduct only when freespin is not triggered
-                if (this.settings.freeSpin.freeSpinCount <= 0) {
-                    this.deductPlayerBalance(this.settings.currentBet);
-                    this.playerData.totalbet += this.settings.currentBet;
+                //FIX: refactor
+                let { currentBet } = this.settings;
+                if (this.settings.freespinCount <= 0) {
+                    this.playerData.totalbet += currentBet;
+                    this.deductPlayerBalance(currentBet);
+                }
+                if (this.settings.freespinCount >= 0) {
+                    this.settings.freespinCount--;
                 }
                 const spinId = platformSession.currentGameSession.createSpin();
                 platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
-                new RandomResultGenerator_1.RandomResultGenerator(this);
+                if (this.settings.bonus.spinCount <= 0) {
+                    new RandomResultGenerator_1.RandomResultGenerator(this);
+                }
                 (0, helper_1.checkForWin)(this);
-                // this.gamebleTesting()
                 const winAmount = this.playerData.currentWining;
                 platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
+                this.updatePlayerBalance(this.playerData.currentWining);
             }
             catch (error) {
                 this.sendError("Spin error");
@@ -141,7 +121,6 @@ class SLBE {
             }
         });
     }
-    //
     getRTP(spins) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -158,6 +137,7 @@ class SLBE {
                 if (spend > 0) {
                     rtp = won / spend;
                 }
+                //
                 console.log('RTP calculated:', rtp * 100);
                 return;
             }
@@ -168,4 +148,4 @@ class SLBE {
         });
     }
 }
-exports.SLBE = SLBE;
+exports.SLFLC = SLFLC;
