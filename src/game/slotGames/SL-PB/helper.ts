@@ -987,7 +987,7 @@ export function makeResultJson(gameInstance: SLPB) {
         };
         gameInstance.sendMessage('ResultData', sendData);
 
-        console.log(sendData, "send Data");
+        console.log(sendData.GameData.frozenIndices, "send Data");
 
     } catch (error) {
         console.error("Error generating result JSON or sending message:", error);

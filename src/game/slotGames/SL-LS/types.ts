@@ -5,6 +5,7 @@ interface Symbol {
     Name: string;
     Id: number;
     payout: number;
+    canmatch:[];
     reelInstance: { [key: string]: number };
 }
 
@@ -42,6 +43,7 @@ export interface SLLSSETTINGS {
     bets: number[];
     reels: any[][];
     Symbols: Symbol[];
+    payoutCombination: any [][],
     anyMatchCount:number;
     freeSpin: {
         freeSpinCount: number,
