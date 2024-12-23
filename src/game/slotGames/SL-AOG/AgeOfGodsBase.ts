@@ -90,6 +90,8 @@ export class SLAOG {
 
         this.deductPlayerBalance(currentBet);
         this.playerData.totalbet =precisionRound(this.playerData.totalbet + currentBet, 5);
+      }else{
+        this.settings.freeSpinCount --
       }
 
 
