@@ -31,7 +31,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLFLC) {
     reels: [],
     bonusReels: [],
     isFreespin: false,
-    freespinCount: 0,
+    freespinCount: -1,
     bonus: {
       isTriggered: false,
       scatterCount: 0,
@@ -46,7 +46,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLFLC) {
       SymbolName: "",
       SymbolID: -1,
       defaultOptionIndex: gameData.gameSettings.defaultFreespinOption,
-      optionIndex: 0,
+      optionIndex: gameData.gameSettings.defaultFreespinOption,
       options: gameData.gameSettings.freespinOptions,
     },
     scatter: {
@@ -298,20 +298,29 @@ export function getRandomValue(gameInstance: SLFLC, type:
  * Checks if the Free Spin condition is met and awards free spins to the player.
  * @param gameInstance - The instance of the SLPSF class containing the game settings and player data.
  */
-export function checkForFreeSpin(gameInstance: SLFLC): void {
+export function checkForFreeSpin(gameInstance: SLFLC): boolean {
   const { settings } = gameInstance;
   try {
-
-    let count=0
-    settings.resultSymbolMatrix.forEach((row) => {
-      row.forEach((symbol) => {
-        if (symbol === settings.freespin.SymbolID) {
-
-        }
-      })
+    let flag1 = false;
+    let flag2 = false;
+    let flag3 = false;
+    findSymbol(gameInstance, settings.freespin.SymbolName).forEach((pos) => {
+      switch (pos.split(',')[0]) {
+        case "1":
+          flag1 = true;
+          break;
+        case "2":
+          flag2 = true;
+          break;
+        case "3":
+          flag3 = true;
+          break;
+        default:
+          // console.log("no found in freespin check")
+          break;
+      }
     })
-
-
+    return flag1 && flag2 && flag3
   } catch (error) {
     console.error("Error in checkForFreeSpin:", error);
   }
@@ -324,6 +333,7 @@ export function checkForWin(gameInstance: SLFLC) {
 
     const winningLines = [];
     let totalPayout = 0;
+
 
 
     settings.lineData.forEach((line, index) => {
@@ -342,10 +352,14 @@ export function checkForWin(gameInstance: SLFLC) {
       // Left-to-right check
       const LTRResult = checkLineSymbols(firstSymbolLTR, line, gameInstance, 'LTR');
       if (LTRResult.isWinningLine && LTRResult.matchCount >= 3) {
+
         //FIX: add freespin multiplier feat
         let symbolMultiplierLTR = accessData(firstSymbolLTR, LTRResult.matchCount, gameInstance);
         if (symbolMultiplierLTR > 0) {
-          if (settings.freespinCount > 0) {
+          if (settings.freespinCount > -1) {
+
+            console.log("matchCount", LTRResult.matchCount);
+            console.log("multiplierBase", symbolMultiplierLTR);
             switch (LTRResult.matchCount) {
               case 3:
                 symbolMultiplierLTR *= settings.freespin.options[settings.freespin.optionIndex].multiplier[0];
@@ -360,6 +374,8 @@ export function checkForWin(gameInstance: SLFLC) {
                 console.log('error in freespin multiplier')
                 break;
             }
+
+            console.log("multiplierNew", symbolMultiplierLTR);
           }
           const payout = symbolMultiplierLTR * gameInstance.settings.BetPerLines;
           totalPayout += payout;
@@ -384,19 +400,25 @@ export function checkForWin(gameInstance: SLFLC) {
       }
     });
 
+    //NOTE: check for freespin 
+    if (checkForFreeSpin(gameInstance)) {
+      console.info("Freespin triggered")
+      settings.isFreespin = true
+      settings.freespinCount = settings.freespin.options[settings.freespin.optionIndex].count
+    }
 
     gameInstance.playerData.currentWining = precisionRound(totalPayout, 5);
     gameInstance.playerData.haveWon = precisionRound(gameInstance.playerData.haveWon +
       gameInstance.playerData.currentWining, 5)
     makeResultJson(gameInstance)
 
-    settings.isFreespin=false
-    if( settings.bonus.spinCount>0 ){
-      settings.bonus.isTriggered=false
+    settings.isFreespin = false
+    if (settings.bonus.spinCount > 0) {
+      settings.bonus.isTriggered = false
     }
-    if(settings.bonus.spinCount === 0){
-      settings.bonus.scatterCount=0
-      settings.bonusResultMatrix= []
+    if (settings.bonus.spinCount === 0) {
+      settings.bonus.scatterCount = 0
+      settings.bonusResultMatrix = []
       settings.scatter.values = []
     }
     settings._winData.winningLines = []
@@ -464,7 +486,7 @@ export function makeResultJson(gameInstance: SLFLC) {
       }
     };
     gameInstance.sendMessage('ResultData', sendData);
-    console.log(JSON.stringify( sendData ));
+    console.log(JSON.stringify(sendData));
 
   } catch (error) {
     console.error("Error generating result JSON or sending message:", error);

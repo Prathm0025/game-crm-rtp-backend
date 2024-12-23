@@ -97,12 +97,13 @@ export class SLFLC {
         return;
       }
       //FIX: refactor
-      let { freespinCount, currentBet } = this.settings;
-      if (freespinCount === 0) {
+      let { currentBet } = this.settings;
+      if (this.settings.freespinCount <= 0) {
         this.playerData.totalbet += currentBet
         this.deductPlayerBalance(currentBet);
-      } else {
-        freespinCount--;
+      }
+      if (this.settings.freespinCount >= 0) {
+        this.settings.freespinCount--;
       }
 
       const spinId = platformSession.currentGameSession.createSpin();
@@ -113,12 +114,6 @@ export class SLFLC {
       const winAmount = this.playerData.currentWining;
       platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
       this.updatePlayerBalance(this.playerData.currentWining)
-      //clear json
-      // this.settings.isFreespin = false;
-      // this.settings.resultSymbolMatrix = [];
-      // this.settings._winData.winningLines = [];
-      // this.settings._winData.winningSymbols = [];
-      // this.playerData.currentWining = 0
     } catch (error) {
       this.sendError("Spin error");
       console.error("Failed to generate spin results:", error);
