@@ -4,7 +4,7 @@ import { getRandomValue } from "./helper";
 
 export class RandomBonusGenerator {
   constructor(current: SLFLC) {
-    let matrix: string[][] = [];
+    let matrix: any[][] = [];
     let scatterIndices = current.settings.scatter.values.map(sc => `${sc.index[0]},${sc.index[1]}`);
     // let coinIndices = current.settings.coins.bonusValues.map(cc => `${cc.index[0]},${cc.index[1]}`);
     // console.log("ccIndices", ccIndices);
@@ -17,7 +17,7 @@ export class RandomBonusGenerator {
         matrix[y][x] = current.settings.bonusReels[x][(startPosition + y) % current.settings.bonusReels[x].length];
         // TODO: freeze sc  positions 
         if (scatterIndices.includes(`${y},${x}`)) {
-          matrix[y][x] = current.settings.scatter.SymbolID.toString()
+          matrix[y][x] = current.settings.scatter.SymbolID
         }
       }
     }
@@ -29,7 +29,9 @@ export class RandomBonusGenerator {
     // matrix.push(['10', '6', '10', '0', '4','6'])
     // matrix.push(['1', '11', '14', '10', '1','6'])
     // matrix.push(['5', '8', '1', '5', '1','6'])
-    // console.log("bonus matrix");
+    console.log("bonus matrix");
+    console.log(matrix);
+    
 
     // matrix.forEach(row => console.log(row.join(' ')));
     // current.settings.resultReelIndex = matrix;
@@ -84,13 +86,15 @@ export function populateScatterValues(gameInstance: SLFLC, type: "base" | "bonus
 
   matrix.map((row, x) => {
     row.map((symbol, y) => {
-      if (symbol === settings.scatter.SymbolID.toString()) {
+      if (symbol == settings.scatter.SymbolID.toString()) {
         if (!prevScatter.includes(`${x},${y}`)) {
           if (type === "bonus") {
-            settings.bonus.spinCount=3
+            settings.bonus.spinCount = 3
           }
           //NOTE: add scatter to values
           const scatterValue = getRandomValue(gameInstance, "scatter")
+          console.log("populate sc", x, y, scatterValue);
+
           settings.scatter.values.push({
             value: scatterValue,
             index: [x, y]
@@ -101,13 +105,16 @@ export function populateScatterValues(gameInstance: SLFLC, type: "base" | "bonus
   })
 }
 
-export function checkForBonus(gameInstance: SLFLC) {
+export function checkForBonus(gameInstance: SLFLC): boolean {
   const { settings } = gameInstance
   const scatterCount = settings.scatter.values.length
   if (scatterCount >= settings.scatter.bonusTrigger[0].count[0]) {
     settings.bonus.scatterCount = settings.scatter.values.length
     settings.bonus.isTriggered = true
+    settings.bonus.spinCount = 3
+    return true
   }
+  return false
 }
 export function handleBonusSpin(gameInstance: SLFLC) {
   const { settings } = gameInstance
@@ -118,7 +125,7 @@ export function handleBonusSpin(gameInstance: SLFLC) {
   const rows = rowsOnExpand(scatterCount, triggers)
   settings.currentGamedata.matrix.y = rows
   settings.bonus.spinCount--
-
+  settings.bonus.scatterCount = scatterCount
 }
 export function rowsOnExpand(count: number, triggers: { count: [number, number], rows: number }[]): number {
   for (let trigger of triggers) {

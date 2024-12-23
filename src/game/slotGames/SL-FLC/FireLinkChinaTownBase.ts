@@ -1,6 +1,7 @@
 import { sessionManager } from "../../../dashboard/session/sessionManager";
 import { currentGamedata } from "../../../Player";
 import { RandomResultGenerator } from "../RandomResultGenerator";
+import { generateBonusReel } from "./bonus";
 import { initializeGameSettings, generateInitialReel, sendInitData, makePayLines, checkForWin, makeResultJson } from "./helper";
 import { SLFLCSETTINGS } from "./types";
 
@@ -18,6 +19,7 @@ export class SLFLC {
   constructor(public currentGameData: currentGamedata) {
     this.settings = initializeGameSettings(currentGameData, this);
     generateInitialReel(this.settings)
+    generateBonusReel(this.settings)
     sendInitData(this)
     makePayLines(this)
   }
@@ -109,7 +111,9 @@ export class SLFLC {
       const spinId = platformSession.currentGameSession.createSpin();
       platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
 
-      new RandomResultGenerator(this);
+      if (this.settings.bonus.spinCount <= 0) {
+        new RandomResultGenerator(this);
+      }
       checkForWin(this)
       const winAmount = this.playerData.currentWining;
       platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);

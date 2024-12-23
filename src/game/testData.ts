@@ -428,13 +428,13 @@ export const gameData = [
         "Name": "Blank",
         "Id": 11,
         "reelInstance": {
-          "0": 10,
-          "1": 10,
-          "2": 10,
-          "3": 10,
-          "4": 10
+          "0": 25,
+          "1": 25,
+          "2": 25,
+          "3": 25,
+          "4": 25
         },
-        "description": "Substitutes for all symbols .",
+        "description": "Substitutes for all symbols.",
         "useWildSub": false,
         "useBonus": true,
         "multiplier": [
@@ -456,11 +456,11 @@ export const gameData = [
         "Name": "Wild",
         "Id": 12,
         "reelInstance": {
-          "0": 25,
-          "1": 25,
-          "2": 25,
-          "3": 25,
-          "4": 25
+          "0": 5,
+          "1": 5,
+          "2": 5,
+          "3": 5,
+          "4": 5
         },
         "description": "Substitutes for all symbols .",
         "useWildSub": false,
@@ -485,11 +485,11 @@ export const gameData = [
         "Name": "Scatter",
         "Id": 13,
         "reelInstance": {
-          "0": 5,
-          "1": 5,
-          "2": 5,
-          "3": 5,
-          "4": 5,
+          "0": 15,
+          "1": 15,
+          "2": 15,
+          "3": 15,
+          "4": 15,
         },
         "description": "",
         "useWildSub": false,
@@ -517,9 +517,9 @@ export const gameData = [
         "Id": 14,
         "reelInstance": {
           "0": 10,
-          "1": 20,
-          "2": 20,
-          "3": 20,
+          "1": 2,
+          "2": 2,
+          "3": 2,
           "4": 10
         },
         "description": "",

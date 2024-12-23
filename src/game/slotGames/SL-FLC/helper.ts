@@ -7,6 +7,7 @@ import {
 import { specialIcons } from "./types";
 import { SLFLC } from "./FireLinkChinaTownBase";
 import { precisionRound } from "../../../utils/utils";
+import { checkForBonus, handleBonusSpin, populateScatterValues } from "./bonus";
 
 /**
  * Initializes the game settings using the provided game data and game instance.
@@ -35,7 +36,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLFLC) {
     bonus: {
       isTriggered: false,
       scatterCount: 0,
-      spinCount: 0
+      spinCount: -1
     },
     wild: {
       SymbolName: "",
@@ -70,11 +71,14 @@ export function initializeGameSettings(gameData: any, gameInstance: SLFLC) {
  */
 export function generateInitialReel(gameSettings: any): string[][] {
   const reels = [[], [], [], [], []];
+  // const baseSymbols = gameSettings.Symbols.filter((symbol) => !symbol.useBonus || symbol.Name === specialIcons.scatter);
+  // console.log(baseSymbols);
+
   gameSettings.Symbols.forEach((symbol) => {
     for (let i = 0; i < 5; i++) {
       const count = symbol.reelInstance[i] || 0;
       for (let j = 0; j < count; j++) {
-        if (!symbol.useBonus || symbol.Name === gameSettings.scatter.SymbolName) {
+        if (!symbol.useBonus || symbol.Name == specialIcons.scatter) {
           reels[i].push(symbol.Id);
         }
       }
@@ -336,75 +340,86 @@ export function checkForWin(gameInstance: SLFLC) {
 
 
 
-    settings.lineData.forEach((line, index) => {
-      const firstSymbolPositionLTR = line[0];
-      // const firstSymbolPositionRTL = line[line.length - 1];
+    if (settings.bonus.spinCount <= 0) {
+      settings.lineData.forEach((line, index) => {
+        const firstSymbolPositionLTR = line[0];
+        // const firstSymbolPositionRTL = line[line.length - 1];
 
-      // Get first symbols for both directions
-      let firstSymbolLTR = settings.resultSymbolMatrix[firstSymbolPositionLTR][0];
-      // let firstSymbolRTL = settings.resultSymbolMatrix[firstSymbolPositionRTL][line.length - 1];
+        // Get first symbols for both directions
+        let firstSymbolLTR = settings.resultSymbolMatrix[firstSymbolPositionLTR][0];
+        // let firstSymbolRTL = settings.resultSymbolMatrix[firstSymbolPositionRTL][line.length - 1];
 
-      // Handle wild symbols for both directions
-      if (firstSymbolLTR === settings.wild.SymbolID) {
-        firstSymbolLTR = findFirstNonWildSymbol(line, gameInstance);
-      }
-
-      // Left-to-right check
-      const LTRResult = checkLineSymbols(firstSymbolLTR, line, gameInstance, 'LTR');
-      if (LTRResult.isWinningLine && LTRResult.matchCount >= 3) {
-
-        //FIX: add freespin multiplier feat
-        let symbolMultiplierLTR = accessData(firstSymbolLTR, LTRResult.matchCount, gameInstance);
-        if (symbolMultiplierLTR > 0) {
-          if (settings.freespinCount > -1) {
-
-            console.log("matchCount", LTRResult.matchCount);
-            console.log("multiplierBase", symbolMultiplierLTR);
-            switch (LTRResult.matchCount) {
-              case 3:
-                symbolMultiplierLTR *= settings.freespin.options[settings.freespin.optionIndex].multiplier[0];
-                break;
-              case 4:
-                symbolMultiplierLTR *= settings.freespin.options[settings.freespin.optionIndex].multiplier[1];
-                break;
-              case 5:
-                symbolMultiplierLTR *= settings.freespin.options[settings.freespin.optionIndex].multiplier[2];
-                break;
-              default:
-                console.log('error in freespin multiplier')
-                break;
-            }
-
-            console.log("multiplierNew", symbolMultiplierLTR);
-          }
-          const payout = symbolMultiplierLTR * gameInstance.settings.BetPerLines;
-          totalPayout += payout;
-          settings._winData.winningLines.push(index + 1);
-          winningLines.push({
-            line,
-            symbol: firstSymbolLTR,
-            multiplier: symbolMultiplierLTR,
-            matchCount: LTRResult.matchCount,
-            direction: 'LTR'
-          });
-          const formattedIndices = LTRResult.matchedIndices.map(({ col, row }) => `${col},${row}`);
-          const validIndices = formattedIndices.filter(
-            (index) => index.length > 2
-          );
-          if (validIndices.length > 0) {
-            settings._winData.winningSymbols.push(validIndices);
-            settings._winData.totalWinningAmount = precisionRound((totalPayout * settings.BetPerLines), 4);
-          }
-          return;
+        // Handle wild symbols for both directions
+        if (firstSymbolLTR === settings.wild.SymbolID) {
+          firstSymbolLTR = findFirstNonWildSymbol(line, gameInstance);
         }
-      }
-    });
 
-    //NOTE: check for freespin 
-    if (checkForFreeSpin(gameInstance)) {
-      console.info("Freespin triggered")
-      settings.isFreespin = true
-      settings.freespinCount = settings.freespin.options[settings.freespin.optionIndex].count
+        // Left-to-right check
+        const LTRResult = checkLineSymbols(firstSymbolLTR, line, gameInstance, 'LTR');
+        if (LTRResult.isWinningLine && LTRResult.matchCount >= 3) {
+
+          //FIX: add freespin multiplier feat
+          let symbolMultiplierLTR = accessData(firstSymbolLTR, LTRResult.matchCount, gameInstance);
+          if (symbolMultiplierLTR > 0) {
+            if (settings.freespinCount > -1) {
+
+              // console.log("matchCount", LTRResult.matchCount);
+              // console.log("multiplierBase", symbolMultiplierLTR);
+              switch (LTRResult.matchCount) {
+                case 3:
+                  symbolMultiplierLTR *= settings.freespin.options[settings.freespin.optionIndex].multiplier[0];
+                  break;
+                case 4:
+                  symbolMultiplierLTR *= settings.freespin.options[settings.freespin.optionIndex].multiplier[1];
+                  break;
+                case 5:
+                  symbolMultiplierLTR *= settings.freespin.options[settings.freespin.optionIndex].multiplier[2];
+                  break;
+                default:
+                  console.log('error in freespin multiplier')
+                  break;
+              }
+
+              console.log("multiplierNew", symbolMultiplierLTR);
+            }
+            const payout = symbolMultiplierLTR * gameInstance.settings.BetPerLines;
+            totalPayout += payout;
+            settings._winData.winningLines.push(index + 1);
+            winningLines.push({
+              line,
+              symbol: firstSymbolLTR,
+              multiplier: symbolMultiplierLTR,
+              matchCount: LTRResult.matchCount,
+              direction: 'LTR'
+            });
+            const formattedIndices = LTRResult.matchedIndices.map(({ col, row }) => `${col},${row}`);
+            const validIndices = formattedIndices.filter(
+              (index) => index.length > 2
+            );
+            if (validIndices.length > 0) {
+              settings._winData.winningSymbols.push(validIndices);
+              settings._winData.totalWinningAmount = precisionRound((totalPayout * settings.BetPerLines), 4);
+            }
+            return;
+          }
+        }
+      });
+
+      //NOTE: check for freespin 
+      if (checkForFreeSpin(gameInstance)) {
+        console.info("Freespin triggered")
+        settings.isFreespin = true
+        settings.freespinCount = settings.freespin.options[settings.freespin.optionIndex].count
+      }
+    }
+    populateScatterValues(gameInstance, settings.bonus.spinCount < 0 ? "base" : "bonus")
+
+
+    if (settings.bonus.spinCount < 0) {
+      //NOTE: check for bonus 
+      console.log("bonus", checkForBonus(gameInstance))
+    } else {
+      handleBonusSpin(gameInstance)
     }
 
     gameInstance.playerData.currentWining = precisionRound(totalPayout, 5);
@@ -416,7 +431,7 @@ export function checkForWin(gameInstance: SLFLC) {
     if (settings.bonus.spinCount > 0) {
       settings.bonus.isTriggered = false
     }
-    if (settings.bonus.spinCount === 0) {
+    if (settings.bonus.spinCount < 0) {
       settings.bonus.scatterCount = 0
       settings.bonusResultMatrix = []
       settings.scatter.values = []
@@ -467,6 +482,7 @@ export function makeResultJson(gameInstance: SLFLC) {
         resultSymbols: settings.resultSymbolMatrix,
         linesToEmit: settings._winData.winningLines,
         symbolsToEmit: settings._winData.winningSymbols,
+        scatterValues: settings.scatter.values,
         freeSpins: {
           isTriggered: settings.isFreespin,
           count: settings.freespinCount,
