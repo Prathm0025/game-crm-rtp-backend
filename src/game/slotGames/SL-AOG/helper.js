@@ -547,7 +547,7 @@ function handleMultiplier(gameInstance) {
         console.error("featureType is not MULTIPLIER");
         return;
     }
-    playerData.currentWining *= settings.wheelFeature.featureValue;
+    playerData.currentWining = playerData.currentWining + (settings.wheelFeature.featureValue * (settings.BetPerLines * settings.lineData.length));
 }
 //CHECK WINS ON PAYLINES WITH OR WITHOUT WILD
 function checkForWin(gameInstance) {

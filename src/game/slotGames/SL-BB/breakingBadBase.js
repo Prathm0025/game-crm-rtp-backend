@@ -118,7 +118,7 @@ class SLBB {
                 if (spend > 0) {
                     rtp = won / spend;
                 }
-                // console.log('RTP calculated:', rtp * 100);
+                console.log('RTP calculated:', rtp * 100);
                 return;
             }
             catch (error) {
