@@ -2,10 +2,10 @@ import { sessionManager } from "../../../dashboard/session/sessionManager";
 import { currentGamedata } from "../../../Player";
 import { RandomResultGenerator } from "../RandomResultGenerator";
 import { initializeGameSettings, generateInitialReel, sendInitData, makePayLines, checkForWin } from "./helper";
-import { SLLSSETTINGS } from "./types";
+import { SLWBSETTINGS } from "./types";
 
-export class SLLS {
-    public settings: SLLSSETTINGS;
+export class SLWB {
+    public settings: SLWBSETTINGS;
     playerData = {
         haveWon: 0,
         currentWining: 0,

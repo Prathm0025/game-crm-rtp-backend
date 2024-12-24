@@ -3,8 +3,8 @@ import {
     convertSymbols,
     UiInitData,
 } from "../../Utils/gameUtils";
-import { SLLS } from "./luckySevenBase"
-import { FrozenIndex, specialIcons } from "./types";
+import { SLWB } from "./wildBuffaloBase"
+import { specialIcons } from "./types";
 
 /**
  * Initializes the game settings using the provided game data and game instance.
@@ -13,7 +13,7 @@ import { FrozenIndex, specialIcons } from "./types";
  * @returns An object containing initialized game settings.
  */
 
-export function initializeGameSettings(gameData: any, gameInstance: SLLS) {
+export function initializeGameSettings(gameData: any, gameInstance: SLWB) {
     return {
         id: gameData.gameSettings.id,
         matrix: gameData.gameSettings.matrix,
@@ -31,15 +31,15 @@ export function initializeGameSettings(gameData: any, gameInstance: SLLS) {
         currentLines: 0,
         BetPerLines: 0,
         reels: [],
-        anyMatchCount:gameData.gameSettings.anyPayout,
+        anyMatchCount: gameData.gameSettings.anyPayout,
         freeSpin: {
             freeSpinAwarded: gameData.gameSettings.freeSpinCount,
             freeSpinCount: 0,
             useFreeSpin: false,
             freeSpinPayout: 0,
             freeSpinsAdded: false,
-
         },
+        isBonusTriggered:false,
         wild: {
             SymbolName: "",
             SymbolID: -1,
@@ -50,27 +50,12 @@ export function initializeGameSettings(gameData: any, gameInstance: SLLS) {
             SymbolID: -1,
             useWild: false,
         },
-        jackpot: {
+        goldenBonus: {
             SymbolName: "",
             SymbolID: -1,
             useWild: false,
         },
-        bar3:{
-            SymbolName: "",
-            SymbolID: -1,
-            useWild: false,
-        },
-        bar2:{
-            SymbolName: "",
-            SymbolID: -1,
-            useWild: false,
-        },
-        bar1:{
-            SymbolName: "",
-            SymbolID: -1,
-            useWild: false,
-        },
-        isJackpot:false
+
     };
 }
 
@@ -83,7 +68,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLLS) {
 export function generateInitialReel(gameSettings: any): string[][] {
     const reels = [[], [], [], [], [], [], []];
     gameSettings.Symbols.forEach((symbol) => {
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < 5; i++) {
             const count = symbol.reelInstance[i] || 0;
             for (let j = 0; j < count; j++) {
                 reels[i].push(symbol.Id);
@@ -116,12 +101,12 @@ function shuffleArray(array: any[]) {
  * @param gameInstance - The instance of the game.
  */
 
-export function makePayLines(gameInstance: SLLS) {
+export function makePayLines(gameInstance: SLWB) {
     const { settings } = gameInstance;
     settings.currentGamedata.Symbols.forEach((element) => {
-        // if (!element.useWildSub) {
+        if (!element.useWildSub) {
             handleSpecialSymbols(element, gameInstance);
-        // }
+        }
     });
 }
 
@@ -131,10 +116,10 @@ export function makePayLines(gameInstance: SLLS) {
  * @param gameInstance - The instance of the game containing settings and player data.
  */
 
-export function sendInitData(gameInstance: SLLS) {
+export function sendInitData(gameInstance: SLWB) {
     gameInstance.settings.lineData =
         gameInstance.settings.currentGamedata.linesApiData;
-    const symbols = gameInstance.settings.Symbols        
+    const symbols = gameInstance.settings.Symbols
     UiInitData.paylines = convertSymbols(symbols);
     const reels = generateInitialReel(gameInstance.settings);
     gameInstance.settings.reels = reels;
@@ -172,13 +157,14 @@ export function sendInitData(gameInstance: SLLS) {
  * @param gameInstance - The instance of the SLSM class managing the game logic.
  */
 
-export function checkForWin(gameInstance: SLLS) {
+export function checkForWin(gameInstance: SLWB) {
     try {
         const { settings } = gameInstance;
 
         const winningLines = [];
         let totalPayout = 0;
-     
+        const bonus =checkForBonus(gameInstance);
+
         settings.lineData.forEach((line, index) => {
             const firstSymbolPosition = line[0];
             let firstSymbol = settings.resultSymbolMatrix[firstSymbolPosition][0];
@@ -186,57 +172,48 @@ export function checkForWin(gameInstance: SLLS) {
                 firstSymbol = findFirstNonWildSymbol(line, gameInstance);
             }
 
-            const { isWinningLine, matchCount, matchedIndices: winMatchedIndices , matchedSymbols} = checkLineSymbols(firstSymbol, line, gameInstance);
+            const { isWinningLine, matchCount, matchedIndices: winMatchedIndices } = checkLineSymbols(firstSymbol, line, gameInstance);
 
-            if ((isWinningLine && matchCount >= 3)) {                
-              console.log(matchedSymbols, "matched symbols");
-              const processedSymbols = matchedSymbols.map((symbol, index) => {
-                if (symbol === gameInstance.settings.wild.SymbolID && index > 0) {
-                    return matchedSymbols[index - 1];
-                }
-                return symbol; 
-            });
-        
-              
-                const payout =  calculatePayoutForCombination(processedSymbols, settings.payoutCombination);
-                console.log(payout);
-                
+            if ((isWinningLine && matchCount >= 3)) {
+                const symbolMultiplier = accessData(firstSymbol, matchCount, gameInstance); 
+                if (symbolMultiplier > 0) {
+                    totalPayout += symbolMultiplier * gameInstance.settings.BetPerLines;
+                    gameInstance.playerData.currentWining += totalPayout;
 
-                    totalPayout += payout * gameInstance.settings.BetPerLines;
                     settings._winData.winningLines.push(index);
                     winningLines.push({
                         line,
                         symbol: firstSymbol,
-                        multiplier: payout,
+                        multiplier: symbolMultiplier,
                         matchCount,
                     });
                     console.log(`Line ${index + 1}:`, line);
-                    console.log(`Payout for Line ${index + 1}:`, 'payout', );
+                    console.log(`Payout for Line ${index + 1}:`, 'payout', symbolMultiplier);
                     const formattedIndices = winMatchedIndices.map(({ col, row }) => `${col},${row}`);
                     const validIndices = formattedIndices.filter(index => index.length > 2);
                     if (validIndices.length > 0) {
                         gameInstance.settings._winData.winningSymbols.push(validIndices);
+                    }
 
                 }
             }
         });
-       
+
 
         gameInstance.playerData.currentWining += totalPayout;
         gameInstance.playerData.haveWon = parseFloat(
             (gameInstance.playerData.haveWon + parseFloat(gameInstance.playerData.currentWining.toFixed(4))).toFixed(4)
         );
-      gameInstance.updatePlayerBalance(gameInstance.playerData.currentWining);
-       
+        gameInstance.updatePlayerBalance(gameInstance.playerData.currentWining);
+
         makeResultJson(gameInstance)
         settings._winData.totalWinningAmount = 0;
         gameInstance.playerData.currentWining = 0;
         settings.freeSpin.freeSpinPayout = 0;
         settings.freeSpin.freeSpinsAdded = false
         settings._winData.winningSymbols = []
-        settings.isJackpot = false;
         settings._winData.winningLines = [];
-     
+
     } catch (error) {
         console.error("Error in checkForWin", error);
         return [];
@@ -245,7 +222,7 @@ export function checkForWin(gameInstance: SLLS) {
 function checkLineSymbols(
     firstSymbol: string,
     line: number[],
-    gameInstance: SLLS
+    gameInstance: SLWB
 ): {
     isWinningLine: boolean;
     matchCount: number;
@@ -259,10 +236,9 @@ function checkLineSymbols(
         let currentSymbol = firstSymbol;
         const matchedIndices: { col: number, row: number }[] = [{ col: 0, row: line[0] }];
         const matchedSymbols: number[] = [Number(firstSymbol)];
-
         const firstSymbolObject: any = settings.Symbols.find(symbol => symbol.Id === Number(firstSymbol));
         const canMatchSymbols = firstSymbolObject?.canmatch || [];
-         
+
         // Loop through the line
         for (let i = 1; i < line.length; i++) {
             const rowIndex = line[i];
@@ -286,7 +262,6 @@ function checkLineSymbols(
                 currentSymbol = symbol;
                 matchCount++;
                 matchedIndices.push({ col: i, row: rowIndex });
-                // matchedSymbols.push(symbol);
             } else {
                 break;
             }
@@ -301,7 +276,7 @@ function checkLineSymbols(
 
 
 
-function findFirstNonWildSymbol(line: number[], gameInstance: SLLS) {
+function findFirstNonWildSymbol(line: number[], gameInstance: SLWB) {
     try {
         const { settings } = gameInstance;
         const wildSymbol = settings.wild.SymbolID;
@@ -322,28 +297,27 @@ function findFirstNonWildSymbol(line: number[], gameInstance: SLLS) {
     }
 }
 
-function calculatePayoutForCombination(matchedSymbols, paytable) {
-    for (const { combination, payout } of paytable) {
-        
-        if (arraysMatchForPayout(matchedSymbols, combination)) {
-            return payout;
+
+
+
+function accessData(symbol, matchCount, gameInstance: SLWB) {
+    const { settings } = gameInstance;
+    try {
+        const symbolData = settings.currentGamedata.Symbols.find(
+            (s) => s.Id.toString() === symbol.toString()
+        );
+        if (symbolData) {
+            const multiplierArray = symbolData.multiplier;
+            if (multiplierArray && multiplierArray[5 - matchCount]) {
+                return multiplierArray[5 - matchCount][0];
+            }
         }
-    }
-    return 0;
-}
-
-function arraysMatchForPayout(matchedSymbols, combination) {
-    if (matchedSymbols.length === combination.length) {
-        return matchedSymbols.every((value, index) => value == combination[index]);
-    } else {
-        const set1 = new Set(matchedSymbols);
-        const set2 = new Set(combination.map(symbol => Number(symbol)));
-        return set1.size === set2.size && [...set1].every(value => set2.has(value));
+        return 0;
+    } catch (error) {
+        // console.error("Error in accessData:");
+        return 0;
     }
 }
-
-
-
 
 
 /**
@@ -354,39 +328,24 @@ function arraysMatchForPayout(matchedSymbols, combination) {
  * @param gameInstance - The instance of the SLSM class that manages the game logic.
  */
 
-function handleSpecialSymbols(symbol: any, gameInstance: SLLS) {
+function handleSpecialSymbols(symbol: any, gameInstance: SLWB) {
     switch (symbol.Name) {
         case specialIcons.wild:
             gameInstance.settings.wild.SymbolName = symbol.Name;
             gameInstance.settings.wild.SymbolID = symbol.Id;
-            gameInstance.settings.wild.useWild = true;
+            gameInstance.settings.wild.useWild = symbol.useWildSub;
             break;
         case specialIcons.bonus:
             gameInstance.settings.bonus.SymbolName = symbol.Name;
             gameInstance.settings.bonus.SymbolID = symbol.Id;
-            gameInstance.settings.bonus.useWild = true;
+            gameInstance.settings.bonus.useWild = symbol.useWildSub;
             break;
-        case specialIcons.jackpot:
-            gameInstance.settings.jackpot.SymbolName = symbol.Name;
-            gameInstance.settings.jackpot.SymbolID = symbol.Id;
-            gameInstance.settings.jackpot.useWild = false;
+        case specialIcons.goldenBonus:
+            gameInstance.settings.goldenBonus.SymbolName = symbol.Name;
+            gameInstance.settings.goldenBonus.SymbolID = symbol.Id;
+            gameInstance.settings.goldenBonus.useWild = symbol.useWildSub;
             break;
-        case specialIcons.bar3:
-            gameInstance.settings.bar3.SymbolName = symbol.Name;
-            gameInstance.settings.bar3.SymbolID = symbol.Id;
-            gameInstance.settings.bar3.useWild = false;
-            break;
-        case specialIcons.bar2:
-            gameInstance.settings.bar2.SymbolName = symbol.Name;
-            gameInstance.settings.bar2.SymbolID = symbol.Id;
-            gameInstance.settings.bar2.useWild = false;
-            break;
-        case specialIcons.bar1:
-            gameInstance.settings.bar1.SymbolName = symbol.Name;
-            gameInstance.settings.bar1.SymbolID = symbol.Id;
-            gameInstance.settings.bar1.useWild = false;
-            break;                            
-            default:
+        default:
             break; ``
     }
 }
@@ -395,13 +354,88 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLLS) {
 
 
 
+function checkForBonus(gameInstance:SLWB){
+    const { settings } = gameInstance;
+    let bonusCount = 0
+    settings.resultSymbolMatrix.map((row)=>{
+        row.map((symbol)=>{
+             if(symbol === settings.bonus.SymbolID){
+                bonusCount++;
+             }
+        })
+    })
+     if(bonusCount>=3){
+        settings.isBonusTriggered= true;   
+     }
+
+     if(settings.isBonusTriggered){
+
+     }
+
+    
+}
+
+function spinWheel(gameInstance:SLWB){
+    
+}
+
+
+export function getRandomValue(gameInstance: SLWB , type: 'small' | 'medium' | 'large' | 'smallFreespin' | 'mediumFreespin' |'largeFreespin'): number {
+    const { settings } = gameInstance;
+
+    let values: number[];
+    let probabilities: number[];
+
+    // determine the values and probabilities based on the type
+    if (type === 'small') {
+        // values = settings?.pollyAdjacentColumn;
+        // probabilities = settings?.pollyAdjacentColumn
+    } else if (type === 'medium') {
+        // values = settings?.coinsvalue;
+        // probabilities = settings?.coinsvalueProb;
+    } else if (type === 'large') {
+        // values = settings?.coinsvalueDuringFreeSpins;
+        // probabilities = settings?.coinsvalueDuringFreeSpinsProb;
+    }
+    else if (type === 'smallFreespin') {
+        // values = settings?.pollyAdjacentColumn;
+        // probabilities = settings?.pollyAdjacentColumnProb;
+    }else if(type === 'mediumFreespin'){
+        // values = settings?.tommyAdjacentColumn;
+        // probabilities = settings?.tommyyAdjacentColumnProb
+    }
+    else if (type === 'largeFreespin') {
+        // values = settings?.tommyColossalSymbol;
+        // probabilities = settings?.tommyColossalSymbolProb;
+    }
+    else {
+        throw new Error("Invalid type, expected 'coin' or 'freespin'");
+    }
+
+
+    // Calculate the total probability and select a random value
+    const totalProbability = probabilities.reduce((sum, prob) => sum + prob, 0);
+    const randomValue = Math.random() * totalProbability;
+
+    let cumulativeProbability = 0;
+    for (let i = 0; i < probabilities.length; i++) {
+        cumulativeProbability += probabilities[i];
+        if (randomValue < cumulativeProbability) {
+            return values[i];
+        }
+    }
+
+    //default to first value
+    return values[0];
+}
+
 /**
  * Prepares and sends the result data for the current game state to the client.
  * Includes game data, player data, and details of any free spins or winnings.
  * @param gameInstance - The instance of the SLSM class containing the game state and settings.
  */
 
-export function makeResultJson(gameInstance: SLLS) {
+export function makeResultJson(gameInstance: SLWB) {
     try {
         const { settings, playerData } = gameInstance;
         const credits = gameInstance.getPlayerData().credits + playerData.currentWining
@@ -411,8 +445,8 @@ export function makeResultJson(gameInstance: SLLS) {
                 symbolsToEmit: settings._winData.winningSymbols,
                 isFreeSpin: settings.freeSpin.useFreeSpin,
                 freeSpinCount: settings.freeSpin.freeSpinCount,
-                isJackpot: settings.isJackpot,
                 linesToEmit: settings._winData.winningLines,
+                isBonusTriggered: settings.isBonusTriggered,
             },
             PlayerData: {
                 Balance: gameInstance.getPlayerData().credits,

@@ -69,6 +69,8 @@ export interface SLSMSETTINGS {
     isGrandPrize: boolean,
     isArthurBonus: boolean,
     isTomBonus: boolean,
+    bonusSymbolCount:number,
+    numberofcoinsforbonus:number,
     isPollyBonus: boolean,
     thunderBonus: {
         thunderSpinCount: number,
@@ -82,7 +84,8 @@ export interface SLSMSETTINGS {
         freeSpinAwardedCount: number,
         useFreeSpin: boolean,
         freeSpinsAdded: boolean,
-        freeSpinPayout: number
+        freeSpinPayout: number,
+        incrementCount:number,
     };
     wild: {
         SymbolName: string;
