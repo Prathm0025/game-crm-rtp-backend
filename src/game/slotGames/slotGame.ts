@@ -22,6 +22,7 @@ import { SLSG } from "./SL-SG/spartacusGladitaorBase";
 import { SLBS } from "./SL-BS/buffalo777Base";
 import { SLLS } from "./SL-LS/luckySevenBase";
 import { SLWB } from "./SL-WB/wildBuffaloBase";
+import { SLFM } from "./SL-FM/fruitMaryBase";
 export default class SlotGameManager {
   public currentGame: any;
 
@@ -30,7 +31,7 @@ export default class SlotGameManager {
     "SL-ONE": SLONE, "SL-LOL": SLLOL, "SL-SR": SLSR, "SL-BB": SLBB, "SL-Z3": SLZEUS,
     "SL-SM": SLSM, "SL-TM": SLTM, "SL-BT": SLBT, "SL-PSF": SLPSF, "SL-SB": SLSB, "SL-BOD": SLBOD,
     "SL-PB":SLPB, "SL-SG":SLSG, "SL-BS":SLBS,
-     "SL-AOG":SLAOG,"SL-LS":SLLS, "SL-WB":SLWB
+     "SL-AOG":SLAOG,"SL-LS":SLLS, "SL-WB":SLWB, "SL-FM":SLFM
   };
 
   constructor(public currentGameData: currentGamedata) {

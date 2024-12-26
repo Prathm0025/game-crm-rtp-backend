@@ -2,9 +2,10 @@ import { WinData } from "../BaseSlotGame/WinData";
 import {
     convertSymbols,
     UiInitData,
+    shuffleArray
 } from "../../Utils/gameUtils";
-import { SLBS } from "./buffalo777Base"
-import { FrozenIndex, specialIcons } from "./types";
+import { SLFM } from "./fruitMaryBase"
+import {  specialIcons } from "./types";
 
 /**
  * Initializes the game settings using the provided game data and game instance.
@@ -13,7 +14,7 @@ import { FrozenIndex, specialIcons } from "./types";
  * @returns An object containing initialized game settings.
  */
 
-export function initializeGameSettings(gameData: any, gameInstance: SLBS) {
+export function initializeGameSettings(gameData: any, gameInstance: SLFM) {
     return {
         id: gameData.gameSettings.id,
         matrix: gameData.gameSettings.matrix,
@@ -31,6 +32,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBS) {
         BetPerLines: 0,
         reels: [],
         anyMatchCount:gameData.gameSettings.anyPayout,
+        wildCountsToFreeGames:gameData.gameSettings.wildCountsToFreeGames,
         freeSpin: {
             freeSpinAwarded: gameData.gameSettings.freeSpinCount,
             freeSpinCount: 0,
@@ -49,27 +51,11 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBS) {
             SymbolID: -1,
             useWild: false,
         },
-        jackpot: {
+        scatter: {
             SymbolName: "",
             SymbolID: -1,
             useWild: false,
         },
-        bar3:{
-            SymbolName: "",
-            SymbolID: -1,
-            useWild: false,
-        },
-        bar2:{
-            SymbolName: "",
-            SymbolID: -1,
-            useWild: false,
-        },
-        bar1:{
-            SymbolName: "",
-            SymbolID: -1,
-            useWild: false,
-        },
-        isJackpot:false
     };
 }
 
@@ -82,7 +68,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBS) {
 export function generateInitialReel(gameSettings: any): string[][] {
     const reels = [[], [], [], [], [], [], []];
     gameSettings.Symbols.forEach((symbol) => {
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < 5; i++) {
             const count = symbol.reelInstance[i] || 0;
             for (let j = 0; j < count; j++) {
                 reels[i].push(symbol.Id);
@@ -97,25 +83,12 @@ export function generateInitialReel(gameSettings: any): string[][] {
 
 
 
-
-/**
- * Shuffles the elements of an array in place using the Fisher-Yates algorithm.
- * @param array - The array to be shuffled.
- */
-
-function shuffleArray(array: any[]) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-}
-
 /**
  * Configures paylines based on the game's settings and handles special symbols.
  * @param gameInstance - The instance of the game.
  */
 
-export function makePayLines(gameInstance: SLBS) {
+export function makePayLines(gameInstance: SLFM) {
     const { settings } = gameInstance;
     settings.currentGamedata.Symbols.forEach((element) => {
         if (!element.useWildSub) {
@@ -130,7 +103,7 @@ export function makePayLines(gameInstance: SLBS) {
  * @param gameInstance - The instance of the game containing settings and player data.
  */
 
-export function sendInitData(gameInstance: SLBS) {
+export function sendInitData(gameInstance: SLFM) {
     gameInstance.settings.lineData =
         gameInstance.settings.currentGamedata.linesApiData;
     const symbols = gameInstance.settings.Symbols        
@@ -168,15 +141,16 @@ export function sendInitData(gameInstance: SLBS) {
  * 5. **Player Data Update**: Updates the player's current winnings and adds the win amount to the player's balance.
  * 6. **Game State Reset**: Resets relevant game settings and variables to prepare for the next round.
  * 
- * @param gameInstance - The instance of the SLSM class managing the game logic.
+ * @param gameInstance - The instance of the SLFM class managing the game logic.
  */
 
-export function checkForWin(gameInstance: SLBS) {
+export function checkForWin(gameInstance: SLFM) {
     try {
         const { settings } = gameInstance;
 
         const winningLines = [];
-     
+        let totalPayout = 0;
+
     
         if (settings.freeSpin.useFreeSpin && settings.freeSpin.freeSpinCount > 0) {
             settings.freeSpin.freeSpinCount -= 1;
@@ -185,12 +159,48 @@ export function checkForWin(gameInstance: SLBS) {
             }
         }      
 
-        const {isWinning, totalPayout} = checkSymbolOcuurence(gameInstance);
-         console.log(totalPayout, "total");
-         
+        settings.lineData.forEach((line, index) => {            
+            const firstSymbolPosition = line[0];
+            let firstSymbol = settings.resultSymbolMatrix[firstSymbolPosition][0];            
+            if (settings.wild.useWild && firstSymbol === settings.wild.SymbolID) {
+                firstSymbol = findFirstNonWildSymbol(line, gameInstance);
+            }
+
+
+            const { isWinningLine, matchCount, matchedIndices: winMatchedIndices, wildCount } = checkLineSymbols(firstSymbol, line, gameInstance); 
+            if (wildCount >= 3) {
+                console.log(wildCount, "Wild count");
+                
+                settings.freeSpin.freeSpinCount += settings.wildCountsToFreeGames[wildCount] || 0;
+                settings.freeSpin.freeSpinsAdded = true;
+            }          
+            if ((isWinningLine && matchCount >= 3)) {                
+                const symbolMultiplier = accessData(firstSymbol, matchCount, gameInstance); 
+                if (symbolMultiplier > 0) {
+                    totalPayout += symbolMultiplier * gameInstance.settings.BetPerLines;
+                    gameInstance.playerData.currentWining += totalPayout;
+
+                    settings._winData.winningLines.push(index);
+                    winningLines.push({
+                        line,
+                        symbol: firstSymbol,
+                        multiplier: symbolMultiplier,
+                        matchCount,
+                    });
+                    console.log(`Line ${index + 1}:`, line);
+                    console.log(`Payout for Line ${index + 1}:`, 'payout', symbolMultiplier);
+                    const formattedIndices = winMatchedIndices.map(({ col, row }) => `${col},${row}`);
+                    const validIndices = formattedIndices.filter(index => index.length > 2);
+                    if (validIndices.length > 0) {
+                        gameInstance.settings._winData.winningSymbols.push(validIndices);
+                    }
+
+                }
+            }
+        });
     
 
-        gameInstance.playerData.currentWining += totalPayout;
+        // gameInstance.playerData.currentWining += totalPayout;
         gameInstance.playerData.haveWon = parseFloat(
             (gameInstance.playerData.haveWon + parseFloat(gameInstance.playerData.currentWining.toFixed(4))).toFixed(4)
         );
@@ -202,7 +212,6 @@ export function checkForWin(gameInstance: SLBS) {
         settings.freeSpin.freeSpinPayout = 0;
         settings.freeSpin.freeSpinsAdded = false
         settings._winData.winningSymbols = []
-        settings.isJackpot = false;
      
     } catch (error) {
         console.error("Error in checkForWin", error);
@@ -212,78 +221,120 @@ export function checkForWin(gameInstance: SLBS) {
 
 
 
+function checkLineSymbols(
+    firstSymbol: string,
+    line: number[],
+    gameInstance: SLFM
+): {
+    isWinningLine: boolean;
+    matchCount: number;
+    matchedIndices: { col: number, row: number }[];
+    wildCount: number; // Add this to return the count of wilds
+} {
+    try {
+        const { settings } = gameInstance;
+        const wildSymbol = settings.wild.SymbolID || "";
+        let matchCount = 1;
+        let wildCount = 0; // Initialize wild count
+        let currentSymbol = firstSymbol;
+        const matchedIndices: { col: number, row: number }[] = [{ col: 0, row: line[0] }];
 
-type MatchedIndex = { col: number; row: number };
+        // Check if the first symbol is a wild
+        if (currentSymbol === wildSymbol) {
+            wildCount++;
+        }
 
-function checkSymbolOcuurence(gameInstance:SLBS){
-    const { settings } = gameInstance;
-    const matchedIndices: MatchedIndex[] = [];
-    let totalPayout = 0;
+        // Loop through the line
+        for (let i = 1; i < line.length; i++) {
+            const rowIndex = line[i];
+            const symbol = settings.resultSymbolMatrix[rowIndex][i];
 
-    const isWinning = settings.resultSymbolMatrix.map((row, rowIndex) => {
-        const hasWild = row.includes(settings.wild.SymbolID);
-    
-        if (hasWild) {
-            const nonWildSymbols = row.filter((symbol) => symbol !== settings.wild.SymbolID);
-            const allNonWildSame = nonWildSymbols.every((symbol) => symbol === nonWildSymbols[0]);
+            if (symbol === undefined) {
+                console.error(`Symbol at position [${rowIndex}, ${i}] is undefined.`);
+                return { isWinningLine: false, matchCount: 0, matchedIndices: [], wildCount };
+            }
 
-            if (allNonWildSame && nonWildSymbols.length > 0) {
-                row.fill(nonWildSymbols[0]);
+            // Check for matches (consider wild symbols and canmatch)
+            if (symbol === currentSymbol || symbol === wildSymbol) {
+                matchCount++;
+                matchedIndices.push({ col: i, row: rowIndex });
+
+                // Increment wild count if the symbol is wild
+                if (symbol === wildSymbol) {
+                    wildCount++;
+                }
+            } else if (currentSymbol === wildSymbol) {
+                currentSymbol = symbol;
+                matchCount++;
+                matchedIndices.push({ col: i, row: rowIndex });
+
+                // Increment wild count if the symbol is wild
+                if (symbol === wildSymbol) {
+                    wildCount++;
+                }
             } else {
-                row.fill(settings.wild.SymbolID);
+                break;
             }
         }
-    
-        const allSame = row.every((symbol) => symbol === row[0]);
-        const isSpecialCombination = row.every((symbol) =>
-            [settings.bar3.SymbolID, settings.bar2.SymbolID, settings.bar1.SymbolID].includes(symbol)
-        );
-        console.log(`Row ${rowIndex} all same:`, allSame);
-    
-        if (allSame || isSpecialCombination) {
-            const matchedSymbol = row[0];
 
-            if((matchedSymbol === settings.bonus.SymbolID) && !settings.freeSpin.useFreeSpin){
-                settings.freeSpin.useFreeSpin = true;
-                settings.freeSpin.freeSpinCount  = settings.freeSpin.freeSpinAwarded;
-            }else if((matchedSymbol === settings.bonus.SymbolID) && settings.freeSpin.useFreeSpin){
-                settings.freeSpin.freeSpinCount  = settings.freeSpin.freeSpinAwarded;
-                settings.freeSpin.freeSpinsAdded = true
-            }      
-
-            if(matchedSymbol === settings.jackpot.SymbolID){
-                settings.isJackpot = true;
-            }
-
-            if(allSame){
-            const symbol:any = settings.currentGamedata.Symbols.filter((symbol)=>symbol.Id === matchedSymbol)
-            console.log(symbol[0].payout, "S");
-            console.log(settings.currentBet);
-            const symbolPayout = parseFloat(symbol[0].payout);
-            const payOut = symbolPayout * settings.currentBet;
-            console.log(payOut);
-            
-            totalPayout += payOut;
-            }else if (isSpecialCombination) {
-                const payout = settings.anyMatchCount * settings.currentBet;
-                totalPayout += payout;
-            }
-            
-            matchedIndices.push(
-                { col: 0, row: rowIndex },
-                { col: 1, row: rowIndex },
-                { col: 2, row: rowIndex }
-            );
-        }
-    
-        return row;
-    });
-    console.log(totalPayout);
-    
-
-        return { isWinning, totalPayout};
-    
+        return { isWinningLine: matchCount >= 3, matchCount, matchedIndices, wildCount };
+    } catch (error) {
+        console.error("Error in checkLineSymbols:", error);
+        return { isWinningLine: false, matchCount: 0, matchedIndices: [], wildCount: 0 };
+    }
 }
+
+
+
+/**
+ * Retrieves the multiplier associated with a symbol and match count.
+ * @param symbol - The symbol for which the multiplier is retrieved.
+ * @param matchCount - The number of matching symbols.
+ * @param gameInstance - The game instance containing symbol data.
+ * @returns The multiplier value or 0 if no data is found.
+ */
+
+function accessData(symbol, matchCount, gameInstance: SLFM) {
+    const { settings } = gameInstance;
+    try {
+        const symbolData = settings.currentGamedata.Symbols.find(
+            (s) => s.Id.toString() === symbol.toString()
+        );
+        if (symbolData) {
+            const multiplierArray = symbolData.multiplier;
+            if (multiplierArray && multiplierArray[5 - matchCount]) {
+                return multiplierArray[5 - matchCount][0];
+            }
+        }
+        return 0;
+    } catch (error) {
+        // console.error("Error in accessData:");
+        return 0;
+    }
+}
+
+
+function findFirstNonWildSymbol(line: number[], gameInstance: SLFM) {
+    try {
+        const { settings } = gameInstance;
+        const wildSymbol = settings.wild.SymbolID;
+
+        for (let i = 0; i < line.length; i++) {
+            const rowIndex = line[i];
+            const symbol = settings.resultSymbolMatrix[rowIndex][i];
+
+            if (symbol !== wildSymbol) {
+                return symbol;
+            }
+        }
+
+        return wildSymbol;
+    } catch (error) {
+        console.error("Error in findFirstNonWildSymbol:", error);
+        return null;
+    }
+}
+
 
 /**
  * Configures game settings based on the special symbol provided.
@@ -293,7 +344,7 @@ function checkSymbolOcuurence(gameInstance:SLBS){
  * @param gameInstance - The instance of the SLSM class that manages the game logic.
  */
 
-function handleSpecialSymbols(symbol: any, gameInstance: SLBS) {
+function handleSpecialSymbols(symbol: any, gameInstance: SLFM) {
     switch (symbol.Name) {
         case specialIcons.wild:
             gameInstance.settings.wild.SymbolName = symbol.Name;
@@ -305,26 +356,11 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLBS) {
             gameInstance.settings.bonus.SymbolID = symbol.Id;
             gameInstance.settings.bonus.useWild = true;
             break;
-        case specialIcons.jackpot:
-            gameInstance.settings.jackpot.SymbolName = symbol.Name;
-            gameInstance.settings.jackpot.SymbolID = symbol.Id;
-            gameInstance.settings.jackpot.useWild = false;
+        case specialIcons.scatter:
+            gameInstance.settings.scatter.SymbolName = symbol.Name;
+            gameInstance.settings.scatter.SymbolID = symbol.Id;
+            gameInstance.settings.scatter.useWild = false;
             break;
-        case specialIcons.bar3:
-            gameInstance.settings.bar3.SymbolName = symbol.Name;
-            gameInstance.settings.bar3.SymbolID = symbol.Id;
-            gameInstance.settings.bar3.useWild = false;
-            break;
-        case specialIcons.bar2:
-            gameInstance.settings.bar2.SymbolName = symbol.Name;
-            gameInstance.settings.bar2.SymbolID = symbol.Id;
-            gameInstance.settings.bar2.useWild = false;
-            break;
-        case specialIcons.bar1:
-            gameInstance.settings.bar1.SymbolName = symbol.Name;
-            gameInstance.settings.bar1.SymbolID = symbol.Id;
-            gameInstance.settings.bar1.useWild = false;
-            break;                            
             default:
             break; ``
     }
@@ -332,61 +368,18 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLBS) {
 
 
 
-// /**
-//  * Retrieves a random value based on the specified type and its associated probabilities.
-//  * The function uses weighted probabilities to select a value from a predefined set.
-//  * 
-//  * @param gameInstance - The instance of the SLSM class that manages the game logic.
-//  * @param type - The type of random value to retrieve, such as 'sticky', 'prize', 'mystery', or 'moonMystery'.
-//  * @returns A randomly selected value based on the weighted probabilities for the specified type.
-//  * @throws An error if an invalid type is provided.
-//  */
+function checkSymbolOcuurence(gameInstance:SLFM){
+      
+    const { settings } = gameInstance;
 
-// export function getRandomValue(gameInstance: SLBS, type: 'sticky' | 'prize' | 'mystery' | 'moonMystery'): number {
-//     const { settings } = gameInstance;
-
-//     let values: number[];
-//     let probabilities: number[];
-    
-//     // determine the values and probabilities based on the type
-//     if (type === 'sticky') {
-//         values = settings?.stickySymbolCount;
-//         probabilities = settings?.stickySymbolCountProb;
-//     } else if (type === 'prize') {
-//         values = settings?.prizeValue;
-//         probabilities = settings?.prizeValueProb;
-//     } else if (type === 'mystery') {
-//         values = settings?.mysteryValues;
-//         probabilities = settings?.mysteryValueProb;
-//     } else if (type === 'moonMystery') {
-//         values = settings?.moonMysteryValues;
-//         probabilities = settings?.moonMysteryValueProb;
-//     }
-//     else {
-//         throw new Error("Invalid type, expected 'coin' or 'freespin'");
-//     }
+    settings.resultSymbolMatrix.map((row, rowIndex)=>{
+        const wildCount = row.filter((symbol) => symbol === settings.wild.SymbolID).length;
+      
 
 
-//     // Calculate the total probability and select a random value
-//     const totalProbability = probabilities.reduce((sum, prob) => sum + prob, 0);
-//     const randomValue = Math.random() * totalProbability;
+    })
 
-//     let cumulativeProbability = 0;
-//     for (let i = 0; i < probabilities.length; i++) {
-//         cumulativeProbability += probabilities[i];
-//         if (randomValue < cumulativeProbability) {
-//             return values[i];
-//         }
-//     }
-
-//     //default to first value
-//     return values[0];
-// }
-
-
-
-
-
+}
 
 
 /**
@@ -395,7 +388,7 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLBS) {
  * @param gameInstance - The instance of the SLSM class containing the game state and settings.
  */
 
-export function makeResultJson(gameInstance: SLBS) {
+export function makeResultJson(gameInstance: SLFM) {
     try {
         const { settings, playerData } = gameInstance;
         const credits = gameInstance.getPlayerData().credits + playerData.currentWining
@@ -405,7 +398,6 @@ export function makeResultJson(gameInstance: SLBS) {
                 symbolsToEmit: settings._winData.winningSymbols,
                 isFreeSpin: settings.freeSpin.useFreeSpin,
                 freeSpinCount: settings.freeSpin.freeSpinCount,
-                isJackpot: settings.isJackpot,
             },
             PlayerData: {
                 Balance: gameInstance.getPlayerData().credits,
