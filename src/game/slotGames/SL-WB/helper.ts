@@ -392,7 +392,6 @@ function checkForBonus(gameInstance:SLWB){
         row.map((symbol)=>{
              if(symbol === settings.bonus.SymbolID){
                 console.log(settings.bonus.SymbolID, "ID");
-                
                 bonusCount++;
              }
         })
@@ -407,7 +406,7 @@ function checkForBonus(gameInstance:SLWB){
     } else if (bonusCount === settings.bonusCount[1]) {
         settings.ismediumBonusTriggered = true;
         spinWheel(gameInstance);
-    } else if (bonusCount === settings.bonusCount[2]) {
+    } else if (bonusCount >= settings.bonusCount[2]) {
         settings.islargeBonusTriggered = true;
         spinWheel(gameInstance);
     } else {
@@ -516,14 +515,18 @@ function reduceMatrixAndGiveFreeSpin(gameInstance:SLWB){
         row.map((symbol, colIndex)=>{
             if(symbol === settings.bonus.SymbolID){
                 settings.resultSymbolMatrix[rowIndex][colIndex] = settings.goldenBonus.SymbolID;
+                bonusCount++;
             }
         })
      })
+console.log(settings.resultSymbolMatrix, "red");
+console.log(bonusCount);
 
-     console.log(settings.resultSymbolMatrix, "reduced");
      
-
-     switch (bonusCount == settings.bonusTriggerCountDuringFreeSpin) {
+   if(bonusCount >= settings.bonusTriggerCountDuringFreeSpin){
+    console.log(bonusCount);
+    
+     switch (true) {
         case bonusCount === settings.bonusCountDuringFreeSpins[0]:
             settings.freeSpin.freeSpinsAdded = true;
             settings.freeSpin.freeSpinCount+= settings.freeSpinDuringBonus[0]
@@ -543,6 +546,7 @@ function reduceMatrixAndGiveFreeSpin(gameInstance:SLWB){
         default:
             break;
      }
+    }
      
 
 }
