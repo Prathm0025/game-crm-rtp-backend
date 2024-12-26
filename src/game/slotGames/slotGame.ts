@@ -19,6 +19,7 @@ import { SLPB } from "./SL-PB/peakyBlindersBase";
 import { SLBOD } from "./SL-BOD/BookOfDeadBase";
 import { SLAOG } from "./SL-AOG/AgeOfGodsBase";
 import { SLSG } from "./SL-SG/spartacusGladitaorBase";
+import { SLFLC } from "./SL-FLC/FireLinkChinaTownBase";
 import { SLBS } from "./SL-BS/buffalo777Base";
 import { SLLS } from "./SL-LS/luckySevenBase";
 import { SLWB } from "./SL-WB/wildBuffaloBase";
@@ -31,7 +32,11 @@ export default class SlotGameManager {
     "SL-ONE": SLONE, "SL-LOL": SLLOL, "SL-SR": SLSR, "SL-BB": SLBB, "SL-Z3": SLZEUS,
     "SL-SM": SLSM, "SL-TM": SLTM, "SL-BT": SLBT, "SL-PSF": SLPSF, "SL-SB": SLSB, "SL-BOD": SLBOD,
     "SL-PB":SLPB, "SL-SG":SLSG, "SL-BS":SLBS,
+<<<<<<< HEAD
      "SL-AOG":SLAOG,"SL-LS":SLLS, "SL-WB":SLWB, "SL-FM":SLFM
+=======
+     "SL-AOG":SLAOG,"SL-LS":SLLS, "SL-WB":SLWB, "SL-FLC":SLFLC
+>>>>>>> b4c137cfedb35f6c51cff6c48b2247e262d066e7
   };
 
   constructor(public currentGameData: currentGamedata) {
