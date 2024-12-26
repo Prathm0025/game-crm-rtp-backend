@@ -6,6 +6,10 @@ interface Symbol {
     Id: number;
     reelInstance: { [key: string]: number };
 }
+type WheelFeature = {
+    featureValues: number[]; 
+    featureProbs: number[];  
+};
 
  
 export type FeatureType = "MINI" | "MINOR" | "MAJOR" | "FREESPIN" | "GRAND" ;
@@ -26,6 +30,9 @@ export interface SLWBSETTINGS {
     Symbols: Symbol[];
     payoutCombination: any [][],
     anyMatchCount:number;
+    smallWheelFeature: WheelFeature;
+    mediumWheelFeature: WheelFeature;
+    largeWheelFeature: WheelFeature;
     freeSpin: {
         freeSpinCount: number,
         freeSpinAwarded: number,
@@ -49,6 +56,15 @@ export interface SLWBSETTINGS {
         useWild: boolean
     },
     isBonusTriggered:boolean,
+    issmallBonusTriggered:boolean,
+    ismediumBonusTriggered:boolean,
+    islargeBonusTriggered:boolean,
+    indexToStop:number,
+    bonusCount: number[],
+    bonusTriggerCount:number,
+    bonusTriggerCountDuringFreeSpin:number,
+    bonusCountDuringFreeSpins:number[],
+    freeSpinDuringBonus:number[],
     
 }
 

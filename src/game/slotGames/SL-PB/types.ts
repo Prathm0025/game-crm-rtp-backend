@@ -72,6 +72,8 @@ export interface SLSMSETTINGS {
     bonusSymbolCount:number,
     numberofcoinsforbonus:number,
     isPollyBonus: boolean,
+    majorSymbols:number[],
+    majorSymbolsProb: number[],
     thunderBonus: {
         thunderSpinCount: number,
         thunderSpinAwardedCount: number,

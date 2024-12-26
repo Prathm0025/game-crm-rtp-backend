@@ -32,6 +32,10 @@ export function initializeGameSettings(gameData: any, gameInstance: SLWB) {
         BetPerLines: 0,
         reels: [],
         anyMatchCount: gameData.gameSettings.anyPayout,
+        smallWheelFeature: gameData.gameSettings.smallWheelFeature,
+        mediumWheelFeature: gameData.gameSettings.smallWheelFeature,
+        largeWheelFeature: gameData.gameSettings.smallWheelFeature,
+        bonusTriggerCount: gameData.gameSettings.bonusTriggerCount,
         freeSpin: {
             freeSpinAwarded: gameData.gameSettings.freeSpinCount,
             freeSpinCount: 0,
@@ -40,6 +44,14 @@ export function initializeGameSettings(gameData: any, gameInstance: SLWB) {
             freeSpinsAdded: false,
         },
         isBonusTriggered:false,
+        issmallBonusTriggered:false,
+        ismediumBonusTriggered:false,
+        islargeBonusTriggered:false,
+        indexToStop:-1,
+        bonusCount:gameData.gameSettings.bonusCount,
+        bonusTriggerCountDuringFreeSpin: gameData.gameSettings.bonusTriggerCountDuringFreeSpin,
+        bonusCountDuringFreeSpins: gameData.gameSettings.bonusCountDuringFreeSpins,
+        freeSpinDuringBonus: gameData.gameSettings.freeSpinDuringBonus,
         wild: {
             SymbolName: "",
             SymbolID: -1,
@@ -131,6 +143,9 @@ export function sendInitData(gameInstance: SLWB) {
             Bets: gameInstance.settings.currentGamedata.bets,
             baseBet: gameInstance.settings.baseBetAmount,
             betMultiplier: gameInstance.settings.currentGamedata.betMultiplier,
+            smallWheelFeature: gameInstance.settings.smallWheelFeature.featureValues,
+            mediumWheelFeature: gameInstance.settings.smallWheelFeature.featureValues,
+            largeWheelFeature: gameInstance.settings.smallWheelFeature.featureValues,
 
         },
         UIData: UiInitData,
@@ -140,8 +155,7 @@ export function sendInitData(gameInstance: SLWB) {
             currentWining: gameInstance.playerData.currentWining,
             totalbet: gameInstance.playerData.totalbet,
         },
-    };
-
+    };    
     gameInstance.sendMessage("InitData", dataToSend);
 }
 /**
@@ -163,7 +177,18 @@ export function checkForWin(gameInstance: SLWB) {
 
         const winningLines = [];
         let totalPayout = 0;
-        const bonus =checkForBonus(gameInstance);
+        if(!settings.freeSpin.useFreeSpin){
+           checkForBonus(gameInstance);
+        }else{
+            reduceMatrixAndGiveFreeSpin(gameInstance);
+            if (settings.freeSpin.freeSpinCount > 0 && settings.freeSpin.useFreeSpin) {
+                settings.freeSpin.freeSpinCount -= 1;
+                if (settings.freeSpin.freeSpinCount <= 0) {
+                    settings.freeSpin.useFreeSpin = false;
+                }
+            }
+        
+        }
 
         settings.lineData.forEach((line, index) => {
             const firstSymbolPosition = line[0];
@@ -174,7 +199,7 @@ export function checkForWin(gameInstance: SLWB) {
 
             const { isWinningLine, matchCount, matchedIndices: winMatchedIndices } = checkLineSymbols(firstSymbol, line, gameInstance);
 
-            if ((isWinningLine && matchCount >= 3)) {
+            if ((isWinningLine && matchCount >= settings.bonusTriggerCount)) {
                 const symbolMultiplier = accessData(firstSymbol, matchCount, gameInstance); 
                 if (symbolMultiplier > 0) {
                     totalPayout += symbolMultiplier * gameInstance.settings.BetPerLines;
@@ -209,16 +234,22 @@ export function checkForWin(gameInstance: SLWB) {
         makeResultJson(gameInstance)
         settings._winData.totalWinningAmount = 0;
         gameInstance.playerData.currentWining = 0;
+        settings.issmallBonusTriggered= false;
+        settings.ismediumBonusTriggered= false;
+        settings.islargeBonusTriggered= false;
         settings.freeSpin.freeSpinPayout = 0;
         settings.freeSpin.freeSpinsAdded = false
         settings._winData.winningSymbols = []
         settings._winData.winningLines = [];
+        settings.indexToStop = -1;
 
     } catch (error) {
         console.error("Error in checkForWin", error);
         return [];
     }
 }
+
+
 function checkLineSymbols(
     firstSymbol: string,
     line: number[],
@@ -360,53 +391,101 @@ function checkForBonus(gameInstance:SLWB){
     settings.resultSymbolMatrix.map((row)=>{
         row.map((symbol)=>{
              if(symbol === settings.bonus.SymbolID){
+                console.log(settings.bonus.SymbolID, "ID");
+                
                 bonusCount++;
              }
         })
     })
-     if(bonusCount>=3){
-        settings.isBonusTriggered= true;   
-     }
+   console.log(bonusCount, "bonuscount");
+   console.log(settings.bonusTriggerCount, "trigger");
 
-     if(settings.isBonusTriggered){
-
-     }
-
-    
+   if (bonusCount >= settings.bonusTriggerCount) {
+    if (bonusCount === settings.bonusCount[0]) {
+        settings.issmallBonusTriggered = true;
+        spinWheel(gameInstance);
+    } else if (bonusCount === settings.bonusCount[1]) {
+        settings.ismediumBonusTriggered = true;
+        spinWheel(gameInstance);
+    } else if (bonusCount === settings.bonusCount[2]) {
+        settings.islargeBonusTriggered = true;
+        spinWheel(gameInstance);
+    } else {
+        console.log("No matching bonus threshold");
+    }
+} else {
+    console.log("No Free Spin");
+}
 }
 
 function spinWheel(gameInstance:SLWB){
+    const { settings } = gameInstance;
+    let value = 0;
+    let featureValues = [];
+    let index:number;
+    let freeSpinIndices = [];
+    switch (true) {
+        case settings.issmallBonusTriggered:
+            value = getRandomValue(gameInstance, 'smallFreespin');
+            console.log(value)
+            featureValues = gameInstance.settings.smallWheelFeature.featureValues;
+            index = getIndexByValue(value, featureValues);
+            freeSpinIndices = featureValues.slice(0, 4);
+            if(freeSpinIndices.includes(value)){
+                settings.freeSpin.useFreeSpin = true;
+                settings.freeSpin.freeSpinCount += value;
+            }
+            break;
+        case settings.ismediumBonusTriggered:
+            value = getRandomValue(gameInstance, 'mediumFreespin');
+            featureValues = gameInstance.settings.mediumWheelFeature.featureValues;
+            index = getIndexByValue(value, featureValues);
+            freeSpinIndices = featureValues.slice(0, 4);
+            if(freeSpinIndices.includes(value)){
+                settings.freeSpin.useFreeSpin = true;
+                settings.freeSpin.freeSpinCount += value;
+            }
+            break;
+        case settings.islargeBonusTriggered:
+            value = getRandomValue(gameInstance, 'largeFreespin');
+            featureValues = gameInstance.settings.largeWheelFeature.featureValues;
+            index = getIndexByValue(value, featureValues);
+            freeSpinIndices = featureValues.slice(0, 4);
+            if(freeSpinIndices.includes(value)){
+                settings.freeSpin.useFreeSpin = true;
+                settings.freeSpin.freeSpinCount += value;
+            }
+            break;    
+        default:
+            break;     
+     }
+
+     const payout = settings.BetPerLines * value;          
+     gameInstance.playerData.currentWining += payout;
+     settings.indexToStop = index;
     
-}
+    }
 
 
-export function getRandomValue(gameInstance: SLWB , type: 'small' | 'medium' | 'large' | 'smallFreespin' | 'mediumFreespin' |'largeFreespin'): number {
+    function getIndexByValue(value: number, featureValues: number[]): number {
+        return featureValues.indexOf(value);
+    }    
+
+export function getRandomValue(gameInstance: SLWB , type:  'smallFreespin' | 'mediumFreespin' |'largeFreespin'): number {
     const { settings } = gameInstance;
 
     let values: number[];
     let probabilities: number[];
 
-    // determine the values and probabilities based on the type
-    if (type === 'small') {
-        // values = settings?.pollyAdjacentColumn;
-        // probabilities = settings?.pollyAdjacentColumn
-    } else if (type === 'medium') {
-        // values = settings?.coinsvalue;
-        // probabilities = settings?.coinsvalueProb;
-    } else if (type === 'large') {
-        // values = settings?.coinsvalueDuringFreeSpins;
-        // probabilities = settings?.coinsvalueDuringFreeSpinsProb;
-    }
-    else if (type === 'smallFreespin') {
-        // values = settings?.pollyAdjacentColumn;
-        // probabilities = settings?.pollyAdjacentColumnProb;
+    if (type === 'smallFreespin') {
+        values = settings?.smallWheelFeature.featureValues;
+        probabilities = settings?.smallWheelFeature.featureProbs;
     }else if(type === 'mediumFreespin'){
-        // values = settings?.tommyAdjacentColumn;
-        // probabilities = settings?.tommyyAdjacentColumnProb
-    }
-    else if (type === 'largeFreespin') {
-        // values = settings?.tommyColossalSymbol;
-        // probabilities = settings?.tommyColossalSymbolProb;
+        values = settings?.smallWheelFeature.featureValues;
+        probabilities = settings?.smallWheelFeature.featureProbs;
+    } else if (type === 'largeFreespin') {
+        values = settings?.smallWheelFeature.featureValues;
+        probabilities = settings?.smallWheelFeature.featureProbs;
     }
     else {
         throw new Error("Invalid type, expected 'coin' or 'freespin'");
@@ -429,6 +508,45 @@ export function getRandomValue(gameInstance: SLWB , type: 'small' | 'medium' | '
     return values[0];
 }
 
+
+function reduceMatrixAndGiveFreeSpin(gameInstance:SLWB){
+    const { settings} = gameInstance;
+    let bonusCount = 0 
+     settings.resultSymbolMatrix.map((row, rowIndex)=>{
+        row.map((symbol, colIndex)=>{
+            if(symbol === settings.bonus.SymbolID){
+                settings.resultSymbolMatrix[rowIndex][colIndex] = settings.goldenBonus.SymbolID;
+            }
+        })
+     })
+
+     console.log(settings.resultSymbolMatrix, "reduced");
+     
+
+     switch (bonusCount == settings.bonusTriggerCountDuringFreeSpin) {
+        case bonusCount === settings.bonusCountDuringFreeSpins[0]:
+            settings.freeSpin.freeSpinsAdded = true;
+            settings.freeSpin.freeSpinCount+= settings.freeSpinDuringBonus[0]
+            break;
+        case bonusCount === settings.bonusCountDuringFreeSpins[1] :
+            settings.freeSpin.freeSpinsAdded = true;
+            settings.freeSpin.freeSpinCount+= settings.freeSpinDuringBonus[1]
+            break;
+        case bonusCount === settings.bonusCountDuringFreeSpins[2]:
+            settings.freeSpin.freeSpinsAdded = true;
+            settings.freeSpin.freeSpinCount+= settings.freeSpinDuringBonus[2]
+            break;
+        case bonusCount >= settings.bonusCountDuringFreeSpins[3]:
+            settings.freeSpin.freeSpinsAdded = true;
+            settings.freeSpin.freeSpinCount+= settings.freeSpinDuringBonus[3]        
+            break;            
+        default:
+            break;
+     }
+     
+
+}
+
 /**
  * Prepares and sends the result data for the current game state to the client.
  * Includes game data, player data, and details of any free spins or winnings.
@@ -446,7 +564,12 @@ export function makeResultJson(gameInstance: SLWB) {
                 isFreeSpin: settings.freeSpin.useFreeSpin,
                 freeSpinCount: settings.freeSpin.freeSpinCount,
                 linesToEmit: settings._winData.winningLines,
-                isBonusTriggered: settings.isBonusTriggered,
+                isSmallWheelTriggered:settings.issmallBonusTriggered,
+                isMediumWheelTriggered:settings.ismediumBonusTriggered,
+                isLargeWheelTriggered:settings.islargeBonusTriggered,
+                indexToStop:settings.indexToStop,
+                freeSpinAdded:settings.freeSpin.freeSpinsAdded
+
             },
             PlayerData: {
                 Balance: gameInstance.getPlayerData().credits,

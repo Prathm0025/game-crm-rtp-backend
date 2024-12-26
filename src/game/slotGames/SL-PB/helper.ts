@@ -56,6 +56,8 @@ export function initializeGameSettings(gameData: any, gameInstance: SLPB) {
         megaMultiplier: gameData.gameSettings.megaMultiplier,
         majorMultiplier: gameData.gameSettings.majorMultiplier,
         grandMultiplier: gameData.gameSettings.grandMultiplier,
+        majorSymbols:gameData.gameSettings.majorSymbols,
+        majorSymbolsProb: gameData.gameSettings.majorSymbolsProb,
         isGrandPrize: false,
         isArthurBonus: false,
         isTomBonus: false,
@@ -564,7 +566,7 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLPB) {
  * @throws An error if an invalid type is provided.
  */
 
-export function getRandomValue(gameInstance: SLPB, type: 'polly' | 'coinsValue' | 'pollySymbol' | 'tomCollosal' | 'coinsValueDuringFreeSpin' |'tommy'): number {
+export function getRandomValue(gameInstance: SLPB, type: 'polly' | 'coinsValue' | 'pollySymbol' | 'tomCollosal' | 'coinsValueDuringFreeSpin' |'tommy'|'major'): number {
     const { settings } = gameInstance;
 
     let values: number[];
@@ -591,6 +593,10 @@ export function getRandomValue(gameInstance: SLPB, type: 'polly' | 'coinsValue' 
     else if (type === 'tomCollosal') {
         values = settings?.tommyColossalSymbol;
         probabilities = settings?.tommyColossalSymbolProb;
+    }
+    else if (type === 'major') {
+        values = settings?.majorSymbols;
+        probabilities = settings?.majorSymbolsProb;
     }
     else {
         throw new Error("Invalid type, expected 'coin' or 'freespin'");
@@ -677,7 +683,7 @@ function checkForFreeSpin(gameInstance: SLPB) {
     const { resultSymbolMatrix, bonus, arthurBonus, pollyBonus, tomBonus } = gameInstance.settings;
     const { settings } = gameInstance;
     // Reset frozen indices
-    const mandatoryBonusID = bonus.SymbolID;
+    const mandatoryBonusID = bonus.SymbolID;    
     const column5BonusIDs = [arthurBonus.SymbolID, pollyBonus.SymbolID, tomBonus.SymbolID];
     const freeSpinIndices = []; 
 
@@ -699,7 +705,7 @@ function checkForFreeSpin(gameInstance: SLPB) {
 
     if (isBonusInColumn1 && isBonusInColumn3) {
         const column5BonusID = resultSymbolMatrix.find(row => column5BonusIDs.includes(row[4]))?.[4];
-        if (column5BonusID) {
+        if (column5BonusID) {            
             settings.freeSpin.useFreeSpin = true;
             settings.freeSpin.freeSpinCount = settings.freeSpin.freeSpinAwardedCount;
         }
@@ -797,7 +803,7 @@ function handlePollyBonus(gameInstance: SLPB) {
         row[pollyAdjacentColumn] = getRandomValue(gameInstance, 'pollySymbol');
         row.fill(row[pollyAdjacentColumn], pollyAdjacentColumn + 1, pollyAdjacentColumn + 3);
 
-        console.log(row[pollyAdjacentColumn]);
+        // console.log(row[pollyAdjacentColumn]);
 
     })
     checkBonusSymbolCount(gameInstance);
@@ -840,14 +846,14 @@ function handleTomBonus(gameInstance: SLPB) {
       
     const tommyAdjacentColumn = getRandomValue(gameInstance, 'tommy');
     const symbolValue =  getRandomValue(gameInstance, 'tomCollosal');
-    console.log(symbolValue);
+    // console.log(symbolValue);
     
     if (
      symbolValue === settings.bonus.SymbolID ||
      symbolValue === settings.tomBonus.SymbolID ||
      symbolValue === settings.arthurBonus.SymbolID ||
      symbolValue === settings.pollyBonus.SymbolID
- ) {    console.log("true");
+ ) {  
      
      settings.freeSpin.freeSpinCount += settings.freeSpin.incrementCount
          settings.freeSpin.freeSpinsAdded = true;
@@ -896,8 +902,7 @@ function reducedMatrixForArthurBonus(gameInstance: SLPB) {
     settings.resultSymbolMatrix.map((row, rowIndex) => {
         row.map((symbol, colIndex) => {
             if (!validSymbolsForArthur.includes(symbol)) {
-                const randomIndex = Math.floor(Math.random() * validSymbolsForArthur.length);
-                const randomSymbol = validSymbolsForArthur[randomIndex];
+                const randomSymbol =getRandomValue(gameInstance, 'major');                
                 settings.resultSymbolMatrix[rowIndex][colIndex] = randomSymbol;
             }
         })
@@ -984,7 +989,7 @@ export function makeResultJson(gameInstance: SLPB) {
         };
         gameInstance.sendMessage('ResultData', sendData);
 
-        console.log(sendData.GameData.frozenIndices, "send Data");
+        console.log(sendData, "send Data");
 
     } catch (error) {
         console.error("Error generating result JSON or sending message:", error);
