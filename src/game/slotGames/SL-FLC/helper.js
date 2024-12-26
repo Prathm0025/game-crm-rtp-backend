@@ -377,13 +377,15 @@ function checkForWin(gameInstance) {
         if (settings.bonus.spinCount < 0) {
             //NOTE: check for bonus 
             console.log("bonus", (0, bonus_1.checkForBonus)(gameInstance));
+            gameInstance.playerData.currentWining = (0, utils_1.precisionRound)(totalPayout, 5);
+            gameInstance.playerData.haveWon = (0, utils_1.precisionRound)(gameInstance.playerData.haveWon +
+                gameInstance.playerData.currentWining, 5);
         }
         else {
             (0, bonus_1.handleBonusSpin)(gameInstance);
+            gameInstance.playerData.haveWon = (0, utils_1.precisionRound)(gameInstance.playerData.haveWon +
+                gameInstance.playerData.currentWining, 5);
         }
-        gameInstance.playerData.currentWining = (0, utils_1.precisionRound)(totalPayout, 5);
-        gameInstance.playerData.haveWon = (0, utils_1.precisionRound)(gameInstance.playerData.haveWon +
-            gameInstance.playerData.currentWining, 5);
         makeResultJson(gameInstance);
         settings.isFreespin = false;
         if (settings.bonus.spinCount > 0) {
