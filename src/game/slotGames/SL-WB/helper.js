@@ -5,6 +5,7 @@ exports.generateInitialReel = generateInitialReel;
 exports.makePayLines = makePayLines;
 exports.sendInitData = sendInitData;
 exports.checkForWin = checkForWin;
+exports.getRandomValue = getRandomValue;
 exports.makeResultJson = makeResultJson;
 const WinData_1 = require("../BaseSlotGame/WinData");
 const gameUtils_1 = require("../../Utils/gameUtils");
@@ -34,6 +35,10 @@ function initializeGameSettings(gameData, gameInstance) {
         BetPerLines: 0,
         reels: [],
         anyMatchCount: gameData.gameSettings.anyPayout,
+        smallWheelFeature: gameData.gameSettings.smallWheelFeature,
+        mediumWheelFeature: gameData.gameSettings.smallWheelFeature,
+        largeWheelFeature: gameData.gameSettings.smallWheelFeature,
+        bonusTriggerCount: gameData.gameSettings.bonusTriggerCount,
         freeSpin: {
             freeSpinAwarded: gameData.gameSettings.freeSpinCount,
             freeSpinCount: 0,
@@ -41,6 +46,15 @@ function initializeGameSettings(gameData, gameInstance) {
             freeSpinPayout: 0,
             freeSpinsAdded: false,
         },
+        isBonusTriggered: false,
+        issmallBonusTriggered: false,
+        ismediumBonusTriggered: false,
+        islargeBonusTriggered: false,
+        indexToStop: -1,
+        bonusCount: gameData.gameSettings.bonusCount,
+        bonusTriggerCountDuringFreeSpin: gameData.gameSettings.bonusTriggerCountDuringFreeSpin,
+        bonusCountDuringFreeSpins: gameData.gameSettings.bonusCountDuringFreeSpins,
+        freeSpinDuringBonus: gameData.gameSettings.freeSpinDuringBonus,
         wild: {
             SymbolName: "",
             SymbolID: -1,
@@ -51,27 +65,11 @@ function initializeGameSettings(gameData, gameInstance) {
             SymbolID: -1,
             useWild: false,
         },
-        jackpot: {
+        goldenBonus: {
             SymbolName: "",
             SymbolID: -1,
             useWild: false,
         },
-        bar3: {
-            SymbolName: "",
-            SymbolID: -1,
-            useWild: false,
-        },
-        bar2: {
-            SymbolName: "",
-            SymbolID: -1,
-            useWild: false,
-        },
-        bar1: {
-            SymbolName: "",
-            SymbolID: -1,
-            useWild: false,
-        },
-        isJackpot: false
     };
 }
 /**
@@ -82,7 +80,7 @@ function initializeGameSettings(gameData, gameInstance) {
 function generateInitialReel(gameSettings) {
     const reels = [[], [], [], [], [], [], []];
     gameSettings.Symbols.forEach((symbol) => {
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < 5; i++) {
             const count = symbol.reelInstance[i] || 0;
             for (let j = 0; j < count; j++) {
                 reels[i].push(symbol.Id);
@@ -90,9 +88,19 @@ function generateInitialReel(gameSettings) {
         }
     });
     reels.forEach((reel) => {
-        (0, gameUtils_1.shuffleArray)(reel);
+        shuffleArray(reel);
     });
     return reels;
+}
+/**
+ * Shuffles the elements of an array in place using the Fisher-Yates algorithm.
+ * @param array - The array to be shuffled.
+ */
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
 }
 /**
  * Configures paylines based on the game's settings and handles special symbols.
@@ -101,9 +109,9 @@ function generateInitialReel(gameSettings) {
 function makePayLines(gameInstance) {
     const { settings } = gameInstance;
     settings.currentGamedata.Symbols.forEach((element) => {
-        // if (!element.useWildSub) {
-        handleSpecialSymbols(element, gameInstance);
-        // }
+        if (!element.useWildSub) {
+            handleSpecialSymbols(element, gameInstance);
+        }
     });
 }
 /**
@@ -125,6 +133,9 @@ function sendInitData(gameInstance) {
             Bets: gameInstance.settings.currentGamedata.bets,
             baseBet: gameInstance.settings.baseBetAmount,
             betMultiplier: gameInstance.settings.currentGamedata.betMultiplier,
+            smallWheelFeature: gameInstance.settings.smallWheelFeature.featureValues,
+            mediumWheelFeature: gameInstance.settings.smallWheelFeature.featureValues,
+            largeWheelFeature: gameInstance.settings.smallWheelFeature.featureValues,
         },
         UIData: gameUtils_1.UiInitData,
         PlayerData: {
@@ -153,37 +164,44 @@ function checkForWin(gameInstance) {
         const { settings } = gameInstance;
         const winningLines = [];
         let totalPayout = 0;
+        if (!settings.freeSpin.useFreeSpin) {
+            checkForBonus(gameInstance);
+        }
+        else {
+            reduceMatrixAndGiveFreeSpin(gameInstance);
+            if (settings.freeSpin.freeSpinCount > 0 && settings.freeSpin.useFreeSpin) {
+                settings.freeSpin.freeSpinCount -= 1;
+                if (settings.freeSpin.freeSpinCount <= 0) {
+                    settings.freeSpin.useFreeSpin = false;
+                }
+            }
+        }
         settings.lineData.forEach((line, index) => {
             const firstSymbolPosition = line[0];
             let firstSymbol = settings.resultSymbolMatrix[firstSymbolPosition][0];
             if (settings.wild.useWild && firstSymbol === settings.wild.SymbolID) {
                 firstSymbol = findFirstNonWildSymbol(line, gameInstance);
             }
-            const { isWinningLine, matchCount, matchedIndices: winMatchedIndices, matchedSymbols } = checkLineSymbols(firstSymbol, line, gameInstance);
-            if ((isWinningLine && matchCount >= 3)) {
-                console.log(matchedSymbols, "matched symbols");
-                const processedSymbols = matchedSymbols.map((symbol, index) => {
-                    if (symbol === gameInstance.settings.wild.SymbolID && index > 0) {
-                        return matchedSymbols[index - 1];
+            const { isWinningLine, matchCount, matchedIndices: winMatchedIndices } = checkLineSymbols(firstSymbol, line, gameInstance);
+            if ((isWinningLine && matchCount >= settings.bonusTriggerCount)) {
+                const symbolMultiplier = accessData(firstSymbol, matchCount, gameInstance);
+                if (symbolMultiplier > 0) {
+                    totalPayout += symbolMultiplier * gameInstance.settings.BetPerLines;
+                    gameInstance.playerData.currentWining += totalPayout;
+                    settings._winData.winningLines.push(index);
+                    winningLines.push({
+                        line,
+                        symbol: firstSymbol,
+                        multiplier: symbolMultiplier,
+                        matchCount,
+                    });
+                    console.log(`Line ${index + 1}:`, line);
+                    console.log(`Payout for Line ${index + 1}:`, 'payout', symbolMultiplier);
+                    const formattedIndices = winMatchedIndices.map(({ col, row }) => `${col},${row}`);
+                    const validIndices = formattedIndices.filter(index => index.length > 2);
+                    if (validIndices.length > 0) {
+                        gameInstance.settings._winData.winningSymbols.push(validIndices);
                     }
-                    return symbol;
-                });
-                const payout = calculatePayoutForCombination(processedSymbols, settings.payoutCombination);
-                console.log(payout);
-                totalPayout += payout * gameInstance.settings.BetPerLines;
-                settings._winData.winningLines.push(index);
-                winningLines.push({
-                    line,
-                    symbol: firstSymbol,
-                    multiplier: payout,
-                    matchCount,
-                });
-                console.log(`Line ${index + 1}:`, line);
-                console.log(`Payout for Line ${index + 1}:`, 'payout');
-                const formattedIndices = winMatchedIndices.map(({ col, row }) => `${col},${row}`);
-                const validIndices = formattedIndices.filter(index => index.length > 2);
-                if (validIndices.length > 0) {
-                    gameInstance.settings._winData.winningSymbols.push(validIndices);
                 }
             }
         });
@@ -193,11 +211,14 @@ function checkForWin(gameInstance) {
         makeResultJson(gameInstance);
         settings._winData.totalWinningAmount = 0;
         gameInstance.playerData.currentWining = 0;
+        settings.issmallBonusTriggered = false;
+        settings.ismediumBonusTriggered = false;
+        settings.islargeBonusTriggered = false;
         settings.freeSpin.freeSpinPayout = 0;
         settings.freeSpin.freeSpinsAdded = false;
         settings._winData.winningSymbols = [];
-        settings.isJackpot = false;
         settings._winData.winningLines = [];
+        settings.indexToStop = -1;
     }
     catch (error) {
         console.error("Error in checkForWin", error);
@@ -234,7 +255,6 @@ function checkLineSymbols(firstSymbol, line, gameInstance) {
                 currentSymbol = symbol;
                 matchCount++;
                 matchedIndices.push({ col: i, row: rowIndex });
-                // matchedSymbols.push(symbol);
             }
             else {
                 break;
@@ -265,22 +285,21 @@ function findFirstNonWildSymbol(line, gameInstance) {
         return null;
     }
 }
-function calculatePayoutForCombination(matchedSymbols, paytable) {
-    for (const { combination, payout } of paytable) {
-        if (arraysMatchForPayout(matchedSymbols, combination)) {
-            return payout;
+function accessData(symbol, matchCount, gameInstance) {
+    const { settings } = gameInstance;
+    try {
+        const symbolData = settings.currentGamedata.Symbols.find((s) => s.Id.toString() === symbol.toString());
+        if (symbolData) {
+            const multiplierArray = symbolData.multiplier;
+            if (multiplierArray && multiplierArray[5 - matchCount]) {
+                return multiplierArray[5 - matchCount][0];
+            }
         }
+        return 0;
     }
-    return 0;
-}
-function arraysMatchForPayout(matchedSymbols, combination) {
-    if (matchedSymbols.length === combination.length) {
-        return matchedSymbols.every((value, index) => value == combination[index]);
-    }
-    else {
-        const set1 = new Set(matchedSymbols);
-        const set2 = new Set(combination.map(symbol => Number(symbol)));
-        return set1.size === set2.size && [...set1].every(value => set2.has(value));
+    catch (error) {
+        // console.error("Error in accessData:");
+        return 0;
     }
 }
 /**
@@ -295,36 +314,172 @@ function handleSpecialSymbols(symbol, gameInstance) {
         case types_1.specialIcons.wild:
             gameInstance.settings.wild.SymbolName = symbol.Name;
             gameInstance.settings.wild.SymbolID = symbol.Id;
-            gameInstance.settings.wild.useWild = true;
+            gameInstance.settings.wild.useWild = symbol.useWildSub;
             break;
         case types_1.specialIcons.bonus:
             gameInstance.settings.bonus.SymbolName = symbol.Name;
             gameInstance.settings.bonus.SymbolID = symbol.Id;
-            gameInstance.settings.bonus.useWild = true;
+            gameInstance.settings.bonus.useWild = symbol.useWildSub;
             break;
-        case types_1.specialIcons.jackpot:
-            gameInstance.settings.jackpot.SymbolName = symbol.Name;
-            gameInstance.settings.jackpot.SymbolID = symbol.Id;
-            gameInstance.settings.jackpot.useWild = false;
-            break;
-        case types_1.specialIcons.bar3:
-            gameInstance.settings.bar3.SymbolName = symbol.Name;
-            gameInstance.settings.bar3.SymbolID = symbol.Id;
-            gameInstance.settings.bar3.useWild = false;
-            break;
-        case types_1.specialIcons.bar2:
-            gameInstance.settings.bar2.SymbolName = symbol.Name;
-            gameInstance.settings.bar2.SymbolID = symbol.Id;
-            gameInstance.settings.bar2.useWild = false;
-            break;
-        case types_1.specialIcons.bar1:
-            gameInstance.settings.bar1.SymbolName = symbol.Name;
-            gameInstance.settings.bar1.SymbolID = symbol.Id;
-            gameInstance.settings.bar1.useWild = false;
+        case types_1.specialIcons.goldenBonus:
+            gameInstance.settings.goldenBonus.SymbolName = symbol.Name;
+            gameInstance.settings.goldenBonus.SymbolID = symbol.Id;
+            gameInstance.settings.goldenBonus.useWild = symbol.useWildSub;
             break;
         default:
             break;
             ``;
+    }
+}
+function checkForBonus(gameInstance) {
+    const { settings } = gameInstance;
+    let bonusCount = 0;
+    settings.resultSymbolMatrix.map((row) => {
+        row.map((symbol) => {
+            if (symbol === settings.bonus.SymbolID) {
+                console.log(settings.bonus.SymbolID, "ID");
+                bonusCount++;
+            }
+        });
+    });
+    console.log(bonusCount, "bonuscount");
+    console.log(settings.bonusTriggerCount, "trigger");
+    if (bonusCount >= settings.bonusTriggerCount) {
+        if (bonusCount === settings.bonusCount[0]) {
+            settings.issmallBonusTriggered = true;
+            spinWheel(gameInstance);
+        }
+        else if (bonusCount === settings.bonusCount[1]) {
+            settings.ismediumBonusTriggered = true;
+            spinWheel(gameInstance);
+        }
+        else if (bonusCount >= settings.bonusCount[2]) {
+            settings.islargeBonusTriggered = true;
+            spinWheel(gameInstance);
+        }
+        else {
+            console.log("No matching bonus threshold");
+        }
+    }
+    else {
+        console.log("No Free Spin");
+    }
+}
+function spinWheel(gameInstance) {
+    const { settings } = gameInstance;
+    let value = 0;
+    let featureValues = [];
+    let index;
+    let freeSpinIndices = [];
+    switch (true) {
+        case settings.issmallBonusTriggered:
+            value = getRandomValue(gameInstance, 'smallFreespin');
+            console.log(value);
+            featureValues = gameInstance.settings.smallWheelFeature.featureValues;
+            index = getIndexByValue(value, featureValues);
+            freeSpinIndices = featureValues.slice(0, 4);
+            if (freeSpinIndices.includes(value)) {
+                settings.freeSpin.useFreeSpin = true;
+                settings.freeSpin.freeSpinCount += value;
+            }
+            break;
+        case settings.ismediumBonusTriggered:
+            value = getRandomValue(gameInstance, 'mediumFreespin');
+            featureValues = gameInstance.settings.mediumWheelFeature.featureValues;
+            index = getIndexByValue(value, featureValues);
+            freeSpinIndices = featureValues.slice(0, 4);
+            if (freeSpinIndices.includes(value)) {
+                settings.freeSpin.useFreeSpin = true;
+                settings.freeSpin.freeSpinCount += value;
+            }
+            break;
+        case settings.islargeBonusTriggered:
+            value = getRandomValue(gameInstance, 'largeFreespin');
+            featureValues = gameInstance.settings.largeWheelFeature.featureValues;
+            index = getIndexByValue(value, featureValues);
+            freeSpinIndices = featureValues.slice(0, 4);
+            if (freeSpinIndices.includes(value)) {
+                settings.freeSpin.useFreeSpin = true;
+                settings.freeSpin.freeSpinCount += value;
+            }
+            break;
+        default:
+            break;
+    }
+    const payout = settings.BetPerLines * value;
+    gameInstance.playerData.currentWining += payout;
+    settings.indexToStop = index;
+}
+function getIndexByValue(value, featureValues) {
+    return featureValues.indexOf(value);
+}
+function getRandomValue(gameInstance, type) {
+    const { settings } = gameInstance;
+    let values;
+    let probabilities;
+    if (type === 'smallFreespin') {
+        values = settings === null || settings === void 0 ? void 0 : settings.smallWheelFeature.featureValues;
+        probabilities = settings === null || settings === void 0 ? void 0 : settings.smallWheelFeature.featureProbs;
+    }
+    else if (type === 'mediumFreespin') {
+        values = settings === null || settings === void 0 ? void 0 : settings.smallWheelFeature.featureValues;
+        probabilities = settings === null || settings === void 0 ? void 0 : settings.smallWheelFeature.featureProbs;
+    }
+    else if (type === 'largeFreespin') {
+        values = settings === null || settings === void 0 ? void 0 : settings.smallWheelFeature.featureValues;
+        probabilities = settings === null || settings === void 0 ? void 0 : settings.smallWheelFeature.featureProbs;
+    }
+    else {
+        throw new Error("Invalid type, expected 'coin' or 'freespin'");
+    }
+    // Calculate the total probability and select a random value
+    const totalProbability = probabilities.reduce((sum, prob) => sum + prob, 0);
+    const randomValue = Math.random() * totalProbability;
+    let cumulativeProbability = 0;
+    for (let i = 0; i < probabilities.length; i++) {
+        cumulativeProbability += probabilities[i];
+        if (randomValue < cumulativeProbability) {
+            return values[i];
+        }
+    }
+    //default to first value
+    return values[0];
+}
+function reduceMatrixAndGiveFreeSpin(gameInstance) {
+    const { settings } = gameInstance;
+    let bonusCount = 0;
+    settings.resultSymbolMatrix.map((row, rowIndex) => {
+        row.map((symbol, colIndex) => {
+            if (symbol === settings.bonus.SymbolID) {
+                settings.resultSymbolMatrix[rowIndex][colIndex] = settings.goldenBonus.SymbolID;
+                bonusCount++;
+            }
+        });
+    });
+    console.log(settings.resultSymbolMatrix, "red");
+    console.log(bonusCount);
+    if (bonusCount >= settings.bonusTriggerCountDuringFreeSpin) {
+        console.log(bonusCount);
+        switch (true) {
+            case bonusCount === settings.bonusCountDuringFreeSpins[0]:
+                settings.freeSpin.freeSpinsAdded = true;
+                settings.freeSpin.freeSpinCount += settings.freeSpinDuringBonus[0];
+                break;
+            case bonusCount === settings.bonusCountDuringFreeSpins[1]:
+                settings.freeSpin.freeSpinsAdded = true;
+                settings.freeSpin.freeSpinCount += settings.freeSpinDuringBonus[1];
+                break;
+            case bonusCount === settings.bonusCountDuringFreeSpins[2]:
+                settings.freeSpin.freeSpinsAdded = true;
+                settings.freeSpin.freeSpinCount += settings.freeSpinDuringBonus[2];
+                break;
+            case bonusCount >= settings.bonusCountDuringFreeSpins[3]:
+                settings.freeSpin.freeSpinsAdded = true;
+                settings.freeSpin.freeSpinCount += settings.freeSpinDuringBonus[3];
+                break;
+            default:
+                break;
+        }
     }
 }
 /**
@@ -342,8 +497,12 @@ function makeResultJson(gameInstance) {
                 symbolsToEmit: settings._winData.winningSymbols,
                 isFreeSpin: settings.freeSpin.useFreeSpin,
                 freeSpinCount: settings.freeSpin.freeSpinCount,
-                isJackpot: settings.isJackpot,
                 linesToEmit: settings._winData.winningLines,
+                isSmallWheelTriggered: settings.issmallBonusTriggered,
+                isMediumWheelTriggered: settings.ismediumBonusTriggered,
+                isLargeWheelTriggered: settings.islargeBonusTriggered,
+                indexToStop: settings.indexToStop,
+                freeSpinAdded: settings.freeSpin.freeSpinsAdded
             },
             PlayerData: {
                 Balance: gameInstance.getPlayerData().credits,
