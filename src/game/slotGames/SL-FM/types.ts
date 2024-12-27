@@ -1,3 +1,4 @@
+import { BotList } from "aws-sdk/clients/chime";
 import { GameData } from "../BaseSlotGame/gameType";
 import { WinData } from "../BaseSlotGame/WinData";
 
@@ -45,7 +46,13 @@ export interface SLFMSETTINGS {
         SymbolID: number;
         useWild: boolean
     },
-    wildCountsToFreeGames:object
+    wildCountsToFreeGames:object,
+    bonusCountsToFreeGames:object,
+    scatterCountsToMultiplier:object,
+    isMinor:boolean,
+    isMajor:boolean,
+    isGrand:boolean
+
 }
 
 

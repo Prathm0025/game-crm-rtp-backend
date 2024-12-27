@@ -179,7 +179,7 @@ export function checkForWin(gameInstance: SLLS) {
             const { isWinningLine, matchCount, matchedIndices: winMatchedIndices , matchedSymbols} = checkLineSymbols(firstSymbol, line, gameInstance);
 
             if ((isWinningLine && matchCount >= 3)) {                
-              console.log(matchedSymbols, "matched symbols");
+            //   console.log(matchedSymbols, "matched symbols");
               const processedSymbols = matchedSymbols.map((symbol, index) => {
                 if (symbol === gameInstance.settings.wild.SymbolID && index > 0) {
                     return matchedSymbols[index - 1];

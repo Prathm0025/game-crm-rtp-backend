@@ -203,7 +203,6 @@ export function checkForWin(gameInstance: SLWB) {
                 const symbolMultiplier = accessData(firstSymbol, matchCount, gameInstance); 
                 if (symbolMultiplier > 0) {
                     totalPayout += symbolMultiplier * gameInstance.settings.BetPerLines;
-                    gameInstance.playerData.currentWining += totalPayout;
 
                     settings._winData.winningLines.push(index);
                     winningLines.push({

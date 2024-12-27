@@ -33,6 +33,11 @@ export function initializeGameSettings(gameData: any, gameInstance: SLFM) {
         reels: [],
         anyMatchCount:gameData.gameSettings.anyPayout,
         wildCountsToFreeGames:gameData.gameSettings.wildCountsToFreeGames,
+        bonusCountsToFreeGames:gameData.gameSettings.bonusCountsToFreeGames,
+        scatterCountsToMultiplier:gameData.gameSettings.scatterCountsToMultiplier,
+        isMinor:false,
+        isMajor:false,
+        isGrand:false,    
         freeSpin: {
             freeSpinAwarded: gameData.gameSettings.freeSpinCount,
             freeSpinCount: 0,
@@ -157,7 +162,16 @@ export function checkForWin(gameInstance: SLFM) {
             if (settings.freeSpin.freeSpinCount <= 0) {
                 settings.freeSpin.useFreeSpin = false;
             }
-        }      
+        }  
+        
+        const {bonusCounts, scatterCount} = checkSymbolOccurrence(gameInstance);
+        if(bonusCounts && (!settings.freeSpin.useFreeSpin)){            
+            handleBonusCount(gameInstance, bonusCounts)
+        }
+
+        if(scatterCount  && (!settings.freeSpin.useFreeSpin)){
+            handleScatterCount(gameInstance, scatterCount);
+        }
 
         settings.lineData.forEach((line, index) => {            
             const firstSymbolPosition = line[0];
@@ -168,17 +182,15 @@ export function checkForWin(gameInstance: SLFM) {
 
 
             const { isWinningLine, matchCount, matchedIndices: winMatchedIndices, wildCount } = checkLineSymbols(firstSymbol, line, gameInstance); 
-            if (wildCount >= 3) {
-                console.log(wildCount, "Wild count");
-                
+            if (wildCount >= 3  && (!settings.freeSpin.useFreeSpin)) {                
                 settings.freeSpin.freeSpinCount += settings.wildCountsToFreeGames[wildCount] || 0;
                 settings.freeSpin.freeSpinsAdded = true;
+                settings.freeSpin.useFreeSpin = true;
             }          
             if ((isWinningLine && matchCount >= 3)) {                
                 const symbolMultiplier = accessData(firstSymbol, matchCount, gameInstance); 
                 if (symbolMultiplier > 0) {
                     totalPayout += symbolMultiplier * gameInstance.settings.BetPerLines;
-                    gameInstance.playerData.currentWining += totalPayout;
 
                     settings._winData.winningLines.push(index);
                     winningLines.push({
@@ -200,7 +212,7 @@ export function checkForWin(gameInstance: SLFM) {
         });
     
 
-        // gameInstance.playerData.currentWining += totalPayout;
+        gameInstance.playerData.currentWining += totalPayout;
         gameInstance.playerData.haveWon = parseFloat(
             (gameInstance.playerData.haveWon + parseFloat(gameInstance.playerData.currentWining.toFixed(4))).toFixed(4)
         );
@@ -211,7 +223,11 @@ export function checkForWin(gameInstance: SLFM) {
         gameInstance.playerData.currentWining = 0;
         settings.freeSpin.freeSpinPayout = 0;
         settings.freeSpin.freeSpinsAdded = false
-        settings._winData.winningSymbols = []
+        settings._winData.winningSymbols = [];
+        settings.isMinor = false;
+        settings.isMajor = false;
+        settings.isGrand = false;
+
      
     } catch (error) {
         console.error("Error in checkForWin", error);
@@ -235,7 +251,7 @@ function checkLineSymbols(
         const { settings } = gameInstance;
         const wildSymbol = settings.wild.SymbolID || "";
         let matchCount = 1;
-        let wildCount = 0; // Initialize wild count
+        let wildCount = 1; // Initialize wild count
         let currentSymbol = firstSymbol;
         const matchedIndices: { col: number, row: number }[] = [{ col: 0, row: line[0] }];
 
@@ -260,7 +276,7 @@ function checkLineSymbols(
                 matchedIndices.push({ col: i, row: rowIndex });
 
                 // Increment wild count if the symbol is wild
-                if (symbol === wildSymbol) {
+                if (symbol == wildSymbol) {
                     wildCount++;
                 }
             } else if (currentSymbol === wildSymbol) {
@@ -269,7 +285,7 @@ function checkLineSymbols(
                 matchedIndices.push({ col: i, row: rowIndex });
 
                 // Increment wild count if the symbol is wild
-                if (symbol === wildSymbol) {
+                if (symbol == wildSymbol) {
                     wildCount++;
                 }
             } else {
@@ -336,6 +352,8 @@ function findFirstNonWildSymbol(line: number[], gameInstance: SLFM) {
 }
 
 
+
+
 /**
  * Configures game settings based on the special symbol provided.
  * Updates the relevant symbol properties in the game instance based on the type of the special symbol.
@@ -368,18 +386,101 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLFM) {
 
 
 
-function checkSymbolOcuurence(gameInstance:SLFM){
-      
+function checkSymbolOccurrence(gameInstance: SLFM): {
+    bonusCounts: any;
+    scatterCount:any
+} {
     const { settings } = gameInstance;
+    const bonusSymbol = settings.bonus.SymbolID || ""; 
+    let totalBonusCount = 0;
+    let totalScatterCount = 0;
+    const bonusColumns: number[] = [];
 
-    settings.resultSymbolMatrix.map((row, rowIndex)=>{
-        const wildCount = row.filter((symbol) => symbol === settings.wild.SymbolID).length;
-      
-
-
+    settings.resultSymbolMatrix.map((row)=>{
+       row.map((symbol)=>{
+          if(symbol == settings.scatter.SymbolID){
+            totalScatterCount++;
+          }
+       })
     })
 
+    // Iterate over the columns to count bonus symbols
+    for (let col = 0; col < settings.resultSymbolMatrix[0].length; col++) {
+        for (let row = 0; row < settings.resultSymbolMatrix.length; row++) {
+            const symbol = settings.resultSymbolMatrix[row][col];
+            if (symbol == bonusSymbol) {
+                totalBonusCount++;
+                if (!bonusColumns.includes(col)) {
+                    bonusColumns.push(col);
+                }
+                break;
+            }
+        }
+    }
+// console.log(totalScatterCount);
+
+    const bonusCounts = totalBonusCount >= 3 ? {
+        count: totalBonusCount,
+        columns: bonusColumns,
+    } : null;
+    const scatterCount =totalScatterCount>=3?{
+        count: totalScatterCount,
+        
+    }:null; 
+
+
+    return { bonusCounts: bonusCounts,  scatterCount:scatterCount};
 }
+
+
+
+function handleBonusCount(gameInstance:SLFM, bonusCount){
+    console.log(bonusCount);
+    
+    const { settings } = gameInstance;
+
+     if(bonusCount.count>=3){
+        console.log(bonusCount.count);
+        
+        settings.freeSpin.freeSpinCount += settings.bonusCountsToFreeGames[bonusCount.count] || 0;
+        settings.freeSpin.useFreeSpin = true;
+     }
+
+}
+
+function handleScatterCount(gameInstance:SLFM, scatterCount){
+    const { settings } = gameInstance;
+
+    if(scatterCount.count>=3){        
+        if(scatterCount.count>5){
+            scatterCount.count = 5;
+        }
+        console.log(scatterCount.count);
+        
+        const multiplier = settings.scatterCountsToMultiplier[scatterCount.count].multiplier|| 0;
+        console.log(multiplier);
+        
+        const potType = settings.scatterCountsToMultiplier[scatterCount.count].name;
+        switch (true) {
+            case potType ==="Minor":
+                settings.isMinor = true;
+                break;
+            case potType === "Major":
+                settings.isMajor = true;
+                break;
+            case potType === "Grand":
+                settings.isGrand = true;
+                 break;
+            default:
+                break;
+        }
+
+        const payout = settings.currentBet * multiplier;
+        gameInstance.playerData.currentWining += payout;
+     }
+    
+}
+
 
 
 /**
@@ -398,6 +499,9 @@ export function makeResultJson(gameInstance: SLFM) {
                 symbolsToEmit: settings._winData.winningSymbols,
                 isFreeSpin: settings.freeSpin.useFreeSpin,
                 freeSpinCount: settings.freeSpin.freeSpinCount,
+                isMinor:settings.isMinor,
+                isMajor:settings.isMajor,
+                isGrand:settings.isGrand
             },
             PlayerData: {
                 Balance: gameInstance.getPlayerData().credits,
