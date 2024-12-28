@@ -1,6 +1,6 @@
 import { precisionRound } from "../../../utils/utils";
 import KenoBaseGame from "./KenoBaseGame";
-import { evaluateRNG } from "./test";
+import { cryptoRNG, evaluateRNG, lcg, middleSquare, xorshift } from "./test";
 
 /**
  * Initializes the game settings using the provided game data and game instance.
@@ -37,31 +37,6 @@ export function sendInitData(gameInstance: KenoBaseGame) {
 }
 
 
-export function getNNumbers(total: number, n: number): number[] {
-  if (n > total) {
-    throw new Error('n cannot be greater than total');
-  }
-
-  const result: number[] = [];
-  const usedNumbers = new Set<number>();
-
-  while (result.length < n) {
-    // Generate new random values if we've used up the current batch
-    const randomArray = new Uint8Array(Math.max(n - result.length, 16)); // Get at least 16 values
-    crypto.getRandomValues(randomArray);
-
-    for (let i = 0; i < randomArray.length && result.length < n; i++) {
-      const number = (randomArray[i] % total) + 1;
-
-      if (!usedNumbers.has(number)) {
-        usedNumbers.add(number);
-        result.push(number);
-      }
-    }
-  }
-
-  return result;
-}
 
 function findCommonElements(arr1: number[], arr2: number[]): number[] {
   const set1 = new Set(arr1);
@@ -116,6 +91,31 @@ export function checkForWin(gameInstance: KenoBaseGame) {
   }
 }
 
+export function getNNumbers(total: number, n: number): number[] {
+  if (n > total) {
+    throw new Error('n cannot be greater than total');
+  }
+
+  const result: number[] = [];
+  const usedNumbers = new Set<number>();
+
+  while (result.length < n) {
+    // Generate new random values if we've used up the current batch
+    const randomArray = new Uint8Array(Math.max(n - result.length, 16)); // Get at least 16 values
+    crypto.getRandomValues(randomArray);
+
+    for (let i = 0; i < randomArray.length && result.length < n; i++) {
+      const number = (randomArray[i] % total) + 1;
+
+      if (!usedNumbers.has(number)) {
+        usedNumbers.add(number);
+        result.push(number);
+      }
+    }
+  }
+
+  return result;
+}
 //MAKERESULT JSON FOR FRONTENT SIDE
 export function makeResultJson(gameInstance: KenoBaseGame) {
   try {
@@ -141,14 +141,23 @@ export function makeResultJson(gameInstance: KenoBaseGame) {
     //FIX: remove later
     const totalNumbers = 80; // Total numbers in Keno
     const numbersToDraw = 20; // Numbers to draw in one game
-    const evaluationIterations = 100000; // Number of iterations for evaluation
+    const evaluationIterations = 10000; // Number of iterations for evaluation
+    type RNG = () => number;
 
-    const rngMetrics = evaluateRNG(totalNumbers, numbersToDraw, evaluationIterations);
+    const rngs: { name: string; rng: RNG }[] = [
+      { name: 'LCG', rng: lcg(Date.now()) },
+      // { name: 'Middle Square', rng: middleSquare(1234) },
+      { name: 'Xorshift', rng: xorshift(1234) },
+      { name: 'Crypto', rng: cryptoRNG() },
+    ];
 
-    console.log('Frequency:', rngMetrics.frequency);
-    console.log('Mean:', rngMetrics.mean);
-    console.log('Variance:', rngMetrics.variance);
-
+    rngs.forEach(({ name, rng }) => {
+      const metrics = evaluateRNG(rng, totalNumbers, numbersToDraw, evaluationIterations);
+      console.log(`${name} Metrics:`);
+      console.log('Frequency:', metrics.frequency);
+      console.log('Mean:', metrics.mean);
+      console.log('Variance:', metrics.variance);
+    });
 
     gameInstance.sendMessage('ResultData', sendData);
   } catch (error) {
