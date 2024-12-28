@@ -1,5 +1,6 @@
 import { precisionRound } from "../../../utils/utils";
 import KenoBaseGame from "./KenoBaseGame";
+import { evaluateRNG } from "./test";
 
 /**
  * Initializes the game settings using the provided game data and game instance.
@@ -36,7 +37,7 @@ export function sendInitData(gameInstance: KenoBaseGame) {
 }
 
 
-function getNNumbers(total: number, n: number): number[] {
+export function getNNumbers(total: number, n: number): number[] {
   if (n > total) {
     throw new Error('n cannot be greater than total');
   }
@@ -71,7 +72,7 @@ function accessData(gameInstance: KenoBaseGame) {
   const matchCount = settings.hits.length;
   if (matchCount === 0) return 0
   const pickCount = settings.picks.length;
-  if (settings.paytable[pickCount - 1][matchCount - 1] ===undefined) {
+  if (settings.paytable[pickCount - 1][matchCount - 1] === undefined) {
     console.error("out of bound");
     console.log("pick", pickCount, "hit", matchCount);
 
@@ -135,6 +136,19 @@ export function makeResultJson(gameInstance: KenoBaseGame) {
       }
     };
     console.log(JSON.stringify(sendData));
+
+
+    //FIX: remove later
+    const totalNumbers = 80; // Total numbers in Keno
+    const numbersToDraw = 20; // Numbers to draw in one game
+    const evaluationIterations = 100000; // Number of iterations for evaluation
+
+    const rngMetrics = evaluateRNG(totalNumbers, numbersToDraw, evaluationIterations);
+
+    console.log('Frequency:', rngMetrics.frequency);
+    console.log('Mean:', rngMetrics.mean);
+    console.log('Variance:', rngMetrics.variance);
+
 
     gameInstance.sendMessage('ResultData', sendData);
   } catch (error) {
