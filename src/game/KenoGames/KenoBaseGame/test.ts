@@ -60,7 +60,7 @@ export function evaluateRNG(
     }
   }
 
-  writeMultipleArraysToCSV("data.csv", csv)
+  // writeMultipleArraysToCSV("data.csv", csv)
 
   // Basic statistics
   const mean = results.reduce((sum, value) => sum + value, 0) / results.length;
