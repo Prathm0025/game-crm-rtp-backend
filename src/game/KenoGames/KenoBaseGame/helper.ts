@@ -147,9 +147,10 @@ export function makeResultJson(gameInstance: KenoBaseGame) {
 
     const rngs: { name: string; rng: RNG }[] = [
       // { name: 'LCG', rng: lcg(3.14159 * 1e6) },
-      { name: 'LCG', rng: lcg(new Date().getUTCMilliseconds()) },
-      { name: 'Xorshift', rng: xorshift(3.14159 * 1e6) },
-      { name: 'Crypto', rng: cryptoRNG() },
+      { name: 'LCG date rand', rng: lcg(new Date().getUTCMilliseconds() * Math.random()) },
+      // { name: 'LCG pi', rng: lcg(3.14159 * 1e6) },
+      // { name: 'Xorshift', rng: xorshift(3.14159 * 1e6) },
+      // { name: 'Crypto', rng: cryptoRNG() },
     ];
 
     rngs.forEach(({ name, rng }) => {

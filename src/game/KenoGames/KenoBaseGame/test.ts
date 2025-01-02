@@ -1,3 +1,6 @@
+import * as fs from 'fs';
+
+
 export function lcg(initialSeed: number): () => number {
   let seed = initialSeed >>> 0;
   const a = 1664525;
@@ -44,15 +47,20 @@ export function evaluateRNG(
 ): RNGMetrics {
   const frequency = new Array(total).fill(0);
   const results: number[] = [];
+  const csv: number[][] = []
 
   // Collect samples
   for (let i = 0; i < iterations; i++) {
     const numbers = getNNumbers(total, n, rng);
+    csv.push(numbers)
+
     results.push(...numbers);
     for (const number of numbers) {
       frequency[number - 1]++;
     }
   }
+
+  writeMultipleArraysToCSV("data.csv", csv)
 
   // Basic statistics
   const mean = results.reduce((sum, value) => sum + value, 0) / results.length;
@@ -123,3 +131,14 @@ function erf(x: number): number {
   return sign * y;
 }
 
+
+function writeMultipleArraysToCSV(filename: string, data: number[][]): void {
+  try {
+    const csvContent = data.map(row => row.join(',')).join('\n');
+    fs.writeFileSync(filename, csvContent);
+    console.log(`Successfully wrote data to ${filename}`);
+  } catch (error) {
+    console.error('Error writing CSV file:', error);
+    throw error;
+  }
+}
