@@ -1,6 +1,6 @@
 import { precisionRound } from "../../../utils/utils";
 import KenoBaseGame from "./KenoBaseGame";
-import { cryptoRNG, evaluateRNG, lcg, middleSquare, xorshift } from "./test";
+import { cryptoRNG, evaluateRNG, lcg, xorshift } from "./test";
 
 /**
  * Initializes the game settings using the provided game data and game instance.
@@ -137,28 +137,31 @@ export function makeResultJson(gameInstance: KenoBaseGame) {
     };
     console.log(JSON.stringify(sendData));
 
-
-    //FIX: remove later
-    const totalNumbers = 70; // Total numbers in Keno
-    const numbersToDraw = 10; // Numbers to draw in one game
-    const evaluationIterations = 10000; // Number of iterations for evaluation
     type RNG = () => number;
 
+    //FIX: remove later
+    // Example usage
+    const totalNumbers = 80;
+    const numbersToDraw = 20;
+    const evaluationIterations = 10000;
+
     const rngs: { name: string; rng: RNG }[] = [
-      { name: 'LCG', rng: lcg(3.14159 * 1e6) },
-      // { name: 'Middle Square', rng: middleSquare(1234) },
-      { name: 'Xorshift', rng: xorshift(1234) },
+      // { name: 'LCG', rng: lcg(3.14159 * 1e6) },
+      { name: 'LCG', rng: lcg(new Date().getUTCMilliseconds()) },
+      { name: 'Xorshift', rng: xorshift(3.14159 * 1e6) },
       { name: 'Crypto', rng: cryptoRNG() },
     ];
 
     rngs.forEach(({ name, rng }) => {
       const metrics = evaluateRNG(rng, totalNumbers, numbersToDraw, evaluationIterations);
       console.log(`${name} Metrics:`);
-      console.log('Frequency:', metrics.frequency);
-      console.log('Mean:', metrics.mean);
-      console.log('Variance:', metrics.variance);
+      console.log('Mean:', metrics.mean.toFixed(4));
+      console.log('Variance:', metrics.variance.toFixed(4));
+      console.log('Chi-square statistic:', metrics.chiSquare.toFixed(4));
+      console.log('Chi-square p-value:', metrics.chiSquarePValue.toFixed(4));
+      console.log('Uniformity score:', metrics.uniformityScore.toFixed(4));
+      console.log('---');
     });
-
     gameInstance.sendMessage('ResultData', sendData);
   } catch (error) {
     console.error("Error generating result JSON or sending message:", error);
