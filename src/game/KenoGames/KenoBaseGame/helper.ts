@@ -139,13 +139,13 @@ export function makeResultJson(gameInstance: KenoBaseGame) {
 
 
     //FIX: remove later
-    const totalNumbers = 80; // Total numbers in Keno
-    const numbersToDraw = 20; // Numbers to draw in one game
+    const totalNumbers = 70; // Total numbers in Keno
+    const numbersToDraw = 10; // Numbers to draw in one game
     const evaluationIterations = 10000; // Number of iterations for evaluation
     type RNG = () => number;
 
     const rngs: { name: string; rng: RNG }[] = [
-      { name: 'LCG', rng: lcg(Date.now()) },
+      { name: 'LCG', rng: lcg(3.14159 * 1e6) },
       // { name: 'Middle Square', rng: middleSquare(1234) },
       { name: 'Xorshift', rng: xorshift(1234) },
       { name: 'Crypto', rng: cryptoRNG() },

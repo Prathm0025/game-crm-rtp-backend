@@ -96,7 +96,8 @@ import { randomBytes } from 'crypto';
 
 export function cryptoRNG(): () => number {
   return () => {
-    return parseInt(randomBytes(4).toString('hex'), 16) / 0xFFFFFFFF; // Returns a number between 0 and 1
+    const randomValue = parseInt(randomBytes(4).toString('hex'), 16);
+    return randomValue / 0x100000000; // Normalize to [0, 1)
   };
 }
 
