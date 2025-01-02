@@ -1,6 +1,6 @@
 import { precisionRound } from "../../../utils/utils";
 import KenoBaseGame from "./KenoBaseGame";
-import { cryptoRNG, evaluateRNG, lcg, middleSquare, xorshift } from "./test";
+import { cryptoRNG, evaluateRNG, evaluateRNGUniformity, lcg, middleSquare, xorshift } from "./test";
 
 /**
  * Initializes the game settings using the provided game data and game instance.
@@ -152,15 +152,10 @@ export function makeResultJson(gameInstance: KenoBaseGame) {
     ];
 
     rngs.forEach(({ name, rng }) => {
-      const metrics = evaluateRNG(rng, totalNumbers, numbersToDraw, evaluationIterations);
-      console.log(`${name} RNG Metrics:`);
-      console.log('Frequency:', metrics.frequency);
-      console.log('Expected Frequency', metrics.expectedFrequency[0]);
-      
-      console.log('Mean:', metrics.mean);
-      console.log('Variance:', metrics.variance);
-      console.log('Chi-Square Statistic:', metrics.chiSquare.toFixed(4));
-      console.log('Uniformity:', metrics.uniformity ? 'Pass' : 'Fail');
+      const { chiSquare, uniformity } = evaluateRNGUniformity(rng, totalNumbers, evaluationIterations);
+      console.log(`${name} RNG:`);
+      console.log(`Chi-Square Statistic: ${chiSquare.toFixed(4)}`);
+      console.log(`Uniformity: ${uniformity ? 'Pass' : 'Fail'}`);
     });
 
     gameInstance.sendMessage('ResultData', sendData);

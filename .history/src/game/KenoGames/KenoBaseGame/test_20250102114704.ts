@@ -102,24 +102,16 @@ export function cryptoRNG(): () => number {
 }
 
 type RNG = () => number;
+
 export function evaluateRNG(
   rng: RNG,
   total: number,
   n: number,
   iterations: number
-): {
-  frequency: number[];
-  expectedFrequency: number[];
-  mean: number;
-  variance: number;
-  chiSquare: number;
-  uniformity: boolean;
-} {
+): { frequency: number[]; mean: number; variance: number } {
   const frequency = new Array(total).fill(0);
-  const expectedFrequency = new Array(total).fill((iterations * n) / total);
   const results: number[] = [];
 
-  // Generate numbers and record frequencies
   for (let i = 0; i < iterations; i++) {
     const numbers = getNNumbers(total, n, rng);
     results.push(...numbers);
@@ -129,28 +121,12 @@ export function evaluateRNG(
     }
   }
 
-  // Calculate mean and variance
   const mean = results.reduce((sum, value) => sum + value, 0) / results.length;
-  const variance =
-    results.reduce((sum, value) => sum + (value - mean) ** 2, 0) /
-    results.length;
+  const variance = results.reduce((sum, value) => sum + (value - mean) ** 2, 0) / results.length;
 
-  // Perform Chi-Square Test
-  const expectedFreq = (iterations * n) / total;
-  let chiSquare = 0;
-
-  for (const observed of frequency) {
-    chiSquare += Math.pow(observed - expectedFreq, 2) / expectedFreq;
-  }
-
-  // Chi-Square critical value for degrees of freedom = total - 1 at α = 0.05
-  const criticalValue = chiSquareCriticalValues[total - 1]; // Ensure the table covers this range
-  const uniformity = chiSquare <= criticalValue;
-
-  return { frequency, expectedFrequency, mean, variance, chiSquare, uniformity };
+  return { frequency, mean, variance };
 }
 
-// Helper function to generate unique numbers
 function getNNumbers(total: number, n: number, rng: RNG): number[] {
   if (n > total) {
     throw new Error('n cannot be greater than total');
@@ -170,8 +146,41 @@ function getNNumbers(total: number, n: number, rng: RNG): number[] {
 
   return result;
 }
+export function evaluateRNGUniformity(
+  rng: RNG,
+  total: number,
+  iterations: number
+): {
+  chiSquare: number;
+  uniformity: boolean;
+} {
+  const frequency = new Array(total).fill(0);
 
+  // Generate numbers and count occurrences
+  for (let i = 0; i < iterations; i++) {
+    const number = Math.floor(rng() * total);
+    frequency[number]++;
+  }
 
+  // Calculate expected frequency for uniform distribution
+  const expectedFrequency = iterations / total;
+
+  // Calculate Chi-Square statistic
+  let chiSquare = 0;
+  for (const observed of frequency) {
+    chiSquare += Math.pow(observed - expectedFrequency, 2) / expectedFrequency;
+  }
+
+  // Chi-Square critical value for df = total - 1 at α = 0.05
+  console.log(total);
+  
+  const criticalValue = chiSquareCriticalValues[total - 1]; // Adjust for degrees of freedom
+  console.log(criticalValue, "critical value");
+  
+  const uniformity = chiSquare <= criticalValue;
+
+  return { chiSquare, uniformity};
+}
 
 // Chi-Square critical values for α = 0.05
 const chiSquareCriticalValues = {

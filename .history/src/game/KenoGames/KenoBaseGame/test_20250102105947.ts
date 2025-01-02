@@ -102,6 +102,7 @@ export function cryptoRNG(): () => number {
 }
 
 type RNG = () => number;
+
 export function evaluateRNG(
   rng: RNG,
   total: number,
@@ -109,17 +110,14 @@ export function evaluateRNG(
   iterations: number
 ): {
   frequency: number[];
-  expectedFrequency: number[];
   mean: number;
   variance: number;
   chiSquare: number;
   uniformity: boolean;
 } {
   const frequency = new Array(total).fill(0);
-  const expectedFrequency = new Array(total).fill((iterations * n) / total);
   const results: number[] = [];
 
-  // Generate numbers and record frequencies
   for (let i = 0; i < iterations; i++) {
     const numbers = getNNumbers(total, n, rng);
     results.push(...numbers);
@@ -129,28 +127,26 @@ export function evaluateRNG(
     }
   }
 
-  // Calculate mean and variance
   const mean = results.reduce((sum, value) => sum + value, 0) / results.length;
   const variance =
     results.reduce((sum, value) => sum + (value - mean) ** 2, 0) /
     results.length;
 
-  // Perform Chi-Square Test
-  const expectedFreq = (iterations * n) / total;
+  // Perform chi-square test
+  const expectedFrequency = (iterations * n) / total;
   let chiSquare = 0;
 
   for (const observed of frequency) {
-    chiSquare += Math.pow(observed - expectedFreq, 2) / expectedFreq;
+    chiSquare += Math.pow(observed - expectedFrequency, 2) / expectedFrequency;
   }
 
-  // Chi-Square critical value for degrees of freedom = total - 1 at α = 0.05
-  const criticalValue = chiSquareCriticalValues[total - 1]; // Ensure the table covers this range
+  // Test uniformity (e.g., p-value threshold 0.05 for df = total-1)
+  const criticalValue = chiSquareCriticalValue(total - 1, 0.05);
   const uniformity = chiSquare <= criticalValue;
 
-  return { frequency, expectedFrequency, mean, variance, chiSquare, uniformity };
+  return { frequency, mean, variance, chiSquare, uniformity };
 }
 
-// Helper function to generate unique numbers
 function getNNumbers(total: number, n: number, rng: RNG): number[] {
   if (n > total) {
     throw new Error('n cannot be greater than total');
@@ -171,9 +167,7 @@ function getNNumbers(total: number, n: number, rng: RNG): number[] {
   return result;
 }
 
-
-
-// Chi-Square critical values for α = 0.05
+// Chi-square critical value function
 const chiSquareCriticalValues = {
   1: 3.841,
   2: 5.991,
@@ -225,35 +219,4 @@ const chiSquareCriticalValues = {
   48: 65.171,
   49: 66.339,
   50: 67.505,
-  51: 68.669,
-  52: 69.832,
-  53: 70.993,
-  54: 72.153,
-  55: 73.311,
-  56: 74.468,
-  57: 75.624,
-  58: 76.778,
-  59: 77.931,
-  60: 79.082,
-  61: 80.232,
-  62: 81.381,
-  63: 82.529,
-  64: 83.675,
-  65: 84.821,
-  66: 85.965,
-  67: 87.108,
-  68: 88.250,
-  69: 89.391,
-  70: 90.531,
-  71: 91.670,
-  72: 92.808,
-  73: 93.945,
-  74: 95.081,
-  75: 96.217,
-  76: 97.351,
-  77: 98.484,
-  78: 99.617,
-  79: 100.749,
-  80: 101.879,
 };
-

@@ -109,14 +109,12 @@ export function evaluateRNG(
   iterations: number
 ): {
   frequency: number[];
-  expectedFrequency: number[];
   mean: number;
   variance: number;
   chiSquare: number;
   uniformity: boolean;
 } {
   const frequency = new Array(total).fill(0);
-  const expectedFrequency = new Array(total).fill((iterations * n) / total);
   const results: number[] = [];
 
   // Generate numbers and record frequencies
@@ -136,18 +134,18 @@ export function evaluateRNG(
     results.length;
 
   // Perform Chi-Square Test
-  const expectedFreq = (iterations * n) / total;
+  const expectedFrequency = (iterations * n) / total;
   let chiSquare = 0;
 
   for (const observed of frequency) {
-    chiSquare += Math.pow(observed - expectedFreq, 2) / expectedFreq;
+    chiSquare += Math.pow(observed - expectedFrequency, 2) / expectedFrequency;
   }
 
   // Chi-Square critical value for degrees of freedom = total - 1 at α = 0.05
   const criticalValue = chiSquareCriticalValues[total - 1]; // Ensure the table covers this range
   const uniformity = chiSquare <= criticalValue;
 
-  return { frequency, expectedFrequency, mean, variance, chiSquare, uniformity };
+  return { frequency, mean, variance, chiSquare, uniformity };
 }
 
 // Helper function to generate unique numbers

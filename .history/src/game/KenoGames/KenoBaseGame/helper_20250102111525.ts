@@ -153,13 +153,10 @@ export function makeResultJson(gameInstance: KenoBaseGame) {
 
     rngs.forEach(({ name, rng }) => {
       const metrics = evaluateRNG(rng, totalNumbers, numbersToDraw, evaluationIterations);
-      console.log(`${name} RNG Metrics:`);
-      console.log('Frequency:', metrics.frequency);
-      console.log('Expected Frequency', metrics.expectedFrequency[0]);
-      
+      console.log(`${name} Metrics:`);
+      console.log('Chi-Square:', metrics.chiSquare);
       console.log('Mean:', metrics.mean);
       console.log('Variance:', metrics.variance);
-      console.log('Chi-Square Statistic:', metrics.chiSquare.toFixed(4));
       console.log('Uniformity:', metrics.uniformity ? 'Pass' : 'Fail');
     });
 

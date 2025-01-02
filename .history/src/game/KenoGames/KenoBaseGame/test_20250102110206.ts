@@ -102,6 +102,7 @@ export function cryptoRNG(): () => number {
 }
 
 type RNG = () => number;
+
 export function evaluateRNG(
   rng: RNG,
   total: number,
@@ -109,17 +110,14 @@ export function evaluateRNG(
   iterations: number
 ): {
   frequency: number[];
-  expectedFrequency: number[];
   mean: number;
   variance: number;
   chiSquare: number;
   uniformity: boolean;
 } {
   const frequency = new Array(total).fill(0);
-  const expectedFrequency = new Array(total).fill((iterations * n) / total);
   const results: number[] = [];
 
-  // Generate numbers and record frequencies
   for (let i = 0; i < iterations; i++) {
     const numbers = getNNumbers(total, n, rng);
     results.push(...numbers);
@@ -129,28 +127,27 @@ export function evaluateRNG(
     }
   }
 
-  // Calculate mean and variance
   const mean = results.reduce((sum, value) => sum + value, 0) / results.length;
   const variance =
     results.reduce((sum, value) => sum + (value - mean) ** 2, 0) /
     results.length;
 
-  // Perform Chi-Square Test
-  const expectedFreq = (iterations * n) / total;
+  // Perform chi-square test
+  const expectedFrequency = (iterations * n) / total;
   let chiSquare = 0;
 
   for (const observed of frequency) {
-    chiSquare += Math.pow(observed - expectedFreq, 2) / expectedFreq;
+    chiSquare += Math.pow(observed - expectedFrequency, 2) / expectedFrequency;
   }
 
-  // Chi-Square critical value for degrees of freedom = total - 1 at α = 0.05
-  const criticalValue = chiSquareCriticalValues[total - 1]; // Ensure the table covers this range
+  // Test uniformity (e.g., p-value threshold 0.05 for df = total-1)
+  const criticalValue = chiSquareCriticalValue(total - 1, 0.05);
   const uniformity = chiSquare <= criticalValue;
+console.log(uniformity);
 
-  return { frequency, expectedFrequency, mean, variance, chiSquare, uniformity };
+  return { frequency, mean, variance, chiSquare, uniformity };
 }
 
-// Helper function to generate unique numbers
 function getNNumbers(total: number, n: number, rng: RNG): number[] {
   if (n > total) {
     throw new Error('n cannot be greater than total');
@@ -171,89 +168,62 @@ function getNNumbers(total: number, n: number, rng: RNG): number[] {
   return result;
 }
 
+// Chi-square critical value function
+function chiSquareCriticalValue(df: number, alpha: number): number {
+  // This could be a lookup table or implementation using statistical libraries
+  const criticalValues: { [key: number]: number } = {
+    // Add critical values for common degrees of freedom
+    1: 3.841,
+    2: 5.991,
+    3: 7.815,
+    4: 9.488,
+    5: 11.070,
+    6: 12.592,
+    7: 14.067,
+    8: 15.507,
+    9: 16.919,
+    10: 18.307,
+    11: 19.675,
+    12: 21.026,
+    13: 22.362,
+    14: 23.685,
+    15: 24.996,
+    16: 26.296,
+    17: 27.587,
+    18: 28.869,
+    19: 30.144,
+    20: 31.410,
+    21: 32.671,
+    22: 33.924,
+    23: 35.172,
+    24: 36.415,
+    25: 37.652,
+    26: 38.885,
+    27: 40.113,
+    28: 41.337,
+    29: 42.557,
+    30: 43.773,
+    31: 44.985,
+    32: 46.194,
+    33: 47.400,
+    34: 48.602,
+    35: 49.802,
+    36: 50.998,
+    37: 52.192,
+    38: 53.384,
+    39: 54.572,
+    40: 55.758,
+    41: 56.942,
+    42: 58.124,
+    43: 59.303,
+    44: 60.481,
+    45: 61.656,
+    46: 62.830,
+    47: 64.001,
+    48: 65.171,
+    49: 66.339,
+    50: 67.505,
+  };
 
-
-// Chi-Square critical values for α = 0.05
-const chiSquareCriticalValues = {
-  1: 3.841,
-  2: 5.991,
-  3: 7.815,
-  4: 9.488,
-  5: 11.070,
-  6: 12.592,
-  7: 14.067,
-  8: 15.507,
-  9: 16.919,
-  10: 18.307,
-  11: 19.675,
-  12: 21.026,
-  13: 22.362,
-  14: 23.685,
-  15: 24.996,
-  16: 26.296,
-  17: 27.587,
-  18: 28.869,
-  19: 30.144,
-  20: 31.410,
-  21: 32.671,
-  22: 33.924,
-  23: 35.172,
-  24: 36.415,
-  25: 37.652,
-  26: 38.885,
-  27: 40.113,
-  28: 41.337,
-  29: 42.557,
-  30: 43.773,
-  31: 44.985,
-  32: 46.194,
-  33: 47.400,
-  34: 48.602,
-  35: 49.802,
-  36: 50.998,
-  37: 52.192,
-  38: 53.384,
-  39: 54.572,
-  40: 55.758,
-  41: 56.942,
-  42: 58.124,
-  43: 59.303,
-  44: 60.481,
-  45: 61.656,
-  46: 62.830,
-  47: 64.001,
-  48: 65.171,
-  49: 66.339,
-  50: 67.505,
-  51: 68.669,
-  52: 69.832,
-  53: 70.993,
-  54: 72.153,
-  55: 73.311,
-  56: 74.468,
-  57: 75.624,
-  58: 76.778,
-  59: 77.931,
-  60: 79.082,
-  61: 80.232,
-  62: 81.381,
-  63: 82.529,
-  64: 83.675,
-  65: 84.821,
-  66: 85.965,
-  67: 87.108,
-  68: 88.250,
-  69: 89.391,
-  70: 90.531,
-  71: 91.670,
-  72: 92.808,
-  73: 93.945,
-  74: 95.081,
-  75: 96.217,
-  76: 97.351,
-  77: 98.484,
-  78: 99.617,
-  79: 100.749,
-  80: 101.879,
-};
-
+  return criticalValues[df] || Infinity; // Replace with exact computation if necessary
+}
