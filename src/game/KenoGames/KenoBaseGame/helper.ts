@@ -1,6 +1,6 @@
 import { precisionRound } from "../../../utils/utils";
 import KenoBaseGame from "./KenoBaseGame";
-import { cryptoRNG, evaluateRNG, lcg, middleSquare, xorshift } from "./test";
+import { cryptoRNG, evaluateRNG, lcg, xorshift } from "./test";
 
 /**
  * Initializes the game settings using the provided game data and game instance.
@@ -74,6 +74,7 @@ export function checkForWin(gameInstance: KenoBaseGame) {
     settings.drawn = getNNumbers(settings.total, settings.draws);
 
     //NOTE: set userpicks
+
     settings.picks = getNNumbers(settings.total, settings.maximumPicks);
 
     settings.hits = findCommonElements(settings.drawn, settings.picks);
@@ -137,32 +138,33 @@ export function makeResultJson(gameInstance: KenoBaseGame) {
     };
     console.log(JSON.stringify(sendData));
 
-
-    //FIX: remove later
-    const totalNumbers = 80; // Total numbers in Keno
-    const numbersToDraw = 20; // Numbers to draw in one game
-    const evaluationIterations = 500000; // Number of iterations for evaluation
     type RNG = () => number;
 
-    const rngs: { name: string; rng: RNG }[] = [
-      { name: 'LCG', rng: lcg(Date.now() * Math.random()) },
-      // { name: 'Middle Square', rng: middleSquare(1234) },
-      { name: 'Xorshift', rng: xorshift(1234) },
-      { name: 'Crypto', rng: cryptoRNG() },
-    ];
+    //FIX: remove later
+    // Example usage
+    const totalNumbers = 80;
+    const numbersToDraw = 20;
+    const evaluationIterations = 10000;
 
+
+    const rngs: { name: string; rng: RNG }[] = [
+      // { name: 'LCG', rng: lcg(3.14159 * 1e6) },
+      // { name: 'LCG date rand', rng: lcg(new Date().getUTCMilliseconds() * Math.random()) },
+      // { name: 'LCG pi', rng: lcg(3.14159 * 1e6) },
+      // { name: 'Xorshift pi', rng: xorshift(3.14159 * 1e6) },
+      // { name: 'Xorshift rand date', rng: xorshift(new Date().getUTCMilliseconds() * Math.random()) },
+      // { name: 'Crypto', rng: cryptoRNG() },
+    ];
     rngs.forEach(({ name, rng }) => {
       const metrics = evaluateRNG(rng, totalNumbers, numbersToDraw, evaluationIterations);
-      console.log(`${name} RNG Metrics:`);
-      console.log('Frequency:', metrics.frequency);
-      console.log('Expected Frequency', metrics.expectedFrequency[0]);
-      
-      console.log('Mean:', metrics.mean);
-      console.log('Variance:', metrics.variance);
-      console.log('Chi-Square Statistic:', metrics.chiSquare.toFixed(4));
-      console.log('Uniformity:', metrics.uniformity ? 'Pass' : 'Fail');
+      console.log(`${name} Metrics:`);
+      console.log('Mean:', metrics.mean.toFixed(4));
+      console.log('Variance:', metrics.variance.toFixed(4));
+      console.log('Chi-square statistic:', metrics.chiSquare.toFixed(4));
+      console.log('Chi-square p-value:', metrics.chiSquarePValue.toFixed(4));
+      console.log('Uniformity score:', metrics.uniformityScore.toFixed(4));
+      console.log('---');
     });
-
     gameInstance.sendMessage('ResultData', sendData);
   } catch (error) {
     console.error("Error generating result JSON or sending message:", error);
