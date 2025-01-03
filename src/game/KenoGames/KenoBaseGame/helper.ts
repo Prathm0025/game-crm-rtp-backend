@@ -74,6 +74,7 @@ export function checkForWin(gameInstance: KenoBaseGame) {
     settings.drawn = getNNumbers(settings.total, settings.draws);
 
     //NOTE: set userpicks
+
     settings.picks = getNNumbers(settings.total, settings.maximumPicks);
 
     settings.hits = findCommonElements(settings.drawn, settings.picks);
@@ -145,14 +146,15 @@ export function makeResultJson(gameInstance: KenoBaseGame) {
     const numbersToDraw = 20;
     const evaluationIterations = 10000;
 
+
     const rngs: { name: string; rng: RNG }[] = [
       // { name: 'LCG', rng: lcg(3.14159 * 1e6) },
-      { name: 'LCG date rand', rng: lcg(new Date().getUTCMilliseconds() * Math.random()) },
+      // { name: 'LCG date rand', rng: lcg(new Date().getUTCMilliseconds() * Math.random()) },
       // { name: 'LCG pi', rng: lcg(3.14159 * 1e6) },
-      // { name: 'Xorshift', rng: xorshift(3.14159 * 1e6) },
+      // { name: 'Xorshift pi', rng: xorshift(3.14159 * 1e6) },
+      // { name: 'Xorshift rand date', rng: xorshift(new Date().getUTCMilliseconds() * Math.random()) },
       // { name: 'Crypto', rng: cryptoRNG() },
     ];
-
     rngs.forEach(({ name, rng }) => {
       const metrics = evaluateRNG(rng, totalNumbers, numbersToDraw, evaluationIterations);
       console.log(`${name} Metrics:`);
