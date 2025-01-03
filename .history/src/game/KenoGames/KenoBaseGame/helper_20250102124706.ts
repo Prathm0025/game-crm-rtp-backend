@@ -140,7 +140,7 @@ export function makeResultJson(gameInstance: KenoBaseGame) {
 
     //FIX: remove later
     const totalNumbers = 80; // Total numbers in Keno
-    const numbersToDraw = 20; // Numbers to draw in one game
+    const numbersToDraw = 10; // Numbers to draw in one game
     const evaluationIterations = 500000; // Number of iterations for evaluation
     type RNG = () => number;
 
