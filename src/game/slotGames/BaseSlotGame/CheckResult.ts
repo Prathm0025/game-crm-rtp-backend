@@ -286,7 +286,7 @@ export class CheckResult {
                 this.jackpot.symbolsCount > 0 &&
                 this.jackpot.symbolsCount == this.jackpotWinSymbols.length
             ) {
-                // console.log("!!!!!JACKPOT!!!!!");
+                console.log("!!!!!JACKPOT!!!!!");
                 this.currentGame.settings._winData.winningSymbols.push(this.jackpotWinSymbols);
                 this.currentGame.settings._winData.totalWinningAmount += this.jackpot.defaultAmount * this.currentGame.settings.BetPerLines;;
                 this.currentGame.settings._winData.jackpotwin += this.jackpot.defaultAmount * this.currentGame.settings.BetPerLines;;
@@ -311,8 +311,8 @@ export class CheckResult {
 
     makeResultJson(isResult: ResultType, iconsToFill: number[][] = []) {
         //TODO : Try to send the jackpot win data without initializie a variable;
-        this.currentGame.settings._winData.totalWinningAmount =
-            Math.round(this.currentGame.settings._winData.totalWinningAmount * 100) / 100;
+        const totalWining = this.currentGame.settings._winData.totalWinningAmount
+        this.currentGame.settings._winData.totalWinningAmount = Number(totalWining.toFixed(3));
         const ResultData = {
             GameData: {
                 ResultReel: this.currentGame.settings.resultSymbolMatrix,
