@@ -6,6 +6,7 @@ export interface KenoBaseSettings {
   bets: number[];
   draws:number;
   maximumPicks:number;
+  forRTP:boolean;
   total:number;
   drawn:number[];
   picks:number[];

@@ -20,7 +20,22 @@ export function xorshift(seed: number): () => number {
   };
 }
 
+// export function bbs(seed: number): () => number {
+//   try {
+//
+//     const rng = new BBSRandomGenerator(7, 9007199254740991, seed)
+//     return () => {
+//       const res = rng.generateNumber(0, 1)
+//       return res
+//     }
+//   } catch (er) {
+//     console.error("Err in BBSRNG", er)
+//   }
+// }
+
+
 import { randomBytes } from 'crypto';
+// import BBSRandomGenerator from './BlumBlumShum';
 export function cryptoRNG(): () => number {
   return () => {
     const randomValue = parseInt(randomBytes(4).toString('hex'), 16);
@@ -60,7 +75,7 @@ export function evaluateRNG(
     }
   }
 
-  // writeMultipleArraysToCSV("data.csv", csv)
+  writeMultipleArraysToCSV("data.csv", csv)
 
   // Basic statistics
   const mean = results.reduce((sum, value) => sum + value, 0) / results.length;
