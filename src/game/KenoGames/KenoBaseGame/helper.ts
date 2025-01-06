@@ -1,6 +1,6 @@
 import { precisionRound } from "../../../utils/utils";
 import KenoBaseGame from "./KenoBaseGame";
-import { calculateRTP, examplePayoutMultiplier,  generatePaytables, hypergeometric } from "./rtp";
+import { calculateRTP, examplePayoutMultiplier,  generatePaytableJSON,  generatePaytables, hypergeometric } from "./rtp";
 import { cryptoRNG, evaluateRNG, lcg } from "./test";
 
 /**
@@ -169,21 +169,21 @@ export function makeResultJson(gameInstance: KenoBaseGame) {
 
 // Game Setup
 // Example usage
-const N = 40; // Total numbers
-const n = 10; // Numbers drawn
-const maxPicks = 10; // Maximum number of picks
-const desiredRTP = 70; // Desired RTP
+// const N = 40; // Total numbers
+// const n = 10; // Numbers drawn
+// const maxPicks = 10; // Maximum number of picks
+// const desiredRTP = 70; // Desired RTP
 
-const { paytables, rtps, overallRTP } = generatePaytables(N, n, maxPicks, desiredRTP, examplePayoutMultiplier);
+// const { paytables, rtps, overallRTP } = generatePaytables(N, n, maxPicks, desiredRTP, examplePayoutMultiplier);
 
-console.log(`Overall RTP for the game: ${overallRTP.toFixed(2)}%`);
-for (let picks = 1; picks <= maxPicks; picks++) {
-    console.log(`Paytable for ${picks} picks:`);
-    console.table(paytables[picks]);
+// console.log(`Overall RTP for the game: ${overallRTP.toFixed(2)}%`);
+// for (let picks = 1; picks <= maxPicks; picks++) {
+//     console.log(`Paytable for ${picks} picks:`);
+//     console.table(paytables[picks]);
 
-    console.log(`RTP for ${picks} picks: ${rtps[picks].toFixed(2)}%`);
-}
-// const outputPath = '../paytable.json'; // Path to save the JSON file
+//     console.log(`RTP for ${picks} picks: ${rtps[picks].toFixed(2)}%`);
+// }
+// const outputPath = './paytable.json'; // Path to save the JSON file
 // generatePaytableJSON(N, n, maxPicks, desiredRTP, examplePayoutMultiplier, outputPath);
     gameInstance.sendMessage('ResultData', sendData);
   } catch (error) {

@@ -1,3 +1,5 @@
+import * as fs from 'fs'; // Import file system module to write JSON files
+
 // Function to calculate factorial
 function factorial(n: number): number {
     return n <= 1 ? 1 : n * factorial(n - 1);
@@ -91,9 +93,7 @@ export function calculateScalingFactor(rtp: number): number {
 
 
 
-import * as fs from 'fs'; // Import file system module to write JSON files
 
-// Function to generate a JSON file with a 2D payout array
 export function generatePaytableJSON(
     N: number,
     n: number,
@@ -104,22 +104,19 @@ export function generatePaytableJSON(
 ) {
     const { paytables } = generatePaytables(N, n, maxPicks, desiredRTP, payoutMultiplier);
 
-    // Create a 2D payout array
     const payoutArray: number[][] = [];
 
     for (let picks = 1; picks <= maxPicks; picks++) {
         const payoutsForPicks = paytables[picks].map(entry => entry.payout).slice(1);
-        payoutArray.push(payoutsForPicks); // Push the modified array for this picktract payouts for each match
+        payoutArray.push(payoutsForPicks); 
         
     }
 
-    // Create JSON object
     const jsonData = {
         desiredRTP,
         payoutArray
     };
 
-    // Write JSON data to a file
     fs.writeFileSync(outputPath, JSON.stringify(jsonData, null, 2), 'utf-8');
 
     console.log(`Paytable JSON file successfully generated at: ${outputPath}`);
