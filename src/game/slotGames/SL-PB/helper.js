@@ -281,7 +281,6 @@ function checkForWin(gameInstance) {
                     settings.thunderBonus.thunderSpinPayout = payoutOfBonusGame;
                     settings.thunderBonus.isThunderBonus = false;
                     settings.frozenIndices = [];
-                    return;
                 }
             }
             (0, bonus_1.handleBonusGameSpin)(gameInstance);
