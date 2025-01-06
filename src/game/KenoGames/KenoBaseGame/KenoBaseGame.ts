@@ -2,7 +2,7 @@ import { sessionManager } from "../../../dashboard/session/sessionManager";
 import { currentGamedata } from "../../../Player";
 import { precisionRound } from "../../../utils/utils";
 import { RequiredSocketMethods } from "../../Utils/gameUtils";
-import { checkForWin, initializeGameSettings, sendInitData } from "./helper";
+import { checkForWin, getNNumbers, initializeGameSettings, sendInitData } from "./helper";
 import { KenoBaseSettings } from "./types";
 
 
@@ -40,10 +40,11 @@ export default class KenoBaseGame implements RequiredSocketMethods {
   }
   getPlayerData() {
     return this.currentGameData.getPlayerData();
-  }  
+  }
 
   private prepareSpin(data: any) {
     this.settings.currentBet = this.settings.bets[data.currentBet];
+    this.settings.picks = data.picks;
   }
 
   messageHandler(response: any) {
@@ -51,8 +52,13 @@ export default class KenoBaseGame implements RequiredSocketMethods {
     switch (response.id) {
       case "SPIN":
         this.prepareSpin(response.data);
-        // this.getRTP(response.data.spins || 1);
+        this.settings.forRTP = false;
         this.spinResult()
+        break;
+      case "GENRTP":
+        this.settings.forRTP = true;
+        this.prepareSpin(response.data);
+        this.getRTP(response.data.spins || 1)
         break;
       default:
         console.warn(`Unhandled message ID: ${response.id}`);
@@ -61,7 +67,28 @@ export default class KenoBaseGame implements RequiredSocketMethods {
     }
   }
 
+  public async getRTP(spins: number): Promise<void> {
+    let response: string[] = []
+    //Need to generate rtp for all number of picks 
+    for (let i = 1; i <= this.settings.maximumPicks; i++) {
 
+      let totalWin = 0;
+      let totalBet = 0;
+
+      for (let j = 0; j < spins; j++) {
+        this.settings.picks = getNNumbers(this.settings.total, i);
+
+        await this.spinResult();
+        totalWin = precisionRound( totalWin + this.playerData.currentWining ,5)
+        totalBet = precisionRound( totalBet + this.settings.currentBet ,5)
+      }
+      response.push(`RTP for ${i} picks is ${precisionRound( (totalWin / totalBet) * 100 ,5)}%`)
+
+    }
+    response.forEach((res) => {
+      console.log(res);
+    })
+  }
 
   public async spinResult(): Promise<void> {
     try {
@@ -75,8 +102,8 @@ export default class KenoBaseGame implements RequiredSocketMethods {
       const { currentBet } = this.settings;
 
 
-        this.deductPlayerBalance(currentBet);
-        this.playerData.totalbet =precisionRound(this.playerData.totalbet + currentBet, 5);
+      this.deductPlayerBalance(currentBet);
+      this.playerData.totalbet = precisionRound(this.playerData.totalbet + currentBet, 5);
 
 
       const spinId = platformSession.currentGameSession.createSpin();
