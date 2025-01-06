@@ -73,9 +73,19 @@ class CheckResult {
     }
     checkForFreeSpin() {
         let temp = this.findSymbol(gameUtils_1.specialIcons.FreeSpin);
-        if (temp.length > (5 - this.currentGame.settings.freeSpin.freeSpinMuiltiplier.length)) {
+        if (temp.length > (5 - this.currentGame.settings.freeSpin.freeSpinMuiltiplier.length) && temp.length <= 5) {
             console.log("!!!! FREEE SPINNN !!!!!");
             const freeSpins = this.accessData(this.currentGame.settings.freeSpin.symbolID, temp.length);
+            this.currentGame.settings.freeSpin.freeSpinStarted = true;
+            this.currentGame.settings.freeSpin.freeSpinsAdded = true;
+            this.currentGame.settings.freeSpin.freeSpinCount += freeSpins;
+            this.currentGame.playerData.totalSpin += freeSpins;
+            this.currentGame.playerData.rtpSpinCount += freeSpins;
+            this.currentGame.settings._winData.winningSymbols.push(temp);
+        }
+        else if (temp.length > 5) {
+            console.log("!!!! FREEE SPINNN !!!!!");
+            const freeSpins = this.accessData(this.currentGame.settings.freeSpin.symbolID, 5);
             this.currentGame.settings.freeSpin.freeSpinStarted = true;
             this.currentGame.settings.freeSpin.freeSpinsAdded = true;
             this.currentGame.settings.freeSpin.freeSpinCount += freeSpins;
@@ -217,8 +227,15 @@ class CheckResult {
         if (this.currentGame.settings.scatter.useScatter) {
             console.log("SCATTER2");
             let temp = this.findSymbol(gameUtils_1.specialIcons.scatter);
-            if (temp.length > (5 - this.currentGame.settings.scatter.multiplier.length)) {
+            if (temp.length > (5 - this.currentGame.settings.scatter.multiplier.length) && temp.length <= 5) {
+                console.log(temp.length, "dnbdjbjjd");
                 const winningAmount = this.accessData(this.currentGame.settings.scatter.symbolID, temp.length);
+                this.currentGame.settings._winData.totalWinningAmount += winningAmount * this.currentGame.settings.BetPerLines;
+                this.currentGame.settings._winData.winningSymbols.push(temp);
+            }
+            else if (temp.length > 5) {
+                console.log("sfgshfuivhmduerhjidh");
+                const winningAmount = this.accessData(this.currentGame.settings.scatter.symbolID, 5);
                 this.currentGame.settings._winData.totalWinningAmount += winningAmount * this.currentGame.settings.BetPerLines;
                 this.currentGame.settings._winData.winningSymbols.push(temp);
             }
@@ -230,9 +247,10 @@ class CheckResult {
             var temp = this.findSymbol(gameUtils_1.specialIcons.jackpot);
             if (temp.length > 0)
                 this.jackpotWinSymbols.push(...temp);
-            if (this.jackpot.symbolsCount > 0 &&
-                this.jackpot.symbolsCount == this.jackpotWinSymbols.length) {
-                // console.log("!!!!!JACKPOT!!!!!");
+            console.log(this.jackpot.symbolsCount, "jahfjhsuj");
+            console.log("temp", temp.length);
+            if (temp.length >= this.jackpot.symbolsCount) {
+                console.log("!!!!!JACKPOT!!!!!");
                 this.currentGame.settings._winData.winningSymbols.push(this.jackpotWinSymbols);
                 this.currentGame.settings._winData.totalWinningAmount += this.jackpot.defaultAmount * this.currentGame.settings.BetPerLines;
                 ;
@@ -259,8 +277,8 @@ class CheckResult {
     }
     makeResultJson(isResult, iconsToFill = []) {
         //TODO : Try to send the jackpot win data without initializie a variable;
-        this.currentGame.settings._winData.totalWinningAmount =
-            Math.round(this.currentGame.settings._winData.totalWinningAmount * 100) / 100;
+        const totalWining = this.currentGame.settings._winData.totalWinningAmount;
+        this.currentGame.settings._winData.totalWinningAmount = Number(totalWining.toFixed(3));
         const ResultData = {
             GameData: {
                 ResultReel: this.currentGame.settings.resultSymbolMatrix,
