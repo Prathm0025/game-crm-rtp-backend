@@ -1,6 +1,10 @@
 import * as fs from 'fs';
 
-
+/**
+ * Linear Congruential Generator (LCG) function
+ * @param {number} initialSeed - The initial seed value
+ * @returns {() => number} - A function that generates a pseudo-random number
+ */
 export function lcg(initialSeed: number): () => number {
   let seed = initialSeed >>> 0;
   const a = 1664525;
@@ -11,6 +15,11 @@ export function lcg(initialSeed: number): () => number {
   };
 }
 
+/**
+ * Xorshift random number generator function
+ * @param {number} seed - The initial seed value
+ * @returns {() => number} - A function that generates a pseudo-random number
+ */
 export function xorshift(seed: number): () => number {
   return () => {
     seed ^= seed << 13;
@@ -20,22 +29,12 @@ export function xorshift(seed: number): () => number {
   };
 }
 
-// export function bbs(seed: number): () => number {
-//   try {
-//
-//     const rng = new BBSRandomGenerator(7, 9007199254740991, seed)
-//     return () => {
-//       const res = rng.generateNumber(0, 1)
-//       return res
-//     }
-//   } catch (er) {
-//     console.error("Err in BBSRNG", er)
-//   }
-// }
-
-
 import { randomBytes } from 'crypto';
-// import BBSRandomGenerator from './BlumBlumShum';
+
+/**
+ * Cryptographically secure random number generator function
+ * @returns {() => number} - A function that generates a pseudo-random number
+ */
 export function cryptoRNG(): () => number {
   return () => {
     const randomValue = parseInt(randomBytes(4).toString('hex'), 16);
@@ -54,6 +53,14 @@ interface RNGMetrics {
   uniformityScore: number;
 }
 
+/**
+ * Function to evaluate the quality of a random number generator
+ * @param {RNG} rng - The random number generator function
+ * @param {number} total - The total number of possible values
+ * @param {number} n - The number of values to generate per iteration
+ * @param {number} iterations - The number of iterations to perform
+ * @returns {RNGMetrics} - The metrics evaluating the RNG quality
+ */
 export function evaluateRNG(
   rng: RNG,
   total: number,
@@ -74,8 +81,6 @@ export function evaluateRNG(
       frequency[number - 1]++;
     }
   }
-
-  // writeMultipleArraysToCSV("data.csv", csv)
 
   // Basic statistics
   const mean = results.reduce((sum, value) => sum + value, 0) / results.length;
@@ -108,6 +113,13 @@ export function evaluateRNG(
   };
 }
 
+/**
+ * Function to generate an array of unique random numbers
+ * @param {number} total - The total number of possible values
+ * @param {number} n - The number of values to generate
+ * @param {RNG} rng - The random number generator function
+ * @returns {number[]} - An array of unique random numbers
+ */
 function getNNumbers(total: number, n: number, rng: RNG): number[] {
   if (n > total) {
     throw new Error('n cannot be greater than total');
@@ -124,12 +136,20 @@ function getNNumbers(total: number, n: number, rng: RNG): number[] {
   return result;
 }
 
-// Helper function for calculating normal CDF (using error function approximation)
+/**
+ * Helper function for calculating normal CDF (using error function approximation)
+ * @param {number} x - The value to calculate the CDF for
+ * @returns {number} - The CDF value
+ */
 function normalCDF(x: number): number {
   return 0.5 * (1 + erf(x / Math.sqrt(2)));
 }
 
-// Error function approximation
+/**
+ * Error function approximation
+ * @param {number} x - The value to calculate the error function for
+ * @returns {number} - The error function value
+ */
 function erf(x: number): number {
   const sign = x >= 0 ? 1 : -1;
   x = Math.abs(x);
@@ -146,7 +166,11 @@ function erf(x: number): number {
   return sign * y;
 }
 
-
+/**
+ * Function to write multiple arrays to a CSV file
+ * @param {string} filename - The name of the CSV file
+ * @param {number[][]} data - The data to write to the CSV file
+ */
 export function writeMultipleArraysToCSV(filename: string, data: number[][]): void {
   try {
     const csvContent = data.map(row => row.join(',')).join('\n');
@@ -158,6 +182,11 @@ export function writeMultipleArraysToCSV(filename: string, data: number[][]): vo
   }
 }
 
+/**
+ * Function to write an array to a CSV file
+ * @param {string} filename - The name of the CSV file
+ * @param {number[]} data - The data to write to the CSV file
+ */
 export function writeArrayToCSV(filename: string, data: number[]): void {
   try {
     let csvContent = "";
