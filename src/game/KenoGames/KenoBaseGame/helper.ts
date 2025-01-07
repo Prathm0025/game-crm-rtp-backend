@@ -28,6 +28,10 @@ export function sendInitData(gameInstance: KenoBaseGame) {
   const dataToSend = {
     GameData: {
       Bets: gameInstance.settings.currentGamedata.bets,
+      Paytable: gameInstance.settings.paytable,
+      MaximumPicks: gameInstance.settings.maximumPicks,
+      Draws:gameInstance.settings.draws,
+      TotalNumbers:gameInstance.settings.total,
     },
     PlayerData: {
       Balance: gameInstance.getPlayerData().credits,
@@ -77,9 +81,9 @@ export function checkForWin(gameInstance: KenoBaseGame) {
 
     totalPayout = accessData(gameInstance);
 
-    gameInstance.playerData.currentWining = precisionRound(totalPayout, 5);
-    gameInstance.playerData.haveWon = precisionRound(gameInstance.playerData.haveWon +
-      gameInstance.playerData.currentWining, 5)
+    gameInstance.playerData.currentWinning = precisionRound(totalPayout, 5);
+    gameInstance.playerData.hasWon = precisionRound(gameInstance.playerData.hasWon +
+      gameInstance.playerData.currentWinning, 5)
     makeResultJson(gameInstance)
     return 0;
   } catch (error) {
@@ -127,41 +131,14 @@ export function makeResultJson(gameInstance: KenoBaseGame) {
       },
       PlayerData: {
         Balance: Balance,
-        totalbet: playerData.totalbet,
-        haveWon: playerData.haveWon,
-        currentWining: playerData.currentWining
+        totalbet: playerData.totalBet,
+        haveWon: playerData.hasWon,
+        currentWining: playerData.currentWinning,
       }
     };
     console.log(JSON.stringify(sendData));
 
-    type RNG = () => number;
 
-    //FIX: remove later
-    // Example usage
-    // const totalNumbers = 80;
-    // const numbersToDraw = 20;
-    // const evaluationIterations = 10000;
-    //
-    //
-    // const rngs: { name: string; rng: RNG }[] = [
-    //   // { name: 'LCG', rng: lcg(3.14159 * 1e6) },
-    //   // { name: 'LCG date rand', rng: lcg(new Date().getUTCMilliseconds() * Math.random()) },
-    //   // { name: 'LCG pi', rng: lcg(3.14159 * 1e6) },
-    //   // { name: 'Xorshift pi', rng: xorshift(3.14159 * 1e6) },
-    //   // { name: 'Xorshift rand date', rng: xorshift(new Date().getUTCMilliseconds() * Math.random()) },
-    //   { name: 'Crypto', rng: cryptoRNG() },
-    //   // { name: 'BBS', rng: bbs(new Date().getUTCMilliseconds() * Math.random()) },
-    // ];
-    // rngs.forEach(({ name, rng }) => {
-    //   const metrics = evaluateRNG(rng, totalNumbers, numbersToDraw, evaluationIterations);
-    //   console.log(`${name} Metrics:`);
-    //   console.log('Mean:', metrics.mean.toFixed(4));
-    //   console.log('Variance:', metrics.variance.toFixed(4));
-    //   console.log('Chi-square statistic:', metrics.chiSquare.toFixed(4));
-    //   console.log('Chi-square p-value:', metrics.chiSquarePValue.toFixed(4));
-    //   console.log('Uniformity score:', metrics.uniformityScore.toFixed(4));
-    //   console.log('---');
-    // });
     gameInstance.sendMessage('ResultData', sendData);
   } catch (error) {
     console.error("Error generating result JSON or sending message:", error);

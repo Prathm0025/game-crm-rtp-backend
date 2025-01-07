@@ -75,7 +75,7 @@ export function evaluateRNG(
     }
   }
 
-  writeMultipleArraysToCSV("data.csv", csv)
+  // writeMultipleArraysToCSV("data.csv", csv)
 
   // Basic statistics
   const mean = results.reduce((sum, value) => sum + value, 0) / results.length;
@@ -147,9 +147,23 @@ function erf(x: number): number {
 }
 
 
-function writeMultipleArraysToCSV(filename: string, data: number[][]): void {
+export function writeMultipleArraysToCSV(filename: string, data: number[][]): void {
   try {
     const csvContent = data.map(row => row.join(',')).join('\n');
+    fs.writeFileSync(filename, csvContent);
+    console.log(`Successfully wrote data to ${filename}`);
+  } catch (error) {
+    console.error('Error writing CSV file:', error);
+    throw error;
+  }
+}
+
+export function writeArrayToCSV(filename: string, data: number[]): void {
+  try {
+    let csvContent = "";
+    data.forEach(row => {
+      csvContent += row + ","
+    })
     fs.writeFileSync(filename, csvContent);
     console.log(`Successfully wrote data to ${filename}`);
   } catch (error) {
