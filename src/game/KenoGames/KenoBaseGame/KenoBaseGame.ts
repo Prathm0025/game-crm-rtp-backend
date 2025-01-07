@@ -113,25 +113,33 @@ export default class KenoBaseGame implements RequiredSocketMethods {
    * Generates the RTP (Return to Player) for a given number of spins.
    * @param spins - The number of spins.
    */
-  public async getRTP(spins: number): Promise<void> {
-    let response: string[] = [];
-    let hitsLength: number[][] = [];
-    for (let i = 1; i <= this.settings.maximumPicks; i++) {
-      let totalWin = 0;
-      let totalBet = 0;
-      let hitCounts: number[] = [];
-      for (let j = 0; j < spins; j++) {
-        this.settings.picks = getNNumbers(this.settings.total, i);
-        await this.spinResult();
-        hitCounts.push(this.settings.hits.length);
-        totalWin = precisionRound(totalWin + this.playerData.currentWinning, 5);
-        totalBet = precisionRound(totalBet + this.settings.currentBet, 5);
+  public async getRTP(draws: number): Promise<void> {
+    try {
+
+      let response: string[] = [];
+      let hitsLength: number[][] = [];
+      for (let i = 1; i <= this.settings.maximumPicks; i++) {
+        let totalWin = 0;
+        let totalBet = 0;
+        let hitCounts: number[] = [];
+        for (let j = 0; j < draws; j++) {
+          this.settings.picks = getNNumbers(this.settings.total, i);
+          await this.spinResult();
+          hitCounts.push(this.settings.hits.length);
+          totalWin = precisionRound(totalWin + this.playerData.currentWinning, 5);
+          totalBet = precisionRound(totalBet + this.settings.currentBet, 5);
+        }
+        response.push(`RTP for ${i} picks is ${precisionRound((totalWin / totalBet) * 100, 5)}%`);
+        hitsLength.push(hitCounts);
       }
-      response.push(`RTP for ${i} picks is ${precisionRound((totalWin / totalBet) * 100, 5)}%`);
-      hitsLength.push(hitCounts);
+      console.log(response.join('\n'));
+      // writeMultipleArraysToCSV("hitFreqKeno.csv", hitsLength);
+      //
+      //testing gen paytable
+      // generatePaytableJSON(80, 20, 10, 85, examplePayoutMultiplier, "paytable.json");
+    } catch (error) {
+      console.error("Failed to generate RTP:", error);
     }
-    console.log(response.join('\n'));
-    // writeMultipleArraysToCSV("hitFreqKeno.csv", hitsLength);
   }
 
   /**
