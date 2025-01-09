@@ -12,80 +12,135 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const sessionManager_1 = require("../../../dashboard/session/sessionManager");
 const utils_1 = require("../../../utils/utils");
 const helper_1 = require("./helper");
+/**
+ * Class representing the base game logic for Keno.
+ * Implements the RequiredSocketMethods interface.
+ */
 class KenoBaseGame {
+    /**
+     * Creates an instance of KenoBaseGame.
+     * @param currentGameData - The current game data.
+     */
     constructor(currentGameData) {
         this.currentGameData = currentGameData;
         this.playerData = {
-            haveWon: 0,
-            currentWining: 0,
-            totalbet: 0,
-            rtpSpinCount: 0,
-            totalSpin: 0,
-            currentPayout: 0,
+            hasWon: 0,
+            currentWinning: 0,
+            totalBet: 0,
+            totalSpins: 0,
         };
         this.settings = (0, helper_1.initializeGameSettings)(currentGameData, this);
         (0, helper_1.sendInitData)(this);
     }
-    sendMessage(action, message) {
-        this.currentGameData.sendMessage(action, message, true);
+    /**
+     * Sends a message to the player.
+     * @param action - The action type.
+     * @param payload - The message payload.
+     */
+    sendMessage(action, payload) {
+        this.currentGameData.sendMessage(action, payload, true);
     }
-    sendError(message) {
-        this.currentGameData.sendError(message, true);
+    /**
+     * Sends an error message to the player.
+     * @param errorMessage - The error message.
+     */
+    sendError(errorMessage) {
+        this.currentGameData.sendError(errorMessage, true);
     }
-    sendAlert(message) {
-        this.currentGameData.sendAlert(message, true);
+    /**
+     * Sends an alert message to the player.
+     * @param alertMessage - The alert message.
+     */
+    sendAlert(alertMessage) {
+        this.currentGameData.sendAlert(alertMessage, true);
     }
-    updatePlayerBalance(message) {
-        this.currentGameData.updatePlayerBalance(message);
+    /**
+     * Updates the player's balance.
+     * @param amount - The amount to update.
+     */
+    updatePlayerBalance(amount) {
+        this.currentGameData.updatePlayerBalance(amount);
     }
-    deductPlayerBalance(message) {
-        this.currentGameData.deductPlayerBalance(message);
+    /**
+     * Deducts an amount from the player's balance.
+     * @param amount - The amount to deduct.
+     */
+    deductPlayerBalance(amount) {
+        this.currentGameData.deductPlayerBalance(amount);
     }
+    /**
+     * Retrieves the player's data.
+     * @returns The player's data.
+     */
     getPlayerData() {
         return this.currentGameData.getPlayerData();
     }
-    prepareSpin(data) {
-        this.settings.currentBet = this.settings.bets[data.currentBet];
-        this.settings.picks = data.picks;
+    /**
+     * Prepares the spin with the given data.
+     * @param spinData - The data for the spin.
+     */
+    prepareDraw(drawData) {
+        this.settings.currentBet = this.settings.bets[drawData.currentBet];
+        this.settings.picks = drawData.picks;
     }
-    messageHandler(response) {
-        switch (response.id) {
+    /**
+     * Handles incoming messages.
+     * @param message - The incoming message.
+     */
+    messageHandler(message) {
+        switch (message.id) {
             case "SPIN":
-                this.prepareSpin(response.data);
+                this.prepareDraw(message.data);
                 this.settings.forRTP = false;
                 this.spinResult();
                 break;
             case "GENRTP":
                 this.settings.forRTP = true;
-                this.prepareSpin(response.data);
-                this.getRTP(response.data.spins || 1);
+                this.prepareDraw(message.data);
+                this.getRTP(message.data.spins || 1);
                 break;
             default:
-                console.warn(`Unhandled message ID: ${response.id}`);
-                this.sendError(`Unhandled message ID: ${response.id}`);
+                console.warn(`Unhandled message ID: ${message.id}`);
+                this.sendError(`Unhandled message ID: ${message.id}`);
                 break;
         }
     }
-    getRTP(spins) {
+    /**
+     * Generates the RTP (Return to Player) for a given number of spins.
+     * @param spins - The number of spins.
+     */
+    getRTP(draws) {
         return __awaiter(this, void 0, void 0, function* () {
-            let response = [];
-            //Need to generate rtp for all number of picks 
-            for (let i = 1; i <= this.settings.maximumPicks; i++) {
-                let totalWin = 0;
-                let totalBet = 0;
-                for (let j = 0; j < spins; j++) {
-                    this.settings.picks = (0, helper_1.getNNumbers)(this.settings.total, i);
-                    yield this.spinResult();
-                    totalWin = (0, utils_1.precisionRound)(totalWin + this.playerData.currentWining, 5);
-                    totalBet = (0, utils_1.precisionRound)(totalBet + this.settings.currentBet, 5);
+            try {
+                let response = [];
+                let hitsLength = [];
+                for (let i = 1; i <= this.settings.maximumPicks; i++) {
+                    let totalWin = 0;
+                    let totalBet = 0;
+                    let hitCounts = [];
+                    for (let j = 0; j < draws; j++) {
+                        this.settings.picks = (0, helper_1.getNNumbers)(this.settings.total, i);
+                        yield this.spinResult();
+                        hitCounts.push(this.settings.hits.length);
+                        totalWin = (0, utils_1.precisionRound)(totalWin + this.playerData.currentWinning, 5);
+                        totalBet = (0, utils_1.precisionRound)(totalBet + this.settings.currentBet, 5);
+                    }
+                    response.push(`RTP for ${i} picks is ${(0, utils_1.precisionRound)((totalWin / totalBet) * 100, 5)}%`);
+                    hitsLength.push(hitCounts);
                 }
-                response.push(`RTP for ${i} picks is ${(0, utils_1.precisionRound)((totalWin / totalBet) * 100, 5)}%`);
+                console.log(response.join('\n'));
+                // writeMultipleArraysToCSV("hitFreqKeno.csv", hitsLength);
+                // // testing gen paytable
+                // generatePaytableJSON(80, 20, 10, 85, examplePayoutMultiplier, "paytable.json");
             }
-            response.forEach((res) => {
-                console.log(res);
-            });
+            catch (error) {
+                console.error("Failed to generate RTP:", error);
+            }
         });
     }
+    /**
+     * Executes the spin result logic.
+     */
     spinResult() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -97,11 +152,11 @@ class KenoBaseGame {
                 }
                 const { currentBet } = this.settings;
                 this.deductPlayerBalance(currentBet);
-                this.playerData.totalbet = (0, utils_1.precisionRound)(this.playerData.totalbet + currentBet, 5);
+                this.playerData.totalBet = (0, utils_1.precisionRound)(this.playerData.totalBet + currentBet, 5);
                 const spinId = platformSession.currentGameSession.createSpin();
                 platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
                 (0, helper_1.checkForWin)(this);
-                const winAmount = this.playerData.currentWining;
+                const winAmount = this.playerData.currentWinning;
                 platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
             }
             catch (error) {

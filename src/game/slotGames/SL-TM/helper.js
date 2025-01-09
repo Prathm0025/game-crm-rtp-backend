@@ -95,6 +95,7 @@ function sendInitData(gameInstance) {
         GameData: {
             Reel: reels,
             Bets: gameInstance.settings.currentGamedata.bets,
+            FreespinBonusCount: gameInstance.settings.freeSpinIncrement,
         },
         UIData: gameUtils_1.UiInitData,
         PlayerData: {

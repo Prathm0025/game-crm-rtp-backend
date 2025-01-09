@@ -28,10 +28,18 @@ function initializeGameSettings(gameData, gameInstance) {
         currentBet: 0,
     };
 }
+/**
+ * Sends the initial game data to the game instance.
+ * @param gameInstance - The instance of the KenoBaseGame class.
+ */
 function sendInitData(gameInstance) {
     const dataToSend = {
         GameData: {
             Bets: gameInstance.settings.currentGamedata.bets,
+            Paytable: gameInstance.settings.paytable,
+            MaximumPicks: gameInstance.settings.maximumPicks,
+            Draws: gameInstance.settings.draws,
+            TotalNumbers: gameInstance.settings.total,
         },
         PlayerData: {
             Balance: gameInstance.getPlayerData().credits,
@@ -39,10 +47,21 @@ function sendInitData(gameInstance) {
     };
     gameInstance.sendMessage("InitData", dataToSend);
 }
+/**
+ * Finds common elements between two arrays.
+ * @param arr1 - The first array.
+ * @param arr2 - The second array.
+ * @returns An array of common elements.
+ */
 function findCommonElements(arr1, arr2) {
     const set1 = new Set(arr1);
     return arr2.filter(num => set1.has(num));
 }
+/**
+ * Accesses the game data and calculates the payout based on hits and picks.
+ * @param gameInstance - The instance of the KenoBaseGame class.
+ * @returns The calculated payout.
+ */
 function accessData(gameInstance) {
     const { settings } = gameInstance;
     const matchCount = settings.hits.length;
@@ -55,12 +74,21 @@ function accessData(gameInstance) {
     }
     return settings.paytable[pickCount - 1][matchCount - 1] * settings.currentBet;
 }
-// If you need to preserve the original order from arr1:
+/**
+ * Finds common elements between two arrays while preserving the order of the first array.
+ * @param arr1 - The first array.
+ * @param arr2 - The second array.
+ * @returns An array of common elements in the order of the first array.
+ */
 function findCommonElementsPreserveOrder(arr1, arr2) {
     const set2 = new Set(arr2);
     return arr1.filter(num => set2.has(num));
 }
-//CHECK WINS ON PAYLINES WITH OR WITHOUT WILD
+/**
+ * Checks for a win in the game instance and updates the player's data accordingly.
+ * @param gameInstance - The instance of the KenoBaseGame class.
+ * @returns 0 if successful, an empty array if an error occurs.
+ */
 function checkForWin(gameInstance) {
     try {
         const { settings } = gameInstance;
@@ -68,13 +96,12 @@ function checkForWin(gameInstance) {
         if (!settings || !settings.total || !settings.draws) {
             throw new Error('Invalid game instance or missing draws or total setting');
         }
-        //NOTE: draw numbers
         settings.drawn = getNNumbers(settings.total, settings.draws);
         settings.hits = findCommonElements(settings.drawn, settings.picks);
         totalPayout = accessData(gameInstance);
-        gameInstance.playerData.currentWining = (0, utils_1.precisionRound)(totalPayout, 5);
-        gameInstance.playerData.haveWon = (0, utils_1.precisionRound)(gameInstance.playerData.haveWon +
-            gameInstance.playerData.currentWining, 5);
+        gameInstance.playerData.currentWinning = (0, utils_1.precisionRound)(totalPayout, 5);
+        gameInstance.playerData.hasWon = (0, utils_1.precisionRound)(gameInstance.playerData.hasWon +
+            gameInstance.playerData.currentWinning, 5);
         makeResultJson(gameInstance);
         return 0;
     }
@@ -83,6 +110,12 @@ function checkForWin(gameInstance) {
         return [];
     }
 }
+/**
+ * Generates an array of n unique random numbers between 1 and total.
+ * @param total - The total number of possible values.
+ * @param n - The number of unique random numbers to generate.
+ * @returns An array of n unique random numbers.
+ */
 function getNNumbers(total, n) {
     if (n > total) {
         throw new Error('n cannot be greater than total');
@@ -90,8 +123,7 @@ function getNNumbers(total, n) {
     const result = [];
     const usedNumbers = new Set();
     while (result.length < n) {
-        // Generate new random values if we've used up the current batch
-        const randomArray = new Uint8Array(Math.max(n - result.length, 16)); // Get at least 16 values
+        const randomArray = new Uint8Array(Math.max(n - result.length, 16));
         crypto.getRandomValues(randomArray);
         for (let i = 0; i < randomArray.length && result.length < n; i++) {
             const number = (randomArray[i] % total) + 1;
@@ -103,7 +135,10 @@ function getNNumbers(total, n) {
     }
     return result;
 }
-//MAKERESULT JSON FOR FRONTENT SIDE
+/**
+ * Generates a result JSON object and sends it to the game instance.
+ * @param gameInstance - The instance of the KenoBaseGame class.
+ */
 function makeResultJson(gameInstance) {
     try {
         const { settings, playerData } = gameInstance;
@@ -117,51 +152,12 @@ function makeResultJson(gameInstance) {
             },
             PlayerData: {
                 Balance: Balance,
-                totalbet: playerData.totalbet,
-                haveWon: playerData.haveWon,
-                currentWining: playerData.currentWining
+                totalbet: playerData.totalBet,
+                haveWon: playerData.hasWon,
+                currentWining: playerData.currentWinning,
             }
         };
         console.log(JSON.stringify(sendData));
-        // FIX: remove later
-        // Example usage
-        // const totalNumbers = 80;
-        // const numbersToDraw = 20;
-        // const evaluationIterations = 10000;
-        // const rngs: { name: string; rng: RNG }[] = [
-        //   // { name: 'LCG', rng: lcg(3.14159 * 1e6) },
-        //   // { name: 'LCG date rand', rng: lcg(new Date().getUTCMilliseconds() * Math.random()) },
-        //   // { name: 'LCG pi', rng: lcg(3.14159 * 1e6) },
-        //   // { name: 'Xorshift pi', rng: xorshift(3.14159 * 1e6) },
-        //   // { name: 'Xorshift rand date', rng: xorshift(new Date().getUTCMilliseconds() * Math.random()) },
-        //   // { name: 'Crypto', rng: cryptoRNG() },
-        //   // { name: 'BBS', rng: bbs(new Date().getUTCMilliseconds() * Math.random()) },
-        // ];
-        // rngs.forEach(({ name, rng }) => {
-        //   const metrics = evaluateRNG(rng, totalNumbers, numbersToDraw, evaluationIterations);
-        //   console.log(`${name} Metrics:`);
-        //   console.log('Mean:', metrics.mean.toFixed(4));
-        //   console.log('Variance:', metrics.variance.toFixed(4));
-        //   console.log('Chi-square statistic:', metrics.chiSquare.toFixed(4));
-        //   console.log('Chi-square p-value:', metrics.chiSquarePValue.toFixed(4));
-        //   console.log('Uniformity score:', metrics.uniformityScore.toFixed(4));
-        //   console.log('---');
-        // });
-        // Game Setup
-        // Example usage
-        // const N = 40; // Total numbers
-        // const n = 10; // Numbers drawn
-        // const maxPicks = 10; // Maximum number of picks
-        // const desiredRTP = 70; // Desired RTP
-        // const { paytables, rtps, overallRTP } = generatePaytables(N, n, maxPicks, desiredRTP, examplePayoutMultiplier);
-        // console.log(`Overall RTP for the game: ${overallRTP.toFixed(2)}%`);
-        // for (let picks = 1; picks <= maxPicks; picks++) {
-        //     console.log(`Paytable for ${picks} picks:`);
-        //     console.table(paytables[picks]);
-        //     console.log(`RTP for ${picks} picks: ${rtps[picks].toFixed(2)}%`);
-        // }
-        // const outputPath = './paytable.json'; // Path to save the JSON file
-        // generatePaytableJSON(N, n, maxPicks, desiredRTP, examplePayoutMultiplier, outputPath);
         gameInstance.sendMessage('ResultData', sendData);
     }
     catch (error) {
