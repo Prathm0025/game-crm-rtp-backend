@@ -286,7 +286,6 @@ function checkForWin(gameInstance) {
             (0, bonus_1.handleBonusGameSpin)(gameInstance);
         }
         else {
-            checkForThunderBonusGame(gameInstance);
             if (settings.freeSpin.useFreeSpin) {
                 switch (true) {
                     case settings.isArthurBonus:
@@ -305,6 +304,7 @@ function checkForWin(gameInstance) {
             else {
                 checkForFreeSpin(gameInstance);
             }
+            checkForThunderBonusGame(gameInstance);
             settings.lineData.forEach((line, index) => {
                 const firstSymbolPosition = line[0];
                 let firstSymbol = settings.resultSymbolMatrix[firstSymbolPosition][0];
