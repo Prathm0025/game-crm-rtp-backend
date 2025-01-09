@@ -1,53 +1,54 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+/**
+ * Import file system module to write JSON files
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.hypergeometric = hypergeometric;
 exports.calculateRTP = calculateRTP;
 exports.generatePaytables = generatePaytables;
 exports.examplePayoutMultiplier = examplePayoutMultiplier;
 exports.calculateScalingFactor = calculateScalingFactor;
-exports.generatePaytableJSON = generatePaytableJSON;
-const fs = __importStar(require("fs")); // Import file system module to write JSON files
-// Function to calculate factorial
+/**
+ * Function to calculate factorial
+ * @param {number} n - The number to calculate the factorial of
+ * @returns {number} - The factorial of the number
+ */
 function factorial(n) {
     return n <= 1 ? 1 : n * factorial(n - 1);
 }
-// Function to calculate combinations (n choose k)
+/**
+ * Function to calculate combinations (n choose k)
+ * @param {number} n - The total number of items
+ * @param {number} k - The number of items to choose
+ * @returns {number} - The number of combinations
+ */
 function combinations(n, k) {
     if (k < 0 || k > n)
         return 0;
     return factorial(n) / (factorial(k) * factorial(n - k));
 }
-// Function to calculate hypergeometric probability
+/**
+ * Function to calculate hypergeometric probability
+ * @param {number} N - The population size
+ * @param {number} K - The number of success states in the population
+ * @param {number} n - The number of draws
+ * @param {number} k - The number of observed successes
+ * @returns {number} - The hypergeometric probability
+ */
 function hypergeometric(N, K, n, k) {
     const combinationsSuccess = combinations(K, k);
     const combinationsFailure = combinations(N - K, n - k);
     const totalCombinations = combinations(N, n);
     return (combinationsSuccess * combinationsFailure) / totalCombinations;
 }
-// Function to calculate RTP (Return to Player) for a specific pick size
+/**
+ * Function to calculate RTP (Return to Player) for a specific pick size
+ * @param {number} N - The population size
+ * @param {number} K - The number of success states in the population
+ * @param {number} n - The number of draws
+ * @param {number[]} payouts - The array of payouts for each number of matches
+ * @returns {number} - The RTP as a percentage
+ */
 function calculateRTP(N, K, n, payouts) {
     let totalExpectedReturn = 0;
     for (let k = 0; k <= K; k++) {
@@ -56,7 +57,15 @@ function calculateRTP(N, K, n, payouts) {
     }
     return totalExpectedReturn * 100; // RTP as a percentage
 }
-// Function to generate paytables and calculate RTPs for each pick size
+/**
+ * Function to generate paytables and calculate RTPs for each pick size
+ * @param {number} N - The population size
+ * @param {number} n - The number of draws
+ * @param {number} maxPicks - The maximum number of picks
+ * @param {number} desiredRTP - The desired RTP
+ * @param {(k: number, picks: number, desiredRTP: number) => number} payoutMultiplier - The function to calculate the payout multiplier
+ * @returns {{ paytables: { [key: number]: { match: number; payout: number; probability: number }[] }, rtps: { [key: number]: number }, overallRTP: number }} - The generated paytables, RTPs, and overall RTP
+ */
 function generatePaytables(N, n, maxPicks, desiredRTP, payoutMultiplier) {
     const paytables = {};
     const rtps = {};
@@ -76,8 +85,14 @@ function generatePaytables(N, n, maxPicks, desiredRTP, payoutMultiplier) {
     const overallRTP = Object.values(rtps).reduce((sum, rtp) => sum + rtp, 0) / maxPicks;
     return { paytables, rtps, overallRTP };
 }
-// Example multiplier function for realistic keno payouts
-// Adjusted payout multiplier logic to ensure uniform RTP (76% to 77%)
+/**
+ * Example multiplier function for realistic keno payouts
+ * Adjusted payout multiplier logic to ensure uniform RTP (76% to 77%)
+ * @param {number} match - The number of matches
+ * @param {number} picks - The number of picks
+ * @param {number} desiredRTP - The desired RTP
+ * @returns {number} - The payout multiplier
+ */
 function examplePayoutMultiplier(match, picks, desiredRTP) {
     const baseMultiplier = match; // Linear increase based on number of matches
     const scalingFactor = calculateScalingFactor(desiredRTP); // Adjust scaling factor to maintain reasonable payout ranges
@@ -86,7 +101,11 @@ function examplePayoutMultiplier(match, picks, desiredRTP) {
     // Ensure multiplier isn't too small, providing reasonable payouts
     return Math.max(adjustedMultiplier, 0);
 }
-// Function to estimate RTP for a given scaling factor
+/**
+ * Function to estimate RTP for a given scaling factor
+ * @param {number} rtp - The desired RTP
+ * @returns {number} - The calculated scaling factor
+ */
 function calculateScalingFactor(rtp) {
     const referenceScalingFactor = 1.8; // The scaling factor for which we know the RTP (90%)
     const referenceRTP = 90; // Known RTP for scaling factor 1.8
@@ -95,19 +114,3 @@ function calculateScalingFactor(rtp) {
     // Return the scaling factor
     return scalingFactor;
 }
-function generatePaytableJSON(N, n, maxPicks, desiredRTP, payoutMultiplier, outputPath) {
-    const { paytables } = generatePaytables(N, n, maxPicks, desiredRTP, payoutMultiplier);
-    const payoutArray = [];
-    for (let picks = 1; picks <= maxPicks; picks++) {
-        const payoutsForPicks = paytables[picks].map(entry => entry.payout).slice(1);
-        payoutArray.push(payoutsForPicks);
-    }
-    const jsonData = {
-        desiredRTP,
-        payoutArray
-    };
-    fs.writeFileSync(outputPath, JSON.stringify(jsonData, null, 2), 'utf-8');
-    console.log(`Paytable JSON file successfully generated at: ${outputPath}`);
-}
-const outputPath = './paytable.json'; // Path to save the JSON file
-// // 
