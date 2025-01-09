@@ -1,7 +1,6 @@
 import { precisionRound } from "../../../utils/utils";
 import KenoBaseGame from "./KenoBaseGame";
-import { calculateRTP, examplePayoutMultiplier,  generatePaytableJSON,  generatePaytables, hypergeometric } from "./rtp";
-import { cryptoRNG, evaluateRNG, lcg } from "./test";
+import { calculateRTP, examplePayoutMultiplier,  generatePaytables, hypergeometric } from "./rtp";
 
 /**
  * Initializes the game settings using the provided game data and game instance.

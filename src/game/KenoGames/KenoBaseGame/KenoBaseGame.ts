@@ -1,9 +1,9 @@
 import { sessionManager } from "../../../dashboard/session/sessionManager";
 import { currentGamedata } from "../../../Player";
 import { precisionRound } from "../../../utils/utils";
-import { RequiredSocketMethods } from "../../Utils/gameUtils";
+import { generatePaytableJSON, RequiredSocketMethods, writeMultipleArraysToCSV } from "../../Utils/gameUtils";
 import { checkForWin, getNNumbers, initializeGameSettings, sendInitData } from "./helper";
-import { writeMultipleArraysToCSV } from "./test";
+import { examplePayoutMultiplier } from "./rtp";
 import { KenoBaseSettings } from "./types";
 
 /**
@@ -134,8 +134,8 @@ export default class KenoBaseGame implements RequiredSocketMethods {
       }
       console.log(response.join('\n'));
       // writeMultipleArraysToCSV("hitFreqKeno.csv", hitsLength);
-      //
-      //testing gen paytable
+      
+      // // testing gen paytable
       // generatePaytableJSON(80, 20, 10, 85, examplePayoutMultiplier, "paytable.json");
     } catch (error) {
       console.error("Failed to generate RTP:", error);
