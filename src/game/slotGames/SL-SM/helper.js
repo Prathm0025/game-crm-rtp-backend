@@ -324,6 +324,7 @@ function countOccurenceOfSymbolsAndIndices(gameInstance) {
     const indices = {};
     let wildCount = 0;
     let combinedIndices = new Set();
+    settings.stickyBonusValue.splice(1);
     // count symbols and track their indices
     settings.resultSymbolMatrix.forEach((row, rowIndex) => {
         row.forEach((num, colIndex) => {
@@ -338,6 +339,15 @@ function countOccurenceOfSymbolsAndIndices(gameInstance) {
                 if (!indices[num])
                     indices[num] = [];
                 indices[num].push([rowIndex, colIndex]);
+            }
+        });
+    });
+    settings.resultSymbolMatrix.forEach((row, rowIndex) => {
+        row.forEach((num, colIndex) => {
+            if (num === settings.bonus.SymbolID) {
+                const stickyCount = 0;
+                const prizeValue = getRandomValue(gameInstance, 'prize');
+                settings.stickyBonusValue.push({ position: [colIndex, rowIndex], prizeValue: prizeValue, value: stickyCount, symbol: num });
             }
         });
     });
@@ -622,7 +632,12 @@ function makeResultJson(gameInstance) {
                 frozenIndices: settings.frozenIndices,
                 isGrandPrize: settings.isGrandPrize,
                 isMoonJackpot: settings.isMoonJackpot,
-                moonMysteryData: settings.moonMysteryData,
+                moonMysteryData: settings.moonMysteryData.map((item) => [
+                    item.id,
+                    ...item.position,
+                    item.prizeValue,
+                    item.symbol
+                ]),
                 isStickyBonus: settings.isStickyBonus,
                 stickyBonusValue: settings.stickyBonusValue,
                 isAllWild: settings.isAllWild,
@@ -635,7 +650,6 @@ function makeResultJson(gameInstance) {
             }
         };
         gameInstance.sendMessage('ResultData', sendData);
-        console.log(sendData, "send Data");
     }
     catch (error) {
         console.error("Error generating result JSON or sending message:", error);
