@@ -41,6 +41,8 @@ function initializeGameSettings(gameData, gameInstance) {
         wild: {
             SymbolId: gameInstance.currentGameData.gameSettings.Symbols.find((sym) => sym.Name == types_1.SpecialSymbols.WILD).Id,
             SymbolName: types_1.SpecialSymbols.WILD,
+            cutoffLevel: gameSettings.wildCutoffLevel,
+            subs: gameSettings.wildSubs
         },
         freeSpin: {
             SymbolId: gameInstance.currentGameData.gameSettings.Symbols.find((sym) => sym.Name == types_1.SpecialSymbols.FREE_SPIN).Id,
@@ -131,6 +133,22 @@ function checkWin(gameInstance) {
         let totalPayout = 0;
         let winningCombinations = [];
         settings.isLevelUp = false;
+        //NOTE: wild sub 
+        //1 check if level above cutoff
+        //2 check if there are wild symbols
+        //3 substitute wild symbols
+        // console.log(settings.level, settings.wild.cutoffLevel);
+        if (settings.level >= settings.wild.cutoffLevel) {
+            let newMatrix = JSON.parse(JSON.stringify(settings.resultSymbolMatrix));
+            settings.resultSymbolMatrix.forEach((row, y) => {
+                row.forEach((symbolId, x) => {
+                    if (isWild(symbolId, settings.wild.SymbolId)) {
+                        newMatrix[y][x] = getRandomIndex(settings.wild.subs);
+                    }
+                });
+            });
+            settings.resultSymbolMatrix = newMatrix;
+        }
         //NOTE: freespin plus one substitute
         if (settings.isFreeSpin) {
             // console.log("Free spin mode active.");
