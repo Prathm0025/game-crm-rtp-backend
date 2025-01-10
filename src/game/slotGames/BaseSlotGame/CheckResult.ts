@@ -1,5 +1,6 @@
 
 
+import { log } from "console";
 import { ScatterPayEntry, BonusPayEntry, specialIcons, bonusGameType, ResultType } from "../../Utils/gameUtils";
 import BaseSlotGame from "./BaseSlotGame";
 import { BonusGame, runMiniSpin } from "./BonusGame";
@@ -108,10 +109,21 @@ export class CheckResult {
 
     private checkForFreeSpin() {
         let temp = this.findSymbol(specialIcons.FreeSpin);
-        if (temp.length > (5 - this.currentGame.settings.freeSpin.freeSpinMuiltiplier.length)) {
-            console.log("!!!! FREEE SPINNN !!!!!"
-            );
+        if (temp.length > (5 - this.currentGame.settings.freeSpin.freeSpinMuiltiplier.length) && temp.length <= 5) {
+            // console.log("!!!! FREEE SPINNN !!!!!"
+            // );
             const freeSpins = this.accessData(this.currentGame.settings.freeSpin.symbolID, temp.length)
+            this.currentGame.settings.freeSpin.freeSpinStarted = true;
+            this.currentGame.settings.freeSpin.freeSpinsAdded = true;
+            this.currentGame.settings.freeSpin.freeSpinCount += freeSpins;
+            this.currentGame.playerData.totalSpin += freeSpins;
+            this.currentGame.playerData.rtpSpinCount += freeSpins;
+            this.currentGame.settings._winData.winningSymbols.push(temp);
+        }
+        else if (temp.length > 5) {
+            // console.log("!!!! FREEE SPINNN !!!!!"
+            // );
+            const freeSpins = this.accessData(this.currentGame.settings.freeSpin.symbolID, 5)
             this.currentGame.settings.freeSpin.freeSpinStarted = true;
             this.currentGame.settings.freeSpin.freeSpinsAdded = true;
             this.currentGame.settings.freeSpin.freeSpinCount += freeSpins;
@@ -153,8 +165,8 @@ export class CheckResult {
                             multiplier: symbolMultiplier,
                             matchCount
                         });
-                        console.log(`Line ${index + 1}:`, line);
-                        console.log(`Payout for Line ${index + 1}:`, 'payout', symbolMultiplier);
+                        // console.log(`Line ${index + 1}:`, line);
+                        // console.log(`Payout for Line ${index + 1}:`, 'payout', symbolMultiplier);
                         const formattedIndices = matchedIndices.map(({ col, row }) => `${col},${row}`);
                         const validIndices = formattedIndices.filter(index => index.length > 2);
                         if (validIndices.length > 0) {
@@ -265,15 +277,26 @@ export class CheckResult {
     private checkForScatter() {
         this.scatterWinSymbols = [];
         if (this.currentGame.settings.scatter.useScatter) {
-            console.log("SCATTER2")
+            // console.log("SCATTER2")
             let temp = this.findSymbol(specialIcons.scatter);
 
-            if (temp.length > (5 - this.currentGame.settings.scatter.multiplier.length)) {
+            if (temp.length > (5 - this.currentGame.settings.scatter.multiplier.length) && temp.length <= 5) {
+                // console.log(temp.length,"dnbdjbjjd");
+
                 const winningAmount = this.accessData(this.currentGame.settings.scatter.symbolID, temp.length);
                 this.currentGame.settings._winData.totalWinningAmount += winningAmount * this.currentGame.settings.BetPerLines;
                 this.currentGame.settings._winData.winningSymbols.push(temp);
 
+
             }
+            else if (temp.length > 5) {
+                // console.log("sfgshfuivhmduerhjidh");
+                const winningAmount = this.accessData(this.currentGame.settings.scatter.symbolID, 5);
+                this.currentGame.settings._winData.totalWinningAmount += winningAmount * this.currentGame.settings.BetPerLines;
+                this.currentGame.settings._winData.winningSymbols.push(temp);
+
+            }
+
         }
     }
 
@@ -282,11 +305,12 @@ export class CheckResult {
         if (this.useJackpot) {
             var temp = this.findSymbol(specialIcons.jackpot);
             if (temp.length > 0) this.jackpotWinSymbols.push(...temp);
+
+
             if (
-                this.jackpot.symbolsCount > 0 &&
-                this.jackpot.symbolsCount == this.jackpotWinSymbols.length
+                temp.length >= this.jackpot.symbolsCount
             ) {
-                console.log("!!!!!JACKPOT!!!!!");
+                // console.log("!!!!!JACKPOT!!!!!");
                 this.currentGame.settings._winData.winningSymbols.push(this.jackpotWinSymbols);
                 this.currentGame.settings._winData.totalWinningAmount += this.jackpot.defaultAmount * this.currentGame.settings.BetPerLines;;
                 this.currentGame.settings._winData.jackpotwin += this.jackpot.defaultAmount * this.currentGame.settings.BetPerLines;;

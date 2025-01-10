@@ -1,5 +1,4 @@
 export const gameData = [
-
   {
     "id": "SL-TM",
     "isSpecial": true,
