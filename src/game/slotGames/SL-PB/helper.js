@@ -278,7 +278,7 @@ function checkForWin(gameInstance) {
                 if (settings.thunderBonus.thunderSpinCount <= 0) {
                     const payoutOfBonusGame = (0, bonus_1.calculatePayoutOfBonusGame)(gameInstance);
                     // console.log(payoutOfBonusGame, "Payout of bonus games");
-                    settings.thunderBonus.thunderSpinPayout = payoutOfBonusGame;
+                    settings.thunderBonus.thunderSpinPayout += payoutOfBonusGame;
                     settings.thunderBonus.isThunderBonus = false;
                     settings.frozenIndices = [];
                 }
@@ -335,8 +335,8 @@ function checkForWin(gameInstance) {
                 }
             });
         }
-        gameInstance.playerData.currentWining += totalPayout;
         totalPayout += settings.thunderBonus.thunderSpinPayout;
+        gameInstance.playerData.currentWining += totalPayout;
         //   console.log("Total Winning", gameInstance.playerData.currentWining);
         //   console.log("Total Free Spins Won:", gameInstance.settings.freeSpin.freeSpinCount);
         gameInstance.playerData.haveWon += gameInstance.playerData.currentWining;
