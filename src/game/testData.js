@@ -626,7 +626,7 @@ exports.gameData = [
                     "1": 0,
                     "2": 0,
                     "3": 0,
-                    "4": 50
+                    "4": 0
                 },
                 "isArthurSymbol": true,
                 "description": "Triggering Arthur free spins awards 3 free spins. During free spins the Jack-Ace Symbols are removed from the reels.",
@@ -660,7 +660,7 @@ exports.gameData = [
                     "1": 0,
                     "2": 0,
                     "3": 0,
-                    "4": 5
+                    "4": 0
                 },
                 "isArthurSymbol": true,
                 "description": "Triggering Polly free spins awards 3 free spins. During free spins 3 or more adjacent reels show the same symbols.",
