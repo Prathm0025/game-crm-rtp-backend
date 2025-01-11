@@ -335,6 +335,7 @@ function checkForWin(gameInstance) {
                 }
             });
         }
+        gameInstance.playerData.currentWining += totalPayout;
         totalPayout += settings.thunderBonus.thunderSpinPayout;
         gameInstance.playerData.currentWining += totalPayout;
         //   console.log("Total Winning", gameInstance.playerData.currentWining);
