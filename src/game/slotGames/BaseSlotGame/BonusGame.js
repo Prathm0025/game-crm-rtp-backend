@@ -164,9 +164,10 @@ function runMiniSpin(bonus, betPerLines) {
         while (lives > 0) {
             const innerMatrix = generateInnerMatrix(symbols, miniSlotProb);
             const outerRingSymbol = getRandomSymbol(symbols, outerRingProb);
-            const matchCount = innerMatrix.filter(symbol => symbol === outerRingSymbol).length;
+            const matchCount = innerMatrix.filter(symbol => symbol == outerRingSymbol).length;
             const winAmt = payOut[outerRingSymbol] * matchCount * betPerLines;
-            const win = winAmt.toFixed(1);
+            const win = winAmt.toString();
+            // const win = winAmt.toFixed(1);
             result.winings.push(win);
             result.innerMatrix.push(innerMatrix);
             result.outerRingSymbol.push(outerRingSymbol);
