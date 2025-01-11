@@ -64,6 +64,7 @@ export function handleBonusGameSpin(gameInstance: SLSM) {
         settings.freeSpin.freeSpinCount = 0;
         settings.freeSpin.useFreeSpin = false;
         settings.freeSpin.freeSpinsAdded = false;
+        settings.isGrandPrize = false;
     }
 
 }

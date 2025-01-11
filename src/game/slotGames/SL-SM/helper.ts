@@ -302,6 +302,7 @@ export function checkForWin(gameInstance: SLSM) {
                     // console.log(payoutOfBonusGame, "Payout");
                     settings.freeSpin.freeSpinPayout = payoutOfBonusGame;
                     settings.freeSpin.useFreeSpin = false;
+                    settings.bonusResultMatrix = [];
                     settings.frozenIndices = [];
                     return;
                 }
