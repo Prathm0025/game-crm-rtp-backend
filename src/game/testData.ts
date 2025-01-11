@@ -3,7 +3,7 @@ export const gameData = [
     "id": "SL-SM",
     "isSpecial": true,
     "minMatchCount": 6,
-    "freeSpinMatchCount": 12,
+    "freeSpinMatchCount": 2,
     "matrix": {
       "x": 4,
       "y": 4
