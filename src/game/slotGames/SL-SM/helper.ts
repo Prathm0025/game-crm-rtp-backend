@@ -294,17 +294,14 @@ export function checkForWin(gameInstance: SLSM) {
 
             }
         } else {
+            handleBonusGameSpin(gameInstance); 
              // Handle logic for free spins
-            if (settings.freeSpin.useFreeSpin) {
-                handleBonusGameSpin(gameInstance); 
-                gameInstance.settings.freeSpin.freeSpinCount -= 1; 
-                if(  gameInstance.settings.freeSpin.freeSpinCount === -1){
-                    settings.freeSpin.freeSpinCount = 0;
+            if (settings.freeSpin.useFreeSpin && settings.freeSpin.freeSpinCount >= 0) {
+                console.log("free");
 
-                }
-
+                settings.freeSpin.freeSpinCount -= 1;
+              
             }
-
         }
 
         

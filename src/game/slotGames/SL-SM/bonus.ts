@@ -54,25 +54,19 @@ export class RandomBonusGenerator {
 export function handleBonusGameSpin(gameInstance: SLSM) {
     // generate a random bonus reel matrix based on the current game settings
     new RandomBonusGenerator(gameInstance);
-
+    if (gameInstance.settings.freeSpin.freeSpinCount <=0) {
+                  
+        const payoutOfBonusGame = calculatePayoutOfBonusGame(gameInstance); 
+        // console.log(payoutOfBonusGame, "Payout");
+        gameInstance.settings.freeSpin.freeSpinPayout = payoutOfBonusGame;
+       gameInstance.settings.freeSpin.useFreeSpin = false;
+        gameInstance.settings.frozenIndices = [];
+        gameInstance.settings.moonMysteryData = [];
+        gameInstance.settings.bonusResultMatrix = [];
+    }
     const { settings } = gameInstance;
     // handle bonus symbol occurrences in the bonus game
     checkOcurrenceOfSymbols(gameInstance);
-
-    console.log("free");
-      
-
-    if (settings.freeSpin.freeSpinCount <=0) { 
-      
-        const payoutOfBonusGame = calculatePayoutOfBonusGame(gameInstance);  
-        // console.log(payoutOfBonusGame, "Payout");
-        settings.freeSpin.freeSpinPayout = payoutOfBonusGame;
-        settings.freeSpin.useFreeSpin = false;
-        settings.frozenIndices = [];   
-        settings.moonMysteryData = [];
-        settings.bonusResultMatrix = [];
-    }
-
     // add the grand prize if applicable
     if (settings.isGrandPrize) {
         const payoutOfBonusGame = calculatePayoutOfBonusGame(gameInstance);
