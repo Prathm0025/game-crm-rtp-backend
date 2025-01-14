@@ -199,12 +199,12 @@ function checkOcurrenceOfSymbols(gameInstance: SLSM) {
         // console.log("JACKPOT");
         settings.isGrandPrize = true;
     }
-    // if (settings.frozenIndices.length > tempFrozenIndicesLength) {
-    //     if (settings.freeSpin.useFreeSpin === true) {
-    //         settings.freeSpin.freeSpinsAdded = true;
-    //         settings.freeSpin.freeSpinCount = settings.freeSpin.freeSpinAwarded;
-    //     }
-    // }
+    if (settings.frozenIndices.length > tempFrozenIndicesLength) {
+        if (settings.freeSpin.useFreeSpin === true) {
+            settings.freeSpin.freeSpinsAdded = true;
+            settings.freeSpin.freeSpinCount = settings.freeSpin.freeSpinAwarded;
+        }
+    }
 }
 
 /**
