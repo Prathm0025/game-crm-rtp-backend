@@ -68,7 +68,7 @@ export class BonusGame {
 
     setRandomStopIndex() {
         let amount: number = 0;
-        console.log("bonus: ", this.parent.settings.currentGamedata.bonus);
+        // console.log("bonus: ", this.parent.settings.currentGamedata.bonus);
         if (this.parent.settings.bonus.start) {
             const bonusType = this.parent.settings.currentGamedata.bonus.type;
             const betPerLine = this.parent.settings.BetPerLines;
@@ -105,7 +105,7 @@ export class BonusGame {
                 selectedIndex[layerIndex] = this.getRandomPayoutIndex(layerPayOutProb);
                 const selectedPayOut = layerPayOuts[selectedIndex[layerIndex]];
                 if (selectedPayOut === 0) {
-                    console.log(`Payout is 0 at layer ${layerIndex}, exiting...`);
+                    // console.log(`Payout is 0 at layer ${layerIndex}, exiting...`);
                     break;
                 }
                 totalWinAmount += this.parent.settings.BetPerLines * selectedPayOut;
@@ -204,7 +204,7 @@ export function runMiniSpin(bonus: any, betPerLines: number): any {
             totalWinAmount: 0,
             winings: [] as string[],
         }
-        console.log(`Lives: ${lives}`);
+        // console.log(`Lives: ${lives}`);
         while (lives > 0) {
             const innerMatrix = generateInnerMatrix(symbols, miniSlotProb);
             const outerRingSymbol = getRandomSymbol(symbols, outerRingProb);
@@ -220,13 +220,13 @@ export function runMiniSpin(bonus: any, betPerLines: number): any {
             if (outerRingSymbol === 7) {
                 lives--;
             }
-            console.log(`Inner Matrix: ${innerMatrix.join(', ')}`);
-            console.log(`Outer Ring: ${outerRingSymbol}`);
-            console.log(`Matches: ${matchCount}, Win: ${win}`);
-            console.log(`Lives remaining: ${lives}`);
+            // console.log(`Inner Matrix: ${innerMatrix.join(', ')}`);
+            // console.log(`Outer Ring: ${outerRingSymbol}`);
+            // console.log(`Matches: ${matchCount}, Win: ${win}`);
+            // console.log(`Lives remaining: ${lives}`);
         }
 
-        console.log(`${JSON.stringify(result)}`);
+        // console.log(`${JSON.stringify(result)}`);
 
         return result;
     } catch (error) {
