@@ -437,7 +437,6 @@ function cascadeSymbols(gameInstance) {
 }
 export function checkForJackpot(gameInstance: SLPM) {
   const { settings, playerData } = gameInstance
-
   if (settings.jackpot.useJackpot) {
     var temp = findSymbol(specialIcons.jackpot, gameInstance);
     if (temp.length > 0) settings.jackpotWinSymbols.push(...temp);
