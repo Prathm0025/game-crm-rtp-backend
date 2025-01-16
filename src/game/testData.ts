@@ -321,7 +321,7 @@ export const gameData = [
         "isSpecialSymbol": true,
         "isFreeSpinMultiplier": false,
         "reelInstance": {
-          "0": 4,
+          "0": 40,
           "1": 4,
           "2": 4,
           "3": 4
@@ -340,7 +340,7 @@ export const gameData = [
           "0": 40,
           "1": 4,
           "2": 4,
-          "3": 4
+          "3": 4 
         },
         "multiplier": [],
         "description": "Sticky Bonus symbols stick to the reels for up to 9 spins, increasing the chances of activating the Hold the Jackpot Bonus. All Sticky symbols are locked in place while other symbols are spun."
@@ -353,8 +353,8 @@ export const gameData = [
         "isSpecialSymbol": false,
         "isFreeSpinMultiplier": false,
         "reelInstance": {
-          "0": 20,
-          "1": 20,
+          "0": 2,
+          "1": 2,
           "2": 2,
           "3": 2
         },
@@ -369,8 +369,8 @@ export const gameData = [
         "isSpecialSymbol": false,
         "isFreeSpinMultiplier": false,
         "reelInstance": {
-          "0": 10,
-          "1": 10,
+          "0": 1,
+          "1": 1,
           "2": 1,
           "3": 1
         },
@@ -442,6 +442,6 @@ export const gameData = [
         "description": "The MOON symbol can be drawn on the Moon Mystery symbol and awards the MOON Jackpot of 500x player's bet."
       }
     ]
-  }  
-  ]
-
+  }
+ 
+ ]
