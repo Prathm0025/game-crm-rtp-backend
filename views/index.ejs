@@ -84,13 +84,50 @@
     <label for="spins">Select Number of Spins:</label>
     <input type="text" id="spins" placeholder="Enter number of spins">
     <label for="instance">Select Number of Instances:</label>
-    <input type="text" id="instance" placeholder="Enter number of instances">
-    <label for="start_button">IDs:</label>
-    <textarea id="start_button" placeholder="Enter IDs" rows="12"></textarea>
-    <button>Start</button>
+    <input type="text" id="instance" placeholder="Enter gameId">
+    <label for="gameId">Select Game Id:</label>
+    <input type="text" id="gameId" placeholder="Enter gameId">
+    <label for="ids">IDs:</label>
+    <textarea id="ids" placeholder="Enter IDs (comma-separated)" rows="12"></textarea>
+    <button id="startButton">Start</button>
   </div>
   <div class="footer">
     <p>&copy; 2025 Underpin Services. All rights reserved.</p>
   </div>
+  <script>
+   document.getElementById("startButton").addEventListener("click", async () => {
+  const spins = document.getElementById("spins").value;
+  const instance = document.getElementById("instance").value;
+  const ids = document.getElementById("ids").value; 
+const gameId=document.getElementById("gameId").value
+  console.log({ spins, instance, ids,gameId }); 
+
+  try {
+    const response = await fetch("/open-pages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        spins,
+        instance,
+        ids,
+      }),
+    });
+
+    if (response.ok) {
+      const result = await response.text();
+      // alert("Success: " + result);
+    } else {
+      const error = await response.text();
+      alert("Error: " + error);
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    alert("An unexpected error occurred.");
+  }
+});
+
+  </script>
 </body>
 </html>
