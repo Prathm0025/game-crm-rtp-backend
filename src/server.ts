@@ -15,7 +15,6 @@ import { checkAdmin } from "./dashboard/middleware/checkAdmin";
 import payoutRoutes from "./dashboard/payouts/payoutRoutes";
 import { checkUser } from "./dashboard/middleware/checkUser";
 import toggleRoutes from "./dashboard/Toggle/ToggleRoutes";
-import openChromePages from "./chromeController"
 declare module "express-session" {
   interface Session {
     captcha?: string;
@@ -24,27 +23,6 @@ declare module "express-session" {
 
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-// Set EJS as the view engine
-app.set("view engine", "ejs");
-app.set("views", "./views");
-app.post("/open-pages", async (req: Request, res: Response) => {
-  const { ids } = req.body;
-  const idArray = ids.split(",").map((id: string) => id.trim());
-  try {
-    await openChromePages(idArray);
-    res.send("Chrome pages opened successfully!");
-  } catch (error) {
-    console.error("Error:", error);
-    res.status(500).send("An error occurred while opening Chrome pages.");
-  }
-});
-app.get('/testing/:id', (req, res) => {
-  const { id } = req.params;
-  res.render('testing', { id });
-});
-
 //Cloudinary configs
 app.use(express.json({ limit: "25mb" }));
 app.use(express.urlencoded({ limit: "25mb", extended: true }));
