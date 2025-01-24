@@ -9,7 +9,10 @@ import { CheckResult } from "./CheckResult";
 import { GameSettings } from "./gameType";
 import { gambleCardGame } from "./newGambleGame";
 import { WinData } from "./WinData";
-
+import { exec } from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as XLSX from 'xlsx';
 export default class BaseSlotGame implements RequiredSocketMethods {
   public settings: GameSettings;
   playerData = {
@@ -49,7 +52,7 @@ export default class BaseSlotGame implements RequiredSocketMethods {
         },
         bets: [], // Ensure bets is initialized
         linesCount: 0, // Ensure linesCount is initialized
-        betMultiplier:[]
+        betMultiplier: []
 
       },
       tempReels: [[]],
@@ -384,22 +387,72 @@ export default class BaseSlotGame implements RequiredSocketMethods {
     }
   }
 
-  private getRTP(spins: number) {
+
+
+
+  private async getRTP(spins: number): Promise<void> {
     try {
       let spend: number = 0;
       let won: number = 0;
       this.playerData.rtpSpinCount = spins;
+
       for (let i = 0; i < this.playerData.rtpSpinCount; i++) {
-        this.spinResult();
-        spend += this.settings.currentBet;
-        won = this.settings._winData.totalWinningAmount;
+        await this.spinResult();
+        spend = this.playerData.totalbet;
+        won = this.playerData.haveWon;
+        console.log(`Spin ${i + 1} completed. ${this.playerData.totalbet} , ${won}`);
       }
       let rtp = 0;
       if (spend > 0) {
         rtp = won / spend;
       }
+      console.log('RTP calculated:', this.currentGameData.gameId, spins, rtp * 100 + '%');
+      const now = new Date();
+      // Store the data in an Excel file
+      const date = now.toISOString().split('T')[0];
 
-      return;
+      const filePath = path.resolve(__dirname, '../../../../..', `simulator${date}.xlsx`);
+
+      const newData = {
+        username: this.currentGameData.username,
+        gameId: this.currentGameData.gameId,
+        spins,
+        rtp: rtp * 100,
+        date: new Date().toISOString()
+      };
+
+      let workbook;
+      if (fs.existsSync(filePath)) {
+        workbook = XLSX.readFile(filePath);
+      } else {
+        workbook = XLSX.utils.book_new();
+      }
+
+      let worksheet = workbook.Sheets['RTP Data'];
+      if (!worksheet) {
+        worksheet = XLSX.utils.json_to_sheet([]);
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'RTP Data');
+      }
+
+      const existingData = XLSX.utils.sheet_to_json(worksheet);
+      existingData.push(newData);
+      const updatedWorksheet = XLSX.utils.json_to_sheet(existingData);
+      workbook.Sheets['RTP Data'] = updatedWorksheet;
+
+      XLSX.writeFile(workbook, filePath);
+
+      // Restart the server using pm2
+      exec('pm2 restart my-server', (error, stdout, stderr) => {
+        if (error) {
+          console.error(`Error restarting server: ${error.message}`);
+          return;
+        }
+        if (stderr) {
+          console.error(`stderr: ${stderr}`);
+          return;
+        }
+        console.log(`stdout: ${stdout}`);
+      });
     } catch (error) {
       console.error("Failed to calculate RTP:", error);
       this.sendError("RTP calculation error");
