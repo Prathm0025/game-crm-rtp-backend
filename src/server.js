@@ -71,6 +71,11 @@ app.get("/captcha", (req, res, next) => __awaiter(void 0, void 0, void 0, functi
         next(error);
     }
 }));
+// Route to render an EJS template
+app.get("/template", (req, res) => {
+    const data = { title: "Welcome", message: "Hello,Welcome to Underpin Games Testing Environment!" };
+    res.render("index", data);
+});
 app.use("/api/company", companyRoutes_1.default);
 app.use("/api/users", userRoutes_1.default);
 app.use("/api/transactions", transactionRoutes_1.default);
