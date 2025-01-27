@@ -495,7 +495,7 @@ export function makeResultJson(gameInstance: SLFLC) {
       }
     };
     gameInstance.sendMessage('ResultData', sendData);
-    console.log(JSON.stringify(sendData));
+    console.log(JSON.stringify(sendData,null,2));
 
   } catch (error) {
     console.error("Error generating result JSON or sending message:", error);
