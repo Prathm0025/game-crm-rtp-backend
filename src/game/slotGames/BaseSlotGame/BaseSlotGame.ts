@@ -158,10 +158,6 @@ export default class BaseSlotGame implements RequiredSocketMethods {
         this.getRTP(response.data.spins);
         break;
 
-      case "checkMoolah":
-        this.checkforMoolah();
-        break;
-
       case "GambleInit":
         this.settings.gamble.resetGamble();
 
@@ -459,62 +455,7 @@ export default class BaseSlotGame implements RequiredSocketMethods {
     }
   }
 
-  public checkforMoolah() {
-    try {
-      this.settings.tempReels = this.settings.reels;
-
-      const lastWinData = this.settings._winData;
-
-      lastWinData.winningSymbols = combineUniqueSymbols(
-        removeRecurringIndexSymbols(lastWinData.winningSymbols)
-      );
-
-      const index = lastWinData.winningSymbols.map((str) => {
-        const index: { x; y } = str.split(",").map(Number);
-        return index;
-      });
-
-      let matrix = [];
-      matrix = this.settings.resultSymbolMatrix;
-
-      index.forEach((element) => {
-        matrix[element[1]][element[0]] = null;
-      });
-
-      const movedArray = cascadeMoveTowardsNull(matrix);
-
-      let transposed = transposeMatrix(movedArray);
-      let iconsToFill: number[][] = [];
-      for (let i = 0; i < transposed.length; i++) {
-        let row = [];
-        for (let j = 0; j < transposed[i].length; j++) {
-          if (transposed[i][j] == null) {
-            let index =
-              (this.settings.resultReelIndex[i] + j + 2) %
-              this.settings.tempReels[i].length;
-            transposed[i][j] = this.settings.tempReels[i][index];
-            row.unshift(this.settings.tempReels[i][index]);
-            this.settings.tempReels[i].splice(j, 1);
-          }
-        }
-        if (row.length > 0) iconsToFill.push(row);
-      }
-
-      matrix = transposeMatrix(transposed);
-
-      this.settings.resultSymbolMatrix = matrix;
-
-      // tempGame.
-      const result = new CheckResult(this);
-      result.makeResultJson(ResultType.moolah, iconsToFill);
-      this.settings._winData.winningSymbols = [];
-      this.settings.tempReels = [];
-    } catch (error) {
-      console.error("Failed to check for Moolah:", error);
-      this.sendError("Moolah check error");
-      return error;
-    }
-  }
+ 
 
 
 }
