@@ -72,7 +72,8 @@ class BonusGame {
                 return amount;
             }
         }
-        else if (this.parent.settings.bonus.start && this.parent.settings.currentGamedata.bonus.type == gameUtils_1.bonusGameType.layerTap) {
+        if (this.parent.settings.bonus.start && this.parent.settings.currentGamedata.bonus.type == gameUtils_1.bonusGameType.layerTap) {
+            console.log('Condition met for layerTap bonus type');
             let totalWinAmount = 0;
             const bonusData = this.parent.settings.currentGamedata.bonus;
             var selectedIndex = [];
@@ -82,7 +83,7 @@ class BonusGame {
                 selectedIndex[layerIndex] = this.getRandomPayoutIndex(layerPayOutProb);
                 const selectedPayOut = layerPayOuts[selectedIndex[layerIndex]];
                 if (selectedPayOut === 0) {
-                    // console.log(`Payout is 0 at layer ${layerIndex}, exiting...`);
+                    console.log(`Payout is 0 at layer ${layerIndex}, exiting...`);
                     break;
                 }
                 totalWinAmount += this.parent.settings.BetPerLines * selectedPayOut;

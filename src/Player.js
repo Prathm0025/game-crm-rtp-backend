@@ -233,7 +233,7 @@ class PlayerSocket {
             this.initializeGameSocket(socket);
             const credits = yield (0, gameUtils_1.getPlayerCredits)(this.playerData.username);
             this.playerData.credits = typeof credits === "number" ? credits : 0;
-            this.sendMessage("connected-With", this.playerData.username, true);
+            // this.sendMessage("connected-With", this.playerData.username, true);
         });
     }
     initGameData() {
