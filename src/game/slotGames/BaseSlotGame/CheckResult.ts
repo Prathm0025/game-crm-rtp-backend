@@ -74,9 +74,7 @@ export class CheckResult {
         let temp = this.findSymbol(specialIcons.bonus);
 
 
-
-        if (this.currentGame.settings.bonus.symbolCount <= temp.length) {
-
+        if (temp.length >= this.currentGame.settings.bonus.symbolCount) {
             this.currentGame.settings._winData.winningSymbols.push(temp);
             this.currentGame.settings.bonus.start = true;
             this.currentGame.settings.noOfBonus++;
