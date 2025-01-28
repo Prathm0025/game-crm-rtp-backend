@@ -95,7 +95,8 @@ export class BonusGame {
       }
     }
 
-    else if (this.parent.settings.bonus.start && this.parent.settings.currentGamedata.bonus.type == bonusGameType.layerTap) {
+    if (this.parent.settings.bonus.start && this.parent.settings.currentGamedata.bonus.type == bonusGameType.layerTap) {
+      console.log('Condition met for layerTap bonus type');
       let totalWinAmount = 0;
       const bonusData = this.parent.settings.currentGamedata.bonus;
       var selectedIndex = [];
@@ -105,7 +106,7 @@ export class BonusGame {
         selectedIndex[layerIndex] = this.getRandomPayoutIndex(layerPayOutProb);
         const selectedPayOut = layerPayOuts[selectedIndex[layerIndex]];
         if (selectedPayOut === 0) {
-          // console.log(`Payout is 0 at layer ${layerIndex}, exiting...`);
+          console.log(`Payout is 0 at layer ${layerIndex}, exiting...`);
           break;
         }
         totalWinAmount += this.parent.settings.BetPerLines * selectedPayOut;
@@ -208,12 +209,12 @@ export function runMiniSpin(bonus: any, symCnt: any, betPerLines: number): any {
     //5 - 3
     let lives = 0
     // let lives = bonus.noOfItem > 5 ? 3 : bonus.noOfItem - ((bonus.winningValue).length + 1);
-    
-    if(bonus.noOfItem >= symCnt+2){
+
+    if (bonus.noOfItem >= symCnt + 2) {
       lives = bonus.winningValue[2]
-    }else if(bonus.noOfItem == symCnt+1){
+    } else if (bonus.noOfItem == symCnt + 1) {
       lives = bonus.winningValue[1]
-    }else if(bonus.noOfItem == symCnt){
+    } else if (bonus.noOfItem == symCnt) {
       lives = bonus.winningValue[0]
     }
     let totalWinAmount = 0;

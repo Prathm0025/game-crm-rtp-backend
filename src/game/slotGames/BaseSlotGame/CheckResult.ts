@@ -93,15 +93,18 @@ export class CheckResult {
             if (this.currentGame.settings.currentGamedata.bonus.type == bonusGameType.miniSpin) {
                 const betPerLines = this.currentGame.settings.BetPerLines;
                 this.currentGame.settings.currentGamedata.bonus.noOfItem = temp.length;
-        
-                const result = runMiniSpin(this.currentGame.settings.currentGamedata.bonus, this.currentGame.settings.bonus.symbolCount , betPerLines);
+
+                const result = runMiniSpin(this.currentGame.settings.currentGamedata.bonus, this.currentGame.settings.bonus.symbolCount, betPerLines);
                 this.bonusResult = result
                 this.currentGame.settings._winData.totalWinningAmount += result.totalWinAmount;
             }
             if (this.currentGame.settings.currentGamedata.bonus.type == bonusGameType.layerTap) {
-                const result = this.currentGame.settings.bonus.game.setRandomStopIndex(this.bonusResult)
+                console.log('TRIGRED')
+                const result = this.currentGame.settings.bonus.game.setRandomStopIndex(this.bonusResult);
+                console.log(result)
                 this.currentGame.settings._winData.totalWinningAmount += result.amount;
                 this.bonusResult = result.selectedIndex
+                console.log(this.bonusResult, 'this.bonusResult')
             }
 
         }
@@ -360,7 +363,7 @@ export class CheckResult {
 
             }
         };
-    
+
         // this.currentGame.updateDatabase()
         if (isResult == ResultType.normal)
             this.currentGame.sendMessage("ResultData", ResultData);

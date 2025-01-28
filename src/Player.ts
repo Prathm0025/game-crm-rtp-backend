@@ -300,7 +300,7 @@ export default class PlayerSocket {
     this.initializeGameSocket(socket);
     const credits = await getPlayerCredits(this.playerData.username);
     this.playerData.credits = typeof credits === "number" ? credits : 0;
-    this.sendMessage("connected-With", this.playerData.username, true);
+    // this.sendMessage("connected-With", this.playerData.username, true);
   }
 
   private async initGameData() {
