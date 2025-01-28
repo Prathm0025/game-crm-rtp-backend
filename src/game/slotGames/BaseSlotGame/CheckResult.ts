@@ -74,9 +74,7 @@ export class CheckResult {
         let temp = this.findSymbol(specialIcons.bonus);
 
 
-
-        if (this.currentGame.settings.bonus.symbolCount <= temp.length) {
-
+        if (temp.length >= this.currentGame.settings.bonus.symbolCount) {
             this.currentGame.settings._winData.winningSymbols.push(temp);
             this.currentGame.settings.bonus.start = true;
             this.currentGame.settings.noOfBonus++;
@@ -99,12 +97,12 @@ export class CheckResult {
                 this.currentGame.settings._winData.totalWinningAmount += result.totalWinAmount;
             }
             if (this.currentGame.settings.currentGamedata.bonus.type == bonusGameType.layerTap) {
-                console.log('TRIGRED')
+                // console.log('TRIGRED')
                 const result = this.currentGame.settings.bonus.game.setRandomStopIndex(this.bonusResult);
                 console.log(result)
                 this.currentGame.settings._winData.totalWinningAmount += result.amount;
                 this.bonusResult = result.selectedIndex
-                console.log(this.bonusResult, 'this.bonusResult')
+                // console.log(this.bonusResult, 'this.bonusResult')
             }
 
         }
