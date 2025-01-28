@@ -44,7 +44,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const sessionManager_1 = require("../../../dashboard/session/sessionManager");
 const gameUtils_1 = require("../../Utils/gameUtils");
-const SlotUtils_1 = require("../../Utils/SlotUtils");
 const RandomResultGenerator_1 = require("../RandomResultGenerator");
 const BonusGame_1 = require("./BonusGame");
 const CheckResult_1 = require("./CheckResult");
@@ -188,9 +187,6 @@ class BaseSlotGame {
                 this.settings.currentBet =
                     this.settings.currentGamedata.bets[response.data.currentBet] * this.settings.currentLines;
                 this.getRTP(response.data.spins);
-                break;
-            case "checkMoolah":
-                this.checkforMoolah();
                 break;
             case "GambleInit":
                 this.settings.gamble.resetGamble();
@@ -430,51 +426,6 @@ class BaseSlotGame {
                 this.sendError("RTP calculation error");
             }
         });
-    }
-    checkforMoolah() {
-        try {
-            this.settings.tempReels = this.settings.reels;
-            const lastWinData = this.settings._winData;
-            lastWinData.winningSymbols = (0, SlotUtils_1.combineUniqueSymbols)((0, SlotUtils_1.removeRecurringIndexSymbols)(lastWinData.winningSymbols));
-            const index = lastWinData.winningSymbols.map((str) => {
-                const index = str.split(",").map(Number);
-                return index;
-            });
-            let matrix = [];
-            matrix = this.settings.resultSymbolMatrix;
-            index.forEach((element) => {
-                matrix[element[1]][element[0]] = null;
-            });
-            const movedArray = (0, SlotUtils_1.cascadeMoveTowardsNull)(matrix);
-            let transposed = (0, SlotUtils_1.transposeMatrix)(movedArray);
-            let iconsToFill = [];
-            for (let i = 0; i < transposed.length; i++) {
-                let row = [];
-                for (let j = 0; j < transposed[i].length; j++) {
-                    if (transposed[i][j] == null) {
-                        let index = (this.settings.resultReelIndex[i] + j + 2) %
-                            this.settings.tempReels[i].length;
-                        transposed[i][j] = this.settings.tempReels[i][index];
-                        row.unshift(this.settings.tempReels[i][index]);
-                        this.settings.tempReels[i].splice(j, 1);
-                    }
-                }
-                if (row.length > 0)
-                    iconsToFill.push(row);
-            }
-            matrix = (0, SlotUtils_1.transposeMatrix)(transposed);
-            this.settings.resultSymbolMatrix = matrix;
-            // tempGame.
-            const result = new CheckResult_1.CheckResult(this);
-            result.makeResultJson(gameUtils_1.ResultType.moolah, iconsToFill);
-            this.settings._winData.winningSymbols = [];
-            this.settings.tempReels = [];
-        }
-        catch (error) {
-            console.error("Failed to check for Moolah:", error);
-            this.sendError("Moolah check error");
-            return error;
-        }
     }
 }
 exports.default = BaseSlotGame;
