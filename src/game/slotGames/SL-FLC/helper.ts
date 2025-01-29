@@ -349,7 +349,7 @@ export function checkForWin(gameInstance: SLFLC) {
         const LTRResult = checkLineSymbols(firstSymbolLTR, line, gameInstance, 'LTR');
         if (LTRResult.isWinningLine && LTRResult.matchCount >= 3) {
 
-          //FIX: add freespin multiplier feat
+          //NOTE: add freespin multiplier feat
           let symbolMultiplierLTR = accessData(firstSymbolLTR, LTRResult.matchCount, gameInstance);
           if (symbolMultiplierLTR > 0) {
             if (settings.freespinCount > -1) {
@@ -451,8 +451,9 @@ export function sendInitData(gameInstance: SLFLC) {
   // gameInstance.settings.reels = reels;
   const dataToSend = {
     GameData: {
-      Reel: gameInstance.settings.reels,
-      bonusReel: gameInstance.settings.bonusReels,
+      // Reel: gameInstance.settings.reels,
+      // bonusReel: gameInstance.settings.bonusReels,
+      bonusTrigger: gameInstance.settings.scatter.bonusTrigger,
       linesApiData: gameInstance.settings.currentGamedata.linesApiData,
       Bets: gameInstance.settings.currentGamedata.bets,
       freespinOptions: gameInstance.settings.freespin.options,
