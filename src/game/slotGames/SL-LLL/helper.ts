@@ -366,7 +366,7 @@ export function makeResultJson(gameInstance: SLLLL) {
     const credits = gameInstance.getPlayerData().credits;
     const Balance = credits.toFixed(5);
     const sendData = {
-      gameData: {
+      GameData: {
         resultSymbols: settings.resultSymbolMatrix,
         freeSpin: {
           isFreeSpin: settings.freeSpin.isFreeSpin,
