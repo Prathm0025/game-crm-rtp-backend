@@ -32,6 +32,7 @@ export interface SLSRSETTINGS {
     freeSpinTemp: number;
     scatterWinningSymbols: any[];
     trashForCashWinningSymbols: any[];
+    trashForCashAmount: number;
     freeSpin: {
         symbolID: string,
         freeSpinMuiltiplier: any[],
