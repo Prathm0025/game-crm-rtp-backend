@@ -72,7 +72,7 @@ class GameController {
                                 { $match: { name: platform } },
                                 { $unwind: "$games" },
                                 { $match: { "games._id": { $in: favoriteGameIds }, "games.status": { $ne: "inactive" } } },
-                                { $sort: { "games.createdAt": -1 } },
+                                { $sort: { "games.order": 1 } },
                                 {
                                     $group: {
                                         _id: "$_id",
@@ -90,7 +90,7 @@ class GameController {
                             const platformDoc = yield gameModel_1.Platform.aggregate([
                                 { $match: { name: platform } },
                                 { $unwind: "$games" },
-                                { $sort: { "games.createdAt": -1 } },
+                                { $sort: { "games.order": 1 } },
                                 { $match: Object.assign({ "games.status": { $ne: "inactive" } }, (category !== "all" ? { "games.category": category } : {})) },
                                 {
                                     $group: {
@@ -108,13 +108,13 @@ class GameController {
                             const others = platformDoc[0].games;
                             return res.status(200).json({ featured, others });
                         }
-                    case "company":
+                    default:
                         const platformDoc = yield gameModel_1.Platform.aggregate([
                             {
                                 $match: category !== "all" ? { name: category } : {},
                             },
                             { $unwind: "$games" },
-                            { $sort: { "games.createdAt": -1 } },
+                            { $sort: { "games.order": 1 } },
                             {
                                 $group: {
                                     _id: "$_id",
@@ -125,11 +125,10 @@ class GameController {
                         // Flatten the array of games from multiple platforms if category is "all"
                         const allGames = platformDoc.reduce((acc, platform) => acc.concat(platform.games), []);
                         return res.status(200).json(allGames);
-                    default:
-                        return next((0, http_errors_1.default)(403, "Access denied: You don't have permission to access this resource."));
                 }
             }
             catch (error) {
+                console.error("Error fetching games:", error);
                 next(error);
             }
         });
@@ -142,7 +141,7 @@ class GameController {
                 const { username, role } = _req.user;
                 const { gameId: slug } = req.params;
                 const currentPlayer = yield userModel_1.Player.aggregate([
-                    { $match: { username: username, status: "active" } },
+                    { $match: { username: username, role: role, status: "active" } },
                     { $limit: 1 }
                 ]);
                 if (!currentPlayer[0]) {
@@ -206,12 +205,7 @@ class GameController {
             session.startTransaction();
             let thumbnailUploadResult;
             try {
-                const _req = req;
-                const { role } = _req.user;
-                if (role != "company") {
-                    throw (0, http_errors_1.default)(401, "Access denied: You don't have permission to add games");
-                }
-                const { name, url, type, category, status, tagName, slug, platform: platformName, } = req.body;
+                const { name, url, type, category, status, tagName, slug, platform: platformName, description, } = req.body;
                 if (!name ||
                     !url ||
                     !type ||
@@ -252,6 +246,7 @@ class GameController {
                     });
                 }
                 catch (uploadError) {
+                    console.error("Error uploading thumbnail:", uploadError);
                     throw (0, http_errors_1.default)(500, "Failed to upload thumbnail");
                 }
                 // Handle file for payout
@@ -298,7 +293,9 @@ class GameController {
                     status,
                     tagName,
                     slug,
-                    payout: contentId
+                    payout: contentId,
+                    description,
+                    order: platform.games.length + 1 // Set the order field
                 };
                 platform.games.push(newGame);
                 yield platform.save({ session });
@@ -309,6 +306,7 @@ class GameController {
             catch (error) {
                 yield session.abortTransaction();
                 session.endSession();
+                console.error("Error adding game:", error);
                 // If thumbnail was uploaded but an error occurred afterward, delete the thumbnail
                 if (thumbnailUploadResult && thumbnailUploadResult.public_id) {
                     cloudinary_1.default.v2.uploader.destroy(thumbnailUploadResult.public_id, (destroyError, result) => {
@@ -326,11 +324,6 @@ class GameController {
     addPlatform(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const _req = req;
-                const { role } = _req.user;
-                if (role != "company") {
-                    throw (0, http_errors_1.default)(401, "Access denied: You don't have permission to add games");
-                }
                 const { name } = req.body;
                 if (!name) {
                     throw (0, http_errors_1.default)(400, "Platform name is required");
@@ -353,11 +346,6 @@ class GameController {
     getPlatforms(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const _req = req;
-                const { role } = _req.user;
-                if (role != "company") {
-                    throw (0, http_errors_1.default)(401, "Access denied: You don't have permission to add games");
-                }
                 const platforms = yield gameModel_1.Platform.find().select("name");
                 res.status(200).json(platforms);
             }
@@ -375,18 +363,13 @@ class GameController {
             session.startTransaction();
             let thumbnailUploadResult;
             try {
-                const _req = req;
-                const { username, role } = _req.user;
                 const { gameId } = req.params;
-                const _c = req.body, { status, slug, platformName } = _c, updateFields = __rest(_c, ["status", "slug", "platformName"]);
+                const _c = req.body, { status, slug, platformName, description } = _c, updateFields = __rest(_c, ["status", "slug", "platformName", "description"]);
                 if (!gameId) {
                     throw (0, http_errors_1.default)(400, "Game ID is required");
                 }
                 if (!mongoose_1.default.Types.ObjectId.isValid(gameId)) {
                     throw (0, http_errors_1.default)(400, "Invalid Game ID format");
-                }
-                if (role !== "company") {
-                    throw (0, http_errors_1.default)(401, "Access denied: You don't have permission to update games");
                 }
                 const existingGame = yield gameModel_1.Platform.aggregate([
                     { $match: { name: platformName } },
@@ -424,6 +407,9 @@ class GameController {
                 }
                 if (slug) {
                     fieldsToUpdate.slug = slug;
+                }
+                if (description) {
+                    fieldsToUpdate.description = description;
                 }
                 // Handle file for payout update
                 if ((_a = req.files) === null || _a === void 0 ? void 0 : _a.payoutFile) {
@@ -501,8 +487,6 @@ class GameController {
             const session = yield mongoose_1.default.startSession();
             session.startTransaction();
             try {
-                const _req = req;
-                const { role } = _req.user;
                 const { gameId } = req.params;
                 const { platformName } = req.query;
                 if (!gameId) {
@@ -510,9 +494,6 @@ class GameController {
                 }
                 if (!mongoose_1.default.Types.ObjectId.isValid(gameId)) {
                     throw (0, http_errors_1.default)(400, "Invalid Game ID format");
-                }
-                if (role !== "company") {
-                    throw (0, http_errors_1.default)(401, "Access denied: You don't have permission to delete games");
                 }
                 const platform = yield gameModel_1.Platform.findOne({ name: platformName });
                 if (!platform) {
@@ -562,6 +543,8 @@ class GameController {
     addFavouriteGame(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                const _req = req;
+                const { username } = _req.user;
                 const { playerId } = req.params;
                 const { gameId, type } = req.body;
                 if (!playerId || !gameId) {
@@ -576,6 +559,9 @@ class GameController {
                 const player = yield userModel_1.Player.findById(playerId);
                 if (!player) {
                     throw (0, http_errors_1.default)(404, "Player not found");
+                }
+                if (player.username !== username) {
+                    throw (0, http_errors_1.default)(403, "You are not authorized to perform this action");
                 }
                 let message;
                 let updatedPlayer;
@@ -595,6 +581,37 @@ class GameController {
             }
             catch (error) {
                 next(error);
+            }
+        });
+    }
+    // PUT: Update Game Order
+    updateGameOrder(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const session = yield mongoose_1.default.startSession();
+            session.startTransaction();
+            try {
+                const { platformName, gameOrders } = req.body; // Expecting platformName and an array of { gameId, order }
+                for (const { gameId, order } of gameOrders) {
+                    const platform = yield gameModel_1.Platform.findOne({ name: platformName, "games._id": gameId });
+                    if (!platform) {
+                        throw (0, http_errors_1.default)(404, `Game with ID ${gameId} not found in platform ${platformName}`);
+                    }
+                    const game = platform.games.find((game) => game._id.equals(gameId));
+                    if (game) {
+                        game.order = order;
+                    }
+                    yield platform.save({ session });
+                }
+                yield session.commitTransaction();
+                res.status(200).json({ message: "Game orders updated successfully" });
+            }
+            catch (error) {
+                yield session.abortTransaction();
+                console.error("Error updating game order:", error);
+                next(error);
+            }
+            finally {
+                session.endSession();
             }
         });
     }

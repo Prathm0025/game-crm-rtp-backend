@@ -18,6 +18,7 @@ const transactionModel_1 = __importDefault(require("./transactionModel"));
 const http_errors_1 = __importDefault(require("http-errors"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const transactionService_1 = __importDefault(require("./transactionService"));
+const permissions_1 = require("../../utils/permissions");
 class TransactionController {
     constructor() {
         this.transactionService = new transactionService_1.default();
@@ -53,9 +54,8 @@ class TransactionController {
                 const limit = parseInt(req.query.limit) || 10;
                 const search = req.query.search;
                 const filter = req.query.filter || "";
-                const sortOrder = req.query.sort === "desc" ? -1 : 1; // Default to ascending order
-                console.log("getTransactions : ");
-                console.log(username + " : " + req.query.sort);
+                const sortOrder = req.query.sort === "desc" ? -1 : 1;
+                const typeQuery = req.query.type;
                 let parsedData = {
                     role: "",
                     status: "",
@@ -76,33 +76,62 @@ class TransactionController {
                     }
                 }
                 let query = {};
-                if (type) {
-                    query.type = type;
+                if (role !== 'admin' || !typeQuery) {
+                    query.$and = [
+                        {
+                            $or: [{ debtor: username }, { creditor: username }],
+                        },
+                    ];
+                }
+                else {
+                    query.$and = [];
+                }
+                if (typeQuery) {
+                    query.$and.push({ type: typeQuery });
+                }
+                else if (type) {
+                    query.$and.push({ type: type });
                 }
                 if (filter) {
-                    query.$or = [
-                        { creditor: { $regex: filter, $options: "i" } },
-                        { debtor: { $regex: filter, $options: "i" } },
-                    ];
+                    query.$and.push({
+                        $or: [
+                            { creditor: { $regex: filter, $options: "i" } },
+                            { debtor: { $regex: filter, $options: "i" } },
+                        ],
+                    });
                 }
                 if (updatedAt) {
                     const fromDate = new Date(parsedData.updatedAt.From);
                     const toDate = new Date(parsedData.updatedAt.To) || new Date();
                     fromDate.setHours(0, 0, 0, 0);
                     toDate.setHours(23, 59, 59, 999);
-                    query.updatedAt = {
-                        $gte: fromDate,
-                        $lte: toDate,
-                    };
+                    query.$and.push({
+                        updatedAt: {
+                            $gte: fromDate,
+                            $lte: toDate,
+                        },
+                    });
                 }
                 if (amount) {
-                    query.amount = {
-                        $gte: parsedData.amount.From,
-                        $lte: parsedData.amount.To,
-                    };
+                    query.$and.push({
+                        amount: {
+                            $gte: parsedData.amount.From,
+                            $lte: parsedData.amount.To,
+                        },
+                    });
                 }
-                const { transactions, totalTransactions, totalPages, currentPage, outOfRange, } = yield this.transactionService.getTransactions(username, page, limit, query, "createdAt", sortOrder);
-                if (outOfRange) {
+                const totalTransactions = yield transactionModel_1.default.countDocuments(query);
+                const totalPages = Math.ceil(totalTransactions / limit);
+                if (totalTransactions === 0) {
+                    return res.status(200).json({
+                        transactions: [],
+                        totalTransactions: 0,
+                        totalPages: 0,
+                        currentPage: 0,
+                        outOfRange: false,
+                    });
+                }
+                if (page > totalPages && totalPages !== 0) {
                     return res.status(400).json({
                         message: `Page number ${page} is out of range. There are only ${totalPages} pages available.`,
                         totalTransactions,
@@ -111,10 +140,14 @@ class TransactionController {
                         transactions: [],
                     });
                 }
+                const transactions = yield transactionModel_1.default.find(query)
+                    .sort({ createdAt: sortOrder })
+                    .skip((page - 1) * limit)
+                    .limit(limit);
                 res.status(200).json({
                     totalTransactions,
                     totalPages,
-                    currentPage,
+                    currentPage: page,
                     transactions,
                 });
             }
@@ -137,7 +170,6 @@ class TransactionController {
                 const limit = parseInt(req.query.limit) || 10;
                 const sortOrder = req.query.sort === "desc" ? -1 : 1; // Default to ascending order
                 console.log("getTransactionsBySubId : ");
-                console.log(username + " : " + req.query.sort);
                 const user = yield userModel_1.User.findOne({ username });
                 const subordinate = (yield userModel_1.User.findOne({ _id: subordinateId })) ||
                     (yield userModel_1.Player.findOne({ _id: subordinateId }));
@@ -148,7 +180,7 @@ class TransactionController {
                     throw (0, http_errors_1.default)(404, "User not found");
                 }
                 let query = {};
-                if (user.role === "company" ||
+                if (user.role === "supermaster" ||
                     user.subordinates.includes(new mongoose_1.default.Types.ObjectId(subordinateId))) {
                     const { transactions, totalTransactions, totalPages, currentPage, outOfRange, } = yield this.transactionService.getTransactions(subordinate.username, page, limit, query, "createdAt", sortOrder);
                     if (outOfRange) {
@@ -182,9 +214,7 @@ class TransactionController {
             try {
                 const _req = req;
                 const { username, role } = _req.user;
-                if (role != "company") {
-                    throw (0, http_errors_1.default)(403, "Access denied. Only users with the role 'company' can access this resource.");
-                }
+                const currentUser = yield userModel_1.User.findOne({ username: username, role: role });
                 const page = parseInt(req.query.page) || 1;
                 const limit = parseInt(req.query.limit) || 10;
                 const search = req.query.search;
@@ -240,6 +270,14 @@ class TransactionController {
                         $lte: parsedData.amount.To,
                     };
                 }
+                // If the user is not an admin, only return transactions that involve the user or their subordinates
+                if (!(0, permissions_1.isAdmin)(currentUser)) {
+                    const allSubordinateIds = yield this.getAllSubordinateIds(currentUser._id, currentUser.role);
+                    query.$or = [
+                        { creditor: { $in: [currentUser.username, ...allSubordinateIds] } },
+                        { debtor: { $in: [currentUser.username, ...allSubordinateIds] } },
+                    ];
+                }
                 const totalTransactions = yield transactionModel_1.default.countDocuments(query);
                 const totalPages = Math.ceil(totalTransactions / limit);
                 // Check if the requested page is out of range
@@ -262,31 +300,10 @@ class TransactionController {
                     currentPage: page,
                     transactions,
                 });
-                // const skip = (page - 1) * limit;
-                // const totalTransactions = await Transaction.countDocuments(query);
-                // const totalPages = Math.ceil(totalTransactions / limit);
-                // // Check if the requested page is out of range
-                // if (page > totalPages && totalPages !== 0) {
-                //   return res.status(400).json({
-                //     message: `Page number ${page} is out of range. There are only ${totalPages} pages available.`,
-                //     totalTransactions,
-                //     totalPages,
-                //     currentPage: page,
-                //     transactions: [],
-                //   });
-                // }
-                // const transactions = await Transaction.find(query)
-                //   .skip(skip)
-                //   .limit(limit);
-                // res.status(200).json({
-                //   totalTransactions,
-                //   totalPages,
-                //   currentPage: page,
-                //   transactions,
-                // });
             }
             catch (error) {
-                console.error(`Error fetching transactions by client ID: ${error.message}`);
+                console.error(`Error fetching all transactions by client ID: ${error}`);
+                console.log(error);
                 next(error);
             }
         });
@@ -324,6 +341,34 @@ class TransactionController {
                 console.error(`Error deleting transaction: ${error.message}`);
                 next(error);
             }
+        });
+    }
+    getAllSubordinateIds(userId, role) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let allSubordinateIds = [];
+            if (role === "store") {
+                // Fetch subordinates from the Player collection
+                const directSubordinates = yield userModel_1.Player.find({ createdBy: userId }, { _id: 1 });
+                const directSubordinateIds = directSubordinates.map(sub => sub._id);
+                allSubordinateIds = [...directSubordinateIds];
+            }
+            else {
+                // Fetch subordinates from the User collection
+                const directSubordinates = yield userModel_1.User.find({ createdBy: userId }, { _id: 1, role: 1 });
+                const directSubordinateIds = directSubordinates.map(sub => sub._id);
+                allSubordinateIds = [...directSubordinateIds];
+                // If the role is company, also fetch subordinates from the Player collection
+                if (role === "supermaster") {
+                    const directPlayerSubordinates = yield userModel_1.Player.find({ createdBy: userId }, { _id: 1 });
+                    const directPlayerSubordinateIds = directPlayerSubordinates.map(sub => sub._id);
+                    allSubordinateIds = [...allSubordinateIds, ...directPlayerSubordinateIds];
+                }
+                for (const sub of directSubordinates) {
+                    const subSubordinateIds = yield this.getAllSubordinateIds(sub._id, sub.role);
+                    allSubordinateIds = [...allSubordinateIds, ...subSubordinateIds];
+                }
+            }
+            return allSubordinateIds;
         });
     }
 }

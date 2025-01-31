@@ -33,14 +33,18 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Player = exports.User = void 0;
+exports.Player = exports.User = exports.PlayerSchema = exports.UserSchema = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
-const UserSchema = new mongoose_1.Schema({
+exports.UserSchema = new mongoose_1.Schema({
     name: { type: String, required: true },
     username: { type: String, required: true, unique: true },
     status: { type: String, default: "active" },
     password: { type: String, required: true },
-    role: { type: String, required: true },
+    role: {
+        type: String,
+        required: true,
+        enum: ["admin", "supermaster", "master", "distributor", "subdistributor", "store"]
+    },
     subordinates: [
         { type: mongoose_1.default.Types.ObjectId, refPath: "subordinateModel" },
     ],
@@ -52,9 +56,10 @@ const UserSchema = new mongoose_1.Schema({
     credits: { type: Number, required: true },
     createdBy: { type: mongoose_1.Types.ObjectId, ref: "User", default: null },
 }, { timestamps: true });
-UserSchema.virtual("subordinateModel").get(function () {
+exports.UserSchema.virtual("subordinateModel").get(function () {
     const rolesHierarchy = {
-        company: "User",
+        admin: "User",
+        supermaster: "User",
         master: "User",
         distributor: "User",
         subdistributor: "User",
@@ -62,7 +67,7 @@ UserSchema.virtual("subordinateModel").get(function () {
     };
     return rolesHierarchy[this.role];
 });
-const PlayerSchema = new mongoose_1.Schema({
+exports.PlayerSchema = new mongoose_1.Schema({
     username: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     role: { type: String, default: "player", immutable: true },
@@ -76,7 +81,7 @@ const PlayerSchema = new mongoose_1.Schema({
     transactions: [{ type: mongoose_1.default.Types.ObjectId, ref: "Transaction" }],
     createdBy: { type: mongoose_1.Types.ObjectId, ref: "User", default: null },
 }, { timestamps: true });
-const User = mongoose_1.default.model("User", UserSchema);
+const User = mongoose_1.default.model("User", exports.UserSchema);
 exports.User = User;
-const Player = mongoose_1.default.model("Player", PlayerSchema);
+const Player = mongoose_1.default.model("Player", exports.PlayerSchema);
 exports.Player = Player;

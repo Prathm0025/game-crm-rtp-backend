@@ -15,6 +15,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getManagerName = exports.getSubordinateModel = exports.uploadImage = exports.updateCredits = exports.updatePassword = exports.updateStatus = exports.eventType = exports.MESSAGEID = exports.rolesHierarchy = void 0;
 exports.formatDate = formatDate;
 exports.precisionRound = precisionRound;
+exports.getAllSubordinateIds = getAllSubordinateIds;
+exports.getAllPlayerSubordinateIds = getAllPlayerSubordinateIds;
 const http_errors_1 = __importDefault(require("http-errors"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const transactionController_1 = require("../dashboard/transactions/transactionController");
@@ -40,7 +42,7 @@ function formatDate(isoString) {
     return `${formattedDate} at ${formattedTime}`;
 }
 exports.rolesHierarchy = {
-    company: ["master", "distributor", "subdistributor", "store", "player"],
+    supermaster: ["master", "distributor", "subdistributor", "store", "player"],
     master: ["distributor"],
     distributor: ["subdistributor"],
     subdistributor: ["store"],
@@ -169,7 +171,7 @@ const uploadImage = (image) => {
 exports.uploadImage = uploadImage;
 const getSubordinateModel = (role) => {
     const rolesHierarchy = {
-        company: "User",
+        supermaster: "User",
         master: "User",
         distributor: "User",
         subdistributor: "User",
@@ -205,4 +207,59 @@ exports.getManagerName = getManagerName;
 function precisionRound(number, precision) {
     var factor = Math.pow(10, precision);
     return Math.round(number * factor) / factor;
+}
+function getAllSubordinateIds(userId, role) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let allSubordinateIds = [];
+        if (role === "store") {
+            // Fetch subordinates from the Player collection
+            const directSubordinates = yield userModel_1.Player.find({ createdBy: userId }, { _id: 1 });
+            const directSubordinateIds = directSubordinates.map(sub => sub._id);
+            allSubordinateIds = [...directSubordinateIds];
+        }
+        else {
+            // Fetch subordinates from the User collection
+            const directSubordinates = yield userModel_1.User.find({ createdBy: userId }, { _id: 1, role: 1 });
+            const directSubordinateIds = directSubordinates.map(sub => sub._id);
+            allSubordinateIds = [...directSubordinateIds];
+            // If the role is company, also fetch subordinates from the Player collection
+            if (role === "supermaster") {
+                const directPlayerSubordinates = yield userModel_1.Player.find({ createdBy: userId }, { _id: 1 });
+                const directPlayerSubordinateIds = directPlayerSubordinates.map(sub => sub._id);
+                allSubordinateIds = [...allSubordinateIds, ...directPlayerSubordinateIds];
+            }
+            for (const sub of directSubordinates) {
+                const subSubordinateIds = yield this.getAllSubordinateIds(sub._id, sub.role);
+                allSubordinateIds = [...allSubordinateIds, ...subSubordinateIds];
+            }
+        }
+        return allSubordinateIds;
+    });
+}
+function getAllPlayerSubordinateIds(userId, role) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let allPlayerSubordinateIds = [];
+        if (role === "store") {
+            // Fetch subordinates from the Player collection
+            const directSubordinates = yield userModel_1.Player.find({ createdBy: userId }, { _id: 1 });
+            const directSubordinateIds = directSubordinates.map(sub => sub._id);
+            allPlayerSubordinateIds = [...directSubordinateIds];
+        }
+        else {
+            // Fetch subordinates from the User collection
+            const directSubordinates = yield userModel_1.User.find({ createdBy: userId }, { _id: 1, role: 1 });
+            const directSubordinateIds = directSubordinates.map(sub => sub._id);
+            // If the role is company, also fetch subordinates from the Player collection
+            if (role === "supermaster") {
+                const directPlayerSubordinates = yield userModel_1.Player.find({ createdBy: userId }, { _id: 1 });
+                const directPlayerSubordinateIds = directPlayerSubordinates.map(sub => sub._id);
+                allPlayerSubordinateIds = [...allPlayerSubordinateIds, ...directPlayerSubordinateIds];
+            }
+            for (const sub of directSubordinates) {
+                const subSubordinateIds = yield this.getAllPlayerSubordinateIds(sub._id, sub.role);
+                allPlayerSubordinateIds = [...allPlayerSubordinateIds, ...subSubordinateIds];
+            }
+        }
+        return allPlayerSubordinateIds;
+    });
 }

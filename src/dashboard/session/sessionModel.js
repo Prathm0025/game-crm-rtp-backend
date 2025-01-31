@@ -36,17 +36,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PlatformSessionModel = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const JackpotSchema = new mongoose_1.Schema({
-    triggered: { type: Boolean, required: true },
     amountWon: { type: Number, required: true }
 }, { _id: false });
 const ScatterSchema = new mongoose_1.Schema({
-    triggered: { type: Boolean, required: true },
     amountWon: { type: Number, required: true },
 }, { _id: false });
 const BonusSchema = new mongoose_1.Schema({
-    triggered: { type: Boolean, required: true },
-    bonusGameRounds: { type: Number, required: true },
-    totalBonusWin: { type: Number, required: true },
+    amountWon: { type: Number, required: true },
 }, { _id: false });
 const SpecialFeaturesSchema = new mongoose_1.Schema({
     jackpot: { type: JackpotSchema, required: false },
@@ -61,6 +57,7 @@ const SpinDataSchema = new mongoose_1.Schema({
 }, { _id: false });
 const GameSessionSchema = new mongoose_1.Schema({
     gameId: { type: String, required: true },
+    gameName: { type: String, required: true },
     sessionId: { type: String, required: true },
     entryTime: { type: Date, required: true },
     exitTime: { type: Date, default: null },
