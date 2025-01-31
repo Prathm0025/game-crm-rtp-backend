@@ -23,7 +23,7 @@ export default async function getRTP(spins: number, currentData): Promise<void> 
         // Store the data in an Excel file
         const date = now.toISOString().split('T')[0];
 
-        const filePath = path.resolve(__dirname, '../../../test', `simulator${date}.xlsx`);
+        const filePath = path.resolve(__dirname, '../../../../..', `simulator${date}.xlsx`);
 
         const newData = {
             username: currentData.currentGameData.username,
