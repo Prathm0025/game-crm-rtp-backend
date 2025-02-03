@@ -473,7 +473,7 @@ export function makeResultJson(gameInstance: SLFLC) {
     const Balance = credits.toFixed(3)
     const sendData = {
       GameData: {
-        resultSymbols: settings.bonus.spinCount>-1 ? settings.bonusResultMatrix : settings.resultSymbolMatrix ,
+        resultSymbols:  settings.resultSymbolMatrix ,
         linesToEmit: settings._winData.winningLines,
         symbolsToEmit: settings._winData.winningSymbols,
         scatterValues: settings.scatter.values,
@@ -483,6 +483,7 @@ export function makeResultJson(gameInstance: SLFLC) {
           optionIndex: settings.freespin.optionIndex,
         },
         bonus: {
+          matrix:settings.bonusResultMatrix,
           isTriggered: settings.bonus.isTriggered,
           scatterCount: settings.bonus.scatterCount,
           spinCount: settings.bonus.spinCount
