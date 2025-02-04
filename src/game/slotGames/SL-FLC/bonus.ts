@@ -117,16 +117,16 @@ export function checkForBonus(gameInstance: SLFLC): boolean {
     const triggers = settings.scatter.bonusTrigger
     const rows = rowsOnExpand(scatterCount, triggers)
     const currentRows = settings.currentGamedata.matrix.y
-    if (rows !== currentRows) {
-
-      settings.currentGamedata.matrix.y = rows
-      // settings.scatter.values = shiftScatterValues(settings.scatter.values, rows - currentRows)
-    }
+    // if (rows !== currentRows) {
+    //
+    //   settings.currentGamedata.matrix.y = rows
+    //   settings.scatter.values = shiftScatterValues(settings.scatter.values, rows - currentRows)
+    // }
     return true
   }
   return false
 }
-function shiftScatterValues(scatterValues: ValueType[], shift: number): ValueType[] {
+export function shiftScatterValues(scatterValues: ValueType[], shift: number): ValueType[] {
 
   return scatterValues.map(sc => {
     return {
@@ -143,11 +143,11 @@ export function handleBonusSpin(gameInstance: SLFLC) {
   const triggers = settings.scatter.bonusTrigger
   const rows = rowsOnExpand(scatterCount, triggers)
   const currentRows = settings.currentGamedata.matrix.y
-  if (rows !== currentRows) {
-
-    settings.currentGamedata.matrix.y = rows
-    settings.scatter.values = shiftScatterValues(settings.scatter.values, rows - currentRows)
-  }
+  // if (rows !== currentRows) {
+  //
+  //   settings.scatter.values = shiftScatterValues(settings.scatter.values, rows - currentRows)
+  //   settings.currentGamedata.matrix.y = rows
+  // }
   settings.bonus.spinCount--
   settings.bonus.scatterCount = scatterCount
   if (scatterCount === 40) {

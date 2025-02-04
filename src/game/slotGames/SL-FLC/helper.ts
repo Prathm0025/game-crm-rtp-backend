@@ -8,7 +8,7 @@ import {
 import { specialIcons } from "./types";
 import { SLFLC } from "./FireLinkChinaTownBase";
 import { precisionRound } from "../../../utils/utils";
-import { checkForBonus, handleBonusSpin, populateScatterValues } from "./bonus";
+import { checkForBonus, handleBonusSpin, populateScatterValues, rowsOnExpand, shiftScatterValues } from "./bonus";
 
 /**
  * Initializes the game settings using the provided game data and game instance.
@@ -423,6 +423,13 @@ export function checkForWin(gameInstance: SLFLC) {
     settings.isFreespin = false
     if (settings.bonus.spinCount > 0) {
       settings.bonus.isTriggered = false
+    }
+    const rows = rowsOnExpand(settings.bonus.scatterCount, settings.scatter.bonusTrigger)
+    const currentRows = settings.currentGamedata.matrix.y
+    if(rows !== currentRows){
+      
+      settings.currentGamedata.matrix.y = rows
+      settings.scatter.values = shiftScatterValues(settings.scatter.values, rows - currentRows)
     }
     if (settings.bonus.spinCount < 0) {
       settings.bonus.scatterCount = 0
