@@ -431,10 +431,10 @@ export const gameData = [
           "Name": "Scatter",
           "Id": 11,
           "reelInstance": {
-            "0": 10,
+            "0": 50,
             "1": 50,
             "2": 50,
-            "3": 10,
+            "3": 50,
             "4": 50,
           },
           "description": "",
