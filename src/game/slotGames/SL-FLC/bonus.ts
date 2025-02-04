@@ -120,7 +120,7 @@ export function checkForBonus(gameInstance: SLFLC): boolean {
     if (rows !== currentRows) {
 
       settings.currentGamedata.matrix.y = rows
-      settings.scatter.values = shiftScatterValues(settings.scatter.values, rows - currentRows)
+      // settings.scatter.values = shiftScatterValues(settings.scatter.values, rows - currentRows)
     }
     return true
   }
