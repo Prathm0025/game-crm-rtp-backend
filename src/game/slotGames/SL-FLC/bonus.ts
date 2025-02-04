@@ -11,9 +11,9 @@ export class RandomBonusGenerator {
     // console.log("ccIndices", ccIndices);
     // console.log("coinIndices", coinIndices);
 
-    for (let x = 0; x < current.settings.currentGamedata.matrix.x; x++) {
+    for (let x = 0; x < current.settings.matrix.x; x++) {
       const startPosition = this.getRandomIndex((current.settings.bonusReels[x].length - 1));
-      for (let y = 0; y < current.settings.currentGamedata.matrix.y; y++) {
+      for (let y = 0; y < current.settings.matrix.y; y++) {
         if (!matrix[y]) matrix[y] = [];
         matrix[y][x] = current.settings.bonusReels[x][(startPosition + y) % current.settings.bonusReels[x].length];
         // TODO: freeze sc  positions 

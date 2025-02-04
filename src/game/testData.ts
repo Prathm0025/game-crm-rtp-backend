@@ -374,11 +374,11 @@ export const gameData = [
           "Name": "Blank",
           "Id": 9,
           "reelInstance": {
-            "0": 50,
-            "1": 50,
-            "2": 50,
-            "3": 50,
-            "4": 50
+            "0": 5,
+            "1": 5,
+            "2": 5,
+            "3": 5,
+            "4": 5
           },
           "description": "Substitutes for all symbols.",
           "useWildSub": false,
@@ -431,11 +431,11 @@ export const gameData = [
           "Name": "Scatter",
           "Id": 11,
           "reelInstance": {
-            "0": 50,
-            "1": 50,
-            "2": 50,
-            "3": 50,
-            "4": 50,
+            "0": 15,
+            "1": 15,
+            "2": 15,
+            "3": 15,
+            "4": 15,
           },
           "description": "",
           "useWildSub": false,
