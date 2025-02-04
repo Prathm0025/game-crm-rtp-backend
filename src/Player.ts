@@ -166,11 +166,13 @@ export default class PlayerSocket {
 
   // Handle platform disconnection and reconnection
   private handlePlatformDisconnection() {
+    if (process.env.NODE_ENV == "testing") return;
     this.attemptReconnection(this.platformData)
   }
 
   // Handle game disconnection and reconnection
   private handleGameDisconnection() {
+    if (process.env.NODE_ENV == "testing") return;
     this.attemptReconnection(this.gameData);
   }
 
@@ -294,10 +296,11 @@ export default class PlayerSocket {
 
 
     console.log("Initializing game socket connection after platform stability confirmed.");
+
     this.initializeGameSocket(socket);
     const credits = await getPlayerCredits(this.playerData.username);
     this.playerData.credits = typeof credits === "number" ? credits : 0;
-
+    // this.sendMessage("connected-With", this.playerData.username, true);
   }
 
   private async initGameData() {

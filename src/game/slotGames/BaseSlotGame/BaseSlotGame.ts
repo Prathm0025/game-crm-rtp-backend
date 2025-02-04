@@ -9,7 +9,7 @@ import { CheckResult } from "./CheckResult";
 import { GameSettings } from "./gameType";
 import { gambleCardGame } from "./newGambleGame";
 import { WinData } from "./WinData";
-
+import getRTP from "../../../utils/getRtp";
 export default class BaseSlotGame implements RequiredSocketMethods {
   public settings: GameSettings;
   playerData = {
@@ -49,7 +49,7 @@ export default class BaseSlotGame implements RequiredSocketMethods {
         },
         bets: [], // Ensure bets is initialized
         linesCount: 0, // Ensure linesCount is initialized
-        betMultiplier:[]
+        betMultiplier: []
 
       },
       tempReels: [[]],
@@ -152,11 +152,7 @@ export default class BaseSlotGame implements RequiredSocketMethods {
         this.settings.BetPerLines = this.settings.currentGamedata.bets[response.data.currentBet];
         this.settings.currentBet =
           this.settings.currentGamedata.bets[response.data.currentBet] * this.settings.currentLines;
-        this.getRTP(response.data.spins);
-        break;
-
-      case "checkMoolah":
-        this.checkforMoolah();
+        getRTP(response.data.spins, this);
         break;
 
       case "GambleInit":
@@ -384,84 +380,12 @@ export default class BaseSlotGame implements RequiredSocketMethods {
     }
   }
 
-  private getRTP(spins: number) {
-    try {
-      let spend: number = 0;
-      let won: number = 0;
-      this.playerData.rtpSpinCount = spins;
-      for (let i = 0; i < this.playerData.rtpSpinCount; i++) {
-        this.spinResult();
-        spend += this.settings.currentBet;
-        won = this.settings._winData.totalWinningAmount;
-      }
-      let rtp = 0;
-      if (spend > 0) {
-        rtp = won / spend;
-      }
 
-      return;
-    } catch (error) {
-      console.error("Failed to calculate RTP:", error);
-      this.sendError("RTP calculation error");
-    }
-  }
 
-  public checkforMoolah() {
-    try {
-      this.settings.tempReels = this.settings.reels;
 
-      const lastWinData = this.settings._winData;
 
-      lastWinData.winningSymbols = combineUniqueSymbols(
-        removeRecurringIndexSymbols(lastWinData.winningSymbols)
-      );
 
-      const index = lastWinData.winningSymbols.map((str) => {
-        const index: { x; y } = str.split(",").map(Number);
-        return index;
-      });
 
-      let matrix = [];
-      matrix = this.settings.resultSymbolMatrix;
-
-      index.forEach((element) => {
-        matrix[element[1]][element[0]] = null;
-      });
-
-      const movedArray = cascadeMoveTowardsNull(matrix);
-
-      let transposed = transposeMatrix(movedArray);
-      let iconsToFill: number[][] = [];
-      for (let i = 0; i < transposed.length; i++) {
-        let row = [];
-        for (let j = 0; j < transposed[i].length; j++) {
-          if (transposed[i][j] == null) {
-            let index =
-              (this.settings.resultReelIndex[i] + j + 2) %
-              this.settings.tempReels[i].length;
-            transposed[i][j] = this.settings.tempReels[i][index];
-            row.unshift(this.settings.tempReels[i][index]);
-            this.settings.tempReels[i].splice(j, 1);
-          }
-        }
-        if (row.length > 0) iconsToFill.push(row);
-      }
-
-      matrix = transposeMatrix(transposed);
-
-      this.settings.resultSymbolMatrix = matrix;
-
-      // tempGame.
-      const result = new CheckResult(this);
-      result.makeResultJson(ResultType.moolah, iconsToFill);
-      this.settings._winData.winningSymbols = [];
-      this.settings.tempReels = [];
-    } catch (error) {
-      console.error("Failed to check for Moolah:", error);
-      this.sendError("Moolah check error");
-      return error;
-    }
-  }
 
 
 }

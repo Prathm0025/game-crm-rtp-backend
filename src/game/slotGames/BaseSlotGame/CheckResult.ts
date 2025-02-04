@@ -67,16 +67,14 @@ export class CheckResult {
         console.log("_____________RESULT_END________________");
     }
 
-    private checkForBonus() {
+     private checkForBonus() {
         if (!this.currentGame.settings.currentGamedata.bonus.isEnabled) return;
         if (this.currentGame.settings.freeSpin.freeSpinStarted) return
 
         let temp = this.findSymbol(specialIcons.bonus);
 
 
-
-        if (this.currentGame.settings.bonus.symbolCount <= temp.length) {
-
+        if (temp.length >= this.currentGame.settings.bonus.symbolCount) {
             this.currentGame.settings._winData.winningSymbols.push(temp);
             this.currentGame.settings.bonus.start = true;
             this.currentGame.settings.noOfBonus++;
@@ -93,15 +91,18 @@ export class CheckResult {
             if (this.currentGame.settings.currentGamedata.bonus.type == bonusGameType.miniSpin) {
                 const betPerLines = this.currentGame.settings.BetPerLines;
                 this.currentGame.settings.currentGamedata.bonus.noOfItem = temp.length;
-        
-                const result = runMiniSpin(this.currentGame.settings.currentGamedata.bonus, this.currentGame.settings.bonus.symbolCount , betPerLines);
+
+                const result = runMiniSpin(this.currentGame.settings.currentGamedata.bonus, this.currentGame.settings.bonus.symbolCount, betPerLines);
                 this.bonusResult = result
                 this.currentGame.settings._winData.totalWinningAmount += result.totalWinAmount;
             }
             if (this.currentGame.settings.currentGamedata.bonus.type == bonusGameType.layerTap) {
-                const result = this.currentGame.settings.bonus.game.setRandomStopIndex(this.bonusResult)
+                // console.log('TRIGRED')
+                const result = this.currentGame.settings.bonus.game.setRandomStopIndex(this.bonusResult);
+                console.log(result)
                 this.currentGame.settings._winData.totalWinningAmount += result.amount;
                 this.bonusResult = result.selectedIndex
+                // console.log(this.bonusResult, 'this.bonusResult')
             }
 
         }
@@ -312,8 +313,9 @@ export class CheckResult {
             ) {
                 // console.log("!!!!!JACKPOT!!!!!");
                 this.currentGame.settings._winData.winningSymbols.push(this.jackpotWinSymbols);
-                this.currentGame.settings._winData.totalWinningAmount += this.jackpot.defaultAmount * this.currentGame.settings.BetPerLines;;
-                this.currentGame.settings._winData.jackpotwin += this.jackpot.defaultAmount * this.currentGame.settings.BetPerLines;;
+                this.currentGame.settings._winData.totalWinningAmount += this.jackpot.defaultAmount * this.currentGame.settings.BetPerLines;
+
+                this.currentGame.settings._winData.specialFeatures.jackpot.amountWon = this.jackpot.defaultAmount * this.currentGame.settings.BetPerLines;
             }
         }
     }
@@ -360,7 +362,7 @@ export class CheckResult {
 
             }
         };
-    
+
         // this.currentGame.updateDatabase()
         if (isResult == ResultType.normal)
             this.currentGame.sendMessage("ResultData", ResultData);

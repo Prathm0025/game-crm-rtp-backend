@@ -1,3 +1,4 @@
+import { sessionManager } from "../../../dashboard/session/sessionManager";
 import { currentGamedata } from "../../../Player";
 import { RandomResultGenerator } from "../RandomResultGenerator";
 import { initializeGameSettings, generateInitialReel, sendInitData, makePayLines, checkForWin } from "./helper";
@@ -31,20 +32,20 @@ export class SLPB {
         return Symbols;
     }
 
-   
+
 
     get initBonusSymbols() {
         const Symbols = [];
         //filter symbols which appear only in base game
-        const bonusGameSymbol = this.currentGameData.gameSettings.Symbols.filter((symbol)=> (symbol.isBonusSymbol) || (symbol.isSpecialSymbol))        
+        const bonusGameSymbol = this.currentGameData.gameSettings.Symbols.filter((symbol) => (symbol.isBonusSymbol) || (symbol.isSpecialSymbol))
         bonusGameSymbol.forEach((Element: Symbol) => {
             Symbols.push(Element);
-        });    
-        
+        });
+
         return Symbols;
     }
 
-    
+
 
     sendMessage(action: string, message: any) {
         this.currentGameData.sendMessage(action, message, true);
@@ -72,22 +73,24 @@ export class SLPB {
 
     messageHandler(response: any) {
         switch (response.id) {
-            case "SPIN":                
+            case "SPIN":
                 this.prepareSpin(response.data);
                 this.getRTP(response.data.spins || 1);
                 break;
         }
     }
-    private prepareSpin(data: any) {        
+    private prepareSpin(data: any) {
         this.settings.currentLines = data.currentLines;
         this.settings.BetPerLines = this.settings.currentGamedata.bets[data.currentBet];
         this.settings.currentBet = this.settings.BetPerLines * this.settings.currentLines;
-      }
-    
+    }
+
 
     public async spinResult(): Promise<void> {
         try {
             const playerData = this.getPlayerData();
+            const platformSession = sessionManager.getPlayerPlatform(playerData.username);
+
             if (this.settings.currentBet > playerData.credits) {
                 console.log(this.settings.currentBet + playerData.credits)
                 this.sendError("Low Balance");
@@ -97,9 +100,18 @@ export class SLPB {
                 await this.deductPlayerBalance(this.settings.currentBet);
                 this.playerData.totalbet += this.settings.currentBet;
             }
+
+
+            const spinId = platformSession.currentGameSession.createSpin();
+            platformSession.currentGameSession.updateSpinField(spinId, 'betAmount', this.settings.currentBet);
+
             await new RandomResultGenerator(this);
             checkForWin(this)
-           
+
+            const winAmount = this.playerData.currentWining;
+            console.log(winAmount, 'GAURAV')
+            platformSession.currentGameSession.updateSpinField(spinId, 'winAmount', winAmount);
+            this.playerData.currentWining = 0;
         } catch (error) {
             this.sendError("Spin error");
             console.error("Failed to generate spin results:", error);
