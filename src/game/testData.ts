@@ -374,11 +374,11 @@ export const gameData = [
           "Name": "Blank",
           "Id": 9,
           "reelInstance": {
-            "0": 25,
-            "1": 25,
-            "2": 25,
-            "3": 25,
-            "4": 25
+            "0": 50,
+            "1": 50,
+            "2": 50,
+            "3": 50,
+            "4": 50
           },
           "description": "Substitutes for all symbols.",
           "useWildSub": false,

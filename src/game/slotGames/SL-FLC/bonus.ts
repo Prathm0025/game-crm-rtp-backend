@@ -114,9 +114,9 @@ export function checkForBonus(gameInstance: SLFLC): boolean {
     settings.bonus.isTriggered = true
     settings.bonus.spinCount = 3
 
-    const triggers = settings.scatter.bonusTrigger
-    const rows = rowsOnExpand(scatterCount, triggers)
-    const currentRows = settings.currentGamedata.matrix.y
+    // const triggers = settings.scatter.bonusTrigger
+    // const rows = rowsOnExpand(scatterCount, triggers)
+    // const currentRows = settings.currentGamedata.matrix.y
     // if (rows !== currentRows) {
     //
     //   settings.currentGamedata.matrix.y = rows
@@ -140,9 +140,9 @@ export function handleBonusSpin(gameInstance: SLFLC) {
   new RandomBonusGenerator(gameInstance)
   populateScatterValues(gameInstance, "bonus")
   const scatterCount = settings.scatter.values.length
-  const triggers = settings.scatter.bonusTrigger
-  const rows = rowsOnExpand(scatterCount, triggers)
-  const currentRows = settings.currentGamedata.matrix.y
+  // const triggers = settings.scatter.bonusTrigger
+  // const rows = rowsOnExpand(scatterCount, triggers)
+  // const currentRows = settings.currentGamedata.matrix.y
   // if (rows !== currentRows) {
   //
   //   settings.scatter.values = shiftScatterValues(settings.scatter.values, rows - currentRows)

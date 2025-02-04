@@ -426,8 +426,8 @@ export function checkForWin(gameInstance: SLFLC) {
     }
     const rows = rowsOnExpand(settings.bonus.scatterCount, settings.scatter.bonusTrigger)
     const currentRows = settings.currentGamedata.matrix.y
-    if(rows !== currentRows){
-      
+    if(rows > currentRows ){
+
       settings.currentGamedata.matrix.y = rows
       settings.scatter.values = shiftScatterValues(settings.scatter.values, rows - currentRows)
     }
@@ -435,6 +435,7 @@ export function checkForWin(gameInstance: SLFLC) {
       settings.bonus.scatterCount = 0
       settings.bonusResultMatrix = []
       settings.scatter.values = []
+      settings.matrix.y = 4
     }
     settings._winData.winningLines = []
     settings._winData.winningSymbols = []
@@ -504,7 +505,7 @@ export function makeResultJson(gameInstance: SLFLC) {
       }
     };
     gameInstance.sendMessage('ResultData', sendData);
-    console.log(JSON.stringify(sendData,null,2));
+    console.log(JSON.stringify(sendData,null,1));
 
   } catch (error) {
     console.error("Error generating result JSON or sending message:", error);
