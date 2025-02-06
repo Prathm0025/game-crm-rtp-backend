@@ -465,6 +465,7 @@ export function sendInitData(gameInstance: SLFLC) {
       linesApiData: gameInstance.settings.currentGamedata.linesApiData,
       Bets: gameInstance.settings.currentGamedata.bets,
       freespinOptions: gameInstance.settings.freespin.options,
+      jackpotMultipliers: gameInstance.settings.scatter.scatterMultipliers.slice(gameInstance.settings.scatter.scatterMultipliers.length - 4),
     },
     UIData: UiInitData,
     PlayerData: {
