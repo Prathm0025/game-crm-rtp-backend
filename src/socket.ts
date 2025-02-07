@@ -7,8 +7,9 @@ import { messageType } from "./game/Utils/gameUtils";
 import Manager from "./Manager";
 import { sessionManager } from "./dashboard/session/sessionManager";
 import { IUser } from "./dashboard/users/userType";
-
-
+import { createAdapter } from "@socket.io/redis-adapter";
+import pubClient from "./redisClient";
+const subClient = pubClient.duplicate();
 interface DecodedToken {
     username: string;
     role?: string;
@@ -180,7 +181,7 @@ const handleManagerConnection = async (socket: Socket, decoded: DecodedToken, us
 
 
 const socketController = (io: Server) => {
-
+io.adapter(createAdapter(pubClient, subClient));
     // Token verification middleware
     io.use(async (socket: Socket, next: (err?: Error) => void) => {
         const userAgent = socket.request.headers['user-agent'];
