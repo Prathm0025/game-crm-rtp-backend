@@ -17,26 +17,6 @@ interface DecodedToken {
 }
 
 
-const getInstanceMetadata = async (): Promise<string> => {
-    try {
-        const response = await fetch("http://169.254.169.254/latest/meta-data/instance-id");
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const instanceId = await response.text();  // Convert response to plain text
-        return instanceId;
-    } catch (error: any) {
-        console.error("❌ Failed to fetch EC2 instance metadata:", error.message);
-        return "Unknown-Instance";
-    }
-};
-
-// Example usage
-getInstanceMetadata().then(instanceId => {
-    console.log(`EC2 Instance ID: ${instanceId}`);
-});
 
 
 
@@ -148,25 +128,12 @@ const handleManagerConnection = async (socket: Socket, decoded: DecodedToken, us
 
 const socketController = (io: Server) => {
     io.adapter(createAdapter(pubClient, subClient));
-
-    io.use(async (socket: Socket, next) => {
-        try {
-            const instanceId = await getInstanceMetadata();  
-            console.log(`🔗 New socket connection on EC2 instance: ${instanceId}`);
-            (socket as any).instanceId = instanceId; 
-            next();
-        } catch (error) {
-            console.error("❌ Error fetching EC2 instance metadata:", error.message);
-            next(error);
-        }
-    });
-
     io.use(async (socket: Socket, next) => {
         const userAgent = socket.request.headers["user-agent"];
         try {
             const decoded = await verifySocketToken(socket);
             (socket as any).decoded = { ...decoded };
-            (socket as any).userAgent = userAgent;
+            (socket as any).userAgent = userAgent; 
             next();
         } catch (error) {
             console.error("❌ Authentication error:", error.message);
