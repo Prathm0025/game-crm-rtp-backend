@@ -149,6 +149,10 @@ export function handleBonusSpin(gameInstance: SLFLC) {
   //   settings.currentGamedata.matrix.y = rows
   // }
   settings.bonus.spinCount--
+  //NOTE: bonus inside freespin
+  if (settings.bonus.spinCount < 0 && settings.freespinCount === settings.freespin.options[settings.freespin.optionIndex].count) {
+    settings.isFreespin = true
+  }
   settings.bonus.scatterCount = scatterCount
   if (scatterCount === 40) {
     settings.bonus.spinCount = -1
