@@ -54,7 +54,7 @@ export class TransactionController {
     try {
       const _req = req as AuthRequest;
       const { username, role } = _req.user;
-
+  
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const search = req.query.search as string;
@@ -63,8 +63,9 @@ export class TransactionController {
       const typeQuery = req.query.type as string;
       const startDate = req.query.startDate as string;
       const endDate = req.query.endDate as string;
-
-
+  
+      // console.log(startDate, endDate);
+  
       let parsedData: QueryParams = {
         role: "",
         status: "",
@@ -75,10 +76,9 @@ export class TransactionController {
         type: "",
         amount: { From: 0, To: Infinity },
       };
-
-
+  
       let type, updatedAt, amount;
-
+  
       if (search) {
         parsedData = JSON.parse(search);
         if (parsedData) {
@@ -87,13 +87,16 @@ export class TransactionController {
           amount = parsedData.amount;
         }
       }
-
+  
       let query: any = {};
-
+      if (!query.$and) {
+        query.$and = []; // Ensure $and array exists
+      }
+  
       // Handle date range filtering
       if (startDate || endDate) {
         const dateFilter: any = {};
-
+  
         if (startDate) {
           const parsedStartDate = new Date(startDate);
           if (isNaN(parsedStartDate.getTime())) {
@@ -102,7 +105,7 @@ export class TransactionController {
           parsedStartDate.setHours(0, 0, 0, 0);
           dateFilter.$gte = parsedStartDate;
         }
-
+  
         if (endDate) {
           const parsedEndDate = new Date(endDate);
           if (isNaN(parsedEndDate.getTime())) {
@@ -110,33 +113,29 @@ export class TransactionController {
           }
           parsedEndDate.setHours(23, 59, 59, 999);
           dateFilter.$lte = parsedEndDate;
-
+  
           // Validate date range
           if (dateFilter.$gte && dateFilter.$gte > parsedEndDate) {
             throw createHttpError(400, "Start date cannot be after end date");
           }
         }
-
+  
         query.$and.push({ createdAt: dateFilter });
       }
-
-
-      if (role !== 'admin' || !typeQuery) {
-        query.$and = [
-          {
-            $or: [{ debtor: username }, { creditor: username }],
-          },
-        ];
-      } else {
-        query.$and = [];
+  
+      // Handle role-based filtering without overwriting $and
+      if (role !== "admin" || !typeQuery) {
+        query.$and.push({
+          $or: [{ debtor: username }, { creditor: username }],
+        });
       }
-
+  
       if (typeQuery) {
         query.$and.push({ type: typeQuery });
       } else if (type) {
         query.$and.push({ type: type });
       }
-
+  
       if (filter) {
         query.$and.push({
           $or: [
@@ -145,14 +144,14 @@ export class TransactionController {
           ],
         });
       }
-
+  
       if (updatedAt) {
         const fromDate = new Date(parsedData.updatedAt.From);
         const toDate = new Date(parsedData.updatedAt.To) || new Date();
-
+  
         fromDate.setHours(0, 0, 0, 0);
         toDate.setHours(23, 59, 59, 999);
-
+  
         query.$and.push({
           updatedAt: {
             $gte: fromDate,
@@ -160,7 +159,7 @@ export class TransactionController {
           },
         });
       }
-
+  
       if (amount) {
         query.$and.push({
           amount: {
@@ -169,12 +168,10 @@ export class TransactionController {
           },
         });
       }
-
-
+  
       const totalTransactions = await Transaction.countDocuments(query);
-
       const totalPages = Math.ceil(totalTransactions / limit);
-
+  
       if (totalTransactions === 0) {
         return res.status(200).json({
           transactions: [],
@@ -184,7 +181,7 @@ export class TransactionController {
           outOfRange: false,
         });
       }
-
+  
       if (page > totalPages && totalPages !== 0) {
         return res.status(400).json({
           message: `Page number ${page} is out of range. There are only ${totalPages} pages available.`,
@@ -194,13 +191,14 @@ export class TransactionController {
           transactions: [],
         });
       }
-
+  
       const transactions = await Transaction.find(query)
         .sort({ createdAt: sortOrder })
         .skip((page - 1) * limit)
         .limit(limit);
-
-
+  
+      // console.log(totalTransactions);
+  
       res.status(200).json({
         totalTransactions,
         totalPages,
@@ -212,6 +210,7 @@ export class TransactionController {
       next(error);
     }
   }
+  
 
   /**
    * Retrieves transactions for a specific client.
