@@ -175,8 +175,14 @@ export function checkForWin(gameInstance: SLBS) {
             }
         }      
 
-        const {isWinning, totalPayout} = checkSymbolOcuurence(gameInstance);
+        const {isWinning, totalPayout, matchedIndices} = checkSymbolOcuurence(gameInstance);
          console.log(totalPayout, "total");
+         const formattedIndices = matchedIndices.map(({ col, row }) => `${col},${row}`);
+         const validIndices = formattedIndices.filter(index => index.length > 2);
+         if (validIndices.length > 0) {
+             gameInstance.settings._winData.winningSymbols.push(validIndices);
+
+     }
          
     
 
@@ -271,7 +277,7 @@ function checkSymbolOcuurence(gameInstance:SLBS){
     console.log(totalPayout);
     
 
-        return { isWinning, totalPayout};
+        return { isWinning, totalPayout, matchedIndices};
     
 }
 

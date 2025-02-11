@@ -1,204 +1,162 @@
 export const gameData = [
-   {
-      "id": "SL-LS",
-      "matrix": {
-        "x": 3,
-        "y": 3
-      },
-      "linesApiData": [
-        [0, 0, 0],
-        [1, 1, 1],
-        [2, 2, 2],
-        [0, 1, 2],
-        [2, 1, 0],
-        [0, 1, 0],
-        [2, 1, 2],
-        [1, 0, 1],
-        [1, 2, 1]
-      ],
-      "linesCount": [
-        9
-      ],
-      "paytable": [
-        {
-          "combination": ["0", "1", "2"],
-          "payout": 135
-        },
-        {
-          "combination": ["6", "6", "6"],
-          "payout": 20
-        },
-        {
-          "combination": ["0", "0", "0"],
-          "payout": 10
-        },
-        {
-          "combination": ["1", "1", "1"],
-          "payout": 7.5
-        },
-        {
-          "combination": ["2", "2", "2"],
-          "payout": 5
-        },
-        {
-          "combination": ["3", "3", "3"],
-          "payout": 2.5
-        },
-        {
-          "combination": ["4", "4", "4"],
-          "payout": 2
-        },
-        {
-          "combination": ["5", "5", "5"],
-          "payout": 1.5
-        },
-        {
-          "combination": ["0", "1", "2"],
-          "payout": 2
-        },
-        {
-          "combination": ["0", "3"],
-          "payout": 1
-        },
-        {
-          "combination": ["1", "4"],
-          "payout": 1
-        },
-        {
-          "combination": ["2", "5"],
-          "payout": 1
-        },
-        {
-          "combination": ["3", "4", "5"],
-          "payout": 0.5
-        },
-      ],
-      "bets": [
-        0.02,
-        0.04,
-        0.1,
-        0.2,
-        0.3,
-        0.5,
-        1,
-        1.5,
-        3,
-        7,
-        10,
-        15,
-        20,
-        32,
-        64
-      ],
-      "Symbols": [
-        {
-          "Name": "OrangeSeven",
-          "Id": 0,
-          "canmatch": [
-            "0",
-            "1",
-            "2",
-            "3"
-          ],
-          "reelInstance": {
-            "0": 5,
-            "1": 5,
-            "2": 5
+  {
+    "id":"SL-BS",
+    "matrix":{
+       "x":3,
+       "y":3
+    },
+    "linesApiData":[
+       [
+          1,
+          1,
+          1
+       ]
+    ],
+    "linesCount":[
+       1
+    ],
+    "bets":[
+       0.02,
+       0.04,
+       0.1,
+       0.2,
+       0.3,
+       0.5,
+       1,
+       1.5,
+       3,
+       7,
+       10,
+       15,
+       20,
+       32,
+       64
+    ],
+    "freeSpinCount":10,
+    "anyPayout":15,    
+    "Symbols":[
+       {  
+          "Id":0,
+          "payout":1,
+          "reelInstance":{
+             "0":5,
+             "1":5,
+             "2":5,
           }
-        },
-        {
-          "Name": "GraySeven",
-          "Id": 1,
-          "canmatch": [
-            "0",
-            "1",
-            "2",
-            "4"
-          ],
-          "description": "",
-          "reelInstance": {
-            "0": 5,
-            "1": 5,
-            "2": 5
+       },
+       {
+          "Id":1,
+          "payout":2,
+          "description":"",
+          "reelInstance":{
+             "0":1,
+             "1":1,
+             "2":1,
           }
-        },
-        {
-          "Name": "BlueSeven",
-          "Id": 2,
-          "canmatch": [
-            "0",
-            "1",
-            "2",
-            "5"
-          ],
-          "reelInstance": {
-            "0": 5,
-            "1": 5,
-            "2": 5
+       },
+       {
+          "Id":2,
+          "payout": 3,
+          "description":"",
+          "reelInstance":{
+             "0":3,
+             "1":3,
+             "2":3,
           }
-        },
-        {
-          "Name": "OrangerBar",
-          "Id": 3,
-          "canmatch": [
-            "3",
-            "4",
-            "5",
-            "0"
-          ],
-          "description": "",
-          "reelInstance": {
-            "0": 5,
-            "1": 5,
-            "2": 5
+       },
+       {
+          "Id":3,
+          "payout":4,
+          "description":"",
+          "reelInstance":{
+             "0":5,
+             "1":5,
+             "2":5,
           }
-        },
-        {
-          "Name": "GrayBar",
-          "Id": 4,
-          "canmatch": [
-            "3",
-            "4",
-            "5",
-            "1"
-          ],
-          "description": "",
-          "reelInstance": {
-            "0": 5,
-            "1": 5,
-            "2": 5
+       },
+       {
+          "Id":4,
+          "payout":5,
+          "description":"",
+          "reelInstance":{
+             "0":1,
+             "1":1,
+             "2":1,
           }
-        },
-        {
-          "Name": "BlueBar",
-          "Id": 5,
-          "canmatch": [
-            "3",
-            "4",
-            "5",
-            "2"
-          ],
-          "description": "",
-          "reelInstance": {
-            "0": 5,
-            "1": 5,
-            "2": 5
+       },
+       {
+          "Id":5,
+          "payout":10,
+          "description":"",
+          "reelInstance":{
+             "0":1,
+             "1":1,
+             "2":1,
           }
-        },
-        {
-          "Name": "Wild",
-          "Id": 6,
-          "canmatch": [
+       },
+       {
+         "Name":"Bar1", 
+         "Id":6,
+          "payout":50,
+          "reelInstance":{
+             "0":0,
+             "1":0,
+             "2":0,
+             "3":0
+          }
+       },
+       {  
+         "Name":"Bar2", 
+          "Id":7,
+          "payout":75,
+          "mixedPayout":0,
+          "reelInstance":{
+             "0":0,
+             "1":0,
+             "2":0,
+          }
+       },
+       { 
+         "Name":"Bar3", 
+          "Id":8,
+          "payout":100,
+          "reelInstance":{
+             "0":0,
+             "1":0,
+             "2":0,
+          }
+       },
+       {
+          "Name":"Wild",
+          "Id":9,
+          "payout":0,
+          "reelInstance":{
+             "0":0,
+             "1":0,
+             "2":0,
+          }
+       },
+       {
+          "Name":"Bonus",
+          "Id":10,
+          "payout":0,
+          "reelInstance":{
+             "0":2,
+             "1":2,
+             "2":2,
+          }
+       },
+       {
+        "Name":"Jackpot",
+        "Id":11,
+        "payout":250,
+        "reelInstance":{
+           "0":1,
+           "1":1,
+           "2":1,
+        }
+     },
   
-          ],
-          "description": "All payout this round are multiplied by the corresponding multiplier",
-          "reelInstance": {
-            "0": 2,
-            "1": 2,
-            "2": 2
-          }
-        },
-      ]
-    }
-]                                                   
-
+    ],
+ }
+  ]
