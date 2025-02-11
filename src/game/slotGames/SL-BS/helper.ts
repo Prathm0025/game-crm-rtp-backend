@@ -395,6 +395,7 @@ export function makeResultJson(gameInstance: SLBS) {
                 symbolsToEmit: settings._winData.winningSymbols,
                 isFreeSpin: settings.freeSpin.useFreeSpin,
                 freeSpinCount: settings.freeSpin.freeSpinCount,
+                isfreeSpinAdded: settings.freeSpin.freeSpinsAdded,
                 isJackpot: settings.isJackpot,
             },
             PlayerData: {

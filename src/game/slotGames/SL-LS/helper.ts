@@ -84,7 +84,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLLS) {
 export function generateInitialReel(gameSettings: any): string[][] {
     const reels = [[], [], [], [], [], [], []];
     gameSettings.Symbols.forEach((symbol) => {
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < 3; i++) {
             const count = symbol.reelInstance[i] || 0;
             for (let j = 0; j < count; j++) {
                 reels[i].push(symbol.Id);
@@ -189,10 +189,12 @@ export function checkForWin(gameInstance: SLLS) {
         
               
                 const payout =  calculatePayoutForCombination(processedSymbols, settings.payoutCombination);
-                console.log(payout);
                 
 
                     totalPayout += payout * gameInstance.settings.BetPerLines;
+                    
+                   if(payout>0){
+                    console.log(payout);
                     settings._winData.winningLines.push(index);
                     winningLines.push({
                         line,
@@ -202,6 +204,7 @@ export function checkForWin(gameInstance: SLLS) {
                     });
                     console.log(`Line ${index + 1}:`, line);
                     console.log(`Payout for Line ${index + 1}:`, 'payout', );
+                }
                     const formattedIndices = winMatchedIndices.map(({ col, row }) => `${col},${row}`);
                     const validIndices = formattedIndices.filter(index => index.length > 2);
                     if (validIndices.length > 0) {
