@@ -40,7 +40,6 @@ app.use((req, res, next) => {
 });
 
 
-
 app.use(cors({
   origin: [`*.${config.hosted_url_cors}`, 'https://game-crm-rtp-backend.onrender.com']
 }));
@@ -54,6 +53,7 @@ app.get("/", (req, res, next) => {
     uptime: process.uptime(),
     message: "OK",
     timestamp: new Date().toLocaleDateString(),
+    port: config.port,
   };
   res.status(200).json(health);
 });

@@ -11,7 +11,7 @@ import createHttpError from "http-errors";
 import { socketConnectionData } from "./utils/utils";
 import { sessionManager } from "./dashboard/session/sessionManager";
 import { GameSession } from "./dashboard/session/gameSession";
-
+import { pubClient } from "./redisClient";
 
 
 export interface currentGamedata {
@@ -124,28 +124,40 @@ export default class PlayerSocket {
 
   public async initializePlatformSocket(socket: Socket) {
     if (this.gameData.socket) {
-      await this.cleanupGameSocket()
+      await this.cleanupGameSocket();
     }
 
-    await sessionManager.startPlatformSession(this)
+    await sessionManager.startPlatformSession(this);
     this.platformData.socket = socket;
     this.platformData.platformId = socket.handshake.auth.platformId;
     this.messageHandler(false);
     this.startPlatformHeartbeat();
     this.onExit();
 
+    // Save session in Redis
+    await pubClient.hset(`session:${this.playerData.username}`, {
+      socketId: socket.id,
+      platformId: this.platformData.platformId,
+      credits: this.playerData.credits
+    });
+    await pubClient.expire(`session:${this.playerData.username}`, 86400);
+
+    // Log saved session data in Redis
+    const savedSession = await pubClient.hgetall(`session:${this.playerData.username}`);
+    console.log(`✅ Session saved in Redis for user: ${this.playerData.username}`, savedSession);
 
     if (this.platformData.socket) {
-      this.platformData.socket.on("disconnect", () => {
-        this.handlePlatformDisconnection()
-      })
+      this.platformData.socket.on("disconnect", async () => {
+        this.handlePlatformDisconnection();
+        // await pubClient.del(`session:${this.playerData.username}`); // Delete session on disconnect
+        console.log(`❌ Session deleted from Redis for user: ${this.playerData.username}`);
+      });
     } else {
       console.error("Socket is null during initialization of disconnect event");
     }
 
     this.sendData({ type: "CREDIT", data: { credits: this.playerData.credits } }, "platform");
   }
-
   private initializeGameSocket(socket: Socket) {
 
     if (this.gameData.socket) {
@@ -199,14 +211,14 @@ export default class PlayerSocket {
   // Cleanup only the platform socket
   public async cleanupPlatformSocket() {
     await sessionManager.endPlatformSession(this.playerData.username);
-
+    // await pubClient.del(`session:${this.playerData.username}`); 
+    console.log(`❌ Session deleted from Redis for user: ${this.playerData.username}`);
 
     if (this.platformData.socket) {
       this.platformData.platformId = null;
       this.platformData.socket.disconnect(true);
       this.platformData.socket = null;
     }
-
     clearInterval(this.platformData.heartbeatInterval);
     this.platformData.reconnectionAttempts = 0;
     this.platformData.cleanedUp = true;

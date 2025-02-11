@@ -1,24 +1,17 @@
 import { Server, Socket } from "socket.io";
 import jwt from "jsonwebtoken";
 import { createAdapter } from "@socket.io/redis-adapter";
-import { pubClient, subClient } from "./redisClient"; // Import Redis clients
+import { pubClient, subClient } from "./redisClient";
 import { config } from "./config/config";
 import { Player as PlayerModel, User } from "./dashboard/users/userModel";
 import { sessionManager } from "./dashboard/session/sessionManager";
 import Player from "./Player";
 import Manager from "./Manager";
 import { IUser } from "./dashboard/users/userType";
-
-
-
 interface DecodedToken {
     username: string;
     role?: string;
 }
-
-
-
-
 
 const verifySocketToken = (socket: Socket): Promise<DecodedToken> => {
     return new Promise((resolve, reject) => {
@@ -61,13 +54,23 @@ const getManagerDetails = async (username: string) => {
 };
 
 // Save session data in Redis
-const saveSession = async (username: string, socketId: string) => {
-    await pubClient.hset(`session:${username}`, { socketId });
+const saveSession = async (username: string, socket: Socket, platformId: string, credits: number) => {
+    await pubClient.hset(`session:${username}`, {
+        socketId: socket.id,
+        platformId: platformId,
+        credits: credits
+    });
+    await pubClient.expire(`session:${username}`, 86400);
 };
+
+
+
 
 // Retrieve session data from Redis
 const getSession = async (username: string) => {
-    return await pubClient.hgetall(`session:${username}`);
+    const session = await pubClient.hgetall(`session:${username}`);
+    console.log(session, 'session');
+    return session && Object.keys(session).length ? session : null;
 };
 
 // Remove session from Redis
@@ -77,31 +80,40 @@ const deleteSession = async (username: string) => {
 
 const handlePlayerConnection = async (socket: Socket, decoded: DecodedToken, userAgent: string) => {
     const username = decoded.username;
-    const platformId = socket.handshake.auth.platformId;
-    const origin = socket.handshake.auth.origin;
-    const gameId = socket.handshake.auth.gameId;
     const { credits, status, managerName } = await getPlayerDetails(username);
 
-    let existingPlayer = await getSession(username);
+    // Fetch the existing session from Redis
+    const existingSession = await getSession(username);
 
-    if (existingPlayer?.socketId) {
+    if (existingSession?.socketId) {
         console.log(`🔄 Restoring previous session for ${username} on new server instance`);
-        socket.emit("sessionRestored", { username });
-    }
 
-    await saveSession(username, socket.id);
+        // Create the player instance
+        const playerInstance = new Player(username, decoded.role, status, credits, userAgent, socket, managerName);
 
-    // New player connection
-    if (origin) {
-        const newUser = new Player(username, decoded.role, status, credits, userAgent, socket, managerName);
-        newUser.platformData.platformId = platformId;
-        newUser.sendAlert(`✅ Player initialized for ${username} on platform ${origin}`, false);
+        // Check and restore platformData if it exists in the session
+        if (playerInstance.platformData) {
+            playerInstance.platformData.platformId = existingSession.platformId || socket.handshake.auth.platformId;
+            playerInstance.platformData.socket = socket;  // Ensure the socket is updated
+            console.log(`✅ Platform data restored for ${username}:`, playerInstance.platformData);
+        } else {
+            console.error(`❌ platformData is undefined while restoring session for ${username}`);
+        }
+
+        playerInstance.sendAlert(`✅ Player session restored for ${username}`, false);
         return;
     }
 
-    socket.emit("error", "Invalid connection attempt.");
-    socket.disconnect(true);
+    // Save the new session in Redis, including platformId
+    await saveSession(username, socket, socket.handshake.auth.platformId, credits);
+
+    // Create a new player instance if no existing session is found
+    const newUser = new Player(username, decoded.role, status, credits, userAgent, socket, managerName);
+    newUser.platformData.platformId = socket.handshake.auth.platformId;
+    newUser.sendAlert(`✅ Player initialized for ${username}`, false);
 };
+
+
 
 const handleManagerConnection = async (socket: Socket, decoded: DecodedToken, userAgent: string) => {
     const username = decoded.username;
@@ -110,14 +122,14 @@ const handleManagerConnection = async (socket: Socket, decoded: DecodedToken, us
 
     console.log(`✅ MANAGER CONNECTED: ${username}`);
 
-    let existingManager = await getSession(username);
+    const existingSession = await getSession(username);
 
-    if (existingManager?.socketId) {
+    if (existingSession?.socketId) {
         console.log(`🔄 Restoring previous session for manager ${username}`);
         socket.emit("sessionRestored", { username });
     }
 
-    await saveSession(username, socket.id);
+    await saveSession(username, socket, socket.handshake.auth.platformId, credits);
 
     const newManager = new Manager(username, credits, role, userAgent, socket);
     sessionManager.addManager(username, newManager);
@@ -125,15 +137,15 @@ const handleManagerConnection = async (socket: Socket, decoded: DecodedToken, us
 };
 
 
-
 const socketController = (io: Server) => {
     io.adapter(createAdapter(pubClient, subClient));
+
     io.use(async (socket: Socket, next) => {
         const userAgent = socket.request.headers["user-agent"];
         try {
             const decoded = await verifySocketToken(socket);
             (socket as any).decoded = { ...decoded };
-            (socket as any).userAgent = userAgent; 
+            (socket as any).userAgent = userAgent;
             next();
         } catch (error) {
             console.error("❌ Authentication error:", error.message);
@@ -142,12 +154,11 @@ const socketController = (io: Server) => {
     });
 
     io.on("connection", async (socket) => {
-        const instanceId = (socket as any).instanceId;
         const decoded = (socket as any).decoded;
         const userAgent = (socket as any).userAgent;
         const role = decoded.role;
 
-        console.log(`✅ User connected on EC2 instance: ${instanceId} | Role: ${role} | Socket ID: ${socket.id}`);
+        console.log(`✅ User connected | Role: ${role} | Socket ID: ${socket.id} | Connected on Port: ${config.port}`);
 
         try {
             if (role === "player") {
@@ -165,15 +176,15 @@ const socketController = (io: Server) => {
         }
 
         socket.on("message", (msg) => {
-            console.log(`📨 Message from ${socket.id} on ${instanceId}: ${msg}`);
-            io.emit("message", msg); 
+            console.log(`📨 Message from ${socket.id}: ${msg}`);
+            io.emit("message", msg);
         });
 
         socket.on("disconnect", async () => {
             const username = (socket as any).decoded?.username;
             if (username) {
-                console.log(`🔴 User ${username} disconnected from EC2 instance: ${instanceId}`);
-                await deleteSession(username);  
+                console.log(`🔴 User ${username} disconnected`);
+                // await deleteSession(username);
             }
         });
     });
