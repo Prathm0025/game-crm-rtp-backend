@@ -1,5 +1,4 @@
 import { config as conf } from "dotenv";
-import { platform } from "os";
 conf();
 
 const _config = {
