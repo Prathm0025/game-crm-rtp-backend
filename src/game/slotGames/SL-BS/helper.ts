@@ -234,7 +234,7 @@ function checkSymbolOcuurence(gameInstance:SLBS){
         const isSpecialCombination = row.every((symbol) =>
             [settings.bar3.SymbolID, settings.bar2.SymbolID, settings.bar1.SymbolID].includes(symbol)
         );
-        console.log(`Row ${rowIndex} all same:`, allSame);
+        // console.log(`Row ${rowIndex} all same:`, allSame);
     
         if (allSame || isSpecialCombination) {
             const matchedSymbol = row[0];
@@ -252,6 +252,8 @@ function checkSymbolOcuurence(gameInstance:SLBS){
             }
 
             if(allSame){
+                settings._winData.winningLines.push(rowIndex);
+
             const symbol:any = settings.currentGamedata.Symbols.filter((symbol)=>symbol.Id === matchedSymbol)
             console.log(symbol[0].payout, "S");
             console.log(settings.currentBet);
@@ -265,6 +267,7 @@ function checkSymbolOcuurence(gameInstance:SLBS){
                 totalPayout += payout;
             }
             
+
             matchedIndices.push(
                 { col: 0, row: rowIndex },
                 { col: 1, row: rowIndex },
@@ -403,6 +406,7 @@ export function makeResultJson(gameInstance: SLBS) {
                 freeSpinCount: settings.freeSpin.freeSpinCount,
                 isfreeSpinAdded: settings.freeSpin.freeSpinsAdded,
                 isJackpot: settings.isJackpot,
+                linesToEmit: settings._winData.winningLines,
             },
             PlayerData: {
                 Balance: gameInstance.getPlayerData().credits,
