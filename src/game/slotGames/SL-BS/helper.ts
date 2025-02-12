@@ -176,7 +176,7 @@ export function checkForWin(gameInstance: SLBS) {
         }      
 
         const {isWinning, totalPayout, matchedIndices} = checkSymbolOcuurence(gameInstance);
-         console.log(totalPayout, "total");
+        //  console.log(totalPayout, "total");
          const formattedIndices = matchedIndices.map(({ col, row }) => `${col},${row}`);
          const validIndices = formattedIndices.filter(index => index.length > 2);
          if (validIndices.length > 0) {
@@ -199,6 +199,7 @@ export function checkForWin(gameInstance: SLBS) {
         settings.freeSpin.freeSpinsAdded = false
         settings._winData.winningSymbols = []
         settings.isJackpot = false;
+        settings._winData.winningLines = []
      
     } catch (error) {
         console.error("Error in checkForWin", error);
