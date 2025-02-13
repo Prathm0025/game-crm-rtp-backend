@@ -223,11 +223,9 @@ function checkSymbolOcuurence(gameInstance:SLBS){
         if (hasWild) {
             const nonWildSymbols = row.filter((symbol) => symbol !== settings.wild.SymbolID);
             const allNonWildSame = nonWildSymbols.every((symbol) => symbol === nonWildSymbols[0]);
-
-            if (allNonWildSame && nonWildSymbols.length > 0) {
+                             
+            if ((allNonWildSame && nonWildSymbols.length > 0) && (allNonWildSame != settings.jackpot.SymbolID)) {
                 row.fill(nonWildSymbols[0]);
-            } else {
-                row.fill(settings.wild.SymbolID);
             }
         }
     
