@@ -224,8 +224,14 @@ function checkSymbolOcuurence(gameInstance:SLBS){
             const nonWildSymbols = row.filter((symbol) => symbol !== settings.wild.SymbolID);
             const allNonWildSame = nonWildSymbols.every((symbol) => symbol === nonWildSymbols[0]);
                              
-            if ((allNonWildSame && nonWildSymbols.length > 0) && (allNonWildSame != settings.jackpot.SymbolID)) {
-                row.fill(nonWildSymbols[0]);
+            if (
+                allNonWildSame && 
+                nonWildSymbols.length > 0 && 
+                nonWildSymbols[0] != settings.jackpot.SymbolID && 
+                nonWildSymbols[0] != settings.bonus.SymbolID
+            ) {
+
+                            row.fill(nonWildSymbols[0]);
             }
         }
     
@@ -238,7 +244,7 @@ function checkSymbolOcuurence(gameInstance:SLBS){
         if (allSame || isSpecialCombination) {
             const matchedSymbol = row[0];
 
-            if((matchedSymbol === settings.bonus.SymbolID) && !settings.freeSpin.useFreeSpin){
+            if((matchedSymbol === settings.bonus.SymbolID ) && !settings.freeSpin.useFreeSpin ){
                 settings.freeSpin.useFreeSpin = true;
                 settings.freeSpin.freeSpinsAdded = true;
                 settings.freeSpin.freeSpinCount  = settings.freeSpin.freeSpinAwarded;
@@ -253,7 +259,8 @@ function checkSymbolOcuurence(gameInstance:SLBS){
 
             if(allSame){
                 settings._winData.winningLines.push(rowIndex);
-
+   console.log(matchedSymbol, 'matched sym');
+   
             const symbol:any = settings.currentGamedata.Symbols.filter((symbol)=>symbol.Id === matchedSymbol)
             console.log(symbol[0].payout, "S");
             console.log(settings.currentBet);
