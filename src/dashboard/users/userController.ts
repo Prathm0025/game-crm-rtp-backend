@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import {
   AuthRequest,
+  getAllPlayerSubordinateIds,
   updateCredits,
   updatePassword,
   updateStatus,
@@ -9,22 +10,25 @@ import createHttpError from "http-errors";
 import jwt from "jsonwebtoken";
 import { config } from "../../config/config";
 import bcrypt from "bcrypt";
-import mongoose, { PipelineStage } from "mongoose";
+import mongoose, { PipelineStage, Types } from "mongoose";
 import { User, Player as PlayerModel, Player } from "./userModel";
 import UserService from "./userService";
 import Transaction from "../transactions/transactionModel";
 import { QueryParams } from "../../utils/globalTypes";
 import { IPlayer, IUser } from "./userType";
 import { sessionManager } from "../session/sessionManager";
+import { hasPermission, isAdmin, isSubordinate } from "../../utils/permissions";
 
 interface ActivePlayer {
   username: string;
   currentGame: string;
 }
+
 export class UserController {
   private userService: UserService;
   private static rolesHierarchy = {
-    company: ["master", "distributor", "subdistributor", "store", "player"],
+    admin: ["supermaster", "master", "distributor", "subdistributor", "store", "player"],
+    supermaster: ["master", "distributor", "subdistributor", "store", "player"],
     master: ["distributor"],
     distributor: ["subdistributor"],
     subdistributor: ["store"],
@@ -47,6 +51,24 @@ export class UserController {
       this.getCurrentUserSubordinates.bind(this);
     this.generatePassword = this.generatePassword.bind(this);
     this.logoutUser = this.logoutUser.bind(this)
+  }
+
+
+
+  private async checkUser(username: string, role: string): Promise<IUser | IPlayer | null> {
+    let user: IUser | IPlayer | null = null;
+
+    if (role === "player") {
+      user = await this.userService.findPlayerByUsername(username);
+    } else {
+      user = await this.userService.findUserByUsername(username);
+    }
+
+    if (!user) {
+      return null; // User not found
+    }
+
+    return user;
   }
 
   public static getSubordinateRoles(role: string): string[] {
@@ -154,11 +176,11 @@ export class UserController {
         { expiresIn: "7d" }
       );
 
-      res.cookie("userToken", token, {
-        maxAge: 1000 * 60 * 60 * 24 * 7,
-        httpOnly: true,
-        sameSite: "none",
-      });
+      // res.cookie("userToken", token, {
+      //   maxAge: 1000 * 60 * 60 * 24 * 7,
+      //   httpOnly: true,
+      //   sameSite: "none",
+      // });
 
 
       const socketUser = sessionManager.getPlayerPlatform(username);
@@ -215,7 +237,7 @@ export class UserController {
     try {
       const _req = req as AuthRequest;
       const { user } = req.body;
-      const { username, role } = _req.user; // ADMIN
+      const { username, role } = _req.user;
 
       if (
         !user ||
@@ -227,18 +249,15 @@ export class UserController {
       ) {
         throw createHttpError(400, "All required fields must be provided");
       }
+      let currentUser: IUser = await this.userService.findUserByUsername(username, session);
 
-      if (role !== "company" && !UserController.isRoleValid(role, user.role)) {
-        throw createHttpError(403, `A ${role} cannot create a ${user.role}`);
+      if (!currentUser) {
+        throw createHttpError(404, "Current User not found");
       }
 
-      const admin = await this.userService.findUserByUsername(
-        username,
-        session
-      );
-      if (!admin) {
-        throw createHttpError(404, "Admin not found");
-      }
+      // if (!UserController.hasAccess(currentUser, user.role)) {
+      //   throw createHttpError(403, `You cannot create a ${user.role}`);
+      // }
 
       let existingUser =
         (await this.userService.findPlayerByUsername(user.username, session)) ||
@@ -253,14 +272,14 @@ export class UserController {
 
       if (user.role === "player") {
         newUser = await this.userService.createPlayer(
-          { ...user, createdBy: admin._id },
+          { ...user, createdBy: currentUser._id },
           0,
           hashedPassword,
           session
         );
       } else {
         newUser = await this.userService.createUser(
-          { ...user, createdBy: admin._id },
+          { ...user, createdBy: currentUser._id },
           0,
           hashedPassword,
           session
@@ -270,19 +289,19 @@ export class UserController {
       if (user.credits > 0) {
         const transaction = await this.userService.createTransaction(
           "recharge",
-          admin,
+          currentUser,
           newUser,
           user.credits,
           session
         );
         newUser.transactions.push(transaction._id as mongoose.Types.ObjectId);
-        admin.transactions.push(transaction._id as mongoose.Types.ObjectId);
+        currentUser.transactions.push(transaction._id as mongoose.Types.ObjectId);
       }
 
       await newUser.save({ session });
-      admin.subordinates.push(newUser._id);
+      currentUser.subordinates.push(newUser._id);
 
-      await admin.save({ session });
+      await currentUser.save({ session });
 
       await session.commitTransaction();
       res.status(201).json(newUser);
@@ -298,18 +317,9 @@ export class UserController {
       const _req = req as AuthRequest;
       const { username, role } = _req.user;
 
-      // throw createHttpError(404, "Access Denied")`
-
-      let user;
-
-      if (role === "player") {
-        user = await this.userService.findPlayerByUsername(username);
-      } else {
-        user = await this.userService.findUserByUsername(username);
-      }
-
+      let user: IUser | IPlayer = await this.checkUser(username, role);
       if (!user) {
-        throw createHttpError(404, "User not found");
+        throw createHttpError(404, `${username} not found`);
       }
 
       res.status(200).json(user);
@@ -321,21 +331,14 @@ export class UserController {
   async getAllSubordinates(req: Request, res: Response, next: NextFunction) {
     try {
       const _req = req as AuthRequest;
-      const { username: loggedUserName, role: loggedUserRole } = _req.user;
+      const { username: currentUsername, role: currentUserRole } = _req.user;
+      const startDate = req.query.startDate as string;
+      const endDate = req.query.endDate as string;
 
-      const loggedUser = await this.userService.findUserByUsername(
-        loggedUserName
-      );
+      const currentUser = await this.checkUser(currentUsername, currentUserRole);
 
-      if (!loggedUser) {
+      if (!currentUser) {
         throw createHttpError(404, "User not found");
-      }
-
-      if (loggedUser.role !== "company") {
-        throw createHttpError(
-          403,
-          "Access denied. Only users with the role 'company' can access this resource."
-        );
       }
 
       const page = parseInt(req.query.page as string) || 1;
@@ -347,13 +350,13 @@ export class UserController {
 
 
 
-      let parsedData: QueryParams = {
+      let parsedData = {
         role: "",
         status: "",
         totalRecharged: { From: 0, To: Infinity },
         totalRedeemed: { From: 0, To: Infinity },
         credits: { From: 0, To: Infinity },
-        updatedAt: { From: null, To: null },
+        createdAt: { From: null, To: null }, // Changed from updatedAt to createdAt
         type: "",
         amount: { From: 0, To: 0 },
       };
@@ -372,14 +375,57 @@ export class UserController {
       }
 
       let query: any = {};
+      // Handle date range filtering
+      if (startDate || endDate || parsedData.createdAt?.From || parsedData.createdAt?.To) {
+        query.createdAt = {};
+
+        const fromDate = startDate ? new Date(startDate) :
+          parsedData.createdAt?.From ? new Date(parsedData.createdAt.From) : null;
+
+        const toDate = endDate ? new Date(endDate) :
+          parsedData.createdAt?.To ? new Date(parsedData.createdAt.To) : null;
+
+        if (fromDate) {
+          if (isNaN(fromDate.getTime())) {
+            throw createHttpError(400, "Invalid start date format");
+          }
+          fromDate.setHours(0, 0, 0, 0);
+          query.createdAt.$gte = fromDate;
+        }
+
+        if (toDate) {
+          if (isNaN(toDate.getTime())) {
+            throw createHttpError(400, "Invalid end date format");
+          }
+          toDate.setHours(23, 59, 59, 999);
+          query.createdAt.$lte = toDate;
+
+          if (fromDate && fromDate > toDate) {
+            throw createHttpError(400, "Start date cannot be after end date");
+          }
+        }
+      }
+
       if (filter) {
-        query.username = { $regex: filter, $options: "i" };
+        query.$or = [
+          { username: { $regex: filter, $options: "i" } },
+          { role: { $regex: filter, $options: "i" } }
+        ];
       }
+
       if (role) {
-        query.role = { $ne: "company", $eq: role };
-      } else if (!role) {
-        query.role = { $ne: "company" };
+        query.role = { $eq: role }; // Strictly match only this role
       }
+
+      // Prevent partial role matches when filtering
+      if (filter) {
+        query.$or = [
+          { username: { $regex: `^${filter}$`, $options: "i" } }, // Exact match
+          { role: { $eq: filter } } // Strict role match
+        ];
+      }
+
+
       if (status) {
         query.status = status;
       }
@@ -402,6 +448,13 @@ export class UserController {
           $gte: parsedData.credits.From,
           $lte: parsedData.credits.To,
         };
+      }
+
+
+      // If the user is not an admin, fetch all direct and indirect subordinates
+      if (!isAdmin(currentUser)) {
+        const allSubordinateIds = await this.userService.getAllSubordinateIds(currentUser._id as mongoose.Types.ObjectId);
+        query._id = { $in: allSubordinateIds };
       }
 
       // Aggregation pipeline for User collection
@@ -469,8 +522,6 @@ export class UserController {
         subordinates
       });
 
-
-
     } catch (error) {
       next(error);
     }
@@ -484,19 +535,13 @@ export class UserController {
       });
 
       const _req = req as AuthRequest;
-      const { username: loggedUserName, role: loggedUserRole } = _req.user;
+      const { username: currentUsername, role: currentUserRole } = _req.user;
+      const startDate = req.query.startDate as string;
+      const endDate = req.query.endDate as string;
 
-      const loggedUser = await this.userService.findUserByUsername(loggedUserName);
-
-      if (!loggedUser) {
+      const currentUser = await this.checkUser(currentUsername, currentUserRole);
+      if (!currentUser) {
         throw createHttpError(404, "User not found");
-      }
-
-      if (loggedUser.role !== "company") {
-        throw createHttpError(
-          403,
-          "Access denied. Only users with the role 'company' can access this resource."
-        );
       }
 
       const page = parseInt(req.query.page as string) || 1;
@@ -504,13 +549,14 @@ export class UserController {
       const skip = (page - 1) * limit;
       const filter = req.query.filter || "";
       const search = req.query.search as string;
-      let parsedData: QueryParams = {
+
+      let parsedData = {
         role: "",
         status: "",
         totalRecharged: { From: 0, To: Infinity },
         totalRedeemed: { From: 0, To: Infinity },
         credits: { From: 0, To: Infinity },
-        updatedAt: { From: null, To: null },
+        createdAt: { From: null, To: null },
         type: "",
         amount: { From: 0, To: 0 },
       };
@@ -531,6 +577,37 @@ export class UserController {
       let query: any = {
         username: { $in: Array.from(activePlayers).map((player: ActivePlayer) => player.username) },
       };
+
+      // Handle date range filtering
+      if (startDate || endDate || parsedData.createdAt?.From || parsedData.createdAt?.To) {
+        query.createdAt = {};
+
+        const fromDate = startDate ? new Date(startDate) :
+          parsedData.createdAt?.From ? new Date(parsedData.createdAt.From) : null;
+
+        const toDate = endDate ? new Date(endDate) :
+          parsedData.createdAt?.To ? new Date(parsedData.createdAt.To) : null;
+
+        if (fromDate) {
+          if (isNaN(fromDate.getTime())) {
+            throw createHttpError(400, "Invalid start date format");
+          }
+          fromDate.setHours(0, 0, 0, 0);
+          query.createdAt.$gte = fromDate;
+        }
+
+        if (toDate) {
+          if (isNaN(toDate.getTime())) {
+            throw createHttpError(400, "Invalid end date format");
+          }
+          toDate.setHours(23, 59, 59, 999);
+          query.createdAt.$lte = toDate;
+
+          if (fromDate && fromDate > toDate) {
+            throw createHttpError(400, "Start date cannot be after end date");
+          }
+        }
+      }
 
       if (filter) {
         query.username.$regex = filter;
@@ -561,6 +638,12 @@ export class UserController {
           $gte: parsedData.credits.From,
           $lte: parsedData.credits.To,
         };
+      }
+
+      // If the user is not an admin, fetch all direct and indirect players
+      if (!isAdmin(currentUser)) {
+        const allPlayerSubordinateIds = await getAllPlayerSubordinateIds(currentUser._id as mongoose.Types.ObjectId, currentUser.role);
+        query.createdBy = { $in: allPlayerSubordinateIds };
       }
 
       const playerCount = await PlayerModel.countDocuments(query);
@@ -597,8 +680,6 @@ export class UserController {
         };
       });
 
-
-
       res.status(200).json({
         totalSubordinates: playerCount,
         totalPages,
@@ -611,8 +692,6 @@ export class UserController {
   }
 
 
-
-
   async getCurrentUserSubordinates(
     req: Request,
     res: Response,
@@ -622,8 +701,10 @@ export class UserController {
       const _req = req as AuthRequest;
       const { username, role } = _req.user;
       const { id } = req.query;
+      const startDate = req.query.startDate as string;
+      const endDate = req.query.endDate as string;
 
-      const currentUser = await User.findOne({ username });
+      const currentUser = await this.checkUser(username, role);
       if (!currentUser) {
         throw createHttpError(401, "User not found");
       }
@@ -635,26 +716,26 @@ export class UserController {
 
 
       let userToCheck = currentUser;
-
       if (id) {
-        userToCheck = await User.findById(id);
+        userToCheck = await User.findById(id) || await PlayerModel.findById(id);
+
         if (!userToCheck) {
-          userToCheck = await PlayerModel.findById(id);
-          if (!userToCheck) {
-            return res.status(404).json({ message: "User not found" });
-          }
+          return res.status(404).json({ message: "User not found" });
         }
+
       }
+
       let filterRole, status, redeem, recharge, credits;
       const filter = req.query.filter || "";
       const search = req.query.search as string;
-      let parsedData: QueryParams = {
+
+      let parsedData = {
         role: "",
         status: "",
         totalRecharged: { From: 0, To: Infinity },
         totalRedeemed: { From: 0, To: Infinity },
         credits: { From: 0, To: Infinity },
-        updatedAt: { From: new Date(), To: new Date() },
+        createdAt: { From: null, To: null },
         type: "",
         amount: { From: 0, To: 0 },
       };
@@ -672,13 +753,49 @@ export class UserController {
 
       let query: any = {};
       query.createdBy = userToCheck._id;
-      if (filter) {
-        query.username = { $regex: filter, $options: "i" };
+
+      // Handle date range filtering
+      if (startDate || endDate || parsedData.createdAt?.From || parsedData.createdAt?.To) {
+        query.createdAt = {};
+
+        const fromDate = startDate ? new Date(startDate) :
+          parsedData.createdAt?.From ? new Date(parsedData.createdAt.From) : null;
+
+        const toDate = endDate ? new Date(endDate) :
+          parsedData.createdAt?.To ? new Date(parsedData.createdAt.To) : null;
+
+        if (fromDate) {
+          if (isNaN(fromDate.getTime())) {
+            throw createHttpError(400, "Invalid start date format");
+          }
+          fromDate.setHours(0, 0, 0, 0);
+          query.createdAt.$gte = fromDate;
+        }
+
+        if (toDate) {
+          if (isNaN(toDate.getTime())) {
+            throw createHttpError(400, "Invalid end date format");
+          }
+          toDate.setHours(23, 59, 59, 999);
+          query.createdAt.$lte = toDate;
+
+          if (fromDate && fromDate > toDate) {
+            throw createHttpError(400, "Start date cannot be after end date");
+          }
+        }
       }
+
+      if (filter) {
+        query.$or = [
+          { username: { $regex: filter, $options: "i" } },
+          { role: { $eq: filter } } // Strict role match
+        ];
+      }
+
       if (filterRole) {
-        query.role = { $ne: "company", $eq: filterRole };
+        query.role = { $eq: role }; // Strictly match only this role
       } else if (!filterRole) {
-        query.role = { $ne: "company" };
+        query.role = { $ne: currentUser.role };
       }
       if (status) {
         query.status = status;
@@ -728,6 +845,7 @@ export class UserController {
 
       // Execute the aggregation
       const subordinates = await User.aggregate(combinedPipeline);
+
 
       // Total counts
       const userCount = await User.countDocuments(query);
@@ -783,9 +901,10 @@ export class UserController {
 
       const clientObjectId = new mongoose.Types.ObjectId(clientId);
 
-      const admin = await this.userService.findUserByUsername(username);
+      let admin: IUser = await this.userService.findUserByUsername(username);
+
       if (!admin) {
-        throw createHttpError(404, "Admin Not Found");
+        throw createHttpError(404, "User Not Found");
       }
 
       const client =
@@ -796,32 +915,16 @@ export class UserController {
         throw createHttpError(404, "User not found");
       }
 
-      if (
-        role != "company" &&
-        !admin.subordinates.some((id) => id.equals(clientObjectId))
-      ) {
-        throw createHttpError(403, "Client does not belong to the creator");
+      if (!hasPermission(admin, `${client.role}s`, 'x')) {
+        throw createHttpError(403, `Access denied. You don't have permission to delete ${client.username}.`);
       }
 
-      const clientRole = client.role;
-      if (
-        !UserController.rolesHierarchy[role] ||
-        !UserController.rolesHierarchy[role].includes(clientRole)
-      ) {
-        throw createHttpError(403, `A ${role} cannot delete a ${clientRole}`);
-      }
 
       if (client instanceof User) {
-
-
         await this.userService.deleteUserById(clientObjectId);
       } else if (client instanceof Player) {
-
-        await
-          await this.userService.deletePlayerById(clientObjectId);
+        await this.userService.deletePlayerById(clientObjectId);
       }
-
-
 
       admin.subordinates = admin.subordinates.filter(
         (id) => !id.equals(clientObjectId)
@@ -847,28 +950,22 @@ export class UserController {
 
       const clientObjectId = new mongoose.Types.ObjectId(clientId);
 
-      let admin;
+      let admin: IUser | IPlayer = await this.userService.findUserByUsername(username) || await this.userService.findPlayerByUsername(username);
 
-      admin = await this.userService.findUserByUsername(username);
       if (!admin) {
-        admin = await this.userService.findPlayerByUsername(username);
-
-        if (!admin) {
-          throw createHttpError(404, "Creator not found");
-        }
+        throw createHttpError(404, "User not found");
       }
 
-      const client =
-        (await this.userService.findUserById(clientObjectId)) ||
-        (await this.userService.findPlayerById(clientObjectId));
+      const client = await this.userService.findUserById(clientObjectId) || await this.userService.findPlayerById(clientObjectId);
 
       if (!client) {
         throw createHttpError(404, "Client not found");
       }
 
-      // if (role != "company" && !admin.subordinates.some((id) => id.equals(clientObjectId))) {
-      //   throw createHttpError(403, "Client does not belong to the creator");
-      // }
+      if (!hasPermission(admin, `${client.role}s`, "w")) {
+        throw createHttpError(403, "Access denied. You don't have permission to update users.");
+      }
+
 
       if (status) {
         updateStatus(client, status);
@@ -900,31 +997,25 @@ export class UserController {
       const { username: loggedUserName, role: loggedUserRole } = _req.user;
 
       const subordinateObjectId = new mongoose.Types.ObjectId(subordinateId);
-      const loggedUser = await this.userService.findUserByUsername(
-        loggedUserName
-      );
+      const loggedUser = await this.userService.findUserByUsername(loggedUserName);
 
       let user;
 
-      user = await this.userService.findUserById(subordinateObjectId);
+      user = await this.userService.findUserById(subordinateObjectId) || await this.userService.findPlayerById(subordinateObjectId);
 
       if (!user) {
-        user = await this.userService.findPlayerById(subordinateObjectId);
-
-        if (!user) {
-          throw createHttpError(404, "User not found");
-        }
+        throw createHttpError(404, "User not found");
       }
 
       if (
-        loggedUserRole === "company" ||
+        loggedUserRole === "admin" ||
         loggedUser.subordinates.includes(subordinateObjectId) ||
         user._id.toString() == loggedUser._id.toString()
       ) {
         let client;
 
         switch (user.role) {
-          case "company":
+          case "admin":
             client = await User.findById(subordinateId).populate({
               path: "transactions",
               model: Transaction,
@@ -962,8 +1053,6 @@ export class UserController {
           throw createHttpError(404, "Client not found");
         }
 
-
-
         res.status(200).json(client);
       } else {
         throw createHttpError(
@@ -978,28 +1067,18 @@ export class UserController {
 
   async getReport(req: Request, res: Response, next: NextFunction) {
     try {
+
       const _req = req as AuthRequest;
       const { username, role } = _req.user;
       const { type, userId } = req.query;
       const { start, end } = UserController.getStartAndEndOfPeriod(
         type as string
       );
-      const allowedAdmins = [
-        "company",
-        "master",
-        "distributor",
-        "subdistributor",
-        "store",
-      ];
 
       const currentUser = await User.findOne({ username });
 
       if (!currentUser) {
         throw createHttpError(401, "User not found");
-      }
-
-      if (!allowedAdmins.includes(currentUser.role)) {
-        throw createHttpError(400, "Access denied : Invalid User ");
       }
 
       let targetUser = currentUser;
@@ -1018,86 +1097,101 @@ export class UserController {
         targetUser = subordinate;
       }
 
-      if (targetUser.role === "company") {
-        // Total Recharge Amount
+
+      if (targetUser.role === "admin" || targetUser.role === "supermaster") {
+        const subordinateIds = await targetUser.role === "supermaster" ? await this.userService.getAllSubordinateIds(targetUser._id as mongoose.Types.ObjectId) : [];
+
+        // For admin/supermaster - get all subordinate transactions
         const totalRechargedAmt = await Transaction.aggregate([
           {
             $match: {
               $and: [
-                {
-                  createdAt: {
-                    $gte: start,
-                    $lte: end,
-                  },
-                },
-                {
-                  type: "recharge",
-                },
-              ],
-            },
+                { createdAt: { $gte: start, $lte: end } },
+                { type: "recharge" },
+                ...(targetUser.role === "supermaster" ? [{
+                  $or: [
+                    { creditor: targetUser.username }, // Credits given by supermaster
+                    { debtor: targetUser.username },   // Credits received by supermaster
+                    { creditor: { $in: subordinateIds.map(id => id.toString()) } }, // Credits given by subordinates
+                    { debtor: { $in: subordinateIds.map(id => id.toString()) } }    // Credits received by subordinates
+                  ]
+                }] : []) // For admin, no additional filters to get all transactions
+              ]
+            }
           },
           {
             $group: {
               _id: null,
-              totalAmount: {
-                $sum: "$amount",
-              },
-            },
-          },
+              totalAmount: { $sum: "$amount" }
+            }
+          }
         ]);
+
 
         // Total Redeem Amount
         const totalRedeemedAmt = await Transaction.aggregate([
           {
             $match: {
               $and: [
-                {
-                  createdAt: {
-                    $gte: start,
-                    $lte: end,
-                  },
-                },
-                {
-                  type: "redeem",
-                },
-              ],
-            },
+                { createdAt: { $gte: start, $lte: end } },
+                { type: "redeem" },
+                ...(targetUser.role === "supermaster" ? [{
+                  $or: [
+                    { creditor: targetUser.username },    // Redeem received by supermaster
+                    { debtor: targetUser.username },      // Redeem given by supermaster
+                    { creditor: { $in: subordinateIds.map(id => id.toString()) } }, // Redeem received by subordinates
+                    { debtor: { $in: subordinateIds.map(id => id.toString()) } }    // Redeem given by subordinates
+                  ]
+                }] : [])
+              ]
+            }
           },
           {
             $group: {
               _id: null,
-              totalAmount: {
-                $sum: "$amount",
-              },
-            },
-          },
+              totalAmount: { $sum: "$amount" }
+            }
+          }
         ]);
+        const userMatch = targetUser.role === "supermaster" ?
+          {
+            $and: [
+              { role: { $ne: "admin" } },
+              { createdAt: { $gte: start, $lte: end } },
+              { createdBy: targetUser._id }, // Only direct subordinates
+              { _id: { $in: subordinateIds } } // Only users in the hierarchy chain
+            ]
+          } :
+          {
+            $and: [
+              { role: { $ne: "admin" } },
+              { createdAt: { $gte: start, $lte: end } }
+            ]
+          };
 
         const users = await User.aggregate([
-          {
-            $match: {
-              $and: [
-                {
-                  role: { $ne: targetUser.role },
-                },
-                {
-                  createdAt: { $gte: start, $lte: end },
-                },
-              ],
-            },
-          },
+          { $match: userMatch },
           {
             $group: {
               _id: "$role",
-              count: { $sum: 1 },
-            },
-          },
+              count: { $sum: 1 }
+            }
+          }
         ]);
 
-        const players = await PlayerModel.countDocuments({
-          role: "player",
-          createdAt: { $gte: start, $lte: end },
-        });
+
+        const playerMatch = targetUser.role === "supermaster" ?
+          {
+            role: "player",
+            createdAt: { $gte: start, $lte: end },
+            createdBy: { $in: subordinateIds }
+          } :
+          {
+            role: "player",
+            createdAt: { $gte: start, $lte: end }
+          };
+
+        const players = await PlayerModel.countDocuments(playerMatch);
 
         const counts = users.reduce((acc: Record<string, number>, curr) => {
           acc[curr._id] = curr.count;
@@ -1106,152 +1200,132 @@ export class UserController {
 
         counts["player"] = players;
 
-        // Transactions
-        const transactions = await Transaction.find({
-          createdAt: { $gte: start, $lte: end },
-        })
+        const transactionMatch = targetUser.role === "supermaster" ?
+          {
+            createdAt: { $gte: start, $lte: end },
+            $or: [
+              { creditor: targetUser.username },
+              { debtor: targetUser.username },
+              { "creditorDetails.createdBy": { $in: subordinateIds } },
+              { "debtorDetails.createdBy": { $in: subordinateIds } }
+            ]
+          } :
+          { createdAt: { $gte: start, $lte: end } };
+
+        const transactions = await Transaction.find(transactionMatch)
           .sort({ createdAt: -1 })
           .limit(9);
 
         return res.status(200).json({
           username: targetUser.username,
+          credits: targetUser.credits,
           role: targetUser.role,
           recharge: totalRechargedAmt[0]?.totalAmount || 0,
           redeem: totalRedeemedAmt[0]?.totalAmount || 0,
           users: counts,
-          transactions: transactions,
+          transactions
         });
       } else {
-
-
-
-        const userRechargeAmt = await Transaction.aggregate([
-          {
-            $match: {
-              $and: [
-                {
-                  type: "recharge",
-                },
-                {
-                  debtor: targetUser.username,
-                },
-              ],
-            },
-          },
-          {
-            $group: {
-              _id: null,
-              totalAmount: {
-                $sum: "$amount",
-              },
-            },
-          },
-        ]);
-
-        const userRedeemAmt = await Transaction.aggregate([
-          {
-            $match: {
-              $and: [
-                {
-                  createdAt: {
-                    $gte: start,
-                    $lte: end,
-                  },
-                },
-                {
-                  type: "redeem",
-                },
-                {
-                  creditor: targetUser.username,
-                },
-              ],
-            },
-          },
-          {
-            $group: {
-              _id: null,
-              totalAmount: {
-                $sum: "$amount",
-              },
-            },
-          },
-        ]);
-
-        const userTransactions = await Transaction.find({
-          $or: [
-            { debtor: targetUser.username },
-            { creditor: targetUser.username },
-          ],
-          createdAt: { $gte: start, $lte: end },
-        })
-          .sort({ createdAt: -1 })
-          .limit(9);
-
-        let users;
-        if (targetUser.role === "store" || targetUser.role === "player") {
-          users = await PlayerModel.aggregate([
+        const [userRechargeAmt, userRedeemAmt, userTransactions, users] = await Promise.all([
+          Transaction.aggregate([
             {
               $match: {
                 $and: [
-                  {
-                    createdBy: targetUser._id,
-                  },
-                  {
-                    createdAt: { $gte: start, $lte: end },
-                  },
-                ],
-              },
+                  { createdAt: { $gte: start, $lte: end } },
+                  { type: "recharge" },
+                  { creditor: targetUser.username }  // Changed from debtor to creditor
+                ]
+              }
             },
             {
               $group: {
-                _id: "$status",
-                count: { $sum: 1 },
-              },
-            },
-          ]);
-        } else {
-          users = await User.aggregate([
-            {
-              $match: {
-                $and: [
-                  {
-                    createdBy: targetUser._id,
-                  },
-                  {
-                    createdAt: { $gte: start, $lte: end },
-                  },
-                ],
-              },
-            },
-            {
-              $group: {
-                _id: "$status",
-                count: { $sum: 1 },
-              },
-            },
-          ]);
-        }
-
-        const counts = users.reduce(
-          (acc: { active: number; inactive: number }, curr) => {
-            if (curr._id === "active") {
-              acc.active += curr.count;
-            } else {
-              acc.inactive += curr.count;
+                _id: null,
+                totalAmount: { $sum: "$amount" }
+              }
             }
-            return acc;
-          },
-          { active: 0, inactive: 0 }
-        );
+          ]),
+          Transaction.aggregate([
+            {
+              $match: {
+                $and: [
+                  { createdAt: { $gte: start, $lte: end } },
+                  { type: "redeem" },
+                  { debtor: targetUser.username }
+                ]
+              }
+            },
+            {
+              $group: {
+                _id: null,
+                totalAmount: { $sum: "$amount" }
+              }
+            }
+          ]),
+          Transaction.find({
+            $or: [
+              { debtor: targetUser.username },
+              { creditor: targetUser.username }
+            ],
+            createdAt: { $gte: start, $lte: end }
+          }).sort({ createdAt: -1 }),
+          (targetUser.role === "store" || targetUser.role === "player") ?
+            PlayerModel.aggregate([
+              {
+                $match: {
+                  $and: [
+                    { createdBy: targetUser._id },
+                    { createdAt: { $gte: start, $lte: end } }
+                  ]
+                }
+              },
+              {
+                $group: {
+                  _id: "$role",
+                  count: { $sum: 1 }
+                }
+              }
+            ]) :
+            User.aggregate([
+              {
+                $match: {
+                  $and: [
+                    { createdBy: targetUser._id },
+                    { createdAt: { $gte: start, $lte: end } }
+                  ]
+                }
+              },
+              {
+                $group: {
+                  _id: "$role",
+                  count: { $sum: 1 }
+                }
+              }
+            ])
+        ]);
+
+        console.log("USER TRANSACTIONS", userTransactions);
+
+        console.log('Debug recharge transactions:', await Transaction.find({
+          type: "recharge",
+          debtor: targetUser.username,
+          createdAt: { $gte: start, $lte: end }
+        }));
+
+        const counts = users.reduce((acc: Record<string, number>, curr) => {
+          acc[curr._id] = curr.count;
+          return acc;
+        }, {});
 
         return res.status(200).json({
           username: targetUser.username,
+          credits: targetUser.credits,
           role: targetUser.role,
           recharge: userRechargeAmt[0]?.totalAmount || 0,
           redeem: userRedeemAmt[0]?.totalAmount || 0,
           users: counts,
-          transactions: userTransactions,
+          transactions: userTransactions
         });
+
       }
     } catch (error) {
       next(error);
@@ -1268,64 +1342,47 @@ export class UserController {
         type as string
       );
 
+
       const subordinateObjectId = new mongoose.Types.ObjectId(subordinateId);
 
       // Fetch subordinate details
-      let subordinate = await User.findById(subordinateObjectId);
+      let subordinate = await User.findById(subordinateObjectId) || await PlayerModel.findById(subordinateObjectId);
 
       if (!subordinate) {
-        subordinate = await PlayerModel.findById(subordinateObjectId);
-
-        if (!subordinate) {
-          throw createHttpError(404, "Subordinate not found");
-        }
+        throw createHttpError(404, "Subordinate not found");
       }
 
-      // Fetch today's transactions where the subordinate is the creditor
-      const transactionsTodayAsCreditor = await Transaction.find({
-        creditor: subordinate.username,
-        createdAt: { $gte: start, $lte: end },
+
+      // Fetch transactions where the subordinate is either the creditor or the debtor
+      const transactions = await Transaction.find({
+        $or: [
+          { creditor: subordinate.username },
+          { debtor: subordinate.username }
+        ],
+        createdAt: { $gte: start, $lte: end }
       });
 
-      // Aggregate the total credits given to the subordinate today
-      const totalCreditsGivenToday = transactionsTodayAsCreditor.reduce(
-        (sum, t) => sum + t.amount,
-        0
-      );
+      // Aggregate the total credits given and money spent today
+      const totalCreditsGivenToday = transactions
+        .filter(t => t.creditor === subordinate.username)
+        .reduce((sum, t) => sum + t.amount, 0);
 
-      // Fetch today's transactions where the subordinate is the debtor
-      const transactionsTodayAsDebtor = await Transaction.find({
-        debtor: subordinate.username,
-        createdAt: { $gte: start, $lte: end },
-      });
+      const totalMoneySpentToday = transactions
+        .filter(t => t.debtor === subordinate.username)
+        .reduce((sum, t) => sum + t.amount, 0);
 
-      // Aggregate the total money spent by the subordinate today
-      const totalMoneySpentToday = transactionsTodayAsDebtor.reduce(
-        (sum, t) => sum + t.amount,
-        0
-      );
 
-      // Combine both sets of transactions
-      const allTransactions = [
-        ...transactionsTodayAsCreditor,
-        ...transactionsTodayAsDebtor,
-      ];
 
       // Fetch users and players created by this subordinate today
-      const usersCreatedToday = await User.find({
-        createdBy: subordinate._id,
-        createdAt: { $gte: start, $lte: end },
-      });
-
-      const playersCreatedToday = await PlayerModel.find({
-        createdBy: subordinate._id,
-        createdAt: { $gte: start, $lte: end },
-      });
+      const [usersCreatedToday, playersCreatedToday] = await Promise.all([
+        User.find({ createdBy: subordinate._id, createdAt: { $gte: start, $lte: end } }),
+        PlayerModel.find({ createdBy: subordinate._id, createdAt: { $gte: start, $lte: end } })
+      ]);
 
       const report = {
         creditsGiven: totalCreditsGivenToday,
         moneySpent: totalMoneySpentToday,
-        transactions: allTransactions, // All transactions related to the subordinate
+        transactions,
         users: usersCreatedToday,
         players: playersCreatedToday,
       };
