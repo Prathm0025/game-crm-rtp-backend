@@ -101,7 +101,7 @@ export const gameData = [
       ],
       "scatterValues": [1, 2, 3, 4, 5, 20, 50, 1000, 10000],
       "scatterProbs": [20, 10, 3, 2, 1, 0.8, 0.6, 0.4, 0.1],
-      "defaultFreespinOption": 0,
+      "defaultFreespinOption": 2,
       "freespinOptions": [
         {
           "count": 10,
@@ -374,11 +374,11 @@ export const gameData = [
           "Name": "Blank",
           "Id": 9,
           "reelInstance": {
-            "0": 15,
-            "1": 15,
-            "2": 15,
-            "3": 15,
-            "4": 15
+            "0": 35,
+            "1": 35,
+            "2": 35,
+            "3": 35,
+            "4": 35
           },
           "description": "Substitutes for all symbols.",
           "useWildSub": false,
@@ -431,11 +431,11 @@ export const gameData = [
           "Name": "Scatter",
           "Id": 11,
           "reelInstance": {
-            "0": 20,
-            "1": 20,
-            "2": 20,
-            "3": 20,
-            "4": 20,
+            "0": 2,
+            "1": 2,
+            "2": 2,
+            "3": 2,
+            "4": 2,
           },
           "description": "",
           "useWildSub": false,
