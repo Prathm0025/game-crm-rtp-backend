@@ -157,8 +157,13 @@ function checkForWin(gameInstance) {
                 settings.freeSpin.useFreeSpin = false;
             }
         }
-        const { isWinning, totalPayout } = checkSymbolOcuurence(gameInstance);
-        console.log(totalPayout, "total");
+        const { isWinning, totalPayout, matchedIndices } = checkSymbolOcuurence(gameInstance);
+        //  console.log(totalPayout, "total");
+        const formattedIndices = matchedIndices.map(({ col, row }) => `${col},${row}`);
+        const validIndices = formattedIndices.filter(index => index.length > 2);
+        if (validIndices.length > 0) {
+            gameInstance.settings._winData.winningSymbols.push(validIndices);
+        }
         gameInstance.playerData.currentWining += totalPayout;
         gameInstance.playerData.haveWon = parseFloat((gameInstance.playerData.haveWon + parseFloat(gameInstance.playerData.currentWining.toFixed(4))).toFixed(4));
         gameInstance.updatePlayerBalance(gameInstance.playerData.currentWining);
@@ -169,6 +174,7 @@ function checkForWin(gameInstance) {
         settings.freeSpin.freeSpinsAdded = false;
         settings._winData.winningSymbols = [];
         settings.isJackpot = false;
+        settings._winData.winningLines = [];
     }
     catch (error) {
         console.error("Error in checkForWin", error);
@@ -184,20 +190,21 @@ function checkSymbolOcuurence(gameInstance) {
         if (hasWild) {
             const nonWildSymbols = row.filter((symbol) => symbol !== settings.wild.SymbolID);
             const allNonWildSame = nonWildSymbols.every((symbol) => symbol === nonWildSymbols[0]);
-            if (allNonWildSame && nonWildSymbols.length > 0) {
+            if (allNonWildSame &&
+                nonWildSymbols.length > 0 &&
+                nonWildSymbols[0] != settings.jackpot.SymbolID &&
+                nonWildSymbols[0] != settings.bonus.SymbolID) {
                 row.fill(nonWildSymbols[0]);
-            }
-            else {
-                row.fill(settings.wild.SymbolID);
             }
         }
         const allSame = row.every((symbol) => symbol === row[0]);
         const isSpecialCombination = row.every((symbol) => [settings.bar3.SymbolID, settings.bar2.SymbolID, settings.bar1.SymbolID].includes(symbol));
-        console.log(`Row ${rowIndex} all same:`, allSame);
+        // console.log(`Row ${rowIndex} all same:`, allSame);
         if (allSame || isSpecialCombination) {
             const matchedSymbol = row[0];
             if ((matchedSymbol === settings.bonus.SymbolID) && !settings.freeSpin.useFreeSpin) {
                 settings.freeSpin.useFreeSpin = true;
+                settings.freeSpin.freeSpinsAdded = true;
                 settings.freeSpin.freeSpinCount = settings.freeSpin.freeSpinAwarded;
             }
             else if ((matchedSymbol === settings.bonus.SymbolID) && settings.freeSpin.useFreeSpin) {
@@ -208,6 +215,8 @@ function checkSymbolOcuurence(gameInstance) {
                 settings.isJackpot = true;
             }
             if (allSame) {
+                settings._winData.winningLines.push(rowIndex);
+                console.log(matchedSymbol, 'matched sym');
                 const symbol = settings.currentGamedata.Symbols.filter((symbol) => symbol.Id === matchedSymbol);
                 console.log(symbol[0].payout, "S");
                 console.log(settings.currentBet);
@@ -225,7 +234,7 @@ function checkSymbolOcuurence(gameInstance) {
         return row;
     });
     console.log(totalPayout);
-    return { isWinning, totalPayout };
+    return { isWinning, totalPayout, matchedIndices };
 }
 /**
  * Configures game settings based on the special symbol provided.
@@ -329,7 +338,9 @@ function makeResultJson(gameInstance) {
                 symbolsToEmit: settings._winData.winningSymbols,
                 isFreeSpin: settings.freeSpin.useFreeSpin,
                 freeSpinCount: settings.freeSpin.freeSpinCount,
+                isfreeSpinAdded: settings.freeSpin.freeSpinsAdded,
                 isJackpot: settings.isJackpot,
+                linesToEmit: settings._winData.winningLines,
             },
             PlayerData: {
                 Balance: gameInstance.getPlayerData().credits,
