@@ -54,6 +54,16 @@ export function initializeGameSettings(gameData: any, gameInstance: SLSG) {
         freeSpinSymbol: {
             symbolID: "-1",
             multiplier: [],
+        },
+        male: {
+            SymbolName: "",
+            symbolID: "-1",
+            multiplier: [],
+        },
+        female: {
+            SymbolName: "",
+            symbolID: "-1",
+            multiplier: [],
         }
     };
 }
@@ -89,9 +99,7 @@ export function generateInitialReel(gameSettings: any): string[][] {
 export function makePayLines(gameInstance: SLSG) {
     const { settings } = gameInstance;
     settings.currentGamedata.Symbols.forEach((element) => {
-        if (!element.useWildSub) {
             handleSpecialSymbols(element, gameInstance);
-        }
     });
 }
 
@@ -150,28 +158,44 @@ export function checkForWin(gameInstance: SLSG) {
             handleFreeSpins(freeSpinSymbolCount, gameInstance);
         }
 
+     
         settings.lineData.forEach((line, index) => {
             //RTL for free spins
+            const direction = settings.freeSpin.useFreeSpin ? 'RTL' : 'LTR';            
             const firstSymbolPositionLTR = line[0];
+            const firstSymbolPositionRTL = line[line.length - 1];
 
             let firstSymbolLTR = settings.resultSymbolMatrix[firstSymbolPositionLTR][0];
-            const firstSymbol = firstSymbolLTR;
-            if (settings.wild.useWild && firstSymbolLTR === settings.wild.SymbolID) {
+            let firstSymbolRTL = settings.resultSymbolMatrix[firstSymbolPositionRTL][line.length - 1];            
+            const firstSymbol = settings.freeSpin.useFreeSpin ? firstSymbolRTL : firstSymbolLTR;
+            if (settings.wild.useWild && firstSymbolLTR === settings.wild.SymbolID) {                
                 firstSymbolLTR = findFirstNonWildSymbol(line, gameInstance);
             }
+
+            if (settings.wild.useWild && firstSymbolRTL === settings.wild.SymbolID) {
+                firstSymbolRTL = findFirstNonWildSymbol(line, gameInstance, 'RTL');                
+            }
+
+            if(settings.freeSpin.useFreeSpin){
+                settings.resultSymbolMatrix 
+            }
+
             const { isWinningLine, matchCount, matchedIndices } = checkLineSymbols(
                 firstSymbol,
                 line,
                 gameInstance,
-                'LTR'
+                direction
             );
             switch (true) {
                 case isWinningLine && matchCount >= 4 && !settings.freeSpin.useFreeSpin:
+                    // console.log("NOT FREE SPIN");
+
                     const symbolMultiplierLTR = accessData(
                         firstSymbolLTR,
                         matchCount,
                         gameInstance
                     );
+                    // console.log(settings.lastReel, 'lastReel')
                     switch (true) {
                         case symbolMultiplierLTR > 0:
                             const payout = symbolMultiplierLTR * settings.currentBet;
@@ -208,11 +232,53 @@ export function checkForWin(gameInstance: SLSG) {
                             break;
                     }
                     break;
+                case isWinningLine && matchCount >= 4 && settings.freeSpin.useFreeSpin:
+                    // console.log("FREE SPIN");
+
+                    const symbolMultiplierRTL = accessData(
+                        firstSymbolRTL,
+                        matchCount,
+                        gameInstance
+                    );
+                    // console.log(settings.lastReel, 'lastReel')
+                    switch (true) {
+                        case symbolMultiplierRTL > 0:
+                            const payout = symbolMultiplierRTL * settings.currentBet;
+                            totalPayout += payout;
+                            settings._winData.winningLines.push(index + 1);
+                            winningLines.push({
+                                line,
+                                symbol: firstSymbolLTR,
+                                multiplier: symbolMultiplierRTL,
+                                matchCount,
+                            });
+                            settings.matchCountOfLines.push([index + 1, matchCount]);
+                            console.log(`Line ${index + 1}:`, line);
+                            console.log(
+                                `Payout for Line ${index + 1}:`,
+                                "payout",
+                                symbolMultiplierRTL
+                            );
+                            const formattedIndices = matchedIndices.map(({ col, row }) => `${col},${row}`);
+                            const validIndices = formattedIndices.filter(
+                                (index) => index.length > 2
+                            );
+                            if (validIndices.length > 0) {
+                                // console.log(settings.lastReel, 'settings.lastReel')
+                                console.log(validIndices);
+                                settings._winData.winningSymbols.push(validIndices);
+                                settings._winData.totalWinningAmount = totalPayout;
+                                console.log(settings._winData.totalWinningAmount)
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
                 default:
                     break;
             }
         });
-
 
         if (settings.freeSpin.useFreeSpin && settings.freeSpin.freeSpinCount > 0) {
             settings.freeSpin.freeSpinCount -= 1;
@@ -365,6 +431,16 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLSG) {
             gameInstance.settings.wild.SymbolID = symbol.Id;
             gameInstance.settings.wild.useWild = true;
             break;
+         case specialIcons.Male:            
+            gameInstance.settings.male.SymbolName = symbol.Name;
+            gameInstance.settings.male.symbolID = symbol.Id;
+            gameInstance.settings.wild.useWild = true;
+            break;
+         case specialIcons.Female:
+            gameInstance.settings.female.SymbolName = symbol.Name;
+            gameInstance.settings.female.symbolID = symbol.Id;
+            gameInstance.settings.wild.useWild = true;
+            break;    
         case specialIcons.FreeSpin:
             gameInstance.settings.freeSpinSymbol.symbolID = symbol.Id;
             gameInstance.settings.freeSpinSymbol.multiplier = symbol.multiplier;
@@ -498,27 +574,32 @@ function reduceMatrix(gameInstance: SLSG, type: 'main' | 'collosal') {
 function generateColumn(symbols: number[], gameInstance: SLSG, type: 'main' | 'collosal'): number[] {
     const column = [];
     const availableSymbols = [...symbols];
-    // console.log(availableSymbols, "avai");
-    
+
     const columnLength = type === 'main' ? 4 : 12;
     let selectedSymbolIndex = type === 'main' ? 0 : 2;
 
     while (column.length < columnLength) {
-        const symbolCount = getRandomValue(gameInstance, type);
-        // console.log(symbolCount, "symbol counr");
-        
-        const selectedSymbol = availableSymbols[(selectedSymbolIndex) % availableSymbols.length];
-        // console.log(selectedSymbol,);
-        
-        for (let i = 0; i < symbolCount && column.length < columnLength; i++) {
-            column.push(selectedSymbol);            
-        }
-        selectedSymbolIndex+=1;
+        let symbolCount = getRandomValue(gameInstance, type);
+        const selectedSymbol = availableSymbols[selectedSymbolIndex % availableSymbols.length];
 
+        const isSpecialSymbol = (selectedSymbol == Number(gameInstance.settings.male.symbolID)) || 
+                                (selectedSymbol == Number(gameInstance.settings.female.symbolID));
+
+        // Only apply symbolCount = 8 if the symbol is in the middle, not at 1st or 2nd position
+        if (isSpecialSymbol && column.length >= 2 && column.length < columnLength - 2) {
+            symbolCount = 8;
+        }
+
+        for (let i = 0; i < symbolCount && column.length < columnLength; i++) {
+            column.push(selectedSymbol);
+        }
+
+        selectedSymbolIndex += 1;
     }
 
     return column.slice(0, columnLength);
 }
+
 
 
 
