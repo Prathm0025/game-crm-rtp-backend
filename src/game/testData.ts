@@ -1,1 +1,3 @@
-export const testData=[]
+
+export const gameData = []
+
