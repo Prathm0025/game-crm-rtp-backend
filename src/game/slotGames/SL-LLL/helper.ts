@@ -39,10 +39,12 @@ export function initializeGameSettings(gameData: any, gameInstance: SLLLL) {
       useWild: false,
       isFreeSpin: false,
       isFreeSpinTriggered: false,
-      freeSpinCount: 0,
-      freeSpinMultipliers: 1,
+      freeSpinCount: -1,
+      freeSpinMultiplier: 1,
       freeSpinIncrement: gameSettings.freeSpin.incrementCount || 10,
-      diamondMultiplier: gameSettings.freeSpin.diamondMultiplier || []
+      diamondMultipliers: gameSettings.freeSpin.diamondMultiplier || [],
+      diamondCount: 0,
+      payout: 0
     },
   };
 
@@ -348,11 +350,10 @@ export function checkForFreespin(gameInstance: SLLLL): boolean {
     let col2Hasfreespin = false;
     let col3Hasfreespin = false;
 
-
     for (let j = 0; j < rows; j++) { // Loop through rows
-      if (resultMatrix[j][0] == settings.freeSpin.SymbolID) col1Hasfreespin = true; // Check 1st column
-      if (resultMatrix[j][1] == settings.freeSpin.SymbolID) col2Hasfreespin = true; // Check 2nd column
-      if (resultMatrix[j][2] == settings.freeSpin.SymbolID) col3Hasfreespin = true; // Check 3rd column
+      if (resultMatrix[j][1] == settings.freeSpin.SymbolID) col1Hasfreespin = true; // Check 1st column
+      if (resultMatrix[j][2] == settings.freeSpin.SymbolID) col2Hasfreespin = true; // Check 2nd column
+      if (resultMatrix[j][3] == settings.freeSpin.SymbolID) col3Hasfreespin = true; // Check 3rd column
 
 
       // If all three columns have the symbol, return true
@@ -361,7 +362,7 @@ export function checkForFreespin(gameInstance: SLLLL): boolean {
         col3Hasfreespin) {
         settings.freeSpin.isFreeSpinTriggered = true
         settings.freeSpin.isFreeSpin = true;
-        settings.freeSpin.freeSpinCount += settings.freeSpin.freeSpinIncrement;
+        settings.freeSpin.freeSpinCount = settings.freeSpin.freeSpinIncrement;
         return true;
       }
     }
@@ -370,11 +371,23 @@ export function checkForFreespin(gameInstance: SLLLL): boolean {
     // If one of the columns doesn't have the symbol, return false
     return false;
 
-
   } catch (e) {
     console.error("Error in checkForFreespin:", e);
     return false; // Handle error by returning false in case of failure
   }
+}
+
+function getFreeSpinMultiplier(count: number, multipliers: {
+  range: [number, number],
+  multiplier: number
+}[]):number {
+  let mult = 1
+  multipliers.forEach((element) => {
+    if(element.range[0] <= count && element.range[1] >= count){
+      mult = element.multiplier
+    }
+  })
+  return mult
 }
 
 export function checkWin(gameInstance: SLLLL): { payout: number; } {
@@ -383,19 +396,11 @@ export function checkWin(gameInstance: SLLLL): { payout: number; } {
 
   //NOTE: FREESPIN related checks
   //NOTE: check and increment freespinmultipliers 
-  // Update multipliers based on symbol occurrences, capped at MAX_MULTIPLIER
-  // if (settings.freeSpin.freeSpinCount > 0) {
-  //
-  //   let flag=false
-  //   settings.resultSymbolMatrix.flat().forEach((symbolId) => {
-  //     if(symbolId === settings.scatter.SymbolID){
-  //       flag=true
-  //     }
-  //   })
-  //   if(flag){
-  //     settings.freeSpin.freeSpinMultipliers += 1
-  //   }
-  // }
+  // Update multipliers based on symbol occurrences, 
+  if (settings.freeSpin.freeSpinCount > -1) {
+    const diamonds = findSymbol(gameInstance, settings.freeSpin.SymbolName)
+    settings.freeSpin.diamondCount += diamonds.length
+  }
 
   settings.lineData.forEach((line, index) => {
     const firstSymbolPositionLTR = line[0];
@@ -417,27 +422,6 @@ export function checkWin(gameInstance: SLLLL): { payout: number; } {
       //NOTE: add freespin multiplier feat
       let symbolMultiplierLTR = accessData(firstSymbolLTR, LTRResult.matchCount, gameInstance);
       if (symbolMultiplierLTR > 0) {
-        if (settings.freeSpin.freeSpinCount > -1) {
-
-          // console.log("matchCount", LTRResult.matchCount);
-          // console.log("multiplierBase", symbolMultiplierLTR);
-          // switch (LTRResult.matchCount) {
-          //   case 3:
-          //     symbolMultiplierLTR *= settings.freespin.options[settings.freespin.optionIndex].multiplier[0];
-          //     break;
-          //   case 4:
-          //     symbolMultiplierLTR *= settings.freespin.options[settings.freespin.optionIndex].multiplier[1];
-          //     break;
-          //   case 5:
-          //     symbolMultiplierLTR *= settings.freespin.options[settings.freespin.optionIndex].multiplier[2];
-          //     break;
-          //   default:
-          //     console.log('error in freespin multiplier')
-          //     break;
-          // }
-
-          console.log("multiplierNew", symbolMultiplierLTR);
-        }
         const payout = symbolMultiplierLTR * gameInstance.settings.BetPerLines;
         totalPayout += payout;
         settings._winData.winningLines.push(index + 1);
@@ -460,7 +444,14 @@ export function checkWin(gameInstance: SLLLL): { payout: number; } {
       }
     }
   });
-  checkForFreespin(gameInstance)
+
+
+  if (settings.freeSpin.freeSpinCount <= -1) {
+    checkForFreespin(gameInstance)
+  } else {
+    settings.freeSpin.isFreeSpinTriggered = false
+  }
+  // console.log("freespin", settings.freeSpin)
 
   //reset multiplers for freespin when its over 
   // if (settings.freeSpin.freeSpinCount <= 0 && settings.freeSpin.isFreeSpin === false) {
@@ -474,19 +465,49 @@ export function checkWin(gameInstance: SLLLL): { payout: number; } {
     totalPayout *= 2
     // console.info("after", totalPayout);
   }
+  console.log("totalPayout", totalPayout)
 
-  gameInstance.playerData.currentWining = precisionRound(totalPayout, 5)
-  gameInstance.playerData.haveWon += gameInstance.playerData.currentWining
-  gameInstance.playerData.haveWon = precisionRound(gameInstance.playerData.haveWon, 5)
 
-  gameInstance.incrementPlayerBalance(gameInstance.playerData.currentWining);
+  if (settings.freeSpin.freeSpinCount > -1) {
+    settings.freeSpin.payout = precisionRound(settings.freeSpin.payout + totalPayout, 4)
+  } else {
+    gameInstance.playerData.currentWining = precisionRound(totalPayout, 5)
+    gameInstance.playerData.haveWon = precisionRound(gameInstance.playerData.haveWon + gameInstance.playerData.currentWining, 5)
+    gameInstance.incrementPlayerBalance(gameInstance.playerData.currentWining);
+  }
+  if (settings.freeSpin.freeSpinCount === settings.freeSpin.freeSpinIncrement) {
+    gameInstance.playerData.currentWining = precisionRound(totalPayout, 5)
+    gameInstance.playerData.haveWon = precisionRound(gameInstance.playerData.haveWon + gameInstance.playerData.currentWining, 5)
+    gameInstance.incrementPlayerBalance(gameInstance.playerData.currentWining);
+
+  }
+  if (settings.freeSpin.freeSpinCount === 0) {
+    const mult = getFreeSpinMultiplier(settings.freeSpin.diamondCount, settings.freeSpin.diamondMultipliers)
+    // console.log("mult", mult)
+    settings.freeSpin.freeSpinMultiplier = mult
+
+    gameInstance.playerData.currentWining = precisionRound(settings.freeSpin.payout*mult, 5)
+    gameInstance.playerData.haveWon = precisionRound(gameInstance.playerData.haveWon + gameInstance.playerData.currentWining, 5)
+    gameInstance.incrementPlayerBalance(gameInstance.playerData.currentWining);
+
+  }
+
+
   makeResultJson(gameInstance)
-  if (settings.freeSpin.freeSpinCount > 0) {
+  if (settings.freeSpin.freeSpinCount >= 0) {
     settings.freeSpin.freeSpinCount -= 1
+  }
+  if (settings.freeSpin.freeSpinCount === -1) {
+    settings.freeSpin.isFreeSpin = false
+    settings.freeSpin.payout = 0
+    settings.freeSpin.diamondCount = 0
+    settings.freeSpin.freeSpinMultiplier = 1
   }
   if (settings.isDouble) {
     settings.isDouble = false
   }
+  settings._winData.winningLines = [];
+  settings._winData.winningSymbols = [];
 
   return { payout: totalPayout };
 }
@@ -500,10 +521,14 @@ export function makeResultJson(gameInstance: SLLLL) {
     const sendData = {
       GameData: {
         resultSymbols: settings.resultSymbolMatrix,
+        linesToEmit: settings._winData.winningLines,
+        symbolsToEmit: settings._winData.winningSymbols,
         freeSpin: {
-          isFreeSpin: settings.freeSpin.isFreeSpin,
+          isFreeSpin: settings.freeSpin.isFreeSpinTriggered,
           freeSpinCount: settings.freeSpin.freeSpinCount,
-          // freeSpinMultipliers: settings.freeSpin.freeSpinMultipliers
+          freeSpinMultiplier: settings.freeSpin.freeSpinMultiplier,
+          diamondCount: settings.freeSpin.diamondCount,
+          payout: precisionRound(settings.freeSpin.payout, 4)
         },
         isDouble: settings.isDouble,
       },
@@ -515,7 +540,7 @@ export function makeResultJson(gameInstance: SLLLL) {
       }
     };
 
-    // console.log("Sending result JSON:", JSON.stringify(sendData));
+    console.log("Sending result JSON:", JSON.stringify(sendData, null, 2));
     gameInstance.sendMessage('ResultData', sendData);
   } catch (error) {
     console.error("Error generating result JSON or sending message:", error);

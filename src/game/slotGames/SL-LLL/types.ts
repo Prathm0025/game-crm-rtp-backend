@@ -46,9 +46,11 @@ export interface SLLLLSETTINGS {
     isFreeSpin: boolean;
     isFreeSpinTriggered: boolean;
     freeSpinCount: number;
-    freeSpinMultipliers: number;
+    freeSpinMultiplier: number;
     freeSpinIncrement: number;
-    diamondMultiplier: { range: [number, number], multiplier: number }[];
+    diamondCount:number;
+    diamondMultipliers: { range: [number, number], multiplier: number }[];
+    payout:number
   },
 }
 
