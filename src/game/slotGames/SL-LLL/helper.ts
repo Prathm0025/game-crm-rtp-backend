@@ -32,6 +32,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLLLL) {
       SymbolID: -1,
       useWild: false
     },
+    // isDouble: [],
     isDouble: false,
     freeSpin: {
       SymbolName: "",
@@ -303,41 +304,41 @@ export function findSymbol(gameInstance: SLLLL, SymbolName: string): string[] {
   return foundArray;
 }
 
-export function checkForDouble(gameInstance: SLLLL): boolean {
-  try {
-    const { settings } = gameInstance;
-    const resultMatrix = settings.resultSymbolMatrix;
-    const rows = resultMatrix.length;
-
-    // Check if 1st, 2nd, and 3rd columns have symbol with ID 12 regardless of row
-    let col1Hasscatter = false;
-    let col2Hasscatter = false;
-    let col3Hasscatter = false;
-
-
-    for (let j = 0; j < rows; j++) { // Loop through rows
-      if (resultMatrix[j][1] == settings.scatter.SymbolID) col1Hasscatter = true; // Check 1st column
-      if (resultMatrix[j][2] == settings.scatter.SymbolID) col2Hasscatter = true; // Check 2nd column
-      if (resultMatrix[j][3] == settings.scatter.SymbolID) col3Hasscatter = true; // Check 3rd column
-
-
-      // If all three columns have the symbol, return true
-      if (col1Hasscatter &&
-        col2Hasscatter &&
-        col3Hasscatter) {
-        settings.isDouble = true
-        return true;
-      }
-    }
-
-    return false;
-
-
-  } catch (e) {
-    console.error("Error in checkForFreespin:", e);
-    return false; // Handle error by returning false in case of failure
-  }
-}
+// export function checkForDouble(gameInstance: SLLLL): boolean {
+//   try {
+//     const { settings } = gameInstance;
+//     const resultMatrix = settings.resultSymbolMatrix;
+//     const rows = resultMatrix.length;
+//
+//     // Check if 1st, 2nd, and 3rd columns have symbol with ID 12 regardless of row
+//     let col1Hasscatter = false;
+//     let col2Hasscatter = false;
+//     let col3Hasscatter = false;
+//
+//
+//     for (let j = 0; j < rows; j++) { // Loop through rows
+//       if (resultMatrix[j][1] == settings.scatter.SymbolID) col1Hasscatter = true; // Check 1st column
+//       if (resultMatrix[j][2] == settings.scatter.SymbolID) col2Hasscatter = true; // Check 2nd column
+//       if (resultMatrix[j][3] == settings.scatter.SymbolID) col3Hasscatter = true; // Check 3rd column
+//
+//
+//       // If all three columns have the symbol, return true
+//       if (col1Hasscatter &&
+//         col2Hasscatter &&
+//         col3Hasscatter) {
+//         settings.isDouble = true
+//         return true;
+//       }
+//     }
+//
+//     return false;
+//
+//
+//   } catch (e) {
+//     console.error("Error in checkForFreespin:", e);
+//     return false; // Handle error by returning false in case of failure
+//   }
+// }
 
 export function checkForFreespin(gameInstance: SLLLL): boolean {
   try {
@@ -380,10 +381,10 @@ export function checkForFreespin(gameInstance: SLLLL): boolean {
 function getFreeSpinMultiplier(count: number, multipliers: {
   range: [number, number],
   multiplier: number
-}[]):number {
+}[]): number {
   let mult = 1
   multipliers.forEach((element) => {
-    if(element.range[0] <= count && element.range[1] >= count){
+    if (element.range[0] <= count && element.range[1] >= count) {
       mult = element.multiplier
     }
   })
@@ -418,11 +419,20 @@ export function checkWin(gameInstance: SLLLL): { payout: number; } {
     // Left-to-right check
     const LTRResult = checkLineSymbols(firstSymbolLTR.toString(), line, gameInstance, 'LTR');
     if (LTRResult.isWinningLine && LTRResult.matchCount >= 3) {
+      // console.log("LTRes", LTRResult);
 
       //NOTE: add freespin multiplier feat
       let symbolMultiplierLTR = accessData(firstSymbolLTR, LTRResult.matchCount, gameInstance);
       if (symbolMultiplierLTR > 0) {
-        const payout = symbolMultiplierLTR * gameInstance.settings.BetPerLines;
+        let payout = symbolMultiplierLTR * gameInstance.settings.BetPerLines;
+        if (LTRResult.isWild) {
+          payout *= 2
+          // settings.isDouble.push(true)
+          settings.isDouble = true
+        }
+        // else{
+        //   settings.isDouble.push(false)
+        // }
         totalPayout += payout;
         settings._winData.winningLines.push(index + 1);
         // winningLines.push({
@@ -460,12 +470,7 @@ export function checkWin(gameInstance: SLLLL): { payout: number; } {
   // else {
   //   settings.freeSpinCount -= 1
   // }
-  if (settings.isDouble) {
-    // console.info("before", totalPayout);
-    totalPayout *= 2
-    // console.info("after", totalPayout);
-  }
-  console.log("totalPayout", totalPayout)
+  // console.log("totalPayout", totalPayout)
 
 
   if (settings.freeSpin.freeSpinCount > -1) {
@@ -486,7 +491,7 @@ export function checkWin(gameInstance: SLLLL): { payout: number; } {
     // console.log("mult", mult)
     settings.freeSpin.freeSpinMultiplier = mult
 
-    gameInstance.playerData.currentWining = precisionRound(settings.freeSpin.payout*mult, 5)
+    gameInstance.playerData.currentWining = precisionRound(settings.freeSpin.payout * mult, 5)
     gameInstance.playerData.haveWon = precisionRound(gameInstance.playerData.haveWon + gameInstance.playerData.currentWining, 5)
     gameInstance.incrementPlayerBalance(gameInstance.playerData.currentWining);
 
@@ -503,6 +508,7 @@ export function checkWin(gameInstance: SLLLL): { payout: number; } {
     settings.freeSpin.diamondCount = 0
     settings.freeSpin.freeSpinMultiplier = 1
   }
+  // settings.isDouble = []
   if (settings.isDouble) {
     settings.isDouble = false
   }

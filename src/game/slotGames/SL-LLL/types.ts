@@ -38,6 +38,7 @@ export interface SLLLLSETTINGS {
     SymbolID: number;
     useWild: boolean
   },
+  // isDouble:boolean[],
   isDouble:boolean,
   freeSpin: {
     SymbolName: string;
