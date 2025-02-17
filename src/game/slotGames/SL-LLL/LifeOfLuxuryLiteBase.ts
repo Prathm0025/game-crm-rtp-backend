@@ -17,7 +17,7 @@ export class SLLLL {
   }
 
   constructor(public currentGameData: currentGamedata) {
-    console.log("Initializing SLLOL game");
+    console.log("Initializing SLLLL game");
     // console.log("currentGameData:", JSON.stringify(currentGameData, null, 2));
 
     try {
@@ -25,7 +25,7 @@ export class SLLLL {
       console.log("Game settings initialized")
 
       makePayLines(this)
-      
+
       this.settings.reels = generateInitialReel(this.settings);
       // console.log("Initial reels generated:", this.settings.reels);
 
@@ -33,7 +33,7 @@ export class SLLLL {
       console.log("credits : ", this.getPlayerData().credits);
 
     } catch (error) {
-      console.error("Error initializing SLLOL game:", error);
+      console.error("Error initializing SLLLL game:", error);
     }
   }
 
