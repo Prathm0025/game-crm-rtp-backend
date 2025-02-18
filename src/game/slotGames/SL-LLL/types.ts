@@ -24,7 +24,7 @@ export interface SLLLLSETTINGS {
   Symbols: SymbolType[];
   resultSymbolMatrix: number[][];
   currentGamedata: any;
-  lineData:any[],
+  lineData: any[],
   _winData: any;
   currentBet: number;
   currentLines: number;
@@ -38,8 +38,11 @@ export interface SLLLLSETTINGS {
     SymbolID: number;
     useWild: boolean
   },
-  // isDouble:boolean[],
-  isDouble:boolean,
+  doubleLines: {
+    index: number,
+    payout: number
+  }[],
+  // isDouble:boolean,
   freeSpin: {
     SymbolName: string;
     SymbolID: number;
@@ -49,9 +52,9 @@ export interface SLLLLSETTINGS {
     freeSpinCount: number;
     freeSpinMultiplier: number;
     freeSpinIncrement: number;
-    diamondCount:number;
+    diamondCount: number;
     diamondMultipliers: { range: [number, number], multiplier: number }[];
-    payout:number
+    payout: number
   },
 }
 
