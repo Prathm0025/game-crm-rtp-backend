@@ -582,13 +582,15 @@ function generateColumn(symbols: number[], gameInstance: SLSG, type: 'main' | 'c
         let symbolCount = getRandomValue(gameInstance, type);
         const selectedSymbol = availableSymbols[selectedSymbolIndex % availableSymbols.length];
 
-        const isSpecialSymbol = (selectedSymbol == Number(gameInstance.settings.male.symbolID)) || 
-                                (selectedSymbol == Number(gameInstance.settings.female.symbolID));
+        // const isSpecialSymbol = (selectedSymbol == Number(gameInstance.settings.male.symbolID)) || 
+        //                         (selectedSymbol == Number(gameInstance.settings.female.symbolID));
 
         // Only apply symbolCount = 8 if the symbol is in the middle, not at 1st or 2nd position
-        if (isSpecialSymbol && column.length >= 2 && column.length < columnLength - 2) {
-            symbolCount = 8;
-        }
+        // if (isSpecialSymbol && column.length >= 1 && column.length < columnLength - 1) {
+        //     console.log(symbolCount, "symbolCount");
+            
+        //     symbolCount = 8;
+        // }
 
         for (let i = 0; i < symbolCount && column.length < columnLength; i++) {
             column.push(selectedSymbol);

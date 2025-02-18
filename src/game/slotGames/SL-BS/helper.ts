@@ -258,8 +258,7 @@ function checkSymbolOcuurence(gameInstance:SLBS){
             }
 
             if(allSame){
-                settings._winData.winningLines.push(rowIndex);
-   console.log(matchedSymbol, 'matched sym');
+            
    
             const symbol:any = settings.currentGamedata.Symbols.filter((symbol)=>symbol.Id === matchedSymbol)
             console.log(symbol[0].payout, "S");
@@ -273,7 +272,8 @@ function checkSymbolOcuurence(gameInstance:SLBS){
                 const payout = settings.anyMatchCount * settings.currentBet;
                 totalPayout += payout;
             }
-            
+            settings._winData.winningLines.push(rowIndex);
+            console.log(matchedSymbol, 'matched sym'); 
 
             matchedIndices.push(
                 { col: 0, row: rowIndex },
