@@ -67,7 +67,7 @@ export class CheckResult {
         console.log("_____________RESULT_END________________");
     }
 
-    private checkForBonus() {
+     private checkForBonus() {
         if (!this.currentGame.settings.currentGamedata.bonus.isEnabled) return;
         if (this.currentGame.settings.freeSpin.freeSpinStarted) return
 
@@ -313,8 +313,9 @@ export class CheckResult {
             ) {
                 // console.log("!!!!!JACKPOT!!!!!");
                 this.currentGame.settings._winData.winningSymbols.push(this.jackpotWinSymbols);
-                this.currentGame.settings._winData.totalWinningAmount += this.jackpot.defaultAmount * this.currentGame.settings.BetPerLines;;
-                this.currentGame.settings._winData.jackpotwin += this.jackpot.defaultAmount * this.currentGame.settings.BetPerLines;;
+                this.currentGame.settings._winData.totalWinningAmount += this.jackpot.defaultAmount * this.currentGame.settings.BetPerLines;
+
+                this.currentGame.settings._winData.specialFeatures.jackpot.amountWon = this.jackpot.defaultAmount * this.currentGame.settings.BetPerLines;
             }
         }
     }

@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 import { Player, User } from "./userModel";
 import { IPlayer, IUser } from "./userType";
 import { TransactionController } from "../transactions/transactionController";
@@ -6,6 +6,8 @@ import { TransactionController } from "../transactions/transactionController";
 const transactionController = new TransactionController()
 
 export default class UserService {
+
+
   async findUserByUsername(username: string, session?: mongoose.ClientSession) {
     return await User.findOne({ username }).session(session || null);
   }
@@ -13,6 +15,8 @@ export default class UserService {
   async findPlayerByUsername(username: string, session?: mongoose.ClientSession) {
     return await Player.findOne({ username }).session(session || null);
   }
+
+
 
   async findUserById(id: mongoose.Types.ObjectId, session?: mongoose.ClientSession) {
     return await User.findById(id).session(session || null);
@@ -79,4 +83,27 @@ export default class UserService {
     }
     return arr.join("");
   }
+
+  async getAllSubordinateIds(userId: Types.ObjectId): Promise<Types.ObjectId[]> {
+    const directSubordinates = await User.find({ createdBy: userId });
+    const directPlayers = await Player.find({ createdBy: userId });
+
+    let allSubordinateIds: Types.ObjectId[] = [userId];
+
+    // Add direct subordinate IDs with proper typing
+    const subordinateIds = directSubordinates.map(s => s._id as Types.ObjectId);
+    const playerIds = directPlayers.map(p => p._id as Types.ObjectId);
+
+    allSubordinateIds = [...allSubordinateIds, ...subordinateIds, ...playerIds];
+
+    // Recursively get subordinates of subordinates
+    for (const subordinate of directSubordinates) {
+      const subSubordinates = await this.getAllSubordinateIds(subordinate._id as Types.ObjectId);
+      allSubordinateIds = [...allSubordinateIds, ...subSubordinates];
+    }
+
+    // Remove duplicates and ensure type
+    return Array.from(new Set(allSubordinateIds));
+  }
+
 }
