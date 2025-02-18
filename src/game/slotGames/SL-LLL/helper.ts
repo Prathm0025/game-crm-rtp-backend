@@ -400,11 +400,12 @@ export function checkWin(gameInstance: SLLLL): { payout: number; } {
     gameInstance.playerData.haveWon = precisionRound(gameInstance.playerData.haveWon + gameInstance.playerData.currentWining, 5)
     gameInstance.incrementPlayerBalance(gameInstance.playerData.currentWining);
   }
-  if (settings.freeSpin.freeSpinCount === settings.freeSpin.freeSpinIncrement) {
+  if (settings.freeSpin.isFreeSpinTriggered) {
     gameInstance.playerData.currentWining = precisionRound(totalPayout, 5)
     gameInstance.playerData.haveWon = precisionRound(gameInstance.playerData.haveWon + gameInstance.playerData.currentWining, 5)
     gameInstance.incrementPlayerBalance(gameInstance.playerData.currentWining);
 
+    settings.freeSpin.payout = 0
   }
   if (settings.freeSpin.freeSpinCount === 0) {
     const mult = getFreeSpinMultiplier(settings.freeSpin.diamondCount, settings.freeSpin.diamondMultipliers)
@@ -455,7 +456,7 @@ export function makeResultJson(gameInstance: SLLLL) {
           diamondCount: settings.freeSpin.diamondCount,
           payout: precisionRound(settings.freeSpin.payout, 4)
         },
-        isDouble: settings.doubleLines,
+        doubleLines: settings.doubleLines,
       },
       PlayerData: {
         Balance: Balance,
@@ -465,7 +466,7 @@ export function makeResultJson(gameInstance: SLLLL) {
       }
     };
 
-    // console.log("Sending result JSON:", JSON.stringify(sendData, null, 2));
+    console.log("Sending result JSON:", JSON.stringify(sendData, null, 2));
     gameInstance.sendMessage('ResultData', sendData);
   } catch (error) {
     console.error("Error generating result JSON or sending message:", error);

@@ -274,9 +274,9 @@ export const gameData = [
         "useWildSub": false,
         "reelInstance": {
           "0": 0,
-          "1": 25,
-          "2": 25,
-          "3": 25,
+          "1": 15,
+          "2": 15,
+          "3": 15,
           "4": 0
         },
         "multiplier": [
@@ -289,9 +289,9 @@ export const gameData = [
         "useWildSub": false,
         "reelInstance": {
           "0": 0,
-          "1": 5,
-          "2": 5,
-          "3": 5,
+          "1": 25,
+          "2": 25,
+          "3": 25,
           "4": 0
         },
         "multiplier": [
