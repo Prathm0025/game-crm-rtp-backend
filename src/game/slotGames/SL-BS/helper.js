@@ -215,8 +215,6 @@ function checkSymbolOcuurence(gameInstance) {
                 settings.isJackpot = true;
             }
             if (allSame) {
-                settings._winData.winningLines.push(rowIndex);
-                console.log(matchedSymbol, 'matched sym');
                 const symbol = settings.currentGamedata.Symbols.filter((symbol) => symbol.Id === matchedSymbol);
                 console.log(symbol[0].payout, "S");
                 console.log(settings.currentBet);
@@ -229,6 +227,8 @@ function checkSymbolOcuurence(gameInstance) {
                 const payout = settings.anyMatchCount * settings.currentBet;
                 totalPayout += payout;
             }
+            settings._winData.winningLines.push(rowIndex);
+            console.log(matchedSymbol, 'matched sym');
             matchedIndices.push({ col: 0, row: rowIndex }, { col: 1, row: rowIndex }, { col: 2, row: rowIndex });
         }
         return row;

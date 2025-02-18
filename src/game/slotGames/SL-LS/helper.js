@@ -181,11 +181,11 @@ function checkForWin(gameInstance) {
                     });
                     console.log(`Line ${index + 1}:`, line);
                     console.log(`Payout for Line ${index + 1}:`, 'payout');
-                }
-                const formattedIndices = winMatchedIndices.map(({ col, row }) => `${col},${row}`);
-                const validIndices = formattedIndices.filter(index => index.length > 2);
-                if (validIndices.length > 0) {
-                    gameInstance.settings._winData.winningSymbols.push(validIndices);
+                    const formattedIndices = winMatchedIndices.map(({ col, row }) => `${col},${row}`);
+                    const validIndices = formattedIndices.filter(index => index.length > 2);
+                    if (validIndices.length > 0) {
+                        gameInstance.settings._winData.winningSymbols.push(validIndices);
+                    }
                 }
             }
         });
@@ -356,6 +356,7 @@ function makeResultJson(gameInstance) {
         };
         gameInstance.sendMessage('ResultData', sendData);
         console.log(sendData, "send Data");
+        console.log(sendData.GameData.symbolsToEmit, "symbolsToEmit");
     }
     catch (error) {
         console.error("Error generating result JSON or sending message:", error);
