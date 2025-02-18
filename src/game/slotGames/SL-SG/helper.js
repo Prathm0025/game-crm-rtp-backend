@@ -462,8 +462,11 @@ function handleFreeSpins(freeSpinCount, gameInstance) {
 function reduceMatrix(gameInstance, type) {
     const { settings } = gameInstance;
     const matrix = settings.resultSymbolMatrix;
-    const rowLength = type === 'main' ? 4 : 12;
+    const rowLength = type === 'main' ? 4 : 12; // 12 rows for colossal reels
     const newMatrix = Array.from({ length: rowLength }, () => Array(5).fill(0));
+    // Male & Female symbol IDs
+    const maleSymbol = Number(settings.male.symbolID);
+    const femaleSymbol = Number(settings.female.symbolID);
     for (let colIndex = 0; colIndex < 5; colIndex++) {
         let columnSymbols;
         const maxRows = type === 'main' ? 3 : 4;
@@ -471,13 +474,42 @@ function reduceMatrix(gameInstance, type) {
         const shuffledRows = Array.from({ length: totalRows }, (_, i) => i).sort(() => Math.random() - 0.5);
         const selectedRows = shuffledRows.slice(0, maxRows);
         columnSymbols = selectedRows.map(rowIndex => matrix[rowIndex][colIndex]);
-        const newColumn = generateColumn(columnSymbols, gameInstance, type);
+        // Check if column contains male or female
+        const containsMaleOrFemale = columnSymbols.some(symbol => symbol === maleSymbol || symbol === femaleSymbol);
+        // If Male or Female appears, structure it properly
+        let newColumn;
+        if (containsMaleOrFemale) {
+            newColumn = generateColossalColumn(columnSymbols, gameInstance, type, maleSymbol, femaleSymbol);
+        }
+        else {
+            newColumn = generateColumn(columnSymbols, gameInstance, type);
+        }
+        // Assign to newMatrix
         for (let rowIndex = 0; rowIndex < rowLength; rowIndex++) {
             newMatrix[rowIndex][colIndex] = newColumn[rowIndex];
         }
     }
-    console.log(newMatrix);
+    console.log("Final Matrix:", newMatrix);
     return newMatrix;
+}
+function generateColossalColumn(symbols, gameInstance, type, maleSymbol, femaleSymbol) {
+    const columnLength = type === 'main' ? 4 : 12;
+    const column = Array(columnLength).fill(0);
+    // Determine if we are placing male or female
+    const specialSymbol = symbols.includes(maleSymbol) ? maleSymbol : femaleSymbol;
+    // Set exactly 8 rows
+    const symbolSize = 8;
+    let startRow = Math.floor(Math.random() * (columnLength - symbolSize + 1));
+    // Ensure startRow stays within bounds
+    if (startRow + symbolSize > columnLength) {
+        startRow = columnLength - symbolSize;
+    }
+    // Assign special symbol in structured form
+    for (let i = 0; i < symbolSize; i++) {
+        let row = startRow + i;
+        column[row] = specialSymbol; // Assign full symbol for all 8 rows
+    }
+    return column;
 }
 function generateColumn(symbols, gameInstance, type) {
     const column = [];
@@ -490,7 +522,8 @@ function generateColumn(symbols, gameInstance, type) {
         const isSpecialSymbol = (selectedSymbol == Number(gameInstance.settings.male.symbolID)) ||
             (selectedSymbol == Number(gameInstance.settings.female.symbolID));
         // Only apply symbolCount = 8 if the symbol is in the middle, not at 1st or 2nd position
-        if (isSpecialSymbol && column.length >= 2 && column.length < columnLength - 2) {
+        if (isSpecialSymbol && column.length >= 1 && column.length < columnLength - 1) {
+            console.log(symbolCount, "symbolCount");
             symbolCount = 8;
         }
         for (let i = 0; i < symbolCount && column.length < columnLength; i++) {
