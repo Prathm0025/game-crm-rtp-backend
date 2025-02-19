@@ -161,7 +161,8 @@ export const gameData = [
           "0",
           "1",
           "2",
-          "3"
+          "3",
+          "6"
         ],
         "reelInstance": {
           "0": 5,
@@ -176,7 +177,9 @@ export const gameData = [
           "0",
           "1",
           "2",
-          "4"
+          "4",
+          "6"
+
         ],
         "description": "",
         "reelInstance": {
@@ -192,7 +195,8 @@ export const gameData = [
           "0",
           "1",
           "2",
-          "5"
+          "5",
+          "6"
         ],
         "reelInstance": {
           "0": 5,

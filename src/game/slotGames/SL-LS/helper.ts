@@ -169,9 +169,9 @@ export function checkForWin(gameInstance: SLLS) {
         settings.lineData.forEach((line, index) => {
             const firstSymbolPosition = line[0];
             let firstSymbol = settings.resultSymbolMatrix[firstSymbolPosition][0];
-            if (settings.wild.useWild && firstSymbol === settings.wild.SymbolID) {
-                firstSymbol = findFirstNonWildSymbol(line, gameInstance);
-            }
+            // if (settings.wild.useWild && firstSymbol === settings.wild.SymbolID) {
+            //     firstSymbol = findFirstNonWildSymbol(line, gameInstance);
+            // }
 
             const { isWinningLine, matchCount, matchedIndices: winMatchedIndices , matchedSymbols} = checkLineSymbols(firstSymbol, line, gameInstance);
 
@@ -183,9 +183,11 @@ export function checkForWin(gameInstance: SLLS) {
                 }
                 return symbol; 
             });
+
+             
         
               
-                const payout =  calculatePayoutForCombination(processedSymbols, settings.payoutCombination);
+                const payout =  calculatePayoutForCombination(processedSymbols, settings.payoutCombination, gameInstance);
                 
 
                     totalPayout += payout * gameInstance.settings.BetPerLines;
@@ -275,6 +277,7 @@ function checkLineSymbols(
                 symbol === wildSymbol ||
                 (currentSymbol !== wildSymbol && canMatchSymbols.includes(symbol.toString()))
             ) {
+                
                 matchCount++;
                 matchedIndices.push({ col: i, row: rowIndex });
                 matchedSymbols.push(symbol);
@@ -288,6 +291,7 @@ function checkLineSymbols(
             }
         }
 
+         
         return { isWinningLine: matchCount >= 3, matchCount, matchedIndices, matchedSymbols };
     } catch (error) {
         console.error("Error in checkLineSymbols:", error);
@@ -318,20 +322,21 @@ function findFirstNonWildSymbol(line: number[], gameInstance: SLLS) {
     }
 }
 
-function calculatePayoutForCombination(matchedSymbols, paytable) {
+function calculatePayoutForCombination(matchedSymbols, paytable, gameInstance: SLLS) {
     for (const { combination, payout } of paytable) {
         
-        if (arraysMatchForPayout(matchedSymbols, combination)) {
+        if (arraysMatchForPayout(matchedSymbols, combination, gameInstance)) {
             return payout;
         }
     }
     return 0;
 }
 
-function arraysMatchForPayout(matchedSymbols, combination) {
+function arraysMatchForPayout(matchedSymbols, combination, gameInstance: SLLS) {
     if (matchedSymbols.length === combination.length) {
-        return matchedSymbols.every((value, index) => value == combination[index]);
-    } else {
+        return matchedSymbols.every((value, index) => {
+            return value == combination[index] || value == gameInstance.settings.wild.SymbolID;
+        });    } else {
         const set1 = new Set(matchedSymbols);
         const set2 = new Set(combination.map(symbol => Number(symbol)));
         return set1.size === set2.size && [...set1].every(value => set2.has(value));
