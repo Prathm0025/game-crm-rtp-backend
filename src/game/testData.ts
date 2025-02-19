@@ -1,79 +1,120 @@
 export const gameData = [
   {
-    "id": "SL-LLL",
-    "isSpecial": true,
-    "minMatchCount": 3,
+    "id": "SL-AOG",
     "matrix": {
       "x": 5,
       "y": 3
     },
     "linesApiData": [
-      [0, 0, 0, 0, 0],
-      [1, 1, 1, 1, 1],
-      [2, 2, 2, 2, 2],
-      [0, 1, 2, 1, 0],
-      [2, 1, 0, 1, 2],
-      [0, 0, 1, 2, 2],
-      [2, 2, 1, 0, 0],
-      [1, 0, 1, 2, 1],
-      [1, 2, 1, 0, 1],
-      [0, 1, 1, 1, 0],
-      [1, 0, 0, 0, 1],
-      [1, 2, 2, 2, 1],
-      [2, 1, 1, 1, 2],
-      [0, 1, 0, 1, 0],
-      [2, 1, 2, 1, 2],
+      [ 1, 1, 1, 1, 1 ],
+      [ 0, 0, 0, 0, 0 ],
+      [ 2, 2, 2, 2, 2 ],
+      [ 0, 1, 2, 1, 0 ],
+      [ 2, 1, 0, 1, 2 ],
+      [ 0, 0, 1, 0, 0 ],
+      [ 2, 2, 1, 2, 2 ],
+      [ 1, 2, 2, 2, 1 ],
+      [ 1, 0, 0, 0, 1 ],
+      [ 2, 0, 0, 0, 2 ],
+      [ 0, 2, 2, 2, 0 ],
+      [ 2, 1, 2, 1, 2 ],
+      [ 0, 1, 0, 1, 0 ],
+      [ 1, 1, 2, 1, 1 ],
+      [ 1, 1, 0, 1, 1 ],
+      [ 1, 0, 1, 0, 1 ],
+      [ 1, 2, 1, 2, 1 ],
+      [ 2, 1, 1, 1, 2 ],
+      [ 0, 1, 1, 1, 0 ],
+      [ 1, 0, 2, 0, 1 ],
+      [ 2, 2, 0, 2, 2 ],
+      [ 0, 0, 2, 0, 0 ],
+      [ 0, 2, 0, 2, 0 ],
+      [ 2, 0, 2, 0, 2 ],
+      [ 1, 2, 0, 2, 1 ],
+      [ 0, 1, 2, 2, 2 ],
+      [ 2, 1, 0, 0, 0 ],
+      [ 0, 0, 0, 1, 2 ],
+      [ 2, 2, 2, 1, 0 ],
+      [ 0, 0, 1, 2, 2 ]
     ],
-    "linesCount": [1, 5, 10, 15],
+    "linesCount": [ 1, 5, 15, 20, 25, 30 ],
     "bets": [
-      0.001,
+      0.0005,
+      0.0025,
       0.005,
-      0.01,
+      0.0125,
       0.025,
+      0.0375,
       0.05,
-      0.075,
+      0.0625,
       0.1,
-      0.125,
-      0.2,
-      0.3,
+      0.15,
+      0.25,
       0.5,
+      0.75,
       1,
       1.5,
-      2,
-      3,
-      4
+      2
     ],
-    "freeSpin": {
-      "isEnabled": true,
-      "incrementCount": 2,
-      "diamondMultiplier": [
-        { "range": [1, 4], "multiplier": 2 },
-        { "range": [5, 8], "multiplier": 3 },
-        { "range": [9, 12], "multiplier": 4 },
-        { "range": [13, 16], "multiplier": 5 },
-        { "range": [17, 20], "multiplier": 6 },
-        { "range": [21, 24], "multiplier": 7 },
-        { "range": [25, 28], "multiplier": 8 },
-        { "range": [29, 32], "multiplier": 9 },
-        { "range": [33, 36], "multiplier": 10 },
-        { "range": [37, 40], "multiplier": 11 },
+    "wheelProb":[1,9,2,1], // probability of NO wheel of fortune on idx #1 , small wheel of fortune on idx #2, medium wheel of fortune on idx #3, big wheel of fortune on idx  #4
+    "goldSymbolProb":[1,5,5,5,5,5], // just for visuals extra gold symbols. WHEELPROB will determine if feature will be triggered .idx#1 prob for NO extra gold symbols , idx#2 prob for 1 extra gold symbol and so on
+    "smallWheelFeature": {
+      "featureValues":[
+        1,1,//levelup
+        5,4,//wilds
+        5,8,//freespin
+        20,40,//multiplier
+      ],
+      "featureProbs":[
+        12,12, //levelup
+        2,2, //wild
+        2,2, //freespin
+        2,2, //multiplier
+      ]
+    },
+    "mediumWheelFeature": {
+      "featureValues":[
+        1,1,//levelup
+        6,3,//wilds
+        9,11,//freespin
+        25,45,//multiplier
+      ],
+      "featureProbs":[
+        12,12, //levelup
+        2,2, //wild
+        2,2, //freespin
+        2,2, //multiplier
+      ]
+    },
+    "largeWheelFeature": {
+      "featureValues":[
+        0,0, //levelup KEEP this 0
+        8,12,//wilds
+        15,21,//freespin
+        35,55,//multiplier
+      ],
+      "featureProbs":[
+        0,0, //levelup KEEP this 0
+        2,2, //wild
+        2,2, //freespin
+        2,2, //multiplier
       ]
     },
     "Symbols": [
       {
         "Name": "0",
         "Id": 0,
-        "useWildSub": true,
         "reelInstance": {
-          "0": 5,
-          "1": 5,
-          "2": 5,
-          "3": 5,
-          "4": 5
+          "0": 10,
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 10
         },
+        "useWildSub": true,
         "multiplier": [
           [
-            80,
+            60,
             0
           ],
           [
@@ -89,17 +130,17 @@ export const gameData = [
       {
         "Name": "1",
         "Id": 1,
-        "useWildSub": true,
         "reelInstance": {
-          "0": 5,
-          "1": 5,
-          "2": 5,
-          "3": 5,
-          "4": 5
+          "0": 10,
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 10
         },
+        "useWildSub": true,
         "multiplier": [
           [
-            80,
+            60,
             0
           ],
           [
@@ -115,17 +156,17 @@ export const gameData = [
       {
         "Name": "2",
         "Id": 2,
-        "useWildSub": true,
         "reelInstance": {
-          "0": 5,
-          "1": 5,
-          "2": 5,
-          "3": 5,
-          "4": 5
+          "0": 10,
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 10
         },
+        "useWildSub": true,
         "multiplier": [
           [
-            80,
+            60,
             0
           ],
           [
@@ -141,17 +182,17 @@ export const gameData = [
       {
         "Name": "3",
         "Id": 3,
-        "useWildSub": true,
         "reelInstance": {
-          "0": 5,
-          "1": 5,
-          "2": 5,
-          "3": 5,
-          "4": 5
+          "0": 10,
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 10
         },
+        "useWildSub": true,
         "multiplier": [
           [
-            80,
+            60,
             0
           ],
           [
@@ -167,17 +208,17 @@ export const gameData = [
       {
         "Name": "4",
         "Id": 4,
-        "useWildSub": true,
         "reelInstance": {
-          "0": 5,
-          "1": 5,
-          "2": 5,
-          "3": 5,
-          "4": 5
+          "0": 10,
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 10
         },
+        "useWildSub": true,
         "multiplier": [
           [
-            80,
+            60,
             0
           ],
           [
@@ -193,25 +234,25 @@ export const gameData = [
       {
         "Name": "5",
         "Id": 5,
-        "useWildSub": true,
         "reelInstance": {
-          "0": 5,
-          "1": 5,
-          "2": 5,
-          "3": 5,
-          "4": 5
+          "0": 10,
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 10
         },
+        "useWildSub": true,
         "multiplier": [
           [
-            40,
+            125,
             0
           ],
           [
-            20,
+            75,
             0
           ],
           [
-            10,
+            25,
             0
           ]
         ]
@@ -219,25 +260,25 @@ export const gameData = [
       {
         "Name": "6",
         "Id": 6,
-        "useWildSub": true,
         "reelInstance": {
-          "0": 5,
-          "1": 5,
-          "2": 5,
-          "3": 5,
-          "4": 5
+          "0": 10,
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 10
         },
+        "useWildSub": true,
         "multiplier": [
           [
-            40,
+            125,
             0
           ],
           [
-            20,
+            75,
             0
           ],
           [
-            10,
+            25,
             0
           ]
         ]
@@ -245,59 +286,135 @@ export const gameData = [
       {
         "Name": "7",
         "Id": 7,
-        "useWildSub": true,
         "reelInstance": {
-          "0": 5,
-          "1": 5,
-          "2": 5,
-          "3": 5,
-          "4": 5
+          "0": 10,
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 10
         },
+        "useWildSub": true,
         "multiplier": [
           [
-            40,
+            125,
             0
           ],
           [
-            20,
+            75,
             0
           ],
           [
-            10,
+            25,
             0
           ]
         ]
       },
       {
-        "Name": "Scatter",
+        "Name": "8",
         "Id": 8,
-        "useWildSub": false,
         "reelInstance": {
-          "0": 0,
-          "1": 15,
-          "2": 15,
-          "3": 15,
-          "4": 0
+          "0": 10,
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 10
         },
+        "useWildSub": true,
         "multiplier": [
-
+          [
+            125,
+            0
+          ],
+          [
+            75,
+            0
+          ],
+          [
+            25,
+            0
+          ]
         ]
       },
       {
-        "Name": "FreeSpin",
+        "Name": "9",
         "Id": 9,
-        "useWildSub": false,
         "reelInstance": {
-          "0": 0,
-          "1": 25,
-          "2": 25,
-          "3": 25,
-          "4": 0
+          "0": 10,
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 10
         },
+        "useWildSub": true,
         "multiplier": [
-
+          [
+            125,
+            0
+          ],
+          [
+            75,
+            0
+          ],
+          [
+            25,
+            0
+          ]
+        ]
+      },
+      {
+        "Name": "10",
+        "Id": 10,
+        "reelInstance": {
+          "0": 10,
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 10
+        },
+        "useWildSub": true,
+        "multiplier": [
+          [
+            200,
+            0
+          ],
+          [
+            150,
+            0
+          ],
+          [
+            50,
+            0
+          ]
+        ]
+      },
+      {
+        "Name": "Wild",
+        "Id": 11,
+        "reelInstance": {
+          "0": 20,
+          "1": 20,
+          "2": 20,
+          "3": 20,
+          "4": 20
+        },
+        "description": "Substitutes for all symbols .",
+        "useWildSub": false,
+        "multiplier": [
+          [
+            200,
+            0
+          ],
+          [
+            150,
+            0
+          ],
+          [
+            50,
+            0
+          ]
         ]
       }
     ]
   }
+
 ]
