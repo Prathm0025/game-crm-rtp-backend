@@ -438,8 +438,8 @@ export function checkWin(gameInstance: SLLLL): { payout: number; } {
   return { payout: totalPayout };
 }
 
-function convertStringArrayToNumberArray(input: string[][]): number[][][] {
-  return input.map(innerArray => 
+function convertStringArrayToNumberArray(input: string[][]): number[][] {
+  return input.flatMap(innerArray => 
     innerArray.map(str => 
       str.split(',').map(Number)
     )
