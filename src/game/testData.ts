@@ -1,4 +1,1 @@
-export const gameData = [
-  
-]
-
+export const gameData = [  ]
