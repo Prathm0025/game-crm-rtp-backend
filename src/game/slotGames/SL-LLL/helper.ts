@@ -463,7 +463,7 @@ export function makeResultJson(gameInstance: SLLLL) {
           diamondCount: settings.freeSpin.diamondCount,
           payout: precisionRound(settings.freeSpin.payout, 4)
         },
-        isDouble: settings.doubleLines,
+        doubleLines: settings.doubleLines,
       },
       PlayerData: {
         Balance: Balance,
