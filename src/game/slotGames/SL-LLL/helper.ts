@@ -438,6 +438,13 @@ export function checkWin(gameInstance: SLLLL): { payout: number; } {
   return { payout: totalPayout };
 }
 
+function convertStringArrayToNumberArray(input: string[][]): number[][][] {
+  return input.map(innerArray => 
+    innerArray.map(str => 
+      str.split(',').map(Number)
+    )
+  );
+}
 
 export function makeResultJson(gameInstance: SLLLL) {
   try {
@@ -448,7 +455,7 @@ export function makeResultJson(gameInstance: SLLLL) {
       GameData: {
         resultSymbols: settings.resultSymbolMatrix,
         linesToEmit: settings._winData.winningLines,
-        symbolsToEmit: settings._winData.winningSymbols,
+        symbolsToEmit: convertStringArrayToNumberArray( settings._winData.winningSymbols ),
         freeSpin: {
           isFreeSpin: settings.freeSpin.isFreeSpinTriggered,
           freeSpinCount: settings.freeSpin.freeSpinCount,
@@ -456,7 +463,7 @@ export function makeResultJson(gameInstance: SLLLL) {
           diamondCount: settings.freeSpin.diamondCount,
           payout: precisionRound(settings.freeSpin.payout, 4)
         },
-        doubleLines: settings.doubleLines,
+        isDouble: settings.doubleLines,
       },
       PlayerData: {
         Balance: Balance,
