@@ -106,6 +106,7 @@ export function sendInitData(gameInstance: SLLLL) {
       // Reel: reels,
       Bets: gameInstance.settings.currentGamedata.bets,
       lines: gameInstance.settings.currentGamedata.linesApiData,
+      daimondMultipliers: gameInstance.settings.freeSpin.diamondMultipliers,
     },
     UIData: UiInitData,
     PlayerData: {
