@@ -457,7 +457,7 @@ function handleSmallWheel(gameInstance: SLAOG) {
   const featureIdx = getRandomValue(gameInstance, 'smallWheelFeature')
   if (featureIdx == 0 || featureIdx == 1) {
     settings.wheelFeature.featureType = "LEVELUP"
-    settings.levelUpResponse.push(JSON.parse(JSON.stringify(settings.wheelFeature)))
+    settings.levelUpResponse.push(true)
     handleLevelUp(gameInstance)
   } else if (featureIdx == 2 || featureIdx == 3) {
     settings.wheelFeature.featureType = "WILD"
@@ -482,7 +482,7 @@ function handleMediumWheel(gameInstance: SLAOG) {
   const featureIdx = getRandomValue(gameInstance, 'mediumWheelFeature')
   if (featureIdx == 0 || featureIdx == 1) {
     settings.wheelFeature.featureType = "LEVELUP"
-    settings.levelUpResponse.push(JSON.parse(JSON.stringify(settings.wheelFeature)))
+    settings.levelUpResponse.push(true)
     handleLevelUp(gameInstance)
   } else if (featureIdx == 2 || featureIdx == 3) {
     settings.wheelFeature.featureType = "WILD"

@@ -33,7 +33,7 @@ export interface SLAOGSETTINGS {
   wheelProb: number[];
   goldSymbolProb: number[];
   goldIndices: [number, number][]
-  levelUpResponse: WheelFeature[];
+  levelUpResponse: boolean[],
   smallWheelFeature: {
     featureValues: number[],
     featureProbs: number[]
