@@ -132,6 +132,7 @@ export function sendInitData(gameInstance: SLLS) {
         GameData: {
             Reel: reels,
             // BonusReel: bonusReels,
+            paytable:gameInstance.settings.payoutCombination,
             linesApiData: gameInstance.settings.currentGamedata.linesApiData,
             Bets: gameInstance.settings.currentGamedata.bets,
             baseBet: gameInstance.settings.baseBetAmount,
