@@ -397,6 +397,7 @@ export function checkWin(gameInstance: SLLLL): { payout: number; } {
 
   if (settings.freeSpin.freeSpinCount > -1) {
     settings.freeSpin.payout = precisionRound(settings.freeSpin.payout + totalPayout, 4)
+    gameInstance.playerData.currentWining = precisionRound(totalPayout, 5)
   } else {
     gameInstance.playerData.currentWining = precisionRound(totalPayout, 5)
     gameInstance.playerData.haveWon = precisionRound(gameInstance.playerData.haveWon + gameInstance.playerData.currentWining, 5)

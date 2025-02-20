@@ -45,7 +45,7 @@ export const gameData = [
     ],
     "freeSpin": {
       "isEnabled": true,
-      "incrementCount": 3,
+      "incrementCount": 9,
       "diamondMultiplier": [
         { "range": [1, 5], "multiplier": 2 },
         { "range": [6, 10], "multiplier": 3 },
@@ -282,9 +282,9 @@ export const gameData = [
         "useWildSub": false,
         "reelInstance": {
           "0": 0,
-          "1": 12,
-          "2": 12,
-          "3": 12,
+          "1": 19,
+          "2": 19,
+          "3": 19,
           "4": 0
         },
         "multiplier": [
