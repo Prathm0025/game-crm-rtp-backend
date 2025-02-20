@@ -332,6 +332,10 @@ export function checkWin(gameInstance: SLLLL): { payout: number; } {
     const diamonds = findSymbol(gameInstance, settings.scatter.SymbolName)
     settings.freeSpin.diamondCount += diamonds.length
     console.log("dia",diamonds)
+
+    const mult = getFreeSpinMultiplier(settings.freeSpin.diamondCount, settings.freeSpin.diamondMultipliers)
+    console.log("mult",mult);
+    settings.freeSpin.freeSpinMultiplier = mult
   }
   settings.lineData.forEach((line, index) => {
     const firstSymbolPositionLTR = line[0];
@@ -411,10 +415,13 @@ export function checkWin(gameInstance: SLLLL): { payout: number; } {
     settings.freeSpin.payout = 0
   }
   if (settings.freeSpin.freeSpinCount === 0) {
-    const mult = getFreeSpinMultiplier(settings.freeSpin.diamondCount, settings.freeSpin.diamondMultipliers)
-    settings.freeSpin.freeSpinMultiplier = mult
+    // const mult = getFreeSpinMultiplier(settings.freeSpin.diamondCount, settings.freeSpin.diamondMultipliers)
+    // console.log("mult",mult);
+    
+    // settings.freeSpin.freeSpinMultiplier = mult
 
-    gameInstance.playerData.currentWining = precisionRound(settings.freeSpin.payout * mult, 5)
+    // gameInstance.playerData.currentWining = precisionRound(settings.freeSpin.payout * mult, 5)
+    gameInstance.playerData.currentWining = precisionRound(settings.freeSpin.payout * settings.freeSpin.freeSpinMultiplier, 5)
     gameInstance.playerData.haveWon = precisionRound(gameInstance.playerData.haveWon + gameInstance.playerData.currentWining, 5)
     gameInstance.incrementPlayerBalance(gameInstance.playerData.currentWining);
 
