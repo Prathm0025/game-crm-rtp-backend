@@ -692,6 +692,7 @@ export function checkForWin(gameInstance: SLAOG) {
     gameInstance.updatePlayerBalance(gameInstance.playerData.currentWining)
     makeResultJson(gameInstance)
     settings.isFreeSpin = false
+
     //reset feature settings 
     if (settings.wheelFeature.featureType != "WILD" || (
       settings.wheelFeature.featureType == "WILD" &&
@@ -721,7 +722,7 @@ export function makeResultJson(gameInstance: SLAOG) {
   try {
     const { settings, playerData } = gameInstance;
     const credits = gameInstance.getPlayerData().credits
-    const Balance = credits.toFixed(2)
+    const Balance = credits.toFixed(3)
     const sendData = {
       GameData: {
         resultSymbols: settings.resultSymbolMatrix,
