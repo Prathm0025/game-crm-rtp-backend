@@ -689,6 +689,7 @@ export function checkForWin(gameInstance: SLAOG) {
     }
     gameInstance.playerData.haveWon = precisionRound(gameInstance.playerData.haveWon +
       gameInstance.playerData.currentWining, 5)
+    gameInstance.updatePlayerBalance(gameInstance.playerData.currentWining)
     makeResultJson(gameInstance)
     settings.isFreeSpin = false
     //reset feature settings 
