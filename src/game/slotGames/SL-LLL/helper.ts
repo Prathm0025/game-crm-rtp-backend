@@ -329,8 +329,9 @@ export function checkWin(gameInstance: SLLLL): { payout: number; } {
   //NOTE: check and increment freespinmultipliers 
   // Update multipliers based on symbol occurrences, 
   if (settings.freeSpin.freeSpinCount > -1) {
-    const diamonds = findSymbol(gameInstance, settings.freeSpin.SymbolName)
+    const diamonds = findSymbol(gameInstance, settings.scatter.SymbolName)
     settings.freeSpin.diamondCount += diamonds.length
+    console.log("dia",diamonds)
   }
   settings.lineData.forEach((line, index) => {
     const firstSymbolPositionLTR = line[0];

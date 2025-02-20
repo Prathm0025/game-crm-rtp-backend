@@ -1,221 +1,185 @@
 export const gameData = [
   {
-    "id": "SL-AOG",
+    "id": "SL-LLL",
+    "isSpecial": true,
+    "minMatchCount": 3,
     "matrix": {
       "x": 5,
       "y": 3
     },
     "linesApiData": [
-      [ 1, 1, 1, 1, 1 ],
-      [ 0, 0, 0, 0, 0 ],
-      [ 2, 2, 2, 2, 2 ],
-      [ 0, 1, 2, 1, 0 ],
-      [ 2, 1, 0, 1, 2 ],
-      [ 0, 0, 1, 0, 0 ],
-      [ 2, 2, 1, 2, 2 ],
-      [ 1, 2, 2, 2, 1 ],
-      [ 1, 0, 0, 0, 1 ],
-      [ 2, 0, 0, 0, 2 ],
-      [ 0, 2, 2, 2, 0 ],
-      [ 2, 1, 2, 1, 2 ],
-      [ 0, 1, 0, 1, 0 ],
-      [ 1, 1, 2, 1, 1 ],
-      [ 1, 1, 0, 1, 1 ],
-      [ 1, 0, 1, 0, 1 ],
-      [ 1, 2, 1, 2, 1 ],
-      [ 2, 1, 1, 1, 2 ],
-      [ 0, 1, 1, 1, 0 ],
-      [ 1, 0, 2, 0, 1 ],
-      [ 2, 2, 0, 2, 2 ],
-      [ 0, 0, 2, 0, 0 ],
-      [ 0, 2, 0, 2, 0 ],
-      [ 2, 0, 2, 0, 2 ],
-      [ 1, 2, 0, 2, 1 ],
-      [ 0, 1, 2, 2, 2 ],
-      [ 2, 1, 0, 0, 0 ],
-      [ 0, 0, 0, 1, 2 ],
-      [ 2, 2, 2, 1, 0 ],
-      [ 0, 0, 1, 2, 2 ]
+      [0, 0, 0, 0, 0],
+      [1, 1, 1, 1, 1],
+      [2, 2, 2, 2, 2],
+      [0, 1, 2, 1, 0],
+      [2, 1, 0, 1, 2],
+      [0, 0, 1, 2, 2],
+      [2, 2, 1, 0, 0],
+      [1, 0, 1, 2, 1],
+      [1, 2, 1, 0, 1],
+      [0, 1, 1, 1, 0],
+      [1, 0, 0, 0, 1],
+      [1, 2, 2, 2, 1],
+      [2, 1, 1, 1, 2],
+      [0, 1, 0, 1, 0],
+      [2, 1, 2, 1, 2],
     ],
-    "linesCount": [ 1, 5, 15, 20, 25, 30 ],
+    "linesCount": [1, 5, 10, 15],
     "bets": [
-      0.0005,
-      0.0025,
+      0.001,
       0.005,
-      0.0125,
+      0.01,
       0.025,
-      0.0375,
       0.05,
-      0.0625,
+      0.075,
       0.1,
-      0.15,
-      0.25,
+      0.125,
+      0.2,
+      0.3,
       0.5,
-      0.75,
       1,
       1.5,
-      2
+      2,
+      3,
+      4
     ],
-    "wheelProb":[1,9,2,1], // probability of NO wheel of fortune on idx #1 , small wheel of fortune on idx #2, medium wheel of fortune on idx #3, big wheel of fortune on idx  #4
-    "goldSymbolProb":[1,5,5,5,5,5], // just for visuals extra gold symbols. WHEELPROB will determine if feature will be triggered .idx#1 prob for NO extra gold symbols , idx#2 prob for 1 extra gold symbol and so on
-    "smallWheelFeature": {
-      "featureValues":[
-        1,1,//levelup
-        5,4,//wilds
-        5,8,//freespin
-        20,40,//multiplier
-      ],
-      "featureProbs":[
-        12,12, //levelup
-        2,2, //wild
-        2,2, //freespin
-        2,2, //multiplier
-      ]
-    },
-    "mediumWheelFeature": {
-      "featureValues":[
-        1,1,//levelup
-        6,3,//wilds
-        9,11,//freespin
-        25,45,//multiplier
-      ],
-      "featureProbs":[
-        12,12, //levelup
-        2,2, //wild
-        2,2, //freespin
-        2,2, //multiplier
-      ]
-    },
-    "largeWheelFeature": {
-      "featureValues":[
-        0,0, //levelup KEEP this 0
-        8,12,//wilds
-        15,21,//freespin
-        35,55,//multiplier
-      ],
-      "featureProbs":[
-        0,0, //levelup KEEP this 0
-        2,2, //wild
-        2,2, //freespin
-        2,2, //multiplier
+    "freeSpin": {
+      "isEnabled": true,
+      "incrementCount": 3,
+      "diamondMultiplier": [
+        { "range": [1, 5], "multiplier": 2 },
+        { "range": [6, 10], "multiplier": 3 },
+        { "range": [11, 15], "multiplier": 4 },
+        { "range": [16, 20], "multiplier": 5 },
+        { "range": [21, 25], "multiplier": 6 },
+        { "range": [26, 30], "multiplier": 7 },
+        { "range": [31, 35], "multiplier": 8 },
+        { "range": [36, 40], "multiplier": 9 },
+        { "range": [41, 45], "multiplier": 10 },
+        { "range": [46, 100], "multiplier": 10 },
       ]
     },
     "Symbols": [
       {
-        "Name": "0",
+        "Name": "0", //Ring
         "Id": 0,
-        "reelInstance": {
-          "0": 10,
-          "1": 10,
-          "2": 10,
-          "3": 10,
-          "4": 10
-        },
         "useWildSub": true,
+        "isFreeSpinMultiplier": true,
+        "reelInstance": {
+          "0": 5,
+          "1": 5,
+          "2": 5,
+          "3": 5,
+          "4": 5
+        },
         "multiplier": [
           [
-            60,
+            100,
             0
           ],
           [
-            30,
+            50,
             0
           ],
           [
-            15,
+            25,
             0
           ]
         ]
       },
       {
-        "Name": "1",
+        "Name": "1", //Car
         "Id": 1,
-        "reelInstance": {
-          "0": 10,
-          "1": 10,
-          "2": 10,
-          "3": 10,
-          "4": 10
-        },
         "useWildSub": true,
+        "isFreeSpinMultiplier": false,
+        "reelInstance": {
+          "0": 5,
+          "1": 5,
+          "2": 5,
+          "3": 5,
+          "4": 5
+        },
         "multiplier": [
           [
-            60,
+            100,
             0
           ],
           [
-            30,
+            50,
             0
           ],
           [
-            15,
+            25,
             0
           ]
         ]
       },
       {
-        "Name": "2",
+        "Name": "2", //yatch
         "Id": 2,
-        "reelInstance": {
-          "0": 10,
-          "1": 10,
-          "2": 10,
-          "3": 10,
-          "4": 10
-        },
         "useWildSub": true,
+        "isFreeSpinMultiplier": false,
+        "reelInstance": {
+          "0": 5,
+          "1": 5,
+          "2": 5,
+          "3": 5,
+          "4": 5
+        },
         "multiplier": [
           [
-            60,
+            100,
             0
           ],
           [
-            30,
+            50,
             0
           ],
           [
-            15,
+            25,
             0
           ]
         ]
       },
       {
-        "Name": "3",
+        "Name": "3", //Plane
         "Id": 3,
-        "reelInstance": {
-          "0": 10,
-          "1": 10,
-          "2": 10,
-          "3": 10,
-          "4": 10
-        },
         "useWildSub": true,
+        "isFreeSpinMultiplier": false,
+        "reelInstance": {
+          "0": 5,
+          "1": 5,
+          "2": 5,
+          "3": 5,
+          "4": 5
+        },
         "multiplier": [
           [
-            60,
+            100,
             0
           ],
           [
-            30,
+            50,
             0
           ],
           [
-            15,
+            25,
             0
           ]
         ]
       },
       {
-        "Name": "4",
+        "Name": "4", //watch
         "Id": 4,
-        "reelInstance": {
-          "0": 10,
-          "1": 10,
-          "2": 10,
-          "3": 10,
-          "4": 10
-        },
         "useWildSub": true,
+        "isFreeSpinMultiplier": true,
+        "reelInstance": {
+          "0": 12,
+          "1": 12,
+          "2": 12,
+          "3": 12,
+          "4": 12
+        },
         "multiplier": [
           [
             60,
@@ -226,195 +190,122 @@ export const gameData = [
             0
           ],
           [
-            15,
+            10,
             0
           ]
         ]
       },
       {
-        "Name": "5",
+        "Name": "5", //Silver bar
         "Id": 5,
-        "reelInstance": {
-          "0": 10,
-          "1": 10,
-          "2": 10,
-          "3": 10,
-          "4": 10
-        },
         "useWildSub": true,
+        "isFreeSpinMultiplier": true,
+        "reelInstance": {
+          "0": 12,
+          "1": 12,
+          "2": 12,
+          "3": 12,
+          "4": 12
+        },
         "multiplier": [
           [
-            125,
+            60,
             0
           ],
           [
-            75,
+            30,
             0
           ],
           [
-            25,
+            10,
             0
           ]
         ]
       },
       {
-        "Name": "6",
+        "Name": "6", //Gold Bar
         "Id": 6,
-        "reelInstance": {
-          "0": 10,
-          "1": 10,
-          "2": 10,
-          "3": 10,
-          "4": 10
-        },
         "useWildSub": true,
+        "isFreeSpinMultiplier": true,
+        "reelInstance": {
+          "0": 12,
+          "1": 12,
+          "2": 12,
+          "3": 12,
+          "4": 12
+        },
         "multiplier": [
           [
-            125,
+            60,
             0
           ],
           [
-            75,
+            30,
             0
           ],
           [
-            25,
+            10,
             0
           ]
         ]
       },
       {
-        "Name": "7",
+        "Name": "7", //Triple Gold Bar
         "Id": 7,
-        "reelInstance": {
-          "0": 10,
-          "1": 10,
-          "2": 10,
-          "3": 10,
-          "4": 10
-        },
         "useWildSub": true,
+        "isFreeSpinMultiplier": true,
+        "reelInstance": {
+          "0": 12,
+          "1": 12,
+          "2": 12,
+          "3": 12,
+          "4": 12
+        },
         "multiplier": [
           [
-            125,
+            60,
             0
           ],
           [
-            75,
+            30,
             0
           ],
           [
-            25,
+            10,
             0
           ]
         ]
       },
       {
-        "Name": "8",
+        "Name": "Scatter",
         "Id": 8,
-        "reelInstance": {
-          "0": 10,
-          "1": 10,
-          "2": 10,
-          "3": 10,
-          "4": 10
-        },
-        "useWildSub": true,
-        "multiplier": [
-          [
-            125,
-            0
-          ],
-          [
-            75,
-            0
-          ],
-          [
-            25,
-            0
-          ]
-        ]
-      },
-      {
-        "Name": "9",
-        "Id": 9,
-        "reelInstance": {
-          "0": 10,
-          "1": 10,
-          "2": 10,
-          "3": 10,
-          "4": 10
-        },
-        "useWildSub": true,
-        "multiplier": [
-          [
-            125,
-            0
-          ],
-          [
-            75,
-            0
-          ],
-          [
-            25,
-            0
-          ]
-        ]
-      },
-      {
-        "Name": "10",
-        "Id": 10,
-        "reelInstance": {
-          "0": 10,
-          "1": 10,
-          "2": 10,
-          "3": 10,
-          "4": 10
-        },
-        "useWildSub": true,
-        "multiplier": [
-          [
-            200,
-            0
-          ],
-          [
-            150,
-            0
-          ],
-          [
-            50,
-            0
-          ]
-        ]
-      },
-      {
-        "Name": "Wild",
-        "Id": 11,
-        "reelInstance": {
-          "0": 20,
-          "1": 20,
-          "2": 20,
-          "3": 20,
-          "4": 20
-        },
-        "description": "Substitutes for all symbols .",
         "useWildSub": false,
+        "reelInstance": {
+          "0": 0,
+          "1": 12,
+          "2": 12,
+          "3": 12,
+          "4": 0
+        },
         "multiplier": [
-          [
-            200,
-            0
-          ],
-          [
-            150,
-            0
-          ],
-          [
-            50,
-            0
-          ]
+
+        ]
+      },
+      {
+        "Name": "FreeSpin",
+        "Id": 9,
+        "useWildSub": false,
+        "reelInstance": {
+          "0": 0,
+          "1": 30,
+          "2": 30,
+          "3": 30,
+          "4": 0
+        },
+        "multiplier": [
+
         ]
       }
     ]
   }
-
 ]
