@@ -67,6 +67,11 @@ export function initializeGameSettings(gameData: any, gameInstance: SLLS) {
             SymbolID: -1,
             useWild: false,
         },
+        blank:{
+            SymbolName: "",
+            SymbolID: -1,
+            useWild: false,
+        },
         isJackpot:false
     };
 }
@@ -253,6 +258,10 @@ function checkLineSymbols(
     try {
         const { settings } = gameInstance;
         const wildSymbol = settings.wild.SymbolID || "";
+        if (settings.blank.SymbolID === Number(firstSymbol)) {
+            return { isWinningLine: false, matchCount: 0, matchedIndices: [], matchedSymbols: [] };
+          }
+      
         let matchCount = 1;
         let currentSymbol = firstSymbol;
         const matchedIndices: { col: number, row: number }[] = [{ col: 0, row: line[0] }];
@@ -270,10 +279,13 @@ function checkLineSymbols(
                 console.error(`Symbol at position [${rowIndex}, ${i}] is undefined.`);
                 return { isWinningLine: false, matchCount: 0, matchedIndices: [], matchedSymbols: [] };
             }
-
+            if (symbol === settings.blank.SymbolID) {
+                break;
+              }
+        
             // Check for matches (consider wild symbols and canmatch)
             if (
-                symbol === currentSymbol ||
+                symbol === currentSymbol  ||
                 symbol === wildSymbol ||
                 (currentSymbol !== wildSymbol && canMatchSymbols.includes(symbol.toString()))
             ) {
@@ -392,7 +404,12 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLLS) {
             gameInstance.settings.bar1.SymbolName = symbol.Name;
             gameInstance.settings.bar1.SymbolID = symbol.Id;
             gameInstance.settings.bar1.useWild = false;
-            break;                            
+            break; 
+        case specialIcons.blank:
+            gameInstance.settings.blank.SymbolName = symbol.Name;
+            gameInstance.settings.blank.SymbolID = symbol.Id;
+            gameInstance.settings.blank.useWild = false;
+            break;                               
             default:
             break; ``
     }
