@@ -214,8 +214,8 @@ export function sendInitData(gameInstance: SLAOG) {
   gameInstance.settings.reels = reels;
   let features = []
   features.push(gameInstance.settings.smallWheelFeature.featureValues)
-  features.push(gameInstance.settings.smallWheelFeature.featureValues)
-  features.push(gameInstance.settings.smallWheelFeature.featureValues)
+  features.push(gameInstance.settings.mediumWheelFeature.featureValues)
+  features.push(gameInstance.settings.largeWheelFeature.featureValues)
   const dataToSend = {
     GameData: {
       features,
