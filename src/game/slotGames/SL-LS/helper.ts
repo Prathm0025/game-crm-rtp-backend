@@ -138,6 +138,7 @@ export function sendInitData(gameInstance: SLLS) {
             Bets: gameInstance.settings.currentGamedata.bets,
             baseBet: gameInstance.settings.baseBetAmount,
             betMultiplier: gameInstance.settings.currentGamedata.betMultiplier,
+            jackpotMultiplier:gameInstance.settings.jackpotPayout
 
         },
         UIData: UiInitData,
