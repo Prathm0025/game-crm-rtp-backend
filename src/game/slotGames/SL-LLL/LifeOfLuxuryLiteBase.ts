@@ -17,7 +17,7 @@ export class SLLLL {
   }
 
   constructor(public currentGameData: currentGamedata) {
-    console.log("Initializing SLLOL game");
+    console.log("Initializing SLLLL game");
     // console.log("currentGameData:", JSON.stringify(currentGameData, null, 2));
 
     try {
@@ -25,7 +25,7 @@ export class SLLLL {
       console.log("Game settings initialized")
 
       makePayLines(this)
-      
+
       this.settings.reels = generateInitialReel(this.settings);
       // console.log("Initial reels generated:", this.settings.reels);
 
@@ -33,7 +33,7 @@ export class SLLLL {
       console.log("credits : ", this.getPlayerData().credits);
 
     } catch (error) {
-      console.error("Error initializing SLLOL game:", error);
+      console.error("Error initializing SLLLL game:", error);
     }
   }
 
@@ -109,7 +109,7 @@ export class SLLLL {
       }
 
       //deduct only when freespin is not triggered
-      if (this.settings.freeSpin.freeSpinCount <= 0) {
+      if (!this.settings.freeSpin.isFreeSpin) {
         this.decrementPlayerBalance(precisionRound(this.settings.currentBet, 5));
         this.playerData.totalbet += Number(this.settings.currentBet.toFixed(5))
       }
@@ -165,37 +165,6 @@ export class SLLLL {
       console.error("Error in checkResult:", error);
     }
   }
-  // private gamebleTesting() {
-  //   console.log("gamble test");
-  //
-  //   //FIX: gamebleTesting , remove later
-  //   if (this.settings.gamble.isEnabled) {
-  //
-  //     let result = getGambleResult({ selected: "BLACK" });
-  //     this.decrementPlayerBalance(this.playerData.currentWining);
-  //     //calculate payout
-  //     switch (result.playerWon) {
-  //       case true:
-  //         this.playerData.currentWining *= 2
-  //         result.Balance = this.getPlayerData().credits + this.playerData.currentWining
-  //         result.currentWinning = this.playerData.currentWining
-  //         break;
-  //       case false:
-  //         result.currentWinning = 0;
-  //         result.Balance = this.getPlayerData().credits;
-  //         // this.settings._winData.totalWinningAmount = 0;
-  //         this.playerData.haveWon -= this.playerData.currentWining;
-  //         this.playerData.currentWining = 0;
-  //         break;
-  //     }
-  //     console.log("Gamble Result:", result);
-  //
-  //     this.playerData.haveWon = this.playerData.currentWining;
-  //     this.incrementPlayerBalance(this.playerData.currentWining);
-  //     console.log("Balance:", this.getPlayerData().credits);
-  //
-  //   }
-  // }
 }
 
 

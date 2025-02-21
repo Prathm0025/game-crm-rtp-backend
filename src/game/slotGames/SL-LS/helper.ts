@@ -32,26 +32,22 @@ export function initializeGameSettings(gameData: any, gameInstance: SLLS) {
         currentLines: 0,
         BetPerLines: 0,
         reels: [],
-        anyMatchCount:gameData.gameSettings.anyPayout,
+        // anyMatchCount:gameData.gameSettings.anyPayout,
         freeSpin: {
             freeSpinAwarded: gameData.gameSettings.freeSpinCount,
             freeSpinCount: 0,
             useFreeSpin: false,
             freeSpinPayout: 0,
             freeSpinsAdded: false,
-
         },
+        jackpotPayout:gameData.gameSettings.jackpotPayout,
+        jackpotCombination:gameData.gameSettings.jackpotCombination,
         wild: {
             SymbolName: "",
             SymbolID: -1,
             useWild: false,
         },
         bonus: {
-            SymbolName: "",
-            SymbolID: -1,
-            useWild: false,
-        },
-        jackpot: {
             SymbolName: "",
             SymbolID: -1,
             useWild: false,
@@ -84,7 +80,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLLS) {
 export function generateInitialReel(gameSettings: any): string[][] {
     const reels = [[], [], [], [], [], [], []];
     gameSettings.Symbols.forEach((symbol) => {
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < 3; i++) {
             const count = symbol.reelInstance[i] || 0;
             for (let j = 0; j < count; j++) {
                 reels[i].push(symbol.Id);
@@ -132,6 +128,7 @@ export function sendInitData(gameInstance: SLLS) {
         GameData: {
             Reel: reels,
             // BonusReel: bonusReels,
+            paytable:gameInstance.settings.payoutCombination,
             linesApiData: gameInstance.settings.currentGamedata.linesApiData,
             Bets: gameInstance.settings.currentGamedata.bets,
             baseBet: gameInstance.settings.baseBetAmount,
@@ -189,10 +186,12 @@ export function checkForWin(gameInstance: SLLS) {
         
               
                 const payout =  calculatePayoutForCombination(processedSymbols, settings.payoutCombination);
-                console.log(payout);
                 
 
                     totalPayout += payout * gameInstance.settings.BetPerLines;
+                    
+                   if(payout>0){
+                    console.log(payout);
                     settings._winData.winningLines.push(index);
                     winningLines.push({
                         line,
@@ -208,9 +207,16 @@ export function checkForWin(gameInstance: SLLS) {
                         gameInstance.settings._winData.winningSymbols.push(validIndices);
 
                 }
+                }
+                    
             }
         });
        
+        if (checkForJackpot(gameInstance)) {
+            console.log("JACKPOT TRIGGERED!");
+            totalPayout = settings.jackpotPayout * gameInstance.settings.BetPerLines; 
+            settings.isJackpot = true;
+        }
 
         gameInstance.playerData.currentWining += totalPayout;
         gameInstance.playerData.haveWon = parseFloat(
@@ -333,6 +339,16 @@ function arraysMatchForPayout(matchedSymbols, combination) {
 }
 
 
+function checkForJackpot(gameInstance: SLLS) {
+
+    const { settings } = gameInstance;
+    const jackpotCombination = new Set(settings.jackpotCombination);
+
+    return settings.resultSymbolMatrix.every(row => {
+        const uniqueSymbols = new Set(row);
+        return uniqueSymbols.size === 3 && [...uniqueSymbols].every((symbol:any) => jackpotCombination.has(symbol));
+    });
+}
 
 
 
@@ -356,11 +372,7 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLLS) {
             gameInstance.settings.bonus.SymbolID = symbol.Id;
             gameInstance.settings.bonus.useWild = true;
             break;
-        case specialIcons.jackpot:
-            gameInstance.settings.jackpot.SymbolName = symbol.Name;
-            gameInstance.settings.jackpot.SymbolID = symbol.Id;
-            gameInstance.settings.jackpot.useWild = false;
-            break;
+       
         case specialIcons.bar3:
             gameInstance.settings.bar3.SymbolName = symbol.Name;
             gameInstance.settings.bar3.SymbolID = symbol.Id;
@@ -414,6 +426,8 @@ export function makeResultJson(gameInstance: SLLS) {
         gameInstance.sendMessage('ResultData', sendData);
 
         console.log(sendData, "send Data");
+        console.log(sendData.GameData.symbolsToEmit, "symbolsToEmit");
+
 
     } catch (error) {
         console.error("Error generating result JSON or sending message:", error);
