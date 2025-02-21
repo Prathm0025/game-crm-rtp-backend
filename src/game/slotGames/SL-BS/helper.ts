@@ -250,11 +250,11 @@ function checkSymbolOcuurence(gameInstance: SLBS) {
             if ((matchedSymbol === settings.bonus.SymbolID) && !settings.freeSpin.useFreeSpin) {
                 settings.freeSpin.useFreeSpin = true;
                 settings.freeSpin.freeSpinsAdded = true;
-                settings.freeSpin.freeSpinCount = settings.freeSpin.freeSpinAwarded;
-            } else if ((matchedSymbol === settings.bonus.SymbolID) && settings.freeSpin.useFreeSpin) {
-                settings.freeSpin.freeSpinCount = settings.freeSpin.freeSpinAwarded;
+                settings.freeSpin.freeSpinCount  = settings.freeSpin.freeSpinAwarded;
+            }else if((matchedSymbol === settings.bonus.SymbolID) && settings.freeSpin.useFreeSpin){
+                settings.freeSpin.freeSpinCount  = settings.freeSpin.freeSpinAwarded;
                 settings.freeSpin.freeSpinsAdded = true
-            }
+            }      
 
 
             if (matchedSymbol === settings.jackpot.SymbolID) {
