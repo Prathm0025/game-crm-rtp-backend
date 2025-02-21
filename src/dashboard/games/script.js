@@ -8,12 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.addOrderToExistingGames = addOrderToExistingGames;
-const mongoose_1 = __importDefault(require("mongoose"));
 const gameModel_1 = require("./gameModel");
 function addOrderToExistingGames() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -32,11 +28,11 @@ function addOrderToExistingGames() {
                 }
             }
             console.log("✅ Order field added (if missing) to all games successfully!");
-            mongoose_1.default.disconnect();
+            // mongoose.disconnect();
         }
         catch (error) {
             console.error("❌ Error updating games:", error);
-            mongoose_1.default.disconnect();
+            // mongoose.disconnect();
         }
     });
 }
