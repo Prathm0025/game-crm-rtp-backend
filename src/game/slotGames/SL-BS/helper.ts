@@ -278,10 +278,10 @@ function checksymbolocuurence(gameinstance: SLBS) {
             if (allsame) {
                 const symbol: any = settings.currentGamedata.Symbols.find((symbol) => symbol.Id === matchedsymbol);
                 const symbolpayout = parseFloat(symbol?.payout || "0");
-                const payout = symbolpayout * settings.currentBet;
+                const payout = symbolpayout * settings.BetPerLines;
                 totalpayout += payout;
             } else if (isspecialcombination) {
-                const payout = settings.anyMatchCount * settings.currentBet;
+                const payout = settings.anyMatchCount * settings.BetPerLines;
                 totalpayout += payout;
             }
 
