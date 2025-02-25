@@ -31,7 +31,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBS) {
         currentLines: 0,
         BetPerLines: 0,
         reels: [],
-        anyMatchCount: gameData.gameSettings.anyPayout,
+        anyMatchCount:gameData.gameSettings.anyPayout,
         freeSpin: {
             freeSpinAwarded: gameData.gameSettings.freeSpinCount,
             freeSpinCount: 0,
@@ -123,7 +123,7 @@ export function makePayLines(gameInstance: SLBS) {
 export function sendInitData(gameInstance: SLBS) {
     gameInstance.settings.lineData =
         gameInstance.settings.currentGamedata.linesApiData;
-    const symbols = gameInstance.settings.Symbols
+    const symbols = gameInstance.settings.Symbols        
     UiInitData.paylines = convertSymbols(symbols);
     const reels = generateInitialReel(gameInstance.settings);
     gameInstance.settings.reels = reels;
