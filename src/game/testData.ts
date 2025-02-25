@@ -1,161 +1,421 @@
-export const gameData = [{
-    "id": "SL-BS",
+
+export const gameData = [
+  {
+    "id": "SL-AOG",
     "matrix": {
-      "x": 3,
+      "x": 5,
       "y": 3
     },
     "linesApiData": [
-      [0, 0, 0],
-      [
-        1,
-        1,
-        1
-      ]
+      [ 1, 1, 1, 1, 1 ],
+      [ 0, 0, 0, 0, 0 ],
+      [ 2, 2, 2, 2, 2 ],
+      [ 0, 1, 2, 1, 0 ],
+      [ 2, 1, 0, 1, 2 ],
+      [ 0, 0, 1, 0, 0 ],
+      [ 2, 2, 1, 2, 2 ],
+      [ 1, 2, 2, 2, 1 ],
+      [ 1, 0, 0, 0, 1 ],
+      [ 2, 0, 0, 0, 2 ],
+      [ 0, 2, 2, 2, 0 ],
+      [ 2, 1, 2, 1, 2 ],
+      [ 0, 1, 0, 1, 0 ],
+      [ 1, 1, 2, 1, 1 ],
+      [ 1, 1, 0, 1, 1 ],
+      [ 1, 0, 1, 0, 1 ],
+      [ 1, 2, 1, 2, 1 ],
+      [ 2, 1, 1, 1, 2 ],
+      [ 0, 1, 1, 1, 0 ],
+      [ 1, 0, 2, 0, 1 ],
+      [ 2, 2, 0, 2, 2 ],
+      [ 0, 0, 2, 0, 0 ],
+      [ 0, 2, 0, 2, 0 ],
+      [ 2, 0, 2, 0, 2 ],
+      [ 1, 2, 0, 2, 1 ],
+      [ 0, 1, 2, 2, 2 ],
+      [ 2, 1, 0, 0, 0 ],
+      [ 0, 0, 0, 1, 2 ],
+      [ 2, 2, 2, 1, 0 ],
+      [ 0, 0, 1, 2, 2 ]
     ],
-    "linesCount": [
-      1
-    ],
+    "linesCount": [ 1, 5, 15, 20, 25, 30 ],
     "bets": [
-      0.02,
-      0.04,
+      0.0005,
+      0.0025,
+      0.005,
+      0.0125,
+      0.025,
+      0.0375,
+      0.05,
+      0.0625,
       0.1,
-      0.2,
-      0.3,
+      0.15,
+      0.25,
       0.5,
+      0.75,
       1,
       1.5,
-      3,
-      7,
-      10,
-      15,
-      20,
-      32,
-      64
+      2
     ],
-    "freeSpinCount": 3,
-    "anyPayout": 1.5,
+    "wheelProb":[90,3,3,3], // probability of NO wheel of fortune on idx #1 , small wheel of fortune on idx #2, medium wheel of fortune on idx #3, big wheel of fortune on idx  #4
+    "goldSymbolProb":[1,5,5,5,5,5], // just for visuals extra gold symbols. WHEELPROB will determine if feature will be triggered .idx#1 prob for NO extra gold symbols , idx#2 prob for 1 extra gold symbol and so on
+    "smallWheelFeature": {
+      "featureValues":[
+        1,1,//levelup
+        5,4,//wilds
+        5,8,//freespin
+        20,40,//multiplier
+      ],
+      "featureProbs":[
+        2,2, //levelup
+        2,2, //wild
+        2,2, //freespin
+        2,2, //multiplier
+      ]
+    },
+    "mediumWheelFeature": {
+      "featureValues":[
+        1,1,//levelup
+        6,3,//wilds
+        9,11,//freespin
+        25,45,//multiplier
+      ],
+      "featureProbs":[
+        2,2, //levelup
+        2,2, //wild
+        2,2, //freespin
+        2,2, //multiplier
+      ]
+    },
+    "largeWheelFeature": {
+      "featureValues":[
+        0,0, //levelup KEEP this 0
+        8,12,//wilds
+        15,21,//freespin
+        35,55,//multiplier
+      ],
+      "featureProbs":[
+        0,0, //levelup KEEP this 0
+        2,2, //wild
+        2,2, //freespin
+        2,2, //multiplier
+      ]
+    },
     "Symbols": [
       {
+        "Name": "0",
         "Id": 0,
-        "payout": 3,
         "reelInstance": {
-          "0": 9,
-          "1": 9,
-          "2": 9
-        }
+          "0": 10,
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 10
+        },
+        "useWildSub": true,
+        "multiplier": [
+          [
+            60,
+            0
+          ],
+          [
+            30,
+            0
+          ],
+          [
+            15,
+            0
+          ]
+        ]
       },
       {
+        "Name": "1",
         "Id": 1,
-        "payout": 3,
-        "description": "",
         "reelInstance": {
-          "0": 9,
-          "1": 9,
-          "2": 9
-        }
+          "0": 10,
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 10
+        },
+        "useWildSub": true,
+        "multiplier": [
+          [
+            60,
+            0
+          ],
+          [
+            30,
+            0
+          ],
+          [
+            15,
+            0
+          ]
+        ]
       },
       {
+        "Name": "2",
         "Id": 2,
-        "payout": 3,
-        "description": "",
         "reelInstance": {
-          "0": 9,
-          "1": 9,
-          "2": 9
-        }
+          "0": 10,
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 10
+        },
+        "useWildSub": true,
+        "multiplier": [
+          [
+            60,
+            0
+          ],
+          [
+            30,
+            0
+          ],
+          [
+            15,
+            0
+          ]
+        ]
       },
       {
+        "Name": "3",
         "Id": 3,
-        "payout": 3,
-        "description": "",
         "reelInstance": {
-          "0": 9,
-          "1": 9,
-          "2": 9
-        }
+          "0": 10,
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 10
+        },
+        "useWildSub": true,
+        "multiplier": [
+          [
+            60,
+            0
+          ],
+          [
+            30,
+            0
+          ],
+          [
+            15,
+            0
+          ]
+        ]
       },
       {
+        "Name": "4",
         "Id": 4,
-        "payout": 3,
-        "description": "",
         "reelInstance": {
-          "0": 9,
-          "1": 9,
-          "2": 9
-        }
+          "0": 10,
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 10
+        },
+        "useWildSub": true,
+        "multiplier": [
+          [
+            60,
+            0
+          ],
+          [
+            30,
+            0
+          ],
+          [
+            15,
+            0
+          ]
+        ]
       },
       {
+        "Name": "5",
         "Id": 5,
-        "payout": 5,
-        "description": "",
         "reelInstance": {
-          "0": 9,
-          "1": 9,
-          "2": 9
-        }
+          "0": 10,
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 10
+        },
+        "useWildSub": true,
+        "multiplier": [
+          [
+            125,
+            0
+          ],
+          [
+            75,
+            0
+          ],
+          [
+            25,
+            0
+          ]
+        ]
       },
       {
-        "Name": "Bar1",
+        "Name": "6",
         "Id": 6,
-        "payout": 10,
         "reelInstance": {
-          "0": 9,
-          "1": 9,
-          "2": 9
-        }
+          "0": 10,
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 10
+        },
+        "useWildSub": true,
+        "multiplier": [
+          [
+            125,
+            0
+          ],
+          [
+            75,
+            0
+          ],
+          [
+            25,
+            0
+          ]
+        ]
       },
       {
-        "Name": "Bar2",
+        "Name": "7",
         "Id": 7,
-        "payout": 15,
-        "mixedPayout": 0,
         "reelInstance": {
-          "0": 9,
-          "1": 9,
-          "2": 9
-        }
+          "0": 10,
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 10
+        },
+        "useWildSub": true,
+        "multiplier": [
+          [
+            125,
+            0
+          ],
+          [
+            75,
+            0
+          ],
+          [
+            25,
+            0
+          ]
+        ]
       },
       {
-        "Name": "Bar3",
+        "Name": "8",
         "Id": 8,
-        "payout": 20,
         "reelInstance": {
-          "0": 9,
-          "1": 9,
-          "2": 9
-        }
+          "0": 10,
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 10
+        },
+        "useWildSub": true,
+        "multiplier": [
+          [
+            125,
+            0
+          ],
+          [
+            75,
+            0
+          ],
+          [
+            25,
+            0
+          ]
+        ]
       },
       {
-        "Name": "Bonus",
+        "Name": "9",
         "Id": 9,
-        "payout": 0,
-        "description": "Activates 3 free spins when 3 symbols appear adjacent to each other on the result matrix.",
         "reelInstance": {
-          "0": 3,
-          "1": 3,
-          "2": 3
-        }
+          "0": 10,
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 10
+        },
+        "useWildSub": true,
+        "multiplier": [
+          [
+            125,
+            0
+          ],
+          [
+            75,
+            0
+          ],
+          [
+            25,
+            0
+          ]
+        ]
       },
       {
-        "Name": "Jackpot",
+        "Name": "10",
         "Id": 10,
-        "payout": 250,
-        "description": "Mega win triggered by 3 Jackpot symbols appearing anywhere on the result matrix.",
         "reelInstance": {
-          "0": 1,
-          "1": 1,
-          "2": 1
-        }
+          "0": 10,
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 10
+        },
+        "useWildSub": true,
+        "multiplier": [
+          [
+            200,
+            0
+          ],
+          [
+            150,
+            0
+          ],
+          [
+            50,
+            0
+          ]
+        ]
       },
       {
-        "Name": "ANY",
+        "Name": "Wild",
         "Id": 11,
-        "payout": 1.5,
         "reelInstance": {
-          "0": 0,
-          "1": 0,
-          "2": 0
-        }
+          "0": 10,
+          "1": 5,
+          "2": 10,
+          "3": 10,
+          "4": 10
+        },
+        "description": "Substitutes for all symbols .",
+        "useWildSub": false,
+        "multiplier": [
+          [
+            200,
+            0
+          ],
+          [
+            150,
+            0
+          ],
+          [
+            50,
+            0
+          ]
+        ]
       }
     ]
-  }  ]
+  }
+
+]

@@ -31,7 +31,7 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBS) {
         currentLines: 0,
         BetPerLines: 0,
         reels: [],
-        anyMatchCount:gameData.gameSettings.anyPayout,
+        anyMatchCount: gameData.gameSettings.anyPayout,
         freeSpin: {
             freeSpinAwarded: gameData.gameSettings.freeSpinCount,
             freeSpinCount: 0,
@@ -55,22 +55,22 @@ export function initializeGameSettings(gameData: any, gameInstance: SLBS) {
             SymbolID: -1,
             useWild: false,
         },
-        bar3:{
+        bar3: {
             SymbolName: "",
             SymbolID: -1,
             useWild: false,
         },
-        bar2:{
+        bar2: {
             SymbolName: "",
             SymbolID: -1,
             useWild: false,
         },
-        bar1:{
+        bar1: {
             SymbolName: "",
             SymbolID: -1,
             useWild: false,
         },
-        isJackpot:false
+        isJackpot: false
     };
 }
 
@@ -123,7 +123,7 @@ export function makePayLines(gameInstance: SLBS) {
 export function sendInitData(gameInstance: SLBS) {
     gameInstance.settings.lineData =
         gameInstance.settings.currentGamedata.linesApiData;
-    const symbols = gameInstance.settings.Symbols        
+    const symbols = gameInstance.settings.Symbols
     UiInitData.paylines = convertSymbols(symbols);
     const reels = generateInitialReel(gameInstance.settings);
     gameInstance.settings.reels = reels;
@@ -166,14 +166,14 @@ export function checkForWin(gameInstance: SLBS) {
         const { settings } = gameInstance;
 
         const winningLines = [];
-     
-    
+
+
         if (settings.freeSpin.useFreeSpin && settings.freeSpin.freeSpinCount > 0) {
             settings.freeSpin.freeSpinCount -= 1;
             if (settings.freeSpin.freeSpinCount <= 0) {
                 settings.freeSpin.useFreeSpin = false;
             }
-        }      
+        }
 
         const {iswinning, totalpayout, matchedindices} = checksymbolocuurence(gameInstance);
         //  console.log(totalPayout, "total");
@@ -182,16 +182,14 @@ export function checkForWin(gameInstance: SLBS) {
          if (validIndices.length > 0) {
              gameInstance.settings._winData.winningSymbols.push(validIndices);
 
-     }
-         
-    
+
 
         gameInstance.playerData.currentWining += totalpayout;
         gameInstance.playerData.haveWon = parseFloat(
             (gameInstance.playerData.haveWon + parseFloat(gameInstance.playerData.currentWining.toFixed(4))).toFixed(4)
         );
-      gameInstance.updatePlayerBalance(gameInstance.playerData.currentWining);
-       
+        gameInstance.updatePlayerBalance(gameInstance.playerData.currentWining);
+
         makeResultJson(gameInstance)
         settings._winData.totalWinningAmount = 0;
         gameInstance.playerData.currentWining = 0;
@@ -200,7 +198,7 @@ export function checkForWin(gameInstance: SLBS) {
         settings._winData.winningSymbols = []
         settings.isJackpot = false;
         settings._winData.winningLines = []
-     
+
     } catch (error) {
         console.error("Error in checkForWin", error);
         return [];
@@ -236,6 +234,7 @@ function checksymbolocuurence(gameinstance: SLBS) {
         if (haswild) {
             const nonwildsymbols = rowSymbols.filter((symbol) => symbol !== settings.wild.SymbolID);
             const allnonwildsame = nonwildsymbols.every((symbol) => symbol === nonwildsymbols[0]);
+
 
             if (
                 allnonwildsame &&
@@ -341,8 +340,8 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLBS) {
             gameInstance.settings.bar1.SymbolName = symbol.Name;
             gameInstance.settings.bar1.SymbolID = symbol.Id;
             gameInstance.settings.bar1.useWild = false;
-            break;                            
-            default:
+            break;
+        default:
             break; ``
     }
 }
@@ -364,7 +363,7 @@ function handleSpecialSymbols(symbol: any, gameInstance: SLBS) {
 
 //     let values: number[];
 //     let probabilities: number[];
-    
+
 //     // determine the values and probabilities based on the type
 //     if (type === 'sticky') {
 //         values = settings?.stickySymbolCount;
