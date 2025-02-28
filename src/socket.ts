@@ -147,6 +147,7 @@ const handlePlayerConnection = async (socket: Socket, decoded: DecodedToken, use
         socket.emit(messageType.ERROR, "An error occurred while handling the connection.");
         socket.disconnect(true);
     }
+
 };
 
 
