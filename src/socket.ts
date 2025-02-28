@@ -147,6 +147,7 @@ const handlePlayerConnection = async (socket: Socket, decoded: DecodedToken, use
         socket.emit(messageType.ERROR, `Error in handlePlayerConnection for user ${decoded?.username || 'unknown'}:`, error);
         socket.disconnect(true);
     }
+
 };
 
 
