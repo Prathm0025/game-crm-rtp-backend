@@ -144,7 +144,7 @@ const handlePlayerConnection = async (socket: Socket, decoded: DecodedToken, use
         // socket.disconnect(true);
     } catch (error) {
         console.error(`Error in handlePlayerConnection for user ${decoded?.username || 'unknown'}:`, error);
-        socket.emit(messageType.ERROR, "An error occurred while handling the connection.");
+        socket.emit(messageType.ERROR, `Error in handlePlayerConnection for user ${decoded?.username || 'unknown'}:`, error);
         socket.disconnect(true);
     }
 
