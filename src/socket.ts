@@ -143,7 +143,7 @@ const handlePlayerConnection = async (socket: Socket, decoded: DecodedToken, use
 
     // Invalid connection attempt
     socket.emit(messageType.ERROR, "Invalid connection attempt.");
-    socket.disconnect(true);
+    // socket.disconnect(true);
 };
 
 const handleManagerConnection = async (socket: Socket, decoded: DecodedToken, userAgent: string) => {
