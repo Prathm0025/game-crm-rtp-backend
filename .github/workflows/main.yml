@@ -50,7 +50,7 @@ jobs:
         run: npm run build
 
       - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4  # ✅ Updated to v4
+        uses: actions/upload-artifact@v4
         with:
           name: artifact
           path: ./dist/**/*.js
@@ -78,7 +78,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download Build Artifacts
-        uses: actions/download-artifact@v4  # ✅ Updated to v4
+        uses: actions/download-artifact@v4
         with:
           name: artifact
 
@@ -121,4 +121,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
         run: |
-          git push origin --delete build-artifacts
+          BRANCH_NAME="build-artifacts"
+          if git ls-remote --exit-code origin "$BRANCH_NAME"; then
+            git push origin --delete "$BRANCH_NAME"
+          else
+            echo "Branch $BRANCH_NAME does not exist on the remote. Skipping deletion."
+          fi
