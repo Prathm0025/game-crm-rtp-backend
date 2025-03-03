@@ -709,7 +709,7 @@ export function checkForWin(gameInstance: SLAOG) {
     settings.wheelFeature.wheelType = "NONE"
     settings.goldIndices = []
 
-    settings.levelUpResponse=[]
+    settings.levelUpResponse = []
 
     settings._winData.winningLines = []
     settings._winData.winningSymbols = []
@@ -750,7 +750,7 @@ export function makeResultJson(gameInstance: SLAOG) {
         currentWining: playerData.currentWining
       }
     };
-    console.log(JSON.stringify(sendData,null,2));
+    console.log(JSON.stringify(sendData, null, 2));
 
     gameInstance.sendMessage('ResultData', sendData);
   } catch (error) {

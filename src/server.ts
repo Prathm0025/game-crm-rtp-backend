@@ -16,6 +16,7 @@ import { checkUser } from "./dashboard/middleware/checkUser";
 import toggleRoutes from "./dashboard/Toggle/ToggleRoutes";
 import { checkRole } from "./dashboard/middleware/checkRole";
 import sessionRoutes from "./dashboard/session/sessionRoutes";
+import { addOrderToExistingGames } from "./dashboard/games/script"
 declare module "express-session" {
   interface Session {
     captcha?: string;
@@ -85,9 +86,15 @@ const io = new Server(server, {
     origin: "*",
     methods: ["GET", "POST"],
   },
+  transports: ["websocket"],
+  pingInterval: 25000,
+  pingTimeout: 60000,
+  allowEIO3: false,
 });
 
 socketController(io);
+addOrderToExistingGames();
+
 
 app.use(globalErrorHandler);
 
