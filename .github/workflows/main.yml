@@ -53,6 +53,7 @@ jobs:
           git checkout dev-build
           cp -r ./dist/src .
           cp -r ./dist/app.js .
+          cp ./copyStaticAsset.js .
           rm -rf ./dist
           rm -rf ./node_modules
           git add -f ./app.js ./src ./copyStaticAsset.js
