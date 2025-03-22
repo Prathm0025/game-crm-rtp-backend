@@ -39,8 +39,12 @@ export const incrementDownload = async (req: Request, res: Response) => {
 export const getAppMetrics = async (req: Request, res: Response) => {
   try {
     const counts = await getAllCounts();
+    console.log("count", counts);
+
     res.status(200).json(counts);
   } catch (e) {
+    console.log("error", e);
+
     res.status(500).json({ error: e.message })
   }
 }

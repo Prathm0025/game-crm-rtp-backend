@@ -8,7 +8,9 @@ const appRoutes = Router();
 appRoutes.post('/install', incrementInstall);
 appRoutes.post('/download', incrementDownload);
 
-appRoutes.get('/metrics', checkUser, checkRole(["admin"]), getAppMetrics);
+appRoutes.get('/metrics', checkUser,
+  // checkRole(["admin"]),
+  getAppMetrics);
 
 
 export default appRoutes;
