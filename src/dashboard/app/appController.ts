@@ -48,3 +48,20 @@ export const getAppMetrics = async (req: Request, res: Response) => {
     res.status(500).json({ error: e.message })
   }
 }
+
+export const setBackground = async (req: Request, res: Response) => {
+  try {
+    if (!req.body || typeof req.body.isBack !== 'boolean') {
+      return res.status(400).json({ error: "background boolean is required" });
+    }
+
+    const background: boolean = req.body.isBack;
+    console.log("background", background);
+
+    //TODO: emit socket msg - "reactNat","isBack:true | false"
+
+    res.status(200).json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+}
