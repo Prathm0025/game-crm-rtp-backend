@@ -1,0 +1,235 @@
+*{
+  
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0; 
+    padding: 0; 
+    height: 100vh; 
+    width: 100vw; 
+    background-image: url('./assets/images/Desktop.png'); 
+    background-size: cover; 
+    background-position: center; 
+    background-repeat: no-repeat; 
+    overflow: hidden; 
+}
+
+@media (max-width: 1100px) {
+    body {
+        background-image: url('./assets/images/Mobile.png'); 
+        background-size: 100% 100%; 
+        background-position: top center; 
+    }
+}
+
+
+
+/* ---------------------------- gif logo ------------------------------- */
+
+.gif-parant {
+    width: 100%;
+    display: flex;
+    justify-content: center;   
+    padding-top: 5vh; 
+}
+
+.logogif {
+    width: 27%; 
+}
+
+/* Tablet view */
+@media (max-width: 1024px) {
+    .gif-parant {
+        padding-top: 10vh;
+    }
+
+    .logogif {
+        width: 50%;
+    }
+}
+
+/* Mobile view */
+@media (max-width: 500px) {
+    .gif-parant {
+        padding-top: 6vh; 
+    }
+
+    .logogif {
+        width: 75%;
+    }
+}
+
+/* ------------------------------------------------------- */
+
+.parent{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;  
+    position: absolute;
+    top: 57%;
+    left: 50%;
+    width: 85vw;
+    transform: translate(-50%, -50%) rotate(-5deg);
+}
+
+
+.text{
+    width: 80%;
+    transform: rotate(3.5deg);
+}
+
+
+
+.button-container {
+    position: relative;
+    padding-top: 1%;
+}
+.button-frame {
+    display: block;
+    width: 88%;
+    margin-bottom: .5rem;
+}
+.button-text {
+    position: absolute;
+    top: 58%;
+    left: 45%;
+    transform: translate(-50%, -50%);
+    font-size: 1.6rem;
+    color: white;
+    font-weight: 400;
+    letter-spacing: 1px;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    pointer-events: none; 
+}
+
+
+@media (min-width : 1200px ) and (max-width : 1800px) {
+    .parent{
+        border: 2px solid red;
+        top: 57%;
+        left: 50%;
+        width: 90vw;
+        transform: translate(-50%, -50%) rotate(-5deg);
+    }
+    
+    
+    .text{
+        width: 75%;
+        transform: rotate(5deg);
+    }
+    
+    .button-container {
+        position: relative;
+        padding-top: 2%;
+    }
+    .button-frame {
+        width: 70%;
+        margin-bottom: .5rem;
+    }
+    .button-text {
+        position: absolute;
+        top: 52%;
+        left: 35%;
+        transform: translate(-50%, -50%);
+        font-size: 1.6rem;
+        font-weight: 400;
+        letter-spacing: 1px;
+       
+    }
+}
+
+@media (max-width : 1200px) {
+    .parent{
+        top: 70vh;
+        left: 50%;
+        width: 65vh;
+        transform: translate(-50%, -50%) rotate(-5deg);
+    }
+    
+    
+    .text{
+        width: 95%;
+        transform: rotate(5deg);
+    }
+    
+    .button-container {
+        position: relative;
+        padding-top: 2%;
+    }
+    .button-frame {
+        width: 30vh;
+        margin-bottom: .5rem;
+    }
+    .button-text {
+        position: absolute;
+        top: 52%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 1.4rem;
+        font-weight: 400;
+        letter-spacing: 1px;
+       
+    }
+}
+
+@media (max-width : 800px) {
+    .parent{
+         top: 70%;
+         width: 72vh;
+    }
+    .text{
+         width: 40vh;
+    }
+    .button-frame{
+        width: 30vh;
+    }
+}
+
+@media (max-width: 640px) {
+    .parent{
+        display: block;   
+        top: 69%;
+        left: 50%;
+        width: 100vw;
+        transform: translate(-50%, -50%) ;
+        overflow: hidden;
+    }
+
+    .parent-text{
+        display: flex;
+        justify-content: center;
+        transform: rotate(-6deg);
+       
+    }
+    .text{
+        width: 63%;
+      
+    }
+    .button-parent{
+       transform: rotate(-1deg) translateY(-20px);
+    }
+      
+
+    .button-container {
+        padding-top: 0%;
+       display: flex;
+       justify-content: center;
+       transform: rotate(-4deg);
+        
+    }
+    .button-frame {
+        display: block;
+        width: 62%;
+        margin-bottom: .2rem;
+    }
+    .button-text {
+        left: 50%;
+        font-size: 1rem;
+        font-weight: 400;
+        letter-spacing: 1px;
+       top: 50%;
+    }
+    
+}
+
