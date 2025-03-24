@@ -49,7 +49,7 @@ jobs:
 
       - name: Copy Src and app.js in root
         run: |
-          git cehckout main
+          git checkout main
           sed -i 's|const API_BASE_URL = ".*";|const API_BASE_URL = "${{ secrets.API_URL }}";|' ./src/public/index.html
           git checkout dev -- copyStaticAsset.js
           rm -rf ./dist
