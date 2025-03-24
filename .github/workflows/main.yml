@@ -31,7 +31,6 @@ jobs:
           git config user.name "TrippyRahul"
           git config user.email "rahulrawat.trippybug@gmail.com"
           rm -rf ./app.js 
-          rm -rf ./copyStaticAsset.js
           git add .
           git commit -m "remove old artifacts" || echo "No changes to commit"
           git checkout main
