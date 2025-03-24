@@ -67,7 +67,7 @@ export class CheckResult {
         console.log("_____________RESULT_END________________");
     }
 
-     private checkForBonus() {
+    private checkForBonus() {
         if (!this.currentGame.settings.currentGamedata.bonus.isEnabled) return;
         if (this.currentGame.settings.freeSpin.freeSpinStarted) return
 
@@ -349,7 +349,7 @@ export class CheckResult {
                     count: this.currentGame.settings.freeSpin.freeSpinCount,
                     isNewAdded: this.currentGame.settings.freeSpin.freeSpinsAdded
                 },
-                jackpot: this.currentGame.settings._winData.jackpotwin,
+                jackpot: this.currentGame.settings._winData.specialFeatures.jackpot.amountWon,
                 isBonus: this.currentGame.settings.bonus.start,
                 BonusStopIndex: this.currentGame.settings.bonus.stopIndex,
                 BonusResult: this.bonusResult,

@@ -16,6 +16,9 @@ import { checkUser } from "./dashboard/middleware/checkUser";
 import toggleRoutes from "./dashboard/Toggle/ToggleRoutes";
 import { checkRole } from "./dashboard/middleware/checkRole";
 import sessionRoutes from "./dashboard/session/sessionRoutes";
+import { addOrderToExistingGames } from "./dashboard/games/script"
+import appRoutes from "./dashboard/app/appRoute";
+import path from "path";
 declare module "express-session" {
   interface Session {
     captcha?: string;
@@ -27,6 +30,7 @@ const app = express();
 //Cloudinary configs
 app.use(express.json({ limit: "25mb" }));
 app.use(express.urlencoded({ limit: "25mb", extended: true }));
+app.use(express.static(path.join(__dirname, "public")));
 
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
@@ -72,6 +76,10 @@ app.get("/captcha", async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
+app.get("/play", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
 app.use("/api/company", adminRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/transactions", transactionRoutes);
@@ -79,15 +87,22 @@ app.use("/api/games", gameRoutes);
 app.use("/api/payouts", checkUser, checkRole(["admin"]), payoutRoutes)
 app.use("/api/toggle", checkUser, checkRole(["admin"]), toggleRoutes);
 app.use("/api/session", sessionRoutes);
+app.use("/api/app", appRoutes);
 
 const io = new Server(server, {
   cors: {
     origin: "*",
     methods: ["GET", "POST"],
   },
+  transports: ["websocket"],
+  pingInterval: 25000,
+  pingTimeout: 60000,
+  allowEIO3: false,
 });
 
 socketController(io);
+addOrderToExistingGames();
+
 
 app.use(globalErrorHandler);
 
