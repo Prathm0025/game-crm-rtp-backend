@@ -1,9 +1,10 @@
 name: Build and Deploy
 
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches:
-      - "dev"
+      - "main"
   workflow_dispatch:
 
 permissions:
@@ -26,8 +27,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
         run: |
-          git checkout dev
-          git checkout -b dev-build
+          git checkout main
           git config user.name "TrippyRahul"
           git config user.email "rahulrawat.trippybug@gmail.com"
           rm -rf ./src 
@@ -35,7 +35,7 @@ jobs:
           rm -rf ./copyStaticAsset.js
           git add .
           git commit -m "remove old artifacts" || echo "No changes to commit"
-          git checkout dev
+          git checkout main
          
       - name: Install Dependencies
         run: npm install
@@ -51,13 +51,11 @@ jobs:
 
       - name: Copy Src and app.js in root
         run: |
-          git stash -u
-          git checkout dev-build
-          cp -r ./dist/src .
-          cp -r ./dist/app.js .
+          git cehckout main
+          sed -i 's|const API_BASE_URL = ".*";|const API_BASE_URL = "${{ secrets.API_URL }}";|' ./src/public/index.html
           git checkout dev -- copyStaticAsset.js
           rm -rf ./dist
           rm -rf ./node_modules
           git add -f ./app.js ./src ./copyStaticAsset.js
           git commit -m "add new build" || echo "No changes to commit"
-          git push origin dev-build --force
+          git push origin main --force
