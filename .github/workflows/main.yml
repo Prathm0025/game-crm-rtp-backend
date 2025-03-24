@@ -49,12 +49,8 @@ jobs:
 
       - name: Copy Src and app.js in root
         run: |
-          git checkout dev
           git checkout main
           sed -i 's|const API_BASE_URL = ".*";|const API_BASE_URL = "${{ secrets.API_URL }}";|' ./src/public/index.html
-          git checkout dev -- copyStaticAsset.js
-          rm -rf ./dist
-          rm -rf ./node_modules
-          git add -f ./app.js ./src ./copyStaticAsset.js
-          git commit -m "add new build" || echo "No changes to commit"
+          git add -f ./src
+          git commit -m "url updated" || echo "No changes to commit"
           git push origin main --force
